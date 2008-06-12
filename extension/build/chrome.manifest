@@ -1,0 +1,8 @@
+content mozmill jar:chrome/mozmill.jar!/content/
+overlay	chrome://browser/content/browser.xul	chrome://mozmill/content/overlay.xul
+
+locale mozmill en-US jar:chrome/mozmill.jar!/locale/en-US/
+
+skin mozmill classic/1.0 jar:chrome/mozmill.jar!/skin/
+style	chrome://global/content/customizeToolbar.xul	chrome://mozmill/skin/overlay.css
+

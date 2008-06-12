@@ -1,0 +1,16 @@
+Metadata-Version: 1.0
+Name: mozmill
+Version: 0.1pre
+Summary: UI Automation tool for Mozilla applications.
+Home-page: UNKNOWN
+Author: Mozilla, Mikeal Rogers
+Author-email: mikeal.rogers@gmail.com
+License: http://www.apache.org/licenses/LICENSE-2.0
+Description: UNKNOWN
+Platform: Any
+Classifier: Development Status :: 4 - Beta
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Operating System :: OS Independent
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
