@@ -16,10 +16,12 @@ mozmill/extension/build/chrome.manifest
 mozmill/extension/build/install.rdf
 mozmill/extension/build/mozmill.xpi
 mozmill/extension/build/readme.txt
+mozmill/extension/content/dxwindow.xul
 mozmill/extension/content/mozmill.xul
 mozmill/extension/content/overlay.js
 mozmill/extension/content/overlay.xul
 mozmill/extension/content/prefs.xul
+mozmill/extension/content/testwindow.xul
 mozmill/extension/content/css/mozmill.css
 mozmill/extension/content/img/wmIcon.png
 mozmill/extension/content/js/mozmill.js
@@ -52,12 +54,14 @@ mozmill/extension/content/js/mm/remote-global.js
 mozmill/extension/content/js/mm/remote.js
 mozmill/extension/content/js/mm/results.js
 mozmill/extension/content/js/mm/service.js
+mozmill/extension/content/js/mm/testresults.js
 mozmill/extension/content/js/mm/timing.js
 mozmill/extension/content/js/mm/ui.js
 mozmill/extension/content/js/mm/utilities.js
 mozmill/extension/content/js/mm/windmill-exec.js
 mozmill/extension/content/js/mm/windmill.js
 mozmill/extension/content/js/mm/xhr.js
+mozmill/extension/content/js/tests/test_resultsFactory.js
 mozmill/extension/defaults/preferences/debug.js
 mozmill/extension/locale/en-US/mozmill.dtd
 mozmill/extension/locale/en-US/overlay.dtd

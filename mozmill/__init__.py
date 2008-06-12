@@ -12,5 +12,3 @@ global_settings.MOZILLA_PLUGINS.append(os.path.join(basedir, 'extension'))
 sys.argv.append('--launch')
 
 main = jsbridge.main
-
-
