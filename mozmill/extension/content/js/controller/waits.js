@@ -18,7 +18,7 @@ Copyright 2006-2007, Open Source Applications Foundation
 mozmill.controller.waits.sleep = function (paramObj, obj) { 
   mozmill.waiting = true;
 
-  done = function(){
+ /* done = function(){
     mozmill.waiting = false;
     mozmill.controller.continueLoop();
     //we passed the id in the parms object of the action in the ide
@@ -28,7 +28,27 @@ mozmill.controller.waits.sleep = function (paramObj, obj) {
     mozmill.xhr.setWaitBgAndReport(aid,true,obj);
   }    
   setTimeout('done()', paramObj.milliseconds);
-  return true;
+  return true;*/
+  var observer = {
+    QueryInterface : function (iid) {
+      const interfaces = [Components.interfaces.nsIObserver,
+                          Components.interfaces.nsISupports,
+                          Components.interfaces.nsISupportsWeakReference];
+
+      if (!interfaces.some( function(v) { return iid.equals(v) } ))
+        throw Components.results.NS_ERROR_NO_INTERFACE;
+      return this;
+    },
+
+    observe : function (subject, topic, data) {
+      return true;
+    }
+  };
+
+  var timer = Components.classes["@mozilla.org/timer;1"]
+              .createInstance(Components.interfaces.nsITimer);
+  timer.init(observer, paramObj.milliseconds,
+             Components.interfaces.nsITimer.TYPE_ONE_SHOT);
 };
   
 mozmill.controller.waits.forJSTrue = function (paramObj, obj) { 
@@ -91,7 +111,7 @@ mozmill.controller.waits.forJSTrue = function (paramObj, obj) {
           else{ mozmill.controller.continueLoop(); }
         
            //set the result in the ide
-            mozmill.xhr.setWaitBgAndReport(aid,true,obj);
+      //TODO: fix later      mozmill.xhr.setWaitBgAndReport(aid,true,obj);
         }
       setTimeout(c, 1000);
     }

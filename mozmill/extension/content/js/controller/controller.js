@@ -144,10 +144,10 @@ mozmill.controller = new function () {
         }
         
 //      $('loopLink').innerHTML = 'Pause Loop';
-      if (mozmill.xhr.loopState == false){
+     /*TODO: fix later if (mozmill.xhr.loopState == false){
         mozmill.xhr.loopState = true;
         mozmill.xhr.getNext();
-      }
+      }*/
     }
     //Just making sure the page is fully loaded
     setTimeout("cont()", 1000);
