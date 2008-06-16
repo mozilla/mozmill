@@ -216,7 +216,15 @@ mozmill.controller.commands.jsTestResults = function () {
   };
 
   jsSuiteSummary.endTime();
-  mozmill.ui.results.writeResult(s);
+  var result = !(_j.testFailureCount > 0);
+  
+  if (result){
+     mozmill.ui.results.writeResult(s, 'lightgreen');
+   }
+   else{
+     mozmill.ui.results.writeResult(s, 'lightred');
+   }
+  //mozmill.ui.results.writeResult(s);
   //We want the summary to have a concept of success/failure
   var result = !(_j.testFailureCount > 0);
   var method = 'JS Test Suite Completion';

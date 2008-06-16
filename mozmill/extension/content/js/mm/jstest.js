@@ -634,6 +634,7 @@ mozmill.jsTest = new function () {
       // Get the next item in the array
       var item = testItemArray[this.testItemArray.incr];
       this.testItemArray.incr++;
+
       if (typeof item == 'undefined') {
         throw new Error('Test item in array-style test is undefined --' +
           ' likely a trailing comma separator has caused this.');
@@ -651,13 +652,18 @@ mozmill.jsTest = new function () {
         // If the action is a sleep, set the sleep
         // wait interval for the setTimeout loop
         if (item.method == 'waits.sleep') {
+          mozmill.ui.results.writeResult("\nAction: " + item.method +
+                   "\nParams: " + fleegix.json.serialize(item.params), 'lightyellow');
           t = item.params.milliseconds;
            //Build some UI
           var action = {};
           action.method = item.method;
           action.params = item.params;
           action.params.orig = 'js';
-
+          var func = eval('mozmill.jsTest.actions.' + item.method);
+          
+          func(item.params, item);
+                  
          // var a = mozmill.xhr.createActionFromSuite('jsTests', action);
         //  mozmill.xhr.setWaitBgAndReport(a.id,true,action);
         }
@@ -671,6 +677,8 @@ mozmill.jsTest = new function () {
           //is calling the function inside waits.forElement
           item.params.orig = 'js';
           func(item.params, item);
+          mozmill.ui.results.writeResult("\nAction: " + item.method +
+                "\nParams: " + fleegix.json.serialize(item.params));
           //Let the js test framework know that it's in a waiting state
           this.waiting = true;
         }
@@ -699,7 +707,7 @@ mozmill.jsTest = new function () {
           
           testActionFunc(item.params);
           mozmill.ui.results.writeResult("\nAction: " + item.method +
-            "\nParams: " + fleegix.json.serialize(item.params));
+            "\nParams: " + fleegix.json.serialize(item.params), 'lightgreen');
 
           if (this.testItemArray.name == 'setup') {
 
@@ -721,7 +729,7 @@ mozmill.jsTest = new function () {
     msg = msg.replace(/>/g, '&gt;');
 
     mozmill.ui.results.writeResult("\nTest: " +
-            testName + "\nTest Result:" + false + '\nError: '+ msg);
+            testName + "\nTest Result:" + false + '\nError: '+ msg, 'lightred');
 
     //mozmill.jsTest.sendJSReport(testName, false, e, this.currentJsTestTimer);
     this.testFailures.push(fail);

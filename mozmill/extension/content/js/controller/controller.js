@@ -92,12 +92,6 @@ mozmill.controller = new function () {
       s = 'Looking up name '+ param_object.name;
       element = this.findElement("name=" + param_object.name)
     }
-    if (typeof element == "undefined"){
-      mozmill.ui.results.writeResult(s+'... not found.');
-    }
-    else {
-      mozmill.ui.results.writeResult(s+'... found.');
-    }
     return element;
   };
 

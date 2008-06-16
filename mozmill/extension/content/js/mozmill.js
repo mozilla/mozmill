@@ -24,6 +24,11 @@ var mozmill = new function(){
 
 opener.mozmill = mozmill;
 
+var clear = function(){
+  alert('clearing');
+  //var s = $('mmtabs').getAttribute("selectedIndex");
+  $('teststab').textContent = "";
+}
 var showPrefs = function(){
   var p = window.open("chrome://mozmill/content/prefs.xul", "", "chrome,modal,alwaysRaised,centerscreen,height=300,width=300");
 }

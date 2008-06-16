@@ -15,16 +15,15 @@ Copyright 2006-2007, Open Source Applications Foundation
 */
 
 //Click function for Mozilla with Chrome
-mozmill.controller.click = function(param_object){  
+mozmill.controller.click = function(param_object){
     var element = this._lookupDispatch(param_object);
     if (typeof element == "undefined"){ return false; }     
-    mozmill.events.triggerEvent(element, 'focus', false);
-    
-    //launch the click on firefox chrome
+     //launch the click on firefox chrome
     if (element.baseURI.indexOf('chrome://') != -1){
       element.click();
       return true;
     }
+    mozmill.events.triggerEvent(element, 'focus', false);
     
     // Add an event listener that detects if the default action has been prevented.
     // (This is caused by a javascript onclick handler returning false)

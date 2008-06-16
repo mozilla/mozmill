@@ -34,11 +34,17 @@ function() {
     }
 
     //Writing to the results tab
-    this.writeResult = function(str) {
+    this.writeResult = function(str, color) {
       var r = $("resOut");
 
       var msg = document.createElement('hbox');
       msg.setAttribute("class", "resultrow");
+      if (typeof(color) != 'undefined'){
+        msg.style.background = color;
+      }
+      else{
+        msg.style.background = 'lightyellow';
+      }
       msg.textContent = str;
 
       r.insertBefore(msg, r.childNodes[0]);
