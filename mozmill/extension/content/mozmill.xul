@@ -9,32 +9,14 @@ title="&title.label;">
 
 <script src="js/lib/fleegix_js/trunk/fleegix.js.uncompressed.js"/>
 <script src="js/lib/fleegix_js/trunk/plugins/hash.js"/>
-<script src="js/lib/xpath/misc.js"/>
-<script src="js/lib/xpath/dom.js"/>
-<script src="js/lib/xpath/xpath.js"/>
-<script src="js/lib/getXPath.js"/>
 <script src="js/mozmill.js"/>
-<script src="js/fm/remote-global.js"/>
-<script src="js/controller/controller.js"/>
-<script src="js/controller/mozController.js"/>
-<script src="js/controller/waits.js"/>
-<script src="js/controller/asserts.js"/>
-<script src="js/controller/commands.js"/>
-<script src="js/mm/assertsexplorer.js"/>
-<script src="js/mm/ui.js"/>
-<script src="js/mm/domexplorer.js"/>
-<script src="js/mm/events.js"/>
-<script src="js/mm/timing.js"/>
-<script src="js/mm/performance.js"/>
-<script src="js/mm/playback.js"/>
-<script src="js/mm/recorder.js"/>
-<script src="js/mm/registry.js"/>
-<script src="js/mm/remote.js"/>
-<script src="js/mm/results.js"/>
-<script src="js/mm/service.js"/>
-<script src="js/mm/utilities.js"/>
-<script src="js/mm/jstest.js"/>
-<script src="js/lib/browserdetect.js"/>
+<script src="js/modules/controller.js"/>
+<script src="js/mozmill/events.js"/>
+<script src="js/mozmill/timing.js"/>
+<script src="js/mozmill/recorder.js"/>
+<script src="js/mozmill/results.js"/>
+<script src="js/mozmill/utils.js"/>
+<script src="js/mozmill/jstest.js"/>
 <script type="application/x-javascript;version=1.7" src="js/mm/testresults.js"/>
 
 <toolbox>
