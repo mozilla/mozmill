@@ -38,7 +38,7 @@ mozmill.utils = new function() {
        recurseDir(fp.file.directoryEntries);
        paramObj = {};
        paramObj.files = array;
-       mozmill.controller.commands.jsTests(paramObj);
+       mozmill.MozMillController.commands.jsTests(paramObj);
      }*/
      this.openFile = function(){
        //define the interface
@@ -60,7 +60,7 @@ mozmill.utils = new function() {
          //Move focus to output tab
          $('mmtabs').setAttribute("selectedIndex", 2);
          //send it into the JS test framework to run the file
-         mozmill.controller.commands.jsTests(paramObj);
+         mozmill.utils.jsTests(paramObj);
        }
      };
      
@@ -74,7 +74,7 @@ mozmill.utils = new function() {
            throw new Error('No JavaScript tests to run.');
          }
          var _j = mozmill.jsTest;
-         //mozmill.controller.stopLoop();
+         //mozmill.MozMillController.stopLoop();
 
          //Timing the suite
          var jsSuiteSummary = new TimeObj();
@@ -109,18 +109,18 @@ mozmill.utils = new function() {
        var result = !(_j.testFailureCount > 0);
 
        if (result){
-          mozmill.ui.results.writeResult(s, 'lightgreen');
+          mozmill.results.writeResult(s, 'lightgreen');
         }
         else{
-          mozmill.ui.results.writeResult(s, 'lightred');
+          mozmill.results.writeResult(s, 'lightred');
         }
-       //mozmill.ui.results.writeResult(s);
+       //mozmill.results.writeResult(s);
        //We want the summary to have a concept of success/failure
        var result = !(_j.testFailureCount > 0);
        var method = 'JS Test Suite Completion';
        //mozmill.jsTest.sendJSReport(method, result, null, jsSuiteSummary);
        // Fire the polling loop back up
-       //mozmill.controller.continueLoop();
+       //mozmill.MozMillController.continueLoop();
 
      }; 
 };

@@ -19,7 +19,7 @@ Currently the dynamic ones are not built into the IDE UI, but will
 in the very near future.
 */
 
-mozmill.controller.asserts.assertRegistry = {
+mozmill.MozMillController.asserts.prototype.prototype.assertRegistry = {
   'assertTrue': {
   expr: function (a) {
       if (typeof a != 'boolean') {
@@ -103,9 +103,9 @@ mozmill.controller.asserts.assertRegistry = {
 
 //Currently only does one level below the provided div
 //To make it more thorough it needs recursion to be implemented later
-mozmill.controller.asserts.assertText = function (param_object) {
+mozmill.MozMillController.asserts.prototype.prototype.assertText = function (param_object) {
 
-  var n = mozmill.controller._lookupDispatch(param_object);
+  var n = mozmill.MozMillController._lookupDispatch(param_object);
   var validator = param_object.validator;
   try{
     if (n.innerHTML.indexOf(validator) != -1){
@@ -129,8 +129,8 @@ mozmill.controller.asserts.assertText = function (param_object) {
 };
 
 //Assert that a specified node exists
-mozmill.controller.asserts.assertNode = function (param_object) {
-  var element = mozmill.controller._lookupDispatch(param_object);
+mozmill.MozMillController.asserts.prototype.assertNode = function (param_object) {
+  var element = mozmill.MozMillController._lookupDispatch(param_object);
   if (!element){
     return false;
   }
@@ -138,8 +138,8 @@ mozmill.controller.asserts.assertNode = function (param_object) {
 };
 
 //Assert that a form element contains the expected value
-mozmill.controller.asserts.assertValue = function (param_object) {
-  var n = mozmill.controller._lookupDispatch(param_object);
+mozmill.MozMillController.asserts.prototype.assertValue = function (param_object) {
+  var n = mozmill.MozMillController._lookupDispatch(param_object);
   var validator = param_object.validator;
 
   if (n.value.indexOf(validator) != -1){
@@ -149,15 +149,15 @@ mozmill.controller.asserts.assertValue = function (param_object) {
 };
 
 //Assert that a provided value is selected in a select element
-mozmill.controller.asserts.assertJS = function (param_object) {
+mozmill.MozMillController.asserts.prototype.assertJS = function (param_object) {
   var js = param_object.js;
   var result = eval(js);
   return result;
 };
 
 //Assert that a provided value is selected in a select element
-mozmill.controller.asserts.assertSelected = function (param_object) {
-  var n = mozmill.controller._lookupDispatch(param_object);
+mozmill.MozMillController.asserts.prototype.assertSelected = function (param_object) {
+  var n = mozmill.MozMillController._lookupDispatch(param_object);
   var validator = param_object.validator;
 
   if (n.options[n.selectedIndex].value == validator){
@@ -167,8 +167,8 @@ mozmill.controller.asserts.assertSelected = function (param_object) {
 };
 
 //Assert that a provided checkbox is checked
-mozmill.controller.asserts.assertChecked = function (param_object) {
-  var n = mozmill.controller._lookupDispatch(param_object);
+mozmill.MozMillController.asserts.prototype.assertChecked = function (param_object) {
+  var n = mozmill.MozMillController._lookupDispatch(param_object);
 
   if (n.checked == true){
     return true;
@@ -177,8 +177,8 @@ mozmill.controller.asserts.assertChecked = function (param_object) {
 };
 
 // Assert that a an element's property is a particular value
-mozmill.controller.asserts.assertProperty = function (param_object) {
-  var element = mozmill.controller._lookupDispatch(param_object);
+mozmill.MozMillController.asserts.prototype.assertProperty = function (param_object) {
+  var element = mozmill.MozMillController._lookupDispatch(param_object);
   if (!element){
     return false;
   }
@@ -201,8 +201,8 @@ mozmill.controller.asserts.assertProperty = function (param_object) {
 // Assert that a specified image has actually loaded
 // The Safari workaround results in additional requests
 // for broken images (in Safari only) but works reliably
-mozmill.controller.asserts.assertImageLoaded = function (param_object) {
-  var img = mozmill.controller._lookupDispatch(param_object);
+mozmill.MozMillController.asserts.prototype.assertImageLoaded = function (param_object) {
+  var img = mozmill.MozMillController._lookupDispatch(param_object);
   if (!img || img.tagName != 'IMG') {
     return false;
   }
@@ -240,7 +240,7 @@ mozmill.controller.asserts.assertImageLoaded = function (param_object) {
   return ret;
 };
 
-mozmill.controller.asserts._AssertFactory = new function () {
+mozmill.MozMillController.asserts.prototype._AssertFactory = new function () {
   var _this = this;
   function validateArgs(count, args) {
     if (!(args.length == count ||
@@ -301,19 +301,19 @@ mozmill.controller.asserts._AssertFactory = new function () {
       else {
 	      var message = meth + ' -- ' +
         createErrMsg(asrt.errMsg, args);
-	      throw new mozmill.controller.asserts._WindmillAssertException(comment, message);
+	      throw new mozmill.MozMillController.asserts.prototype._WindmillAssertException(comment, message);
       }
     };
   };
 
-// Create all the assert methods on mozmill.controller.asserts
+// Create all the assert methods on mozmill.MozMillController.asserts.prototype
 // Using the items in the assertRegistry
 for (var meth in mozmill.controller.asserts.assertRegistry) {
   mozmill.controller.asserts[meth] = mozmill.controller.asserts._AssertFactory.createAssert(meth);
   mozmill.controller.asserts[meth].jsUnitAssert = true;
 }
 
-mozmill.controller.asserts._WindmillAssertException = function (comment, message) {
+mozmill.MozMillController.asserts.prototype._WindmillAssertException = function (comment, message) {
   this.comment = comment;
   this.message = message;
 };

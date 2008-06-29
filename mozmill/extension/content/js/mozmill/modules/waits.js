@@ -15,12 +15,12 @@ Copyright 2006-2007, Open Source Applications Foundation
 */
 
 //Wait a specified number of milliseconds
-mozmill.controller.waits.sleep = function (paramObj, obj) { 
+mozmill.MozMillController.waits.prototype.sleep = function (paramObj, obj) { 
   mozmill.waiting = true;
 
  /* done = function(){
     mozmill.waiting = false;
-    mozmill.controller.continueLoop();
+    mozmill.MozMillController.continueLoop();
     //we passed the id in the parms object of the action in the ide
     var aid = paramObj.aid;
     delete paramObj.aid;
@@ -51,7 +51,7 @@ mozmill.controller.waits.sleep = function (paramObj, obj) {
              Components.interfaces.nsITimer.TYPE_ONE_SHOT);
 };
   
-mozmill.controller.waits.forJSTrue = function (paramObj, obj) { 
+mozmill.MozMillController.waits.prototype.forJSTrue = function (paramObj, obj) { 
   _this = this;
   
   //we passed the id in the parms object of the action in the ide
@@ -80,7 +80,7 @@ mozmill.controller.waits.forJSTrue = function (paramObj, obj) {
         mozmill.jsTest.handleErr('waits.forElement timed out after ' + timeout + ' seconds.');
       }
       else {
-        mozmill.controller.continueLoop();
+        mozmill.MozMillController.continueLoop();
       }
         mozmill.xhr.setWaitBgAndReport(aid,false,obj);
         return false;
@@ -108,7 +108,7 @@ mozmill.controller.waits.forJSTrue = function (paramObj, obj) {
             mozmill.jsTest.waiting = false;
             mozmill.jsTest.runTestItemArray();
           }
-          else{ mozmill.controller.continueLoop(); }
+          else{ mozmill.MozMillController.continueLoop(); }
         
            //set the result in the ide
       //TODO: fix later      mozmill.xhr.setWaitBgAndReport(aid,true,obj);
@@ -128,25 +128,25 @@ mozmill.controller.waits.forJSTrue = function (paramObj, obj) {
 
 //wait for an element to show up on the page
 //if it doesn't after a provided timeout, defaults to 20 seconds
-mozmill.controller.waits.forElement = function (paramObj,obj) { 
+mozmill.MozMillController.waits.prototype.forElement = function (paramObj,obj) { 
     var p = paramObj || {};
     var f = function () {
-      return mozmill.controller._lookupDispatch(p);
+      return mozmill.MozMillController._lookupDispatch(p);
     };
     p.test = f;
-    return mozmill.controller.waits.forJSTrue(p, obj);
+    return mozmill.MozMillController.waits.prototype.forJSTrue(p, obj);
 };
   
 //wait for an element to show up on the page
 //if it doesn't after a provided timeout, defaults to 20 seconds
-mozmill.controller.waits.forNotElement = function (paramObj,obj) { 
+mozmill.MozMillController.waits.prototype.forNotElement = function (paramObj,obj) { 
     var p = paramObj || {};
     var f = function () {
-      var node = mozmill.controller._lookupDispatch(p);
+      var node = mozmill.MozMillController._lookupDispatch(p);
       return !node;
     };
     p.test = f;
-    return mozmill.controller.waits.forJSTrue(p, obj);
+    return mozmill.MozMillController.waits.prototype.forJSTrue(p, obj);
 };
 
 
@@ -154,7 +154,7 @@ mozmill.controller.waits.forNotElement = function (paramObj,obj) {
 //This is more of an internal function used by wait and click events
 //To know when to try and reattach the listeners
 //But if users wanted this manually they could use it
-mozmill.controller.waits.forPageLoad = function (param_object) { 
+mozmill.MozMillController.waits.prototype.forPageLoad = function (param_object) { 
   _this = this;
   
   try{
@@ -173,10 +173,10 @@ mozmill.controller.waits.forPageLoad = function (param_object) {
   }
   this.lookup = function(){
     if (count >= timeout){
-      mozmill.controller.continueLoop();
+      mozmill.MozMillController.continueLoop();
       return false;
     }
-    //var n = mozmill.controller._lookupDispatch(p);
+    //var n = mozmill.MozMillController._lookupDispatch(p);
     try { var n = mozmill.testWindow.document;}
     catch(err) { var n = false; }
     
@@ -207,7 +207,7 @@ mozmill.controller.waits.forPageLoad = function (param_object) {
   //if mozmill.timeout goes by and the tests haven't been started
   //We go ahead and start them, longer waits can happen by changing mozmill.timeout
   ct = function(){ 
-	 	mozmill.controller.continueLoop(); 
+	 	mozmill.MozMillController.continueLoop(); 
 	}       
  	mozmill.loadTimeoutId = setTimeout('ct()', mozmill.timeout);
   
@@ -217,7 +217,7 @@ mozmill.controller.waits.forPageLoad = function (param_object) {
 //Turn the loop back on when the page in the testingApp window is loaded
 //this is an internal wait used only for the first load of the page
 //a more generic one will be added if there is a need
-mozmill.controller.waits._forNotTitleAttach = function (param_object) { 
+mozmill.MozMillController.waits.prototype._forNotTitleAttach = function (param_object) { 
   _this = this;
 
   var timeout = 80000;
@@ -229,7 +229,7 @@ mozmill.controller.waits._forNotTitleAttach = function (param_object) {
   }
   this.lookup = function(){
     if (count >= timeout){
-      mozmill.controller.continueLoop();
+      mozmill.MozMillController.continueLoop();
       return false;
     }
     try {
@@ -273,7 +273,7 @@ mozmill.controller.waits._forNotTitleAttach = function (param_object) {
   //if mozmill.timeout goes by and the tests haven't been started
   //We go ahead and start them, longer waits can happen by changing mozmill.timeout
   ct = function(){ 
-	 	mozmill.controller.continueLoop(); 
+	 	mozmill.MozMillController.continueLoop(); 
 	}       
  	mozmill.loadTimeoutId = setTimeout('ct()', mozmill.timeout); 
   

@@ -1,3 +1,8 @@
+mozmill.MozMillController.prototype.open = function(s){
+  this.win.location.href=s;
+  return true;
+}
+
 mozmill.MozMillController.prototype.type = function (element, text){
 
   if (!element){ return false; }
@@ -160,12 +165,12 @@ mozmill.MozMillController.prototype.click = function(element){
 
 //there is a problem with checking via click in safari
 mozmill.MozMillController.prototype.check = function(element){
-  return mozmill.controller.click(element);    
+  return mozmill.MozMillController.click(element);    
 }
 
 //Radio buttons are even WIERDER in safari, not breaking in FF
-mozmill.controller.radio = function(element){
-  return mozmill.controller.click(element);      
+mozmill.MozMillController.radio = function(element){
+  return mozmill.MozMillController.click(element);      
 }
 
 //Double click for Mozilla

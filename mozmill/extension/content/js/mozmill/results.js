@@ -16,7 +16,7 @@ Copyright 2006-2007, Open Source Applications Foundation
 
 //Functions for writing status to the UI
 /***************************************/
-mozmill.ui.results = new
+mozmill.results = new
 function() {
 
     //Writing to the performance tab

@@ -554,7 +554,7 @@ mozmill.jsTest = new function () {
       testName = this.testOrder.shift();
       testFunc = this.lookupObjRef(testName);
       // Tell IDE what is going on
-      mozmill.ui.results.writeStatus('\nRunning '+ testName + '...');
+      mozmill.results.writeStatus('\nRunning '+ testName + '...');
       if (testFunc.length > 0) {
         this.testItemArray = {
           name: testName,
@@ -586,9 +586,9 @@ mozmill.jsTest = new function () {
       this.currentJsTestTimer.endTime();
       // Write to the results tab in the IDE
 
-//      mozmill.ui.results.writeResult("<br><b>Test:</b> " + testName +
+//      mozmill.results.writeResult("<br><b>Test:</b> " + testName +
 //        "<br>Test Result:" + true);
-      mozmill.ui.results.writeResult("\nTest: " + testName +
+      mozmill.results.writeResult("\nTest: " + testName +
                                      "\nTest Result:" + true);
       // Send report for pass
     /*  mozmill.jsTest.sendJSReport(testName, true, null,
@@ -652,7 +652,7 @@ mozmill.jsTest = new function () {
         // If the action is a sleep, set the sleep
         // wait interval for the setTimeout loop
         if (item.method == 'waits.sleep') {
-          mozmill.ui.results.writeResult("\nAction: " + item.method +
+          mozmill.results.writeResult("\nAction: " + item.method +
                    "\nParams: " + fleegix.json.serialize(item.params), 'lightyellow');
           t = item.params.milliseconds;
            //Build some UI
@@ -677,7 +677,7 @@ mozmill.jsTest = new function () {
           //is calling the function inside waits.forElement
           item.params.orig = 'js';
           func(item.params, item);
-          mozmill.ui.results.writeResult("\nAction: " + item.method +
+          mozmill.results.writeResult("\nAction: " + item.method +
                 "\nParams: " + fleegix.json.serialize(item.params));
           //Let the js test framework know that it's in a waiting state
           this.waiting = true;
@@ -689,7 +689,7 @@ mozmill.jsTest = new function () {
           // CheX0r for any needed string replacements for {$*} shortcuts
           item.params = mozmill.utilities.doShortcutStringReplacements(item.params);
           // Execute the UI action with the set params
-          mozmill.ui.results.writeStatus('\nRunning '+ item.method + '...');
+          mozmill.results.writeStatus('\nRunning '+ item.method + '...');
 
           var timer = new mozmill.TimeObj();
           timer.setName(item.method);
@@ -706,7 +706,7 @@ mozmill.jsTest = new function () {
           }
           
           testActionFunc(item.params);
-          mozmill.ui.results.writeResult("\nAction: " + item.method +
+          mozmill.results.writeResult("\nAction: " + item.method +
             "\nParams: " + fleegix.json.serialize(item.params), 'lightgreen');
 
           if (this.testItemArray.name == 'setup') {
@@ -728,7 +728,7 @@ mozmill.jsTest = new function () {
     msg = msg.replace(/</g, '&lt;');
     msg = msg.replace(/>/g, '&gt;');
 
-    mozmill.ui.results.writeResult("\nTest: " +
+    mozmill.results.writeResult("\nTest: " +
             testName + "\nTest Result:" + false + '\nError: '+ msg, 'lightred');
 
     //mozmill.jsTest.sendJSReport(testName, false, e, this.currentJsTestTimer);
@@ -798,7 +798,7 @@ mozmill.jsTest.sendJSReport = function (testname, result, error, timer) {
   /*var reportHandler = function (str) {
     response = eval('(' + str + ')');
     if (!response.result || response.result != 200) {
-      mozmill.ui.results.writeResult('Error: Report receiving non 200 response.');
+      mozmill.results.writeResult('Error: Report receiving non 200 response.');
     }
   };
   var result_string = fleegix.json.serialize(result);
@@ -856,7 +856,8 @@ mozmill.jsTest.actions.loadActions = function () {
   };
   // Build wrappers for controller, controller.extensions,
   // controller.waits, controller.asserts
-  var names = ['', 'extensions','waits', 'asserts'];
+  //var names = ['','waits', 'asserts'];
+  var names = [''];
   for (var i = 0; i < names.length; i++) {
     var name = names[i];
     var namespace = name ? mozmill.controller[name] : mozmill.controller;

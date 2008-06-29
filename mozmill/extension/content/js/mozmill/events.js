@@ -43,7 +43,7 @@ mozmill.events = new function() {
             return match[0];
 
         }
-        mozmill.ui.results.writeResult("invalid keySequence");
+        mozmill.results.writeResult("invalid keySequence");
 
     }
 

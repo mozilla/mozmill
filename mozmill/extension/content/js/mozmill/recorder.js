@@ -90,7 +90,7 @@ function() {
         }
         mozmill.ui.remote.scrollRecorderTextArea();
         */
-        mozmill.ui.results.writeResult('clicked: '+locator+':'+locValue);
+        mozmill.results.writeResult('clicked: '+locator+':'+locValue);
         
     }
 
@@ -162,7 +162,7 @@ function() {
       mozmill.ui.remote.addAction(mozmill.ui.remote.buildAction('check', params));    
     }
   */      
-    mozmill.ui.results.writeResult('changed: '+locator+':'+locValue);
+    mozmill.results.writeResult('changed: '+locator+':'+locValue);
         //mozmill.ui.remote.scrollRecorderTextArea();
     }
 
@@ -192,7 +192,7 @@ function() {
             this.recRecursiveBind(mozmill.testWindow);
      /*   }
         catch(error) {
-            mozmill.ui.results.writeResult('You must not have set your URL correctly when launching Windmill, we are getting cross domain exceptions.');
+            mozmill.results.writeResult('You must not have set your URL correctly when launching Windmill, we are getting cross domain exceptions.');
             mozmill.remote.$('record').src = 'img/record.png';
             this.recordState = false;
         }*/
@@ -211,7 +211,7 @@ function() {
 
         }
         catch(error) {
-            mozmill.ui.results.writeResult('You must not have set your URL correctly when launching Windmill,' + 
+            mozmill.results.writeResult('You must not have set your URL correctly when launching Windmill,' + 
             'we are getting cross domain exceptions.' + error);
 
         }
@@ -242,7 +242,7 @@ function() {
 
             }
             catch(error) {
-                mozmill.ui.results.writeResult('There was a problem binding to one of your iframes, is it cross domain?' + 
+                mozmill.results.writeResult('There was a problem binding to one of your iframes, is it cross domain?' + 
                 'Binding to all others.' + error);
 
             }
@@ -274,7 +274,7 @@ function() {
 
             }
             catch(error) {
-                mozmill.ui.results.writeResult('There was a problem binding to one of your iframes, is it cross domain?' + 
+                mozmill.results.writeResult('There was a problem binding to one of your iframes, is it cross domain?' + 
                 'Binding to all others.' + error);
 
             }

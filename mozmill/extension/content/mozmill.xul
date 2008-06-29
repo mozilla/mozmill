@@ -10,20 +10,20 @@ title="&title.label;">
 <script src="js/lib/fleegix_js/trunk/fleegix.js.uncompressed.js"/>
 <script src="js/lib/fleegix_js/trunk/plugins/hash.js"/>
 <script src="js/mozmill.js"/>
-<script src="js/modules/controller.js"/>
+<script src="js/mozmill/modules/controller.js"/>
 <script src="js/mozmill/events.js"/>
 <script src="js/mozmill/timing.js"/>
-<script src="js/mozmill/recorder.js"/>
 <script src="js/mozmill/results.js"/>
-<script src="js/mozmill/utils.js"/>
 <script src="js/mozmill/jstest.js"/>
+<script src="js/mozmill/utils.js"/>
+<script src="js/mozmill/modules/elementslib.js"/>
 <script type="application/x-javascript;version=1.7" src="js/mm/testresults.js"/>
 
 <toolbox>
   <toolbar id="nav-toolbar">
   <menu id="fileMenu" label="File">
   <menupopup id="action-popup">
-    <menuitem label="Open Test File" oncommand="openFile();"/>
+    <menuitem label="Open Test File" oncommand="mozmill.utils.openFile();"/>
     <menuseparator/>
     <menuitem label="Save" disabled="true"/>
     <menuitem label="Save As" disabled="true"/>
