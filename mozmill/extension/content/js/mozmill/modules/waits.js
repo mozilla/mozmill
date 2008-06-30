@@ -15,7 +15,7 @@ Copyright 2006-2007, Open Source Applications Foundation
 */
 
 //Wait a specified number of milliseconds
-mozmill.MozMillController.waits.prototype.sleep = function (paramObj, obj) { 
+mozmill.MozMillController.prototype.sleep = function (milliseconds) { 
   mozmill.waiting = true;
 
  /* done = function(){
@@ -47,10 +47,10 @@ mozmill.MozMillController.waits.prototype.sleep = function (paramObj, obj) {
 
   var timer = Components.classes["@mozilla.org/timer;1"]
               .createInstance(Components.interfaces.nsITimer);
-  timer.init(observer, paramObj.milliseconds,
+  timer.init(observer, milliseconds,
              Components.interfaces.nsITimer.TYPE_ONE_SHOT);
 };
-  
+/*
 mozmill.MozMillController.waits.prototype.forJSTrue = function (paramObj, obj) { 
   _this = this;
   
@@ -279,3 +279,4 @@ mozmill.MozMillController.waits.prototype._forNotTitleAttach = function (param_o
   
   return true;
 }
+*/

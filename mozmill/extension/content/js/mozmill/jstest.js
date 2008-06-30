@@ -155,7 +155,7 @@ mozmill.jsTest = new function () {
   this.finish = function () {
     this.testCount = this.testList.length;
     this.testFailureCount = this.testFailures.length;
-    mozmill.controller.commands.jsTestResults();
+    mozmill.utils.jsTestResults();
   };
   this.doSetup = function (paramObj) {
     var testFiles = paramObj.files;
@@ -584,16 +584,10 @@ mozmill.jsTest = new function () {
       testFunc();
       // -----------------------
       this.currentJsTestTimer.endTime();
-      // Write to the results tab in the IDE
-
-//      mozmill.results.writeResult("<br><b>Test:</b> " + testName +
-//        "<br>Test Result:" + true);
       mozmill.results.writeResult("\nTest: " + testName +
                                      "\nTest Result:" + true);
-      // Send report for pass
-    /*  mozmill.jsTest.sendJSReport(testName, true, null,
-        this.currentJsTestTimer);*/
       return true;
+      
     }
     // For each failure, create a TestFailure obj, add
     // to the failures list

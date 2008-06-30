@@ -1,10 +1,31 @@
 mozmill.MozMillController.prototype.open = function(s){
-  this.win.location.href=s;
+  mozmill.hiddenWindow.Application.browser.open(s).active = true;
   return true;
 }
+mozmill.MozMillController.prototype.sleep = function (milliseconds) { 
+  var observer = {
+    QueryInterface : function (iid) {
+      const interfaces = [Components.interfaces.nsIObserver,
+                          Components.interfaces.nsISupports,
+                          Components.interfaces.nsISupportsWeakReference];
+
+      if (!interfaces.some( function(v) { return iid.equals(v) } ))
+        throw Components.results.NS_ERROR_NO_INTERFACE;
+      return this;
+    },
+
+    observe : function (subject, topic, data) {
+      return true;
+    }
+  };
+
+  var timer = Components.classes["@mozilla.org/timer;1"]
+              .createInstance(Components.interfaces.nsITimer);
+  timer.init(observer, milliseconds,
+             Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+};
 
 mozmill.MozMillController.prototype.type = function (element, text){
-
   if (!element){ return false; }
   //clear the box
   element.value = '';
@@ -116,8 +137,8 @@ mozmill.MozMillController.prototype.open = function(s){
   return true;
 }
 
-mozmill.MozMillController.prototype.click = function(element){  
-    if (element == undefined){ return false; }     
+mozmill.MozMillController.prototype.click = function(element){
+    if (!element){ return false; }     
     mozmill.events.triggerEvent(element, 'focus', false);
 
     //launch the click on firefox chrome

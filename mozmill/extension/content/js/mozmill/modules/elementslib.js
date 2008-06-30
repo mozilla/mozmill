@@ -28,37 +28,82 @@ var elementslib = new function(){
   };
   //setters
   this.Element.ID = function(s){
-    domNode = win.document.getElementById(s);
-    return domNode;
+    domNode = nodeSearch(nodeById, s);
+    return returnOrThrow(s);
   };
   this.Element.LINK = function(s){
-     domNode = nodeByLink(s);
-     return domNode;
+    domNode = nodeSearch(nodeByLink, s);
+    return returnOrThrow(s);
   };
   this.Element.XPATH = function(s){
     xpath = s;
-    domNode = nodeByXPath(s);
+    domNode = nodeSearch(nodeByXPath, s);
     //do the lookup, then set the domNode to the result
-    return domNode;
+    return returnOrThrow(s);
   };
   this.Element.XPATH.isValid = function(){
     //analyize the xpath expression
     //return bool
   };
   this.Element.NAME = function(s){
-     domNode = nodeByName(s);
-     return domNode;
+     domNode = nodeSearch(nodeByName, s);
+     return returnOrThrow(s);
   };
+  
+  //either returns the element, or throws an exception
+  var returnOrThrow = function(s){
+    if (!domNode){
+      var e = {};
+      e.message = "Element "+s+" could not be found";
+      throw e;
+    }
+    else{
+      return domNode;
+    }
+  }
+  
+  //do the recursive search
+  //takes the function for resolving nodes and the string
+  var nodeSearch = function(func, s){
+    var e = null;
+
+    //inline function to recursively find the element in the DOM, cross frame.
+    var recurse = function(w, func, s){
+     //do the lookup in the current window
+     element = func.call(w, s);   
+     if (!element){
+       var fc = w.frames.length;
+       var fa = w.frames;   
+       for (var i=0;i<fc;i++){ 
+         recurse(fa[i], func, s); 
+       }
+     }
+     else { e = element; }
+    };   
+
+    recurse(win, func, s);
+    return e;
+  }
+  
+  //Lookup by ID
+  var nodeById = function (s){
+    return this.document.getElementById(s);
+  }
   
   //DOM element lookup functions, private to elementslib
   var nodeByName = function (s) { //search nodes by name
-    var els = win.document.getElementsByName(s);
-    if (els.length > 0) {
-      return els[0];
+    //sometimes the win object won't have this object
+    try{
+      var els = this.document.getElementsByName(s);
+      if (els.length > 0) {
+        return els[0];
+      }
     }
+    catch(err){};
     return null;
   };
   
+  //Lookup by link
   var nodeByLink = function (s) {//search nodes by link text
     var getText = function(el){
       var text = "";
@@ -81,7 +126,11 @@ var elementslib = new function(){
       }
       return text;
     }
-    var links = win.document.getElementsByTagName('a');
+    //sometimes the windows won't have this function
+    try {
+      var links = this.document.getElementsByTagName('a');
+    }
+    catch(err){}
     for (var i = 0; i < links.length; i++) {
       var el = links[i];
       if (getText(el).indexOf(s) != -1) {
@@ -91,7 +140,7 @@ var elementslib = new function(){
     return null;
   };
 
-
+  //Lookup with xpath
   var nodeByXPath = function (xpath) {
     var nsResolver = function (prefix) {
       if (prefix == 'html' || prefix == 'xhtml' || prefix == 'x') {
@@ -102,7 +151,7 @@ var elementslib = new function(){
         throw new Error("Unknown namespace: " + prefix + ".");
       }
     }
-    return win.document.evaluate(xpath, document, nsResolver, 0, null).iterateNext();
+    return this.document.evaluate(xpath, document, nsResolver, 0, null).iterateNext();
   };
   
 };

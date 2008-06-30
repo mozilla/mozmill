@@ -13,12 +13,14 @@ var mozmill = new function(){
     this.win = windowObj;
     return this;
   }
-  this.MozMillController.asserts = {};
-  this.MozMillController.waits = {};
+  this.hiddenWindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
+           .getService(Components.interfaces.nsIAppShellService)
+           .hiddenDOMWindow;
 };
+
 var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                    .getService(Components.interfaces.nsIWindowMediator);
 mozmill.testWindow = wm.getMostRecentWindow("navigator:browser");
 mozmill.controller = new mozmill.MozMillController(mozmill.testWindow);
-opener.mozmill = mozmill;
+mozmill.testWindow.mozmill = mozmill;
 
