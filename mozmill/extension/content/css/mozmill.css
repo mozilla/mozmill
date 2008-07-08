@@ -5,7 +5,9 @@
   top:0px;
   background:white;
 }
-
+.dx {
+  display:none;border:1px solid #aaa;
+}
 .m {
   background:white;
   position:relative;

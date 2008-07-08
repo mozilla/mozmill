@@ -3,6 +3,7 @@ var $ = function(id) {
 };
 
 var mozmill = new function(){
+  this.ui = new function(){};
   this.newBrowser = function(){
     var newWin = this.testWindow.open(''+this.testWindow.location,'', 
     'left=20,top=20,width=500,height=500,toolbar=1,resizable=0');
