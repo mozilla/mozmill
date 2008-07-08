@@ -7,18 +7,9 @@
 <window id="main" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
 title="&title.label;">
 
-<script src="js/lib/fleegix_js/trunk/fleegix.js.uncompressed.js"/>
-<script src="js/lib/fleegix_js/trunk/plugins/hash.js"/>
-<script src="js/mozmill.js"/>
-<script src="js/mozmill/modules/controller.js"/>
-<script src="js/mozmill/events.js"/>
-<script src="js/mozmill/timing.js"/>
-<script src="js/mozmill/results.js"/>
-<script src="js/mozmill/jstest.js"/>
-<script src="js/mozmill/utils.js"/>
-<script src="js/mozmill/modules/elementslib.js"/>
-<script src="js/lib/getXPath.js"/>
+<script src="mozmill.js"/>
 <script src="js/mozmill/dx.js"/>
+<script src="js/mozmill/recorder.js"/>
 <script type="application/x-javascript;version=1.7" src="js/mm/testresults.js"/>
 
 <toolbox>
