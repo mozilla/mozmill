@@ -40,7 +40,16 @@ mozmill.utils = new function() {
        paramObj.files = array;
        mozmill.MozMillController.commands.jsTests(paramObj);
      }*/
-     this.openFile = function(){
+     
+     this.genBoiler = function(){
+       $('editorInput').value = "function test_fooThing () {\n"+
+         "\tcontroller = mozmill.controller;\n"+
+         "\tcontroller.type(elementslib.Element.ID('email'), 'testing');\n"+
+         "\tcontroller.sleep(10000);\n"+
+         "\tcontroller.click(elementslib.Element.ID('doquicklogin'));\n"+
+       "}";
+     }
+     this.runFile = function(){
        //define the interface
        var nsIFilePicker = Components.interfaces.nsIFilePicker;
        var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
@@ -63,6 +72,57 @@ mozmill.utils = new function() {
          mozmill.utils.jsTests(paramObj);
        }
      };
+     
+     this.openFile = function(){
+        //define the interface
+        var nsIFilePicker = Components.interfaces.nsIFilePicker;
+        var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+        //define the file picker window
+        fp.init(window, "Select a File", nsIFilePicker.modeOpen);
+        fp.appendFilter("JavaScript Files","*.js");
+        //show the window
+        var res = fp.show();
+        //if we got a file
+        if (res == nsIFilePicker.returnOK){
+          var thefile = fp.file;
+          //create the paramObj with a files array attrib
+          var data = mozmill.utils.getFile(thefile.path);
+          $('editorInput').value = data;
+          //Move focus to output tab
+          //$('mmtabs').setAttribute("selectedIndex", 2);
+          //send it into the JS test framework to run the file
+          //mozmill.utils.jsTests(paramObj);
+        }
+      };
+      
+     this.getFile = function(path){
+       //define the file interface
+       var file = Components.classes["@mozilla.org/file/local;1"]
+                            .createInstance(Components.interfaces.nsILocalFile);
+       //point it at the file we want to get at
+       file.initWithPath(path);
+       // define file stream interfaces
+       var data = "";
+       var fstream = Components.classes["@mozilla.org/network/file-input-stream;1"]
+                               .createInstance(Components.interfaces.nsIFileInputStream);
+       var sstream = Components.classes["@mozilla.org/scriptableinputstream;1"]
+                               .createInstance(Components.interfaces.nsIScriptableInputStream);
+       fstream.init(file, -1, 0, 0);
+       sstream.init(fstream); 
+
+       //pull the contents of the file out
+       var str = sstream.read(4096);
+       while (str.length > 0) {
+         data += str;
+         str = sstream.read(4096);
+       }
+
+       sstream.close();
+       fstream.close();
+
+       //data = data.replace(/\r|\n|\r\n/g, "");
+       return data;
+     }
      
      //Function to start the running of jsTests
      this.jsTests = function (paramObj) {

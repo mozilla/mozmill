@@ -23,25 +23,35 @@ title="&title.label;">
 
 <toolbox>
   <toolbar id="nav-toolbar">
-  <menu id="fileMenu" label="File">
-  <menupopup id="action-popup">
-    <menuitem label="Open Test File" oncommand="mozmill.utils.openFile();"/>
-    <menuseparator/>
-    <menuitem label="Save" disabled="true"/>
-    <menuitem label="Save As" disabled="true"/>
-    <menuseparator/>
-    <menuitem label="Close" disabled="true"/>
-  </menupopup>
-  </menu>
+    <menu id="fileMenu" label="File">
+      <menupopup id="action-popup">
+        <menuitem label="Open Test File" oncommand="mozmill.utils.openFile();"/>
+        <menuseparator/>
+        <menuitem label="Save" disabled="true"/>
+        <menuitem label="Save As" disabled="true"/>
+        <menuseparator/>
+        <menuitem label="Close" disabled="true"/>
+      </menupopup>
+    </menu>
+    <menu id="testMenu" label="Tests">
+      <menupopup id="action-popup">
+        <menuitem label="Run Test File" oncommand="mozmill.utils.runFile();"/>
+        <menuseparator/>
+        <menuitem label="Run Editor" disabled="true"/>
+        <menuitem label="Clear Editor" oncommand="$('editorInput').value = '';"/>
+        <menuseparator/>
+        <menuitem label="New Boilerplate" oncommand="mozmill.utils.genBoiler();"/>
+      </menupopup>
+    </menu>
     <menu id="modes-menu" label="Modes">
       <menupopup id="pb-popup">
-        <menu id="playbackMenu" label="Playback">
+        <menu id="playbackMenu" label="Playback" disabled="true">
           <menupopup id="playbackPopup">
             <menuitem label="Start"/>
             <menuitem label="Stop" disabled="true"/>
           </menupopup>
         </menu>
-      <menu id="rec-menu" label="Recorder">
+      <menu id="rec-menu" label="Recorder" disabled="true">
         <menupopup id="recorderPopup">
           <menuitem id="startRec" label="Start" oncommand="mozmill.ui.recorder.recordOn();"/>
           <menuitem id="stopRec" label="Stop" disabled="true" oncommand="mozmill.ui.recorder.recordOff();"/>
@@ -50,7 +60,7 @@ title="&title.label;">
       </menupopup>
     </menu>
   <menu id="exp-menu" label="Explorers">
-    <menupopup id="explorerPopup">
+    <menupopup id="explorerPopup" disabled="true">
       <menu id="asx-menu" label="Assertion Explorer">
         <menupopup id="">
           <menuitem label="Start"/>
@@ -90,7 +100,7 @@ title="&title.label;">
     </tabs>
     
     <tabpanels flex="1" id="mmtabs">
-      <tabpanel id="editortab" flex="1">
+      <tabpanel flex="1">
         <hbox>
           <textbox id="editorInput" value="" cols="51" rows="18" multiline="true"/>
         </hbox>
