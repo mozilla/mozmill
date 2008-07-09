@@ -8,6 +8,7 @@
 title="&title.label;">
 
 <script src="mozmill.js"/>
+<script src="js/lib/getXPath.js"/>
 <script src="js/dx.js"/>
 <script src="js/recorder.js"/>
 

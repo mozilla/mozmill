@@ -58,8 +58,10 @@ var MozMilldx = new function() {
                          .getEnumerator("");
       while(enumerator.hasMoreElements()) {
         var win = enumerator.getNext();
-        win.focus();
-        this.dxRecursiveBind(win);
+        if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
+          this.dxRecursiveBind(win);
+          win.focus();
+        }
       }
     }
 
@@ -73,7 +75,9 @@ var MozMilldx = new function() {
                              .getEnumerator("");
           while(enumerator.hasMoreElements()) {
             var win = enumerator.getNext();
-            this.dxRecursiveUnBind(win);
+            if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
+              this.dxRecursiveUnBind(win);
+            }
           }
     }
 
@@ -84,7 +88,7 @@ var MozMilldx = new function() {
 
         frame.addEventListener('mouseover', this.evtDispatch, true);
         frame.addEventListener('mouseout', this.evtDispatch, true);
-        frame.addEventListener('click', this.getFoc, true);
+        frame.addEventListener('dblclick', this.getFoc, true);
         
         var iframeCount = frame.window.frames.length;
         var iframeArray = frame.window.frames;
@@ -94,7 +98,7 @@ var MozMilldx = new function() {
             try {
               iframeArray[i].addEventListener('mouseover', this.evtDispatch, true);
               iframeArray[i].addEventListener('mouseout', this.evtDispatch, true);
-              iframeArray[i].addEventListener('click', this.getFoc, true);
+              iframeArray[i].addEventListener('dblclick', this.getFoc, true);
 
               this.dxRecursiveBind(iframeArray[i]);
             }
@@ -111,7 +115,7 @@ var MozMilldx = new function() {
 
         frame.removeEventListener('mouseover', this.evtDispatch, true);
         frame.removeEventListener('mouseout', this.evtDispatch, true);
-        frame.removeEventListener('click', this.getFoc, true);
+        frame.removeEventListener('dblclick', this.getFoc, true);
         
         var iframeCount = frame.window.frames.length;
         var iframeArray = frame.window.frames;
@@ -121,7 +125,7 @@ var MozMilldx = new function() {
             try {
               iframeArray[i].removeEventListener('mouseover', this.evtDispatch, true);
               iframeArray[i].removeEventListener('mouseout', this.evtDispatch, true);
-              iframeArray[i].removeEventListener('click', this.getFoc, true);
+              iframeArray[i].removeEventListener('dblclick', this.getFoc, true);
     
               this.dxRecursiveUnBind(iframeArray[i]);
             }
