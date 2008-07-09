@@ -16,7 +16,7 @@ Copyright 2006-2007, Open Source Applications Foundation
 
 //Recorder Functionality
 //*********************************/
-mozmill.ui.dx = new function() {
+var MozMilldx = new function() {
   this.grab = function(){
     var disp = $('dxDisplay').textContent;
     var dispArr = disp.split(': ');
@@ -52,15 +52,29 @@ mozmill.ui.dx = new function() {
       $('stopDX').setAttribute("disabled","false");
       $('startDX').setAttribute("disabled","true");
       $('dxContainer').style.display = "block";
-      mozmill.testWindow.focus();
-      this.dxRecursiveBind(mozmill.testWindow);
+      //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
+      var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                         .getService(Components.interfaces.nsIWindowMediator)
+                         .getEnumerator("");
+      while(enumerator.hasMoreElements()) {
+        var win = enumerator.getNext();
+        win.focus();
+        this.dxRecursiveBind(win);
+      }
     }
 
     this.dxOff = function() {
         $('stopDX').setAttribute("disabled","true");
         $('startDX').setAttribute("disabled","false");
         $('dxContainer').style.display = "none";
-        this.dxRecursiveUnBind(mozmill.testWindow);
+        //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
+         var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                             .getService(Components.interfaces.nsIWindowMediator)
+                             .getEnumerator("");
+          while(enumerator.hasMoreElements()) {
+            var win = enumerator.getNext();
+            this.dxRecursiveUnBind(win);
+          }
     }
 
     //Recursively bind to all the iframes and frames within
@@ -68,39 +82,9 @@ mozmill.ui.dx = new function() {
         //Make sure we haven't already bound anything to this frame yet
         this.dxRecursiveUnBind(frame);
 
-        fleegix.event.listen(frame, 'onmouseover', this, 'evtDispatch');
-        fleegix.event.listen(frame, 'onmouseout', this, 'evtDispatch');
-        fleegix.event.listen(frame, 'onclick', this, 'getFoc');
-
-        var iframeCount = frame.window.frames.length;
-        var iframeArray = frame.window.frames;
-
-        for (var i = 0; i < iframeCount; i++)
-        {
-            try {
-              fleegix.event.listen(frame.document, 'onmouseover', this, 'evtDispatch');
-              fleegix.event.listen(frame.document, 'onmouseout', this, 'evtDispatch');
-              fleegix.event.listen(iframeArray[i], 'onclick', this, 'getFoc');
-
-                this.dxRecursiveBind(iframeArray[i]);
-
-            }
-            catch(error) {
-                mozmill.results.writeResult('There was a problem binding to one of your iframes, is it cross domain?' + 
-                'Binding to all others.' + error);
-
-            }
-
-        }
-
-    }
-
-    //Recursively bind to all the iframes and frames within
-    this.dxRecursiveUnBind = function(frame) {
-
-        fleegix.event.unlisten(frame, 'onmouseover', this, 'evtDispatch');
-        fleegix.event.unlisten(frame, 'onmouseout', this, 'evtDispatch');
-        fleegix.event.unlisten(frame, 'onclick', this, 'getFoc');
+        frame.addEventListener('mouseover', this.evtDispatch, true);
+        frame.addEventListener('mouseout', this.evtDispatch, true);
+        frame.addEventListener('click', this.getFoc, true);
         
         var iframeCount = frame.window.frames.length;
         var iframeArray = frame.window.frames;
@@ -108,15 +92,42 @@ mozmill.ui.dx = new function() {
         for (var i = 0; i < iframeCount; i++)
         {
             try {
-                fleegix.event.unlisten(iframeArray[i], 'onmouseover', this, 'evtDispatch');
-                fleegix.event.unlisten(iframeArray[i], 'onmouseout', this, 'evtDispatch');
-                fleegix.event.unlisten(iframeArray[i], 'onclick', this, 'getFoc');
-    
-                this.dxRecursiveUnBind(iframeArray[i]);
+              iframeArray[i].addEventListener('mouseover', this.evtDispatch, true);
+              iframeArray[i].addEventListener('mouseout', this.evtDispatch, true);
+              iframeArray[i].addEventListener('click', this.getFoc, true);
+
+              this.dxRecursiveBind(iframeArray[i]);
             }
             catch(error) {
-                mozmill.results.writeResult('There was a problem binding to one of your iframes, is it cross domain?' + 
-                'Binding to all others.' + error);
+                //mozmill.results.writeResult('There was a problem binding to one of your iframes, is it cross domain?' + 
+                //'Binding to all others.' + error);
+
+            }
+        }
+    }
+
+    //Recursively bind to all the iframes and frames within
+    this.dxRecursiveUnBind = function(frame) {
+
+        frame.removeEventListener('mouseover', this.evtDispatch, true);
+        frame.removeEventListener('mouseout', this.evtDispatch, true);
+        frame.removeEventListener('click', this.getFoc, true);
+        
+        var iframeCount = frame.window.frames.length;
+        var iframeArray = frame.window.frames;
+
+        for (var i = 0; i < iframeCount; i++)
+        {
+            try {
+              iframeArray[i].removeEventListener('mouseover', this.evtDispatch, true);
+              iframeArray[i].removeEventListener('mouseout', this.evtDispatch, true);
+              iframeArray[i].removeEventListener('click', this.getFoc, true);
+    
+              this.dxRecursiveUnBind(iframeArray[i]);
+            }
+            catch(error) {
+                //mozmill.results.writeResult('There was a problem binding to one of your iframes, is it cross domain?' + 
+                //'Binding to all others.' + error);
             }
         }
     }

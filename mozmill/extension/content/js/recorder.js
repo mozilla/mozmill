@@ -16,8 +16,7 @@ Copyright 2006-2007, Open Source Applications Foundation
 
 //Recorder Functionality
 //*********************************/
-mozmill.ui.recorder = new
-function() {
+var MozMillRec = new function() {
     var recordState = false;
 
     this.setRecState = function() {

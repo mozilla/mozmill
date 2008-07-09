@@ -36,9 +36,9 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = [""];
+var EXPORTED_SYMBOLS = ["utils"];
 
-mozmill.utils = new function() {
+var utils = new function() {
   this.checkChrome = function() {
        var loc = window.document.location.href;
        try {

@@ -35,5 +35,7 @@
 // the terms of any one of the MPL, the GPL or the LGPL.
 // 
 // ***** END LICENSE BLOCK *****
-
-var mozmill = Components.utils.import('resource://mozmill/modules/mozmill.js')
+var mozmill = Components.utils.import('resource://mozmill/modules/mozmill.js');
+var $ = function(id) {
+   return document.getElementById(id);
+};

@@ -35,17 +35,17 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["controller", "events"];// "hash", "controller", "events", "timing", 
+var EXPORTED_SYMBOLS = ["controller", "events", "utils"];// "hash", "controller", "events", "timing", 
 //                         "results", "jstest", "utils", "elementslib", "getXPath"];
 
-// fleegix     = Components.utils.import('resource://mozmill/lib/fleegix_js/trunk/fleegix.js.uncompressed.js');
+//fleegix     = Components.utils.import('resource://mozmill/lib/fleegix_js/trunk/fleegix.js.uncompressed.js');
 // hash        = Components.utils.import('resource://mozmill/lib/fleegix_js/trunk/plugins/hash.js');
 controller  = Components.utils.import('resource://mozmill/modules/controller.js');
 events      = Components.utils.import('resource://mozmill/modules/events.js');
 // timing      = Components.utils.import('resource://mozmill/modules/timing.js');
 // results     = Components.utils.import('resource://mozmill/modules/results.js');
 // jstest      = Components.utils.import('resource://mozmill/modules/jstest.js');
-// utils       = Components.utils.import('resource://mozmill/modules/utils.js');
+utils       = Components.utils.import('resource://mozmill/modules/utils.js');
 // elementslib = Components.utils.import('resource://mozmill/modules/elementslib.js');
 // getXPath    = Components.utils.import('resource://mozmill/lib/getXPath.js');
 
