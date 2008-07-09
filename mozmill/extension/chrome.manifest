@@ -1,3 +1,5 @@
+resource mozmill resource/
+
 content	mozmill	content/
 overlay	chrome://browser/content/browser.xul	chrome://mozmill/content/overlay.xul
 
@@ -6,4 +8,4 @@ locale	mozmill	en-US	locale/en-US/
 skin	mozmill	classic/1.0	skin/
 style	chrome://global/content/customizeToolbar.xul	chrome://mozmill/skin/overlay.css
 
-resource mozmill resource/
+

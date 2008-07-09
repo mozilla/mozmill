@@ -36,13 +36,19 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = [""];
+var EXPORTED_SYMBOLS = ["MozMillController"];
 
-mozmill.MozMillController.prototype.open = function(s){
+test = {};
+
+var MozMillController = function (window) {
+    this.window = window;
+}
+
+MozMillController.prototype.open = function(s){
   mozmill.hiddenWindow.Application.browser.open(s).active = true;
   return true;
 }
-mozmill.MozMillController.prototype.sleep = function (milliseconds) { 
+MozMillController.prototype.sleep = function (milliseconds) { 
   var observer = {
     QueryInterface : function (iid) {
       const interfaces = [Components.interfaces.nsIObserver,
@@ -65,7 +71,7 @@ mozmill.MozMillController.prototype.sleep = function (milliseconds) {
              Components.interfaces.nsITimer.TYPE_ONE_SHOT);
 };
 
-mozmill.MozMillController.prototype.type = function (element, text){
+MozMillController.prototype.type = function (element, text){
   if (!element){ return false; }
   //clear the box
   element.value = '';
@@ -102,7 +108,7 @@ mozmill.MozMillController.prototype.type = function (element, text){
 
 
 /* Select the specified option and trigger the relevant events of the element.*/
-mozmill.MozMillController.prototype.select = function (element) {
+MozMillController.prototype.select = function (element) {
   if (!element){ return false; }
     
   var locatorType = param_object.locatorType || 'LABEL';
@@ -112,7 +118,7 @@ mozmill.MozMillController.prototype.select = function (element) {
   }*/
   
   var locator = this.optionLocatorFactory.fromLocatorString(
-							    locatorType.toLowerCase() + '=' + param_object.option);
+                             locatorType.toLowerCase() + '=' + param_object.option);
 
   var optionToSelect = locator.findOption(element);
   
@@ -138,46 +144,46 @@ mozmill.MozMillController.prototype.select = function (element) {
 };
 
 //Directly access mouse events
-mozmill.MozMillController.prototype.mousedown = function (mdnElement){
+MozMillController.prototype.mousedown = function (mdnElement){
   mozmill.events.triggerMouseEvent(mdnElement, 'mousedown', true);    
   return true;
 };
 
-mozmill.MozMillController.prototype.mouseup = function (mupElement){
+MozMillController.prototype.mouseup = function (mupElement){
   mozmill.events.triggerMouseEvent(mdnElement, 'mupElement', true);  
   return true;
 };
 
-mozmill.MozMillController.prototype.mouseover = function (mdnElement){
+MozMillController.prototype.mouseover = function (mdnElement){
   mozmill.events.triggerMouseEvent(mdnElement, 'mouseover', true);  
   return true;
 };
 
-mozmill.MozMillController.prototype.mouseout = function (moutElement){
+MozMillController.prototype.mouseout = function (moutElement){
   mozmill.events.triggerMouseEvent(moutElement, 'mouseout', true);
   return true;
 };
 
 //Browser navigation functions
-mozmill.MozMillController.prototype.goBack = function(param_object){
+MozMillController.prototype.goBack = function(param_object){
   mozmill.testWindow.history.back();
   return true;
 }
-mozmill.MozMillController.prototype.goForward = function(param_object){
+MozMillController.prototype.goForward = function(param_object){
   mozmill.testWindow.history.forward();
   return true;
 }
-mozmill.MozMillController.prototype.refresh = function(param_object){
+MozMillController.prototype.refresh = function(param_object){
   mozmill.testWindow.location.reload(true);
   return true;
 }
 
-mozmill.MozMillController.prototype.open = function(s){
+MozMillController.prototype.open = function(s){
   this.win.location.href=s;
   return true;
 }
 
-mozmill.MozMillController.prototype.click = function(element){
+MozMillController.prototype.click = function(element){
     if (!element){ return false; }     
     mozmill.events.triggerEvent(element, 'focus', false);
 
@@ -225,17 +231,17 @@ mozmill.MozMillController.prototype.click = function(element){
 };
 
 //there is a problem with checking via click in safari
-mozmill.MozMillController.prototype.check = function(element){
-  return mozmill.MozMillController.click(element);    
+MozMillController.prototype.check = function(element){
+  return MozMillController.click(element);    
 }
 
 //Radio buttons are even WIERDER in safari, not breaking in FF
-mozmill.MozMillController.radio = function(element){
-  return mozmill.MozMillController.click(element);      
+MozMillController.radio = function(element){
+  return MozMillController.click(element);      
 }
 
 //Double click for Mozilla
-mozmill.MozMillController.prototype.doubleClick = function(element) {
+MozMillController.prototype.doubleClick = function(element) {
 
  if (!element){ return false; }
  mozmill.events.triggerEvent(element, 'focus', false);

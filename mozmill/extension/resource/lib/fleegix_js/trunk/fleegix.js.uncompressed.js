@@ -14,6 +14,9 @@
  * limitations under the License.
  *
 */
+
+var EXPORTED_SYMBOLS = ["fleegix"];
+
 if (typeof fleegix == 'undefined') { var fleegix = {}; }
 
 
