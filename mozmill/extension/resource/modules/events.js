@@ -142,4 +142,3 @@ var triggerMouseEvent = function(element, eventType, canBubble, clientX, clientY
         //Used by safari
         element.dispatchEvent(evt);
       }
-};
