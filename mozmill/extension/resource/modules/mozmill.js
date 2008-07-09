@@ -35,7 +35,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["controller"];// "hash", "controller", "events", "timing", 
+var EXPORTED_SYMBOLS = ["controller", "events"];// "hash", "controller", "events", "timing", 
 //                         "results", "jstest", "utils", "elementslib", "getXPath"];
 
 // fleegix     = Components.utils.import('resource://mozmill/lib/fleegix_js/trunk/fleegix.js.uncompressed.js');
