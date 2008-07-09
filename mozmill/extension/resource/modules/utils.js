@@ -36,10 +36,9 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["utils"];
+var EXPORTED_SYMBOLS = ["openFile", "genBoiler", "getFile"];
 
-var utils = new function() {
-  this.checkChrome = function() {
+  var checkChrome = function() {
        var loc = window.document.location.href;
        try {
            loc = window.top.document.location.href;
@@ -81,20 +80,20 @@ var utils = new function() {
        mozmill.MozMillController.commands.jsTests(paramObj);
      }*/
      
-     this.genBoiler = function(){
-       $('editorInput').value = "function test_fooThing () {\n"+
-         "\tcontroller = mozmill.controller;\n"+
+     var genBoiler = function(w){
+       w.document.getElementById('editorInput').value = "function test_fooThing () {\n"+
+         "\tcontroller = new MozMillController(window);\n"+
          "\tcontroller.type(elementslib.Element.ID('email'), 'testing');\n"+
          "\tcontroller.sleep(10000);\n"+
          "\tcontroller.click(elementslib.Element.ID('doquicklogin'));\n"+
        "}";
      }
-     this.runFile = function(){
+     var runFile = function(w){
        //define the interface
        var nsIFilePicker = Components.interfaces.nsIFilePicker;
        var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
        //define the file picker window
-       fp.init(window, "Select a File", nsIFilePicker.modeOpen);
+       fp.init(w, "Select a File", nsIFilePicker.modeOpen);
        fp.appendFilter("JavaScript Files","*.js");
        //show the window
        var res = fp.show();
@@ -113,12 +112,12 @@ var utils = new function() {
        }
      };
      
-     this.openFile = function(){
+     var openFile = function(w){
         //define the interface
         var nsIFilePicker = Components.interfaces.nsIFilePicker;
         var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
         //define the file picker window
-        fp.init(window, "Select a File", nsIFilePicker.modeOpen);
+        fp.init(w, "Select a File", nsIFilePicker.modeOpen);
         fp.appendFilter("JavaScript Files","*.js");
         //show the window
         var res = fp.show();
@@ -126,8 +125,8 @@ var utils = new function() {
         if (res == nsIFilePicker.returnOK){
           var thefile = fp.file;
           //create the paramObj with a files array attrib
-          var data = mozmill.utils.getFile(thefile.path);
-          $('editorInput').value = data;
+          var data = getFile(thefile.path);
+          w.document.getElementById('editorInput').value = data;
           //Move focus to output tab
           //$('mmtabs').setAttribute("selectedIndex", 2);
           //send it into the JS test framework to run the file
@@ -135,7 +134,7 @@ var utils = new function() {
         }
       };
       
-     this.getFile = function(path){
+     var getFile = function(path){
        //define the file interface
        var file = Components.classes["@mozilla.org/file/local;1"]
                             .createInstance(Components.interfaces.nsILocalFile);
@@ -165,7 +164,7 @@ var utils = new function() {
      }
      
      //Function to start the running of jsTests
-     this.jsTests = function (paramObj) {
+     var jsTests = function (paramObj) {
          //Setup needed variables
          mozmill.jsTest.actions.loadActions();
          var wm = mozmill.jsTest.actions;
@@ -186,7 +185,7 @@ var utils = new function() {
      };
 
      //Commands function to hande the test results of the js tests
-     this.jsTestResults = function () {
+     var jsTestResults = function () {
        var _j = mozmill.jsTest;
        var jsSuiteSummary = _j.jsSuiteSummary;
        var s = '';
@@ -221,6 +220,4 @@ var utils = new function() {
        //mozmill.jsTest.sendJSReport(method, result, null, jsSuiteSummary);
        // Fire the polling loop back up
        //mozmill.MozMillController.continueLoop();
-
      }; 
-};

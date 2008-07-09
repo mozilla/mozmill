@@ -35,7 +35,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["controller", "events", "utils"];// "hash", "controller", "events", "timing", 
+var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib"];// "hash", "controller", "events", "timing", 
 //                         "results", "jstest", "utils", "elementslib", "getXPath"];
 
 //fleegix     = Components.utils.import('resource://mozmill/lib/fleegix_js/trunk/fleegix.js.uncompressed.js');
@@ -46,7 +46,7 @@ events      = Components.utils.import('resource://mozmill/modules/events.js');
 // results     = Components.utils.import('resource://mozmill/modules/results.js');
 // jstest      = Components.utils.import('resource://mozmill/modules/jstest.js');
 utils       = Components.utils.import('resource://mozmill/modules/utils.js');
-// elementslib = Components.utils.import('resource://mozmill/modules/elementslib.js');
+elementslib = Components.utils.import('resource://mozmill/modules/elementslib.js');
 // getXPath    = Components.utils.import('resource://mozmill/lib/getXPath.js');
 
 // var $ = function(id) {

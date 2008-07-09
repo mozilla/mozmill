@@ -11,12 +11,14 @@ title="&title.label;">
 <script src="js/lib/getXPath.js"/>
 <script src="js/dx.js"/>
 <script src="js/recorder.js"/>
+<script src="js/glue.js"/>
+
 
 <toolbox>
   <toolbar id="nav-toolbar">
     <menu id="fileMenu" label="File">
       <menupopup id="action-popup">
-        <menuitem label="Open Test File" oncommand="mozmill.utils.openFile();"/>
+        <menuitem label="Open Test File" oncommand="openFile();"/>
         <menuseparator/>
         <menuitem label="Save" disabled="true"/>
         <menuitem label="Save As" disabled="true"/>
@@ -26,12 +28,12 @@ title="&title.label;">
     </menu>
     <menu id="testMenu" label="Tests">
       <menupopup id="action-popup">
-        <menuitem label="Run Test File" oncommand="mozmill.utils.runFile();"/>
+        <menuitem label="Run Test File" oncommand="runFile();"/>
         <menuseparator/>
         <menuitem label="Run Editor" disabled="true"/>
         <menuitem label="Clear Editor" oncommand="$('editorInput').value = '';"/>
         <menuseparator/>
-        <menuitem label="New Boilerplate" oncommand="mozmill.utils.genBoiler();"/>
+        <menuitem label="New Boilerplate" oncommand="genBoiler();"/>
       </menupopup>
     </menu>
     <menu id="modes-menu" label="Modes">
@@ -51,8 +53,8 @@ title="&title.label;">
       </menupopup>
     </menu>
   <menu id="exp-menu" label="Explorers">
-    <menupopup id="explorerPopup" disabled="true">
-      <menu id="asx-menu" label="Assertion Explorer">
+    <menupopup id="explorerPopup">
+      <menu id="asx-menu" label="Assertion Explorer" disabled="true">
         <menupopup id="">
           <menuitem label="Start"/>
           <menuitem label="Stop" disabled="true"/>
@@ -170,9 +172,7 @@ title="&title.label;">
   <toolbox>
     <toolbars>
       <toolbarbutton id="nav-users"  accesskey="U" label="Preferences" onclick="showPrefs();"/>
-      <toolbarbutton id="nav-groups" accesskey="p" label="New Suite" onclick="add();"/>
-      <toolbarbutton id="nav-events" accesskey="E" label="New Action" onclick="add();"/>
-      <toolbarbutton id="nav-groups" accesskey="p" label="Clear" onclick="clear();"/>
+      <toolbarbutton id="nav-groups" accesskey="p" label="Clear" onclick="$('editorInput').value = '';"/>
       <toolbarbutton id="nav-events" accesskey="X" label="Close" onclick="close();"/>
     </toolbars>
   </toolbox>
