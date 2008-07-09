@@ -36,11 +36,10 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = [""];
+var EXPORTED_SYMBOLS = ["createEventObject", "triggerEvent", "getKeyCodeFromKeySequence",
+                        "triggerKeyEvent", "triggerMouseEvent"];
 
-mozmill.events = new function() {
-
-    this.createEventObject = function(element, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
+var createEventObject = function(element, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
           var evt = element.ownerDocument.createEventObject();
           evt.shiftKey = shiftKeyDown;
           evt.metaKey = metaKeyDown;
@@ -51,7 +50,7 @@ mozmill.events = new function() {
 
 
     /* Fire an event in a browser-compatible manner */
-    this.triggerEvent = function(element, eventType, canBubble, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
+var triggerEvent = function(element, eventType, canBubble, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
         canBubble = (typeof(canBubble) == undefined) ? true: canBubble;
         var evt = document.createEvent('HTMLEvents');
 
@@ -65,7 +64,7 @@ mozmill.events = new function() {
 
     };
 
-    this.getKeyCodeFromKeySequence = function(keySequence) {
+var getKeyCodeFromKeySequence = function(keySequence) {
         var match = /^\\(\d{1,3})$/.exec(keySequence);
         if (match != null) {
             return match[1];
@@ -83,12 +82,12 @@ mozmill.events = new function() {
             return match[0];
 
         }
-        mozmill.results.writeResult("invalid keySequence");
+        // mozmill.results.writeResult("invalid keySequence");
 
     }
 
-    this.triggerKeyEvent = function(element, eventType, keySequence, canBubble, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
-        var keycode = mozmill.events.getKeyCodeFromKeySequence(keySequence);
+var triggerKeyEvent = function(element, eventType, keySequence, canBubble, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
+        var keycode = getKeyCodeFromKeySequence(keySequence);
         canBubble = (typeof(canBubble) == undefined) ? true: canBubble;
         
         var evt;
@@ -114,7 +113,7 @@ mozmill.events = new function() {
     }
 
     /* Fire a mouse event in a browser-compatible manner */
-    this.triggerMouseEvent = function(element, eventType, canBubble, clientX, clientY, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
+var triggerMouseEvent = function(element, eventType, canBubble, clientX, clientY, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
         clientX = clientX ? clientX: 0;
         clientY = clientY ? clientY: 0;
 

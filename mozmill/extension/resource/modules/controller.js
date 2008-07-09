@@ -38,7 +38,6 @@
 
 var EXPORTED_SYMBOLS = ["MozMillController"];
 
-test = {};
 
 var MozMillController = function (window) {
     this.window = window;
