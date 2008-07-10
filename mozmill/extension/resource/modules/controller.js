@@ -47,6 +47,7 @@ MozMillController.prototype.open = function(s){
   mozmill.hiddenWindow.Application.browser.open(s).active = true;
   return true;
 }
+
 MozMillController.prototype.sleep = function (milliseconds) { 
   var observer = {
     QueryInterface : function (iid) {
@@ -249,3 +250,148 @@ MozMillController.prototype.doubleClick = function(element) {
  
  return true;
 };
+
+asserts_lib = Components.utils.import('resource://mozmill/modules/asserts.js')
+
+for (name in asserts_lib) {
+  if (name != 'EXPORTED_SYMBOLS' && name != '_AssertFactory' && name != 'assertRegistry')
+  MozMillController.prototype[name] = asserts_lib[name];
+  }
+
+MozMillController.prototype.assertText = function (param_object) {
+
+  var n = mozmill.MozMillController._lookupDispatch(param_object);
+  var validator = param_object.validator;
+  try{
+    if (n.innerHTML.indexOf(validator) != -1){
+      return true;
+    }
+    if (n.hasChildNodes()){
+      for(var m = n.firstChild; m != null; m = m.nextSibling) {
+ if (m.innerHTML.indexOf(validator) != -1){
+   return true;
+ }
+ if (m.value.indexOf(validator) != -1){
+   return true;
+ }
+      }
+    }
+  }
+  catch(error){
+    return false;
+  }
+  return false;
+};
+
+//Assert that a specified node exists
+MozMillController.prototype.assertNode = function (param_object) {
+  var element = mozmill.MozMillController._lookupDispatch(param_object);
+  if (!element){
+    return false;
+  }
+  return true;
+};
+
+//Assert that a form element contains the expected value
+MozMillController.prototype.assertValue = function (param_object) {
+  var n = mozmill.MozMillController._lookupDispatch(param_object);
+  var validator = param_object.validator;
+
+  if (n.value.indexOf(validator) != -1){
+    return true;
+  }
+  return false;
+};
+
+//Assert that a provided value is selected in a select element
+MozMillController.prototype.assertJS = function (param_object) {
+  var js = param_object.js;
+  var result = eval(js);
+  return result;
+};
+
+//Assert that a provided value is selected in a select element
+MozMillController.prototype.assertSelected = function (param_object) {
+  var n = mozmill.MozMillController._lookupDispatch(param_object);
+  var validator = param_object.validator;
+
+  if (n.options[n.selectedIndex].value == validator){
+    return true;
+  }
+  return false;
+};
+
+//Assert that a provided checkbox is checked
+MozMillController.prototype.assertChecked = function (param_object) {
+  var n = mozmill.MozMillController._lookupDispatch(param_object);
+
+  if (n.checked == true){
+    return true;
+  }
+  return false;
+};
+
+// Assert that a an element's property is a particular value
+MozMillController.prototype.assertProperty = function (param_object) {
+  var element = mozmill.MozMillController._lookupDispatch(param_object);
+  if (!element){
+    return false;
+  }
+  var vArray = param_object.validator.split('|');
+  var value = eval ('element.' + vArray[0]+';');
+  var res = false;
+  try {
+    if (value.indexOf(vArray[1]) != -1){
+      res = true;
+    }
+  }
+  catch(err){
+  }
+  if (String(value) == String(vArray[1])) {
+    res = true;
+  }
+  return res;
+};
+
+// Assert that a specified image has actually loaded
+// The Safari workaround results in additional requests
+// for broken images (in Safari only) but works reliably
+MozMillController.prototype.assertImageLoaded = function (param_object) {
+  var img = mozmill.MozMillController._lookupDispatch(param_object);
+  if (!img || img.tagName != 'IMG') {
+    return false;
+  }
+  var comp = img.complete;
+  var ret = null; // Return value
+
+  // Workaround for Safari -- it only supports the
+  // complete attrib on script-created images
+  if (typeof comp == 'undefined') {
+    test = new Image();
+    // If the original image was successfully loaded,
+    // src for new one should be pulled from cache
+    test.src = img.src;
+    comp = test.complete;
+  }
+
+  // Check the complete attrib. Note the strict
+  // equality check -- we don't want undefined, null, etc.
+  // --------------------------
+  // False -- Img failed to load in IE/Safari, or is
+  // still trying to load in FF
+  if (comp === false) {
+    ret = false;
+  }
+  // True, but image has no size -- image failed to
+  // load in FF
+  else if (comp === true && img.naturalWidth == 0) {
+    ret = false;
+  }
+  // Otherwise all we can do is assume everything's
+  // hunky-dory
+  else {
+    ret = true;
+  }
+  return ret;
+};
+

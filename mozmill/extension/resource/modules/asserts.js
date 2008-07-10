@@ -36,9 +36,12 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = [""];
+var EXPORTED_SYMBOLS = ["assertRegistry", "assertTrue", 'assertFalse', 'assertEquals',
+                        'assertNotEquals', 'assertNull', 'assertNotNull', 'assertUndefined',
+                        'assertNotUndefined', 'assertNaN', 'assertNotNaN', 'assertEvaluatesToTrue',
+                        'assertEvaluatesToFalse', 'assertContains'];
 
-mozmill.MozMillController.asserts.prototype.prototype.assertRegistry = {
+assertRegistry = {
   'assertTrue': {
   expr: function (a) {
       if (typeof a != 'boolean') {
@@ -122,144 +125,9 @@ mozmill.MozMillController.asserts.prototype.prototype.assertRegistry = {
 
 //Currently only does one level below the provided div
 //To make it more thorough it needs recursion to be implemented later
-mozmill.MozMillController.asserts.prototype.prototype.assertText = function (param_object) {
 
-  var n = mozmill.MozMillController._lookupDispatch(param_object);
-  var validator = param_object.validator;
-  try{
-    if (n.innerHTML.indexOf(validator) != -1){
-      return true;
-    }
-    if (n.hasChildNodes()){
-      for(var m = n.firstChild; m != null; m = m.nextSibling) {
-	if (m.innerHTML.indexOf(validator) != -1){
-	  return true;
-	}
-	if (m.value.indexOf(validator) != -1){
-	  return true;
-	}
-      }
-    }
-  }
-  catch(error){
-    return false;
-  }
-  return false;
-};
 
-//Assert that a specified node exists
-mozmill.MozMillController.asserts.prototype.assertNode = function (param_object) {
-  var element = mozmill.MozMillController._lookupDispatch(param_object);
-  if (!element){
-    return false;
-  }
-  return true;
-};
-
-//Assert that a form element contains the expected value
-mozmill.MozMillController.asserts.prototype.assertValue = function (param_object) {
-  var n = mozmill.MozMillController._lookupDispatch(param_object);
-  var validator = param_object.validator;
-
-  if (n.value.indexOf(validator) != -1){
-    return true;
-  }
-  return false;
-};
-
-//Assert that a provided value is selected in a select element
-mozmill.MozMillController.asserts.prototype.assertJS = function (param_object) {
-  var js = param_object.js;
-  var result = eval(js);
-  return result;
-};
-
-//Assert that a provided value is selected in a select element
-mozmill.MozMillController.asserts.prototype.assertSelected = function (param_object) {
-  var n = mozmill.MozMillController._lookupDispatch(param_object);
-  var validator = param_object.validator;
-
-  if (n.options[n.selectedIndex].value == validator){
-    return true;
-  }
-  return false;
-};
-
-//Assert that a provided checkbox is checked
-mozmill.MozMillController.asserts.prototype.assertChecked = function (param_object) {
-  var n = mozmill.MozMillController._lookupDispatch(param_object);
-
-  if (n.checked == true){
-    return true;
-  }
-  return false;
-};
-
-// Assert that a an element's property is a particular value
-mozmill.MozMillController.asserts.prototype.assertProperty = function (param_object) {
-  var element = mozmill.MozMillController._lookupDispatch(param_object);
-  if (!element){
-    return false;
-  }
-  var vArray = param_object.validator.split('|');
-  var value = eval ('element.' + vArray[0]+';');
-  var res = false;
-  try {
-    if (value.indexOf(vArray[1]) != -1){
-      res = true;
-    }
-  }
-  catch(err){
-  }
-  if (String(value) == String(vArray[1])) {
-    res = true;
-  }
-  return res;
-};
-
-// Assert that a specified image has actually loaded
-// The Safari workaround results in additional requests
-// for broken images (in Safari only) but works reliably
-mozmill.MozMillController.asserts.prototype.assertImageLoaded = function (param_object) {
-  var img = mozmill.MozMillController._lookupDispatch(param_object);
-  if (!img || img.tagName != 'IMG') {
-    return false;
-  }
-  var comp = img.complete;
-  var ret = null; // Return value
-
-  // Workaround for Safari -- it only supports the
-  // complete attrib on script-created images
-  if (typeof comp == 'undefined') {
-    test = new Image();
-    // If the original image was successfully loaded,
-    // src for new one should be pulled from cache
-    test.src = img.src;
-    comp = test.complete;
-  }
-
-  // Check the complete attrib. Note the strict
-  // equality check -- we don't want undefined, null, etc.
-  // --------------------------
-  // False -- Img failed to load in IE/Safari, or is
-  // still trying to load in FF
-  if (comp === false) {
-    ret = false;
-  }
-  // True, but image has no size -- image failed to
-  // load in FF
-  else if (comp === true && img.naturalWidth == 0) {
-    ret = false;
-  }
-  // Otherwise all we can do is assume everything's
-  // hunky-dory
-  else {
-    ret = true;
-  }
-  return ret;
-};
-
-mozmill.MozMillController.asserts.prototype._AssertFactory = new function () {
+_AssertFactory = new function () {
   var _this = this;
   function validateArgs(count, args) {
     if (!(args.length == count ||
@@ -304,7 +172,7 @@ mozmill.MozMillController.asserts.prototype._AssertFactory = new function () {
       // The actual assert method, e.g, 'equals'
       var meth = args.shift();
       // The assert object
-      var asrt = mozmill.controller.asserts.assertRegistry[meth];
+      var asrt = assertRegistry[meth];
       // The assert expresion
       var expr = asrt.expr;
       // Validate the args passed
@@ -320,19 +188,20 @@ mozmill.MozMillController.asserts.prototype._AssertFactory = new function () {
       else {
 	      var message = meth + ' -- ' +
         createErrMsg(asrt.errMsg, args);
-	      throw new mozmill.MozMillController.asserts.prototype._WindmillAssertException(comment, message);
+	      throw new _MozMillAssertException(comment, message);
       }
     };
   };
 
 // Create all the assert methods on mozmill.MozMillController.asserts.prototype
 // Using the items in the assertRegistry
-for (var meth in mozmill.controller.asserts.assertRegistry) {
-  mozmill.controller.asserts[meth] = mozmill.controller.asserts._AssertFactory.createAssert(meth);
-  mozmill.controller.asserts[meth].jsUnitAssert = true;
+
+for (var meth in assertRegistry) {
+  eval(meth+' = _AssertFactory.createAssert(meth);');
+  eval(meth+'.jsUnitAssert = true;');
 }
 
-mozmill.MozMillController.asserts.prototype._WindmillAssertException = function (comment, message) {
+_MozMillAssertException = function (comment, message) {
   this.comment = comment;
   this.message = message;
 };
