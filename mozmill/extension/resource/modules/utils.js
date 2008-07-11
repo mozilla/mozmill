@@ -36,7 +36,13 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["openFile", "genBoiler", "getFile"];
+var EXPORTED_SYMBOLS = ["openFile", "genBoiler", "getFile", "Copy"];
+
+function Copy (obj) {
+  for (n in obj) {
+    this[n] = obj[n];
+  }
+}
 
   var checkChrome = function() {
        var loc = window.document.location.href;
