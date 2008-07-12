@@ -50,6 +50,7 @@ ElemBase.prototype.exists = function(window){
 
 var Elem = function(node) {
   this.node = node;
+  return this;
 }
 Elem.prototype = new utils.Copy(ElemBase.prototype);
 Elem.prototype.getNode = function (window) { return this.node; }
@@ -57,6 +58,7 @@ Elem.prototype.getNode = function (window) { return this.node; }
 var ID = function(_document, nodeID) {
   this._document = _document;
   this.nodeID = nodeID;
+  return this;
 }
 ID.prototype = new utils.Copy(ElemBase.prototype);
 ID.prototype.getNode = function (window) {
@@ -66,6 +68,7 @@ ID.prototype.getNode = function (window) {
 var Link = function(_document, linkName) {
   this._document = _document;
   this.linkName = linkName;
+  return this;
 }
 Link.prototype = new utils.Copy(ElemBase.prototype);
 Link.prototype.getNode = function (window) {
@@ -107,6 +110,7 @@ Link.prototype.getNode = function (window) {
 var XPath = function(_document, expr) {
   this._document = _document;
   this.expr = expr;
+  return this;
 }
 XPath.prototype = new utils.Copy(ElemBase.prototype);
 XPath.prototype.getNode = function (window) {
@@ -125,6 +129,7 @@ XPath.prototype.getNode = function (window) {
 var Name = function(_document, nName) {
   this._document = _document;
   this.nName = nName;
+  return this;
 }
 Name.prototype = new utils.Copy(ElemBase.prototype);
 Name.prototype.getNode = function (window) {
