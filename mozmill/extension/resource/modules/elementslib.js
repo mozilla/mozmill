@@ -36,7 +36,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = [""];//"Elem", "ID", "Link", "XPath", "Name"];
+var EXPORTED_SYMBOLS = ["Elem", "ID", "Link", "XPath", "Name"];
 
 utils = Components.utils.import('resource://mozmill/modules/utils.js');
 
@@ -60,7 +60,7 @@ var ID = function(_document, nodeID) {
 }
 ID.prototype = new utils.Copy(ElemBase.prototype);
 ID.prototype.getNode = function (window) {
-  // Adam please fill with code
+  return window._document.getElementById(this.nodeID);
 }
 
 var Link = function(_document, linkName) {
@@ -69,7 +69,39 @@ var Link = function(_document, linkName) {
 }
 Link.prototype = new utils.Copy(ElemBase.prototype);
 Link.prototype.getNode = function (window) {
-  // Adam please fill with code
+  var getText = function(el){
+    var text = "";
+    if (el.nodeType == 3){ //textNode
+      if (el.data != undefined){
+        text = el.data;
+      }
+      else{ text = el.innerHTML; }
+      text = text.replace(/n|r|t/g, " ");
+    }
+    if (el.nodeType == 1){ //elementNode
+        for (var i = 0; i < el.childNodes.length; i++) {
+            var child = el.childNodes.item(i);
+            text += getText(child);
+        }
+        if (el.tagName == "P" || el.tagName == "BR" || 
+          el.tagName == "HR" || el.tagName == "DIV") {
+          text += "n";
+        }
+    }
+    return text;
+  }
+  //sometimes the windows won't have this function
+  try {
+    var links = window._document.getElementsByTagName('a');
+  }
+  catch(err){}
+  for (var i = 0; i < links.length; i++) {
+    var el = links[i];
+    if (getText(el).indexOf(this.linkName) != -1) {
+      return el;
+    }
+  }
+  return null;
 }
 
 var XPath = function(_document, expr) {
@@ -78,7 +110,16 @@ var XPath = function(_document, expr) {
 }
 XPath.prototype = new utils.Copy(ElemBase.prototype);
 XPath.prototype.getNode = function (window) {
-  // Adam please fill with code
+  var nsResolver = function (prefix) {
+    if (prefix == 'html' || prefix == 'xhtml' || prefix == 'x') {
+      return 'http://www.w3.org/1999/xhtml';
+    } else if (prefix == 'mathml') {
+      return 'http://www.w3.org/1998/Math/MathML';
+    } else {
+      throw new Error("Unknown namespace: " + prefix + ".");
+    }
+  }
+  return window._document.evaluate(this.expr, window._document, nsResolver, 0, null).iterateNext();
 }
 
 var Name = function(_document, nName) {
@@ -87,7 +128,12 @@ var Name = function(_document, nName) {
 }
 Name.prototype = new utils.Copy(ElemBase.prototype);
 Name.prototype.getNode = function (window) {
-  // Adam please fill with code
+  try{
+    var els = window._document.getElementsByName(this.nName);
+    if (els.length > 0) { return els[0]; }
+  }
+  catch(err){};
+  return null;
 }
 
 
