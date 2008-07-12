@@ -35,7 +35,11 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib"];// "hash", "controller", "events", "timing", 
+var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib",
+                        "getController", "newBrowserController", "newAddonsController"];
+                        
+                        
+                        // "hash", "controller", "events", "timing", 
 //                         "results", "jstest", "utils", "elementslib", "getXPath"];
 
 //fleegix     = Components.utils.import('resource://mozmill/lib/fleegix_js/trunk/fleegix.js.uncompressed.js');
@@ -48,6 +52,23 @@ events      = Components.utils.import('resource://mozmill/modules/events.js');
 utils       = Components.utils.import('resource://mozmill/modules/utils.js');
 elementslib = Components.utils.import('resource://mozmill/modules/elementslib.js');
 // getXPath    = Components.utils.import('resource://mozmill/lib/getXPath.js');
+
+var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
+                .getService(Components.interfaces.nsIAppShellService)
+                .hiddenDOMWindow;
+
+function getController (_window) {
+  return new controller.MozMillController(_window);
+}
+
+function newBrowserController (url) {
+  return getController(hwindow.open(url));
+}
+
+function newAddonsController (url) {
+  return getController(hwindow.openDialog("chrome://mozapps/content/extensions/extensions.xul", "", "chrome,menubar,extra-chrome,toolbar,dialog=no,resizable"));
+}
+
 
 // var $ = function(id) {
 //   return document.getElementById(id);
