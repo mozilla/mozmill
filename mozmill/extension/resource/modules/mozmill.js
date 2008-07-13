@@ -57,16 +57,25 @@ var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
                 .getService(Components.interfaces.nsIAppShellService)
                 .hiddenDOMWindow;
 
-function getController (_window) {
-  return new controller.MozMillController(_window);
+var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+           .getService(Components.interfaces.nsIWindowMediator);
+
+function newBrowserController () {
+  return new controller.MozMillController(hwindow.OpenBrowserWindow());
 }
 
-function newBrowserController (url) {
-  return getController(hwindow.open(url));
+function getBrowserController () {
+  var browserWindow = wm.getMostRecentWindow("navigator:browser");
+  if (browserWindow == null) {
+    return newBrowserController();
+  }
+  else {
+    return new controller.MozMillController(browserWindow);
+  }
 }
 
 function newAddonsController (url) {
-  return getController(hwindow.openDialog("chrome://mozapps/content/extensions/extensions.xul", "", "chrome,menubar,extra-chrome,toolbar,dialog=no,resizable"));
+  return new controller.MozMillController(hwindow.BrowserOpenAddonsMgr());
 }
 
 

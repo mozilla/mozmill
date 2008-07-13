@@ -40,7 +40,8 @@ var EXPORTED_SYMBOLS = ["MozMillController"];
 
 
 var MozMillController = function (window) {
-    this.window = window;
+  // TODO: Check if window is loaded and block until it has if it hasn't.
+  this.window = window;
 }
 
 MozMillController.prototype.open = function(s){
