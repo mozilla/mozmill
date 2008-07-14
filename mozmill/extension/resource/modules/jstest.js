@@ -36,6 +36,9 @@
 // 
 // ***** END LICENSE BLOCK *****
 
+var jstest = {}; 
+Components.utils.import('resource://mozmill/modules/jstest.js', jstest);
+
 //var EXPORTED_SYMBOLS = ["runFromFile", "runFromText"];
 var EXPORTED_SYMBOLS = ["runFromFile", "runFromString"];
 
@@ -44,28 +47,27 @@ var runFromFile = function(path){
   var tests = parseTest(code);
   var result = run(tests, code);
   //report(result);
-  alert(result);
   return;
 }
 
 var runFromString = function(code){
+  hwindow.alert('here run string');
   var tests = parseText(code);
   var result = run(tests, code);
   //report(result);
-  alert(result);
   return
 }
 
 var run = function(tests, code){
   try { var r = eval(code); }
   catch(err){
-    alert('Please run valid JavaScript only.')
+    hwindow.alert('Please run valid JavaScript only.')
   }
   
   for (test in tests){
     try { eval(tests[test]+'();');}
     catch(err){
-      alert('Error running '+tests[test]+", "+err);
+      hwindow.alert('Error running '+tests[test]+", "+err);
     }
   }
   return true;

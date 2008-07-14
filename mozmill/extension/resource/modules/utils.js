@@ -36,7 +36,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["openFile", "genBoiler", "getFile", "Copy", "getWindows"];
+var EXPORTED_SYMBOLS = ["openFile", "genBoiler", "getFile", "Copy", "getWindows", "runEditor"];
 
 function Copy (obj) {
   for (n in obj) {
@@ -127,11 +127,21 @@ var checkChrome = function() {
      paramObj.files.push(thefile.path);
 
      //Move focus to output tab
-     $('mmtabs').setAttribute("selectedIndex", 2);
+     w.document.getElementById('mmtabs').setAttribute("selectedIndex", 2);
      //send it into the JS test framework to run the file
-     jsTest.runFromFile(thefile.path);
+     jstest.runFromFile(thefile.path);
    }
  };
+ 
+ var runEditor = function(w){
+   w.alert('in run editor');   
+   var data = w.document.getElementById('editorInput').value;
+   //Move focus to output tab
+   w.document.getElementById('mmtabs').setAttribute("selectedIndex", 2);
+   //send it into the JS test framework to run the file
+   jstest.runFromString(data);
+ };
+ 
  
  var openFile = function(w){
     //define the interface
@@ -152,6 +162,7 @@ var checkChrome = function() {
       //$('mmtabs').setAttribute("selectedIndex", 2);
       //send it into the JS test framework to run the file
       //mozmill.utils.jsTests(paramObj);
+      //jsTest.runFromString(thefile.path);
     }
   };
   
