@@ -36,7 +36,7 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib",
-                        "getController", "newBrowserController", "newAddonsController", "jstest"];
+                        "getController", "newBrowserController", "newAddonsController"];
                         
                         
                         // "hash", "controller", "events", "timing", 
