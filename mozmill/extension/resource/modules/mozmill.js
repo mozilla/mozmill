@@ -50,7 +50,7 @@ var events = {}; Components.utils.import('resource://mozmill/modules/events.js',
 // results     = Components.utils.import('resource://mozmill/modules/results.js');
 var jstest = {}; Components.utils.import('resource://mozmill/modules/jstest.js', jstest);
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
-var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib  );
+var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 // getXPath    = Components.utils.import('resource://mozmill/lib/getXPath.js');
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]

@@ -36,10 +36,6 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var jstest = {}; 
-Components.utils.import('resource://mozmill/modules/jstest.js', jstest);
-
-//var EXPORTED_SYMBOLS = ["runFromFile", "runFromText"];
 var EXPORTED_SYMBOLS = ["runFromFile", "runFromString"];
 
 var runFromFile = function(path){

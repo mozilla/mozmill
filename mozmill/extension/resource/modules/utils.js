@@ -38,6 +38,9 @@
 
 var EXPORTED_SYMBOLS = ["openFile", "genBoiler", "getFile", "Copy", "getWindows", "runEditor"];
 
+var jstest = {}; 
+Components.utils.import('resource://mozmill/modules/jstest.js', jstest);
+
 function Copy (obj) {
   for (n in obj) {
     this[n] = obj[n];
