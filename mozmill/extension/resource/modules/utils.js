@@ -129,7 +129,7 @@ var checkChrome = function() {
      //Move focus to output tab
      $('mmtabs').setAttribute("selectedIndex", 2);
      //send it into the JS test framework to run the file
-     mozmill.utils.jsTests(paramObj);
+     jsTest.runFromFile(thefile.path);
    }
  };
  

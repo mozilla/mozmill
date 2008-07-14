@@ -36,7 +36,7 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib",
-                        "getController", "newBrowserController", "newAddonsController"];
+                        "getController", "newBrowserController", "newAddonsController", "jstest"];
                         
                         
                         // "hash", "controller", "events", "timing", 
@@ -48,7 +48,7 @@ controller  = Components.utils.import('resource://mozmill/modules/controller.js'
 events      = Components.utils.import('resource://mozmill/modules/events.js');
 // timing      = Components.utils.import('resource://mozmill/modules/timing.js');
 // results     = Components.utils.import('resource://mozmill/modules/results.js');
-// jstest      = Components.utils.import('resource://mozmill/modules/jstest.js');
+jstest      = Components.utils.import('resource://mozmill/modules/jstest.js');
 utils       = Components.utils.import('resource://mozmill/modules/utils.js');
 elementslib = Components.utils.import('resource://mozmill/modules/elementslib.js');
 // getXPath    = Components.utils.import('resource://mozmill/lib/getXPath.js');
