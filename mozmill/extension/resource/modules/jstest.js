@@ -39,7 +39,7 @@
 var EXPORTED_SYMBOLS = ["runFromFile", "runFromText"];
 
 var runFromFile = function(path){
-  var code = utils.getFile(path);
+  var code = getFile(path);
   var tests = parseTest(code);
   var result = run(tests, code);
   //report(result);
@@ -72,7 +72,7 @@ var run = function(tests, code){
 
 var parseTest = function(s){
   var re = /test_\S+/g;
-  var tests = s.match(re));
+  var tests = s.match(re);
   
   var re = /setup/;
   var hasSetup = re.test(s);
@@ -87,6 +87,36 @@ var parseTest = function(s){
   }
   return tests;
 }
+
+var getFile = function(path){
+  //define the file interface
+  var file = Components.classes["@mozilla.org/file/local;1"]
+                       .createInstance(Components.interfaces.nsILocalFile);
+  //point it at the file we want to get at
+  file.initWithPath(path);
+  // define file stream interfaces
+  var data = "";
+  var fstream = Components.classes["@mozilla.org/network/file-input-stream;1"]
+                          .createInstance(Components.interfaces.nsIFileInputStream);
+  var sstream = Components.classes["@mozilla.org/scriptableinputstream;1"]
+                          .createInstance(Components.interfaces.nsIScriptableInputStream);
+  fstream.init(file, -1, 0, 0);
+  sstream.init(fstream); 
+
+  //pull the contents of the file out
+  var str = sstream.read(4096);
+  while (str.length > 0) {
+    data += str;
+    str = sstream.read(4096);
+  }
+
+  sstream.close();
+  fstream.close();
+
+  //data = data.replace(/\r|\n|\r\n/g, "");
+  return data;  
+}
+
 
 // var jum = mozmill.controller.asserts;
 // 

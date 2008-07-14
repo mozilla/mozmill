@@ -183,62 +183,62 @@ var checkChrome = function() {
    //data = data.replace(/\r|\n|\r\n/g, "");
    return data;
  }
- 
- //Function to start the running of jsTests
- var jsTests = function (paramObj) {
-     //Setup needed variables
-     mozmill.jsTest.actions.loadActions();
-     var wm = mozmill.jsTest.actions;
-     var testFiles = paramObj.files;
-     if (!testFiles.length) {
-       throw new Error('No JavaScript tests to run.');
-     }
-     var _j = mozmill.jsTest;
-     //mozmill.MozMillController.stopLoop();
-
-     //Timing the suite
-     var jsSuiteSummary = new TimeObj();
-     jsSuiteSummary.setName('jsSummary');
-     jsSuiteSummary.startTime();
-     _j.jsSuiteSummary = jsSuiteSummary;
-
-     _j.run(paramObj);
- };
-
- //Commands function to hande the test results of the js tests
- var jsTestResults = function () {
-   var _j = mozmill.jsTest;
-   var jsSuiteSummary = _j.jsSuiteSummary;
-   var s = '';
-   s += 'Number of tests run: ' + _j.testCount + '\n';
-   s += '\nNumber of tests failures: ' + _j.testFailureCount;
-   if (_j.testFailureCount > 0) {
-     s += 'Test failures:<br/>';
-     var fails = _j.testFailures;
-     for (var i = 0; i < fails.length; i++) {
-       var fail = fails[i];
-       var msg = fail.message;
-       // Escape angle brackets for display in HTML
-       msg = msg.replace(/</g, '&lt;');
-       msg = msg.replace(/>/g, '&gt;');
-       s += msg + '<br/>';
-     }
-   };
-
-   jsSuiteSummary.endTime();
-   var result = !(_j.testFailureCount > 0);
-
-   if (result){
-      mozmill.results.writeResult(s, 'lightgreen');
-    }
-    else{
-      mozmill.results.writeResult(s, 'lightred');
-    }
-   //mozmill.results.writeResult(s);
-   //We want the summary to have a concept of success/failure
-   var result = !(_j.testFailureCount > 0);
-   var method = 'JS Test Suite Completion';
-   //mozmill.jsTest.sendJSReport(method, result, null, jsSuiteSummary);
-   // Fire the polling loop back up
-   //mozmill.MozMillController.continueLoop();
- }; 
+ // 
+ // //Function to start the running of jsTests
+ // var jsTests = function (paramObj) {
+ //     //Setup needed variables
+ //     mozmill.jsTest.actions.loadActions();
+ //     var wm = mozmill.jsTest.actions;
+ //     var testFiles = paramObj.files;
+ //     if (!testFiles.length) {
+ //       throw new Error('No JavaScript tests to run.');
+ //     }
+ //     var _j = mozmill.jsTest;
+ //     //mozmill.MozMillController.stopLoop();
+ // 
+ //     //Timing the suite
+ //     var jsSuiteSummary = new TimeObj();
+ //     jsSuiteSummary.setName('jsSummary');
+ //     jsSuiteSummary.startTime();
+ //     _j.jsSuiteSummary = jsSuiteSummary;
+ // 
+ //     _j.run(paramObj);
+ // };
+ // 
+ // //Commands function to hande the test results of the js tests
+ // var jsTestResults = function () {
+ //   var _j = mozmill.jsTest;
+ //   var jsSuiteSummary = _j.jsSuiteSummary;
+ //   var s = '';
+ //   s += 'Number of tests run: ' + _j.testCount + '\n';
+ //   s += '\nNumber of tests failures: ' + _j.testFailureCount;
+ //   if (_j.testFailureCount > 0) {
+ //     s += 'Test failures:<br/>';
+ //     var fails = _j.testFailures;
+ //     for (var i = 0; i < fails.length; i++) {
+ //       var fail = fails[i];
+ //       var msg = fail.message;
+ //       // Escape angle brackets for display in HTML
+ //       msg = msg.replace(/</g, '&lt;');
+ //       msg = msg.replace(/>/g, '&gt;');
+ //       s += msg + '<br/>';
+ //     }
+ //   };
+ // 
+ //   jsSuiteSummary.endTime();
+ //   var result = !(_j.testFailureCount > 0);
+ // 
+ //   if (result){
+ //      mozmill.results.writeResult(s, 'lightgreen');
+ //    }
+ //    else{
+ //      mozmill.results.writeResult(s, 'lightred');
+ //    }
+ //   //mozmill.results.writeResult(s);
+ //   //We want the summary to have a concept of success/failure
+ //   var result = !(_j.testFailureCount > 0);
+ //   var method = 'JS Test Suite Completion';
+ //   //mozmill.jsTest.sendJSReport(method, result, null, jsSuiteSummary);
+ //   // Fire the polling loop back up
+ //   //mozmill.MozMillController.continueLoop();
+ // }; 
