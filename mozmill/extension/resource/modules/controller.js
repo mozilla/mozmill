@@ -40,20 +40,28 @@ var EXPORTED_SYMBOLS = ["MozMillController"];
 
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
+var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 
 var MozMillController = function (window) {
   // TODO: Check if window is loaded and block until it has if it hasn't.
   this.window = window;
 }
 MozMillController.prototype.open = function(url){
-  var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
-                  .getService(Components.interfaces.nsIAppShellService)
-                  .hiddenDOMWindow;
-  //Application.activeWindow.activeTab.url = url;
-  var uri = Components.classes["@mozilla.org/network/io-service;1"]
-  .getService(Components.interfaces.nsIIOService)
-  .newURI(url, null, null);
-  hwindow.Application.activeWindow.open(uri);
+  this.window.content.document.location.href = url;
+/*
+  this.window.openLocation(url);
+  var el = new elementslib.ID(this.window.document, 'urlbar').getNode();
+  this.type(new elementslib.ID(this.window.document, 'urlbar'), url);
+  events.triggerKeyEvent(el, 'keypress', '13', true, false,false, false,false); 
+  */
+  // var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
+  //                 .getService(Components.interfaces.nsIAppShellService)
+  //                 .hiddenDOMWindow;
+  // //Application.activeWindow.activeTab.url = url;
+  // var uri = Components.classes["@mozilla.org/network/io-service;1"]
+  // .getService(Components.interfaces.nsIIOService)
+  // .newURI(url, null, null);
+  // hwindow.Application.activeWindow.open(uri);
 }
 
 MozMillController.prototype.click = function(el){
@@ -178,91 +186,101 @@ MozMillController.prototype.type = function (el, text){
   return true;
 };
 
-
 /* Select the specified option and trigger the relevant events of the element.*/
-MozMillController.prototype.select = function (element) {
+MozMillController.prototype.select = function (el) {
+  element = el.getNode();
   if (!element){ return false; }
-    
-  var locatorType = param_object.locatorType || 'LABEL';
-  /*if (!("options" in element)) {
-  //throw new WindmillError("Specified element is not a Select (has no options)");
-         
-  }*/
-  
-  var locator = this.optionLocatorFactory.fromLocatorString(
-                             locatorType.toLowerCase() + '=' + param_object.option);
 
-  var optionToSelect = locator.findOption(element);
-  
-  events.triggerEvent(element, 'focus', false);
-  var changed = false;
-  for (var i = 0; i < element.options.length; i++) {
-    var option = element.options[i];
-    if (option.selected && option != optionToSelect) {        
-      option.selected = false;
-      changed = true;
-    }
-    else if (!option.selected && option == optionToSelect) {        
-      option.selected = true;
-      changed = true;        
-    }
-  }
+ try{ windmill.events.triggerEvent(element, 'focus', false);}
+ catch(err){};
 
+ var optionToSelect = null;
+ for (opt in element.options){
+   var el = element.options[opt]
 
-  if (changed) {
-    events.triggerEvent(element, 'change', true);
-  }
-  return true;
+   if (param_object.option != undefined){
+     if(el.innerHTML.indexOf(param_object.option) != -1){
+       if (el.selected && el.options[opt] == optionToSelect){
+         continue;
+       }
+       optionToSelect = el;
+       optionToSelect.selected = true;
+       windmill.events.triggerEvent(element, 'change', true);
+       break;
+     }
+   }
+   else{
+      if(el.value.indexOf(param_object.value) != -1){
+         if (el.selected && el.options[opt] == optionToSelect){
+           continue;
+         }
+         optionToSelect = el;
+         optionToSelect.selected = true;
+         windmill.events.triggerEvent(element, 'change', true);
+         break;
+       }
+   }
+ }
+ if (optionToSelect == null){
+   return false;
+ }
+ return true;
 };
 
 //Directly access mouse events
-MozMillController.prototype.mousedown = function (mdnElement){
+MozMillController.prototype.mousedown = function (el){
+  var mdnElement = el.getNode();
   events.triggerMouseEvent(mdnElement, 'mousedown', true);    
   return true;
 };
 
-MozMillController.prototype.mouseup = function (mupElement){
+MozMillController.prototype.mouseup = function (el){
+  var mupElement = el.getNode();
   events.triggerMouseEvent(mdnElement, 'mupElement', true);  
   return true;
 };
 
-MozMillController.prototype.mouseover = function (mdnElement){
+MozMillController.prototype.mouseover = function (el){
+  var mdnElement = el.getNode();
   events.triggerMouseEvent(mdnElement, 'mouseover', true);  
   return true;
 };
 
-MozMillController.prototype.mouseout = function (moutElement){
+MozMillController.prototype.mouseout = function (el){
+  var moutElement = el.getNode();
   events.triggerMouseEvent(moutElement, 'mouseout', true);
   return true;
 };
 
 //Browser navigation functions
-MozMillController.prototype.goBack = function(param_object){
-  mozmill.testWindow.history.back();
+MozMillController.prototype.goBack = function(){
+  this.window.history.back();
   return true;
 }
-MozMillController.prototype.goForward = function(param_object){
-  mozmill.testWindow.history.forward();
+MozMillController.prototype.goForward = function(){
+  this.window.history.forward();
   return true;
 }
-MozMillController.prototype.refresh = function(param_object){
-  mozmill.testWindow.location.reload(true);
+MozMillController.prototype.refresh = function(){
+  this.window.location.reload(true);
   return true;
 }
 
 //there is a problem with checking via click in safari
-MozMillController.prototype.check = function(element){
+MozMillController.prototype.check = function(el){
+  var element = el.getNode();
   return MozMillController.click(element);    
 }
 
 //Radio buttons are even WIERDER in safari, not breaking in FF
-MozMillController.radio = function(element){
+MozMillController.radio = function(el){
+  var element = el.getNode();
   return MozMillController.click(element);      
 }
 
 //Double click for Mozilla
-MozMillController.prototype.doubleClick = function(element) {
-
+MozMillController.prototype.doubleClick = function(el) {
+ var element = element.getNode();
  if (!element){ return false; }
  events.triggerEvent(element, 'focus', false);
  events.triggerMouseEvent(element, 'dblclick', true);
@@ -289,10 +307,10 @@ for (name in asserts_lib) {
   MozMillController.prototype[name] = asserts_lib[name];
   }
 
-MozMillController.prototype.assertText = function (param_object) {
+MozMillController.prototype.assertText = function (el, text) {
 
-  var n = mozmill.MozMillController._lookupDispatch(param_object);
-  var validator = param_object.validator;
+  var n = el.getNode();
+  var validator = text;
   try{
     if (n.innerHTML.indexOf(validator) != -1){
       return true;
@@ -315,8 +333,8 @@ MozMillController.prototype.assertText = function (param_object) {
 };
 
 //Assert that a specified node exists
-MozMillController.prototype.assertNode = function (param_object) {
-  var element = mozmill.MozMillController._lookupDispatch(param_object);
+MozMillController.prototype.assertNode = function (el) {
+  var element = el.getNode();
   if (!element){
     return false;
   }
@@ -324,9 +342,9 @@ MozMillController.prototype.assertNode = function (param_object) {
 };
 
 //Assert that a form element contains the expected value
-MozMillController.prototype.assertValue = function (param_object) {
-  var n = mozmill.MozMillController._lookupDispatch(param_object);
-  var validator = param_object.validator;
+MozMillController.prototype.assertValue = function (el, value) {
+  var n = el.getNode();
+  var validator = value;
 
   if (n.value.indexOf(validator) != -1){
     return true;
@@ -335,16 +353,15 @@ MozMillController.prototype.assertValue = function (param_object) {
 };
 
 //Assert that a provided value is selected in a select element
-MozMillController.prototype.assertJS = function (param_object) {
-  var js = param_object.js;
+MozMillController.prototype.assertJS = function (js) {
   var result = eval(js);
   return result;
 };
 
 //Assert that a provided value is selected in a select element
-MozMillController.prototype.assertSelected = function (param_object) {
-  var n = mozmill.MozMillController._lookupDispatch(param_object);
-  var validator = param_object.validator;
+MozMillController.prototype.assertSelected = function (el, value) {
+  var n = el.getNode();
+  var validator = value;
 
   if (n.options[n.selectedIndex].value == validator){
     return true;
@@ -353,8 +370,8 @@ MozMillController.prototype.assertSelected = function (param_object) {
 };
 
 //Assert that a provided checkbox is checked
-MozMillController.prototype.assertChecked = function (param_object) {
-  var n = mozmill.MozMillController._lookupDispatch(param_object);
+MozMillController.prototype.assertChecked = function (el) {
+  var n = el.getNode();
 
   if (n.checked == true){
     return true;
@@ -363,16 +380,14 @@ MozMillController.prototype.assertChecked = function (param_object) {
 };
 
 // Assert that a an element's property is a particular value
-MozMillController.prototype.assertProperty = function (param_object) {
-  var element = mozmill.MozMillController._lookupDispatch(param_object);
-  if (!element){
-    return false;
-  }
-  var vArray = param_object.validator.split('|');
-  var value = eval ('element.' + vArray[0]+';');
+MozMillController.prototype.assertProperty = function (el, attrib, value) {
+  var element = el.getNode();
+  if (!element){ return false; }
+  
+  var value = eval ('element.' + attrib+';');
   var res = false;
   try {
-    if (value.indexOf(vArray[1]) != -1){
+    if (value.indexOf(value) != -1){
       res = true;
     }
   }
@@ -387,8 +402,8 @@ MozMillController.prototype.assertProperty = function (param_object) {
 // Assert that a specified image has actually loaded
 // The Safari workaround results in additional requests
 // for broken images (in Safari only) but works reliably
-MozMillController.prototype.assertImageLoaded = function (param_object) {
-  var img = mozmill.MozMillController._lookupDispatch(param_object);
+MozMillController.prototype.assertImageLoaded = function (el) {
+  var img = el.getNode();
   if (!img || img.tagName != 'IMG') {
     return false;
   }

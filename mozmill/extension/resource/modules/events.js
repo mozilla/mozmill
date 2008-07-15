@@ -94,7 +94,6 @@ var triggerKeyEvent = function(element, eventType, keySequence, canBubble, contr
         if (window.KeyEvent) {
             evt = document.createEvent('KeyEvents');
             evt.initKeyEvent(eventType, true, true, window, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown, keycode, keycode);
-
         } 
         else {
             evt = document.createEvent('UIEvents');

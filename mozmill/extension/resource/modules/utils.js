@@ -105,11 +105,18 @@ var checkChrome = function() {
  }*/
  
  var genBoiler = function(w){
-   w.document.getElementById('editorInput').value = "function test_fooThing () {\n"+
-     "\tcontroller = new MozMillController(window);\n"+
-     "\tcontroller.type(elementslib.Element.ID('email'), 'testing');\n"+
-     "\tcontroller.sleep(10000);\n"+
-     "\tcontroller.click(elementslib.Element.ID('doquicklogin'));\n"+
+   w.document.getElementById('editorInput').value = 
+   "var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);\n"+
+   "var controller = {}; Components.utils.import('resource://mozmill/modules/controller.js', controller);\n\n"+
+   "var wm = Components.classes[\"@mozilla.org/appshell/window-mediator;1\"]"+
+   ".getService(Components.interfaces.nsIWindowMediator);\n"+
+   "var _w = wm.getMostRecentWindow(\"navigator:browser\");\n"+
+   "var browser = new controller.MozMillController(_w);\n\n"+
+   "var test_foo = function(){\n"+
+   " browser.type(new elementslib.ID(_w.document, 'urlbar'), \"http://www.heckyes.com\");\n"+
+   " browser.sleep(5000);\n"+
+   " browser.click(new elementslib.ID(_w.document, 'home-button'));\n"+
+   " browser.open('http://www.google.com');\n"+
    "}";
  }
  var runFile = function(w){
