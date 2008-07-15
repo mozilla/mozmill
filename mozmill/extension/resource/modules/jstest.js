@@ -37,34 +37,43 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ["runFromFile", "runFromString"];
+var results = {}; Components.utils.import('resource://mozmill/modules/results.js', results);
 
 var runFromFile = function(path){
   var code = getFile(path);
+  var tests = parseTest(code);
+  var result = run(tests, code);
+  return;
+}
+
+var runFromString = function(code){
   var tests = parseTest(code);
   var result = run(tests, code);
   //report(result);
   return;
 }
 
-var runFromString = function(code){
-  hwindow.alert('here run string');
-  var tests = parseText(code);
-  var result = run(tests, code);
-  //report(result);
-  return
-}
-
 var run = function(tests, code){
+  var re = /\/\*(.|\n)*?\*\//g;
+  code = code.replace(re, '');
+  
   try { var r = eval(code); }
   catch(err){
-    hwindow.alert('Please run valid JavaScript only.')
+    results.write('Please run valid JavaScript only.', 'lightred');
   }
   
   for (test in tests){
-    try { eval(tests[test]+'();');}
-    catch(err){
-      hwindow.alert('Error running '+tests[test]+", "+err);
+    results.write("Running "+tests[test]+'...');    
+    try { 
+      var func = eval(tests[test]);
+      if (typeof func == 'function'){
+        func.call(this)
+      }
     }
+    catch(err){
+      results.write('Error running '+tests[test]+", "+err, 'lightred');
+    }
+     results.write("Succesfully ran "+tests[test], 'lightgreen');
   }
   return true;
 }

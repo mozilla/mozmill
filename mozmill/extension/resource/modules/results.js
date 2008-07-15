@@ -36,32 +36,19 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = [""];
+var EXPORTED_SYMBOLS = ["write"];
 
-//Functions for writing status to the UI
-/***************************************/
-mozmill.results = new
-function() {
-
-    //Writing to the performance tab
-    this.writePerformance = function(str) {
-      var r = $("perfOut");
-      var msg = document.createElement('div');
-      msg.style.width = "100%";
-      msg.textContent = str;
-      r.insertBefore(msg, r.childNodes[0]);
-    }
-
-    this.writeStatus = function(str) {
-      var s = $("runningStatus");
-      s.textContent = 'Status:' + str;
-    }
-
-    //Writing to the results tab
-    this.writeResult = function(str, color) {
-      var r = $("resOut");
-
-      var msg = document.createElement('hbox');
+var write = function(s, color){
+ var win = null;
+ var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                     .getService(Components.interfaces.nsIWindowMediator)
+                     .getEnumerator("");
+  while(enumerator.hasMoreElements()) {
+    var win = enumerator.getNext();
+    if (win.document.title == 'MozMill IDE'){
+      win.focus();
+      var r = win.document.getElementById("resOut");
+      var msg = win.document.createElement('hbox');
       msg.setAttribute("class", "resultrow");
       if (typeof(color) != 'undefined'){
         msg.style.background = color;
@@ -69,10 +56,48 @@ function() {
       else{
         msg.style.background = 'lightyellow';
       }
-      msg.textContent = str;
+      msg.textContent = s;
 
       r.insertBefore(msg, r.childNodes[0]);
     }
+  }
+}
 
-
-};
+//Functions for writing status to the UI
+/***************************************/
+// mozmill.results = new
+// function() {
+// 
+//     //Writing to the performance tab
+//     this.writePerformance = function(str) {
+//       var r = $("perfOut");
+//       var msg = document.createElement('div');
+//       msg.style.width = "100%";
+//       msg.textContent = str;
+//       r.insertBefore(msg, r.childNodes[0]);
+//     }
+// 
+//     this.writeStatus = function(str) {
+//       var s = $("runningStatus");
+//       s.textContent = 'Status:' + str;
+//     }
+// 
+//     //Writing to the results tab
+//     this.writeResult = function(str, color) {
+//       var r = $("resOut");
+// 
+//       var msg = document.createElement('hbox');
+//       msg.setAttribute("class", "resultrow");
+//       if (typeof(color) != 'undefined'){
+//         msg.style.background = color;
+//       }
+//       else{
+//         msg.style.background = 'lightyellow';
+//       }
+//       msg.textContent = str;
+// 
+//       r.insertBefore(msg, r.childNodes[0]);
+//     }
+// 
+// 
+// };

@@ -36,7 +36,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["openFile", "genBoiler", "getFile", "Copy", "getWindows", "runEditor"];
+var EXPORTED_SYMBOLS = ["openFile", "genBoiler", "getFile", "Copy", "getWindows", "runEditor", "runFile"];
 
 var jstest = {}; 
 Components.utils.import('resource://mozmill/modules/jstest.js', jstest);
@@ -130,18 +130,17 @@ var checkChrome = function() {
      paramObj.files.push(thefile.path);
 
      //Move focus to output tab
-     w.document.getElementById('mmtabs').setAttribute("selectedIndex", 2);
+     //w.document.getElementById('mmtabs').setAttribute("selectedIndex", 2);
      //send it into the JS test framework to run the file
      jstest.runFromFile(thefile.path);
    }
  };
  
  var runEditor = function(w){
-   w.alert('in run editor');   
    var data = w.document.getElementById('editorInput').value;
    //Move focus to output tab
-   w.document.getElementById('mmtabs').setAttribute("selectedIndex", 2);
-   //send it into the JS test framework to run the file
+   //w.document.getElementById('mmtabs').setAttribute("selectedIndex", 2);
+   //send it into the JS test framework to run the file   
    jstest.runFromString(data);
  };
  

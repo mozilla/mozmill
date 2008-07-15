@@ -38,18 +38,78 @@
 
 var EXPORTED_SYMBOLS = ["MozMillController"];
 
+var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
+var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 
 var MozMillController = function (window) {
   // TODO: Check if window is loaded and block until it has if it hasn't.
   this.window = window;
 }
-
-MozMillController.prototype.open = function(s){
-  mozmill.hiddenWindow.Application.browser.open(s).active = true;
-  return true;
+MozMillController.prototype.open = function(url){
+  var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
+                  .getService(Components.interfaces.nsIAppShellService)
+                  .hiddenDOMWindow;
+  //Application.activeWindow.activeTab.url = url;
+  var uri = Components.classes["@mozilla.org/network/io-service;1"]
+  .getService(Components.interfaces.nsIIOService)
+  .newURI(url, null, null);
+  hwindow.Application.activeWindow.open(uri);
 }
 
+MozMillController.prototype.click = function(el){
+    var element = el.getNode();
+    if (!element){ return false; }     
+    try {
+      events.triggerEvent(element, 'focus', false);
+    }
+    catch(err){
+      //apparently chrome elements don't have focus
+    }
+    //launch the click on firefox chrome
+    if (element.baseURI.indexOf('chrome://') != -1){
+      element.click();
+      return true;
+    }
+
+    // Add an event listener that detects if the default action has been prevented.
+    // (This is caused by a javascript onclick handler returning false)
+    // we capture the whole event, rather than the getPreventDefault() state at the time,
+    // because we need to let the entire event bubbling and capturing to go through
+    // before making a decision on whether we should force the href
+    var savedEvent = null;
+    element.addEventListener('click', function(evt) {
+        savedEvent = evt;
+    }, false);
+
+    // Trigger the event.
+    events.triggerMouseEvent(element, 'mousedown', true);
+    events.triggerMouseEvent(element, 'mouseup', true);
+    events.triggerMouseEvent(element, 'click', true);
+    try{      
+      // Perform the link action if preventDefault was set.
+      // In chrome URL, the link action is already executed by triggerMouseEvent.
+      if (!utils.checkChrome && savedEvent != null && !savedEvent.getPreventDefault()) {
+          if (element.href) {
+              this.open(element.href);
+          } 
+          else {
+              var itrElement = element;
+              while (itrElement != null) {
+                if (itrElement.href) {
+                  this.open(itrElement.href);
+                  break;
+                }
+                itrElement = itrElement.parentNode;
+              }
+          }
+      }
+    }
+    catch(err){ return false; }
+    return true;    
+};
+
 MozMillController.prototype.sleep = function (milliseconds) { 
+  debugger;
   var observer = {
     QueryInterface : function (iid) {
       const interfaces = [Components.interfaces.nsIObserver,
@@ -72,14 +132,19 @@ MozMillController.prototype.sleep = function (milliseconds) {
              Components.interfaces.nsITimer.TYPE_ONE_SHOT);
 };
 
-MozMillController.prototype.type = function (element, text){
+MozMillController.prototype.type = function (el, text){
+  element = el.getNode();
   if (!element){ return false; }
   //clear the box
   element.value = '';
   //Get the focus on to the item to be typed in, or selected
-  mozmill.events.triggerEvent(element, 'focus', false);
-  mozmill.events.triggerEvent(element, 'select', true);
-   
+
+  try {
+    events.triggerEvent(element, 'focus', false);
+    events.triggerEvent(element, 'select', true);
+  }
+  catch(err){}
+
   //Make sure text fits in the textbox
   var maxLengthAttr = element.getAttribute("maxLength");
   var actualValue = text;
@@ -92,17 +157,23 @@ MozMillController.prototype.type = function (element, text){
       actualValue = stringValue.substr(0, maxLength);
     }
   }
-  
+
   var s = actualValue;
   for (var c = 0; c < s.length; c++){
-    mozmill.events.triggerKeyEvent(element, 'keydown', s.charAt(c), true, false,false, false,false);
+    try {
+      events.triggerKeyEvent(element, 'keydown', s.charAt(c), true, false,false, false,false);
+    }catch(err){}
     element.value += s.charAt(c);
-    mozmill.events.triggerKeyEvent(element, 'keyup', s.charAt(c), true, false,false, false,false);
+    try {
+      events.triggerKeyEvent(element, 'keyup', s.charAt(c), true, false,false, false,false);
+    } catch(err){};
   }
    
   // DGF this used to be skipped in chrome URLs, but no longer.  Is xpcnativewrappers to blame?
   //Another wierd chrome thing?
-  mozmill.events.triggerEvent(element, 'change', true);
+  try {
+    events.triggerEvent(element, 'change', true);
+  }catch(err){}
    
   return true;
 };
@@ -123,7 +194,7 @@ MozMillController.prototype.select = function (element) {
 
   var optionToSelect = locator.findOption(element);
   
-  mozmill.events.triggerEvent(element, 'focus', false);
+  events.triggerEvent(element, 'focus', false);
   var changed = false;
   for (var i = 0; i < element.options.length; i++) {
     var option = element.options[i];
@@ -139,29 +210,29 @@ MozMillController.prototype.select = function (element) {
 
 
   if (changed) {
-    mozmill.events.triggerEvent(element, 'change', true);
+    events.triggerEvent(element, 'change', true);
   }
   return true;
 };
 
 //Directly access mouse events
 MozMillController.prototype.mousedown = function (mdnElement){
-  mozmill.events.triggerMouseEvent(mdnElement, 'mousedown', true);    
+  events.triggerMouseEvent(mdnElement, 'mousedown', true);    
   return true;
 };
 
 MozMillController.prototype.mouseup = function (mupElement){
-  mozmill.events.triggerMouseEvent(mdnElement, 'mupElement', true);  
+  events.triggerMouseEvent(mdnElement, 'mupElement', true);  
   return true;
 };
 
 MozMillController.prototype.mouseover = function (mdnElement){
-  mozmill.events.triggerMouseEvent(mdnElement, 'mouseover', true);  
+  events.triggerMouseEvent(mdnElement, 'mouseover', true);  
   return true;
 };
 
 MozMillController.prototype.mouseout = function (moutElement){
-  mozmill.events.triggerMouseEvent(moutElement, 'mouseout', true);
+  events.triggerMouseEvent(moutElement, 'mouseout', true);
   return true;
 };
 
@@ -179,58 +250,6 @@ MozMillController.prototype.refresh = function(param_object){
   return true;
 }
 
-MozMillController.prototype.open = function(s){
-  this.win.location.href=s;
-  return true;
-}
-
-MozMillController.prototype.click = function(element){
-    if (!element){ return false; }     
-    mozmill.events.triggerEvent(element, 'focus', false);
-
-    //launch the click on firefox chrome
-    if (element.baseURI.indexOf('chrome://') != -1){
-      element.click();
-      return true;
-    }
-
-    // Add an event listener that detects if the default action has been prevented.
-    // (This is caused by a javascript onclick handler returning false)
-    // we capture the whole event, rather than the getPreventDefault() state at the time,
-    // because we need to let the entire event bubbling and capturing to go through
-    // before making a decision on whether we should force the href
-    var savedEvent = null;
-    element.addEventListener('click', function(evt) {
-        savedEvent = evt;
-    }, false);
-
-    // Trigger the event.
-    mozmill.events.triggerMouseEvent(element, 'mousedown', true);
-    mozmill.events.triggerMouseEvent(element, 'mouseup', true);
-    mozmill.events.triggerMouseEvent(element, 'click', true);
-    try{      
-      // Perform the link action if preventDefault was set.
-      // In chrome URL, the link action is already executed by triggerMouseEvent.
-      if (!mozmill.utils.checkChrome && savedEvent != null && !savedEvent.getPreventDefault()) {
-          if (element.href) {
-              this.open(element.href);
-          } 
-          else {
-              var itrElement = element;
-              while (itrElement != null) {
-                if (itrElement.href) {
-                  this.open(itrElement.href);
-                  break;
-                }
-                itrElement = itrElement.parentNode;
-              }
-          }
-      }
-    }
-    catch(err){ return false; }
-    return true;    
-};
-
 //there is a problem with checking via click in safari
 MozMillController.prototype.check = function(element){
   return MozMillController.click(element);    
@@ -245,9 +264,9 @@ MozMillController.radio = function(element){
 MozMillController.prototype.doubleClick = function(element) {
 
  if (!element){ return false; }
- mozmill.events.triggerEvent(element, 'focus', false);
- mozmill.events.triggerMouseEvent(element, 'dblclick', true);
- mozmill.events.triggerEvent(element, 'blur', false);
+ events.triggerEvent(element, 'focus', false);
+ events.triggerMouseEvent(element, 'dblclick', true);
+ events.triggerEvent(element, 'blur', false);
  
  return true;
 };

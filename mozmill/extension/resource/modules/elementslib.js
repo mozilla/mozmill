@@ -43,8 +43,8 @@ utils = Components.utils.import('resource://mozmill/modules/utils.js');
 var ElemBase = function(){
   this.isElement = true;
 }
-ElemBase.prototype.exists = function(window){
-  if (this.getNode(window)){ return true; }
+ElemBase.prototype.exists = function(){
+  if (this.getNode()){ return true; }
   else{ return false; }
 }
 
@@ -53,7 +53,7 @@ var Elem = function(node) {
   return this;
 }
 Elem.prototype = new utils.Copy(ElemBase.prototype);
-Elem.prototype.getNode = function (window) { return this.node; }
+Elem.prototype.getNode = function () { return this.node; }
 
 var ID = function(_document, nodeID) {
   this._document = _document;
@@ -61,8 +61,8 @@ var ID = function(_document, nodeID) {
   return this;
 }
 ID.prototype = new utils.Copy(ElemBase.prototype);
-ID.prototype.getNode = function (window) {
-  return window._document.getElementById(this.nodeID);
+ID.prototype.getNode = function () {
+  return this._document.getElementById(this.nodeID);
 }
 
 var Link = function(_document, linkName) {
@@ -71,7 +71,7 @@ var Link = function(_document, linkName) {
   return this;
 }
 Link.prototype = new utils.Copy(ElemBase.prototype);
-Link.prototype.getNode = function (window) {
+Link.prototype.getNode = function () {
   var getText = function(el){
     var text = "";
     if (el.nodeType == 3){ //textNode
@@ -113,7 +113,7 @@ var XPath = function(_document, expr) {
   return this;
 }
 XPath.prototype = new utils.Copy(ElemBase.prototype);
-XPath.prototype.getNode = function (window) {
+XPath.prototype.getNode = function () {
   var nsResolver = function (prefix) {
     if (prefix == 'html' || prefix == 'xhtml' || prefix == 'x') {
       return 'http://www.w3.org/1999/xhtml';
@@ -132,7 +132,7 @@ var Name = function(_document, nName) {
   return this;
 }
 Name.prototype = new utils.Copy(ElemBase.prototype);
-Name.prototype.getNode = function (window) {
+Name.prototype.getNode = function () {
   try{
     var els = window._document.getElementsByName(this.nName);
     if (els.length > 0) { return els[0]; }
