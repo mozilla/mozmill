@@ -30,7 +30,7 @@ title="&title.label;">
       <menupopup id="action-popup">
         <menuitem label="Run Test File" oncommand="runFile();"/>
         <menuseparator/>
-        <menuitem label="Run Editor" disabled="true"/>
+        <menuitem label="Run Editor" oncommand="runEditor();"/>
         <menuitem label="Clear Editor" oncommand="$('editorInput').value = '';"/>
         <menuseparator/>
         <menuitem label="New Boilerplate" oncommand="genBoiler();"/>

@@ -20,7 +20,7 @@ var MozMilldx = new function() {
   this.grab = function(){
     var disp = $('dxDisplay').textContent;
     var dispArr = disp.split(': ');
-    $('editorInput').value += 'elementslib.'+dispArr[0].toUpperCase()+"('"+dispArr[1]+"')\n";
+    $('editorInput').value += 'new elementslib.'+dispArr[0].toUpperCase()+"('"+dispArr[1]+"')\n";
   }
   
   this.evtDispatch = function(e){
