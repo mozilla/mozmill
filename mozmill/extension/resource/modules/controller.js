@@ -271,6 +271,17 @@ MozMillController.prototype.doubleClick = function(element) {
  return true;
 };
 
+//Tab crap
+MozMillController.prototype.getTab = function(index) {
+  return this.window.gBrowser.browsers[index + 1].contentDocument;
+}
+MozMillController.prototype.__defineGetter__("activeTab", function() {
+  return this.window.gBrowser.selectedBrowser.contentDocument;
+})
+MozMillController.prototype.selectTab = function(index) {
+  // GO in to tab manager and grab the tab by index and call focus.
+}
+
 asserts_lib = Components.utils.import('resource://mozmill/modules/asserts.js')
 
 for (name in asserts_lib) {
