@@ -66,13 +66,12 @@ MozMillController.prototype.open = function(url){
 
 MozMillController.prototype.click = function(el){
     var element = el.getNode();
-    if (!element){ return false; }     
-    try {
-      events.triggerEvent(element, 'focus', false);
-    }
-    catch(err){
-      //apparently chrome elements don't have focus
-    }
+    if (!element){ 
+      throw new Error("could not find element " + el.getInfo());     
+      return false; 
+    }     
+    try { events.triggerEvent(element, 'focus', false); }
+    catch(err){ }
     //launch the click on firefox chrome
     if (element.baseURI.indexOf('chrome://') != -1){
       element.click();
@@ -142,7 +141,10 @@ MozMillController.prototype.sleep = function (milliseconds) {
 
 MozMillController.prototype.type = function (el, text){
   element = el.getNode();
-  if (!element){ return false; }
+  if (!element){ 
+    throw new Error("could not find element " + el.getInfo());     
+    return false; 
+  } 
   //clear the box
   element.value = '';
   //Get the focus on to the item to be typed in, or selected
@@ -189,7 +191,10 @@ MozMillController.prototype.type = function (el, text){
 /* Select the specified option and trigger the relevant events of the element.*/
 MozMillController.prototype.select = function (el) {
   element = el.getNode();
-  if (!element){ return false; }
+  if (!element){ 
+    throw new Error("could not find element " + el.getInfo());     
+    return false; 
+  } 
 
  try{ windmill.events.triggerEvent(element, 'focus', false);}
  catch(err){};
@@ -281,7 +286,10 @@ MozMillController.radio = function(el){
 //Double click for Mozilla
 MozMillController.prototype.doubleClick = function(el) {
  var element = element.getNode();
- if (!element){ return false; }
+ if (!element){ 
+  throw new Error("could not find element " + el.getInfo());     
+  return false; 
+ } 
  events.triggerEvent(element, 'focus', false);
  events.triggerMouseEvent(element, 'dblclick', true);
  events.triggerEvent(element, 'blur', false);
@@ -335,8 +343,9 @@ MozMillController.prototype.assertText = function (el, text) {
 //Assert that a specified node exists
 MozMillController.prototype.assertNode = function (el) {
   var element = el.getNode();
-  if (!element){
-    return false;
+  if (!element){ 
+    throw new Error("could not find element " + el.getInfo());     
+    return false; 
   }
   return true;
 };
@@ -382,7 +391,10 @@ MozMillController.prototype.assertChecked = function (el) {
 // Assert that a an element's property is a particular value
 MozMillController.prototype.assertProperty = function (el, attrib, value) {
   var element = el.getNode();
-  if (!element){ return false; }
+  if (!element){ 
+    throw new Error("could not find element " + el.getInfo());     
+    return false; 
+  } 
   
   var value = eval ('element.' + attrib+';');
   var res = false;

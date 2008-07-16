@@ -87,23 +87,24 @@ var getKeyCodeFromKeySequence = function(keySequence) {
     }
 
 var triggerKeyEvent = function(element, eventType, keySequence, canBubble, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
+    
         var keycode = getKeyCodeFromKeySequence(keySequence);
         canBubble = (typeof(canBubble) == undefined) ? true: canBubble;
         
         var evt;
-        if (window.KeyEvent) {
-            evt = document.createEvent('KeyEvents');
-            evt.initKeyEvent(eventType, true, true, window, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown, keycode, keycode);
+        if (element.ownerDocument.defaultView.KeyEvent) {
+            evt = element.ownerDocument.defaultView.document.createEvent('KeyEvents');
+            evt.initKeyEvent(eventType, true, true, element.ownerDocument.defaultView, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown, keycode, keycode);
         } 
         else {
-            evt = document.createEvent('UIEvents');
+            evt = element.ownerDocument.defaultView.document.createEvent('UIEvents');
 
             evt.shiftKey = shiftKeyDown;
             evt.metaKey = metaKeyDown;
             evt.altKey = altKeyDown;
             evt.ctrlKey = controlKeyDown;
 
-            evt.initUIEvent(eventType, true, true, window, 1);
+            evt.initUIEvent(eventType, true, true, element.ownerDocument.defaultView, 1);
             evt.keyCode = keycode;
             evt.which = keycode;
 
@@ -113,6 +114,7 @@ var triggerKeyEvent = function(element, eventType, keySequence, canBubble, contr
 
     /* Fire a mouse event in a browser-compatible manner */
 var triggerMouseEvent = function(element, eventType, canBubble, clientX, clientY, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
+        
         clientX = clientX ? clientX: 0;
         clientY = clientY ? clientY: 0;
 
@@ -122,11 +124,11 @@ var triggerMouseEvent = function(element, eventType, canBubble, clientX, clientY
 
         canBubble = (typeof(canBubble) == undefined) ? true: canBubble;
 
-        var evt = document.createEvent('MouseEvents');
+        var evt = element.ownerDocument.defaultView.document.createEvent('MouseEvents');
         if (evt.initMouseEvent) {
             //LOG.info("element has initMouseEvent");
             //Safari
-            evt.initMouseEvent(eventType, canBubble, true, document.defaultView, 1, screenX, screenY, clientX, clientY, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown, 0, null)
+            evt.initMouseEvent(eventType, canBubble, true, element.ownerDocument.defaultView, 1, screenX, screenY, clientX, clientY, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown, 0, null)
 
         }
         else {

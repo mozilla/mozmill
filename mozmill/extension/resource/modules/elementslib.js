@@ -39,6 +39,7 @@
 var EXPORTED_SYMBOLS = ["Elem", "ID", "Link", "XPath", "Name"];
 
 utils = Components.utils.import('resource://mozmill/modules/utils.js');
+var results = {}; Components.utils.import('resource://mozmill/modules/results.js', results);
 
 var ElemBase = function(){
   this.isElement = true;
@@ -61,6 +62,9 @@ var ID = function(_document, nodeID) {
   return this;
 }
 ID.prototype = new utils.Copy(ElemBase.prototype);
+ID.prototype.getInfo = function () {
+  return "ID: " + this.nodeID;
+}
 ID.prototype.getNode = function () {
   return this._document.getElementById(this.nodeID);
 }
@@ -71,6 +75,9 @@ var Link = function(_document, linkName) {
   return this;
 }
 Link.prototype = new utils.Copy(ElemBase.prototype);
+Link.prototype.getInfo = function () {
+  return "Link: " + this.linkName;
+}
 Link.prototype.getNode = function () {
   var getText = function(el){
     var text = "";
@@ -94,15 +101,16 @@ Link.prototype.getNode = function () {
     return text;
   }
   //sometimes the windows won't have this function
-  try {
-    var links = window._document.getElementsByTagName('a');
-  }
-  catch(err){}
+  try { var links = this._document.getElementsByTagName('a'); }
+  catch(err){ results.write('Error: '+ err, 'lightred'); }
+  debugger;
   for (var i = 0; i < links.length; i++) {
     var el = links[i];
-    if (getText(el).indexOf(this.linkName) != -1) {
+    //if (getText(el).indexOf(this.linkName) != -1) {
+    if (el.innerHTML.indexOf(this.linkName) != -1){
       return el;
     }
+    debugger;
   }
   return null;
 }
@@ -113,6 +121,9 @@ var XPath = function(_document, expr) {
   return this;
 }
 XPath.prototype = new utils.Copy(ElemBase.prototype);
+XPath.prototype.getInfo = function () {
+  return "XPath: " + this.expr;
+}
 XPath.prototype.getNode = function () {
   var nsResolver = function (prefix) {
     if (prefix == 'html' || prefix == 'xhtml' || prefix == 'x') {
@@ -123,7 +134,7 @@ XPath.prototype.getNode = function () {
       throw new Error("Unknown namespace: " + prefix + ".");
     }
   }
-  return window._document.evaluate(this.expr, window._document, nsResolver, 0, null).iterateNext();
+  return this._document.evaluate(this.expr, this._document, nsResolver, 0, null).iterateNext();
 }
 
 var Name = function(_document, nName) {
@@ -132,9 +143,12 @@ var Name = function(_document, nName) {
   return this;
 }
 Name.prototype = new utils.Copy(ElemBase.prototype);
+Name.prototype.getInfo = function () {
+  return "Name: " + this.nName;
+}
 Name.prototype.getNode = function () {
   try{
-    var els = window._document.getElementsByName(this.nName);
+    var els = this._document.getElementsByName(this.nName);
     if (els.length > 0) { return els[0]; }
   }
   catch(err){};
