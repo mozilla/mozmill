@@ -36,7 +36,8 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib",
-                        "getController", "newBrowserController", "newAddonsController"];
+                        "getBrowserController", "newBrowserController", "getAddonsController",
+                        "getPreferencesController"];
                         
 // "hash", "controller", "events", "timing", 
 // "results", "jstest", "utils", "elementslib", "getXPath"];
@@ -73,10 +74,19 @@ function getBrowserController () {
   }
 }
 
-function newAddonsController (url) {
-  return new controller.MozMillController(hwindow.BrowserOpenAddonsMgr());
+function getAddonsController () {
+  hwindow.BrowserOpenAddonsMgr();
+  return new controller.MozMillController(wm.getMostRecentWindow(''));
 }
 
+function getPreferencesController() {
+  hwindow.openPreferences();
+  return new controller.MozMillController(wm.getMostRecentWindow(''));
+}
+
+// hwindow.openPreferences()
+
+// window.document.documentElement.getAttribute('windowtype')
 
 // var $ = function(id) {
 //   return document.getElementById(id);

@@ -59,7 +59,7 @@ var run = function(tests, code){
   
   try { var r = eval(code); }
   catch(err){
-    results.write('Please run valid JavaScript only.', 'lightred');
+    results.write('Please run valid JavaScript only. '+err, 'lightred');
   }
   
   for (test in tests){

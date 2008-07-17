@@ -24,18 +24,25 @@ var MozMilldx = new function() {
   }
   
   this.evtDispatch = function(e){
-     if (e.target.id != "") {
-        $('dxDisplay').textContent= "ID: " + e.target.id;
+     if (e.originalTarget != undefined) {
+       target = e.originalTarget;
+     }
+     else {
+       target = e.target;
+     }
+    
+     if (target.id != "") {
+        $('dxDisplay').textContent= "ID: " + target.id;
       }
-      else if ((e.target.name != "") && (typeof(e.target.name) != "undefined")) {
-        $('dxDisplay').textContent = "Name: " + e.target.name;
+      else if ((target.name != "") && (typeof(target.name) != "undefined")) {
+        $('dxDisplay').textContent = "Name: " + target.name;
       }
-      else if (e.target.nodeName == "A") {
-        $('dxDisplay').textContent = "Link: " + e.target.innerHTML;
+      else if (target.nodeName == "A") {
+        $('dxDisplay').textContent = "Link: " + target.innerHTML;
       }
       //if not just use the xpath
       else {
-        var stringXpath = getXSPath(e.target);
+        var stringXpath = getXSPath(target);
         //$("domExp").innerHTML = 'XPath: ' + stringXpath;
         $('dxDisplay').textContent = 'XPath: ' + stringXpath;
       }
