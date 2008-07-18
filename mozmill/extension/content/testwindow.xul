@@ -19,5 +19,11 @@
               oncommand="runResultFactoryTests();"/>
       <label id="testResultFactory-Status" value="Results" disabled="true"/>
     </hbox>
+    <hbox id="testItem2">
+      <button id="testObserver"
+              label = "test observers"
+              oncommand="goObservers();"/>
+      <label id="testObserver" value="Results" disabled="true"/>
+    </hbox>
   </vbox>
 </window>

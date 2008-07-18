@@ -1,3 +1,33 @@
+function myObserver()
+{
+  this.register();
+}
+myObserver.prototype = {
+  observe: function(subject, topic, data) {
+    dump("**** We got an event! With topic: " + topic + " \n");
+    //alert("**** We got an event!");
+  },
+  register: function() {
+    var observerService = Components.classes["@mozilla.org/observer-service;1"]
+                          .getService(Components.interfaces.nsIObserverService);
+    observerService.addObserver(this, "xul-window-registered", false);
+    observerService.addObserver(this, "domwindowopened", false);
+    observerService.addObserver(this, "xul-window-visible", false);
+    
+  },
+  unregister: function() {
+    var observerService = Components.classes["@mozilla.org/observer-service;1"]
+                            .getService(Components.interfaces.nsIObserverService);
+    observerService.removeObserver(this, "xul-window-registered");
+  }
+}
+
+var gOb;
+
+function goObservers() {
+  gOb = new myObserver();
+}
+
 function runResultFactoryTests() {
   try {
     // Make sure that we have a factory

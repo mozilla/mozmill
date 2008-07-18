@@ -45,15 +45,43 @@ var elementslib = {}; Components.utils.import('resource://mozmill/modules/elemen
 var MozMillController = function (window) {
   // TODO: Check if window is loaded and block until it has if it hasn't.
   this.window = window;
+  this.elementLoaded = false;
 }
-MozMillController.prototype.open = function(url){
-  this.window.content.document.location.href = url;
-/*
+MozMillController.prototype.open = function(url, elementToWaitFor){
+  //this.window.content.document.location.href = url;
+
   this.window.openLocation(url);
   var el = new elementslib.ID(this.window.document, 'urlbar').getNode();
   this.type(new elementslib.ID(this.window.document, 'urlbar'), url);
   events.triggerKeyEvent(el, 'keypress', '13', true, false,false, false,false); 
-  */
+  var self = this;
+  var count = 0;
+
+  // TODO
+  // Ideally, elementToWaitFor would eventually return a non-null result once
+  // the element we are waiting on is available.  However since that isn't
+  // working, what we have right now is simply the equivalent of a sleep(500)
+  // because we call setInterval every 50 milliseconds before giving up after 10 tries.
+  function checkForElement() {
+    self.elementLoaded = elementToWaitFor.getNode();
+    count++;
+    dump("---> trying getElementnode! -----------> elementLoaded: " + self.elementLoaded + "\n");
+    if (count > 10)
+      self.elementLoaded = true;
+  }
+  // Calls repeatedly every 50ms until clearInterval is called
+  var interval = this.window.setInterval(checkForElement, 50);
+
+  thread = Components.classes["@mozilla.org/thread-manager;1"]
+            .getService()
+            .currentThread;
+  // This blocks execution until our while loop condition is invalidated.  Note
+  // that you must use a simple boolean expression for the loop, a function call
+  // will not work.
+  while(!this.elementLoaded)
+    thread.processNextEvent(true);
+  this.window.clearInterval(interval);
+
   // var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
   //                 .getService(Components.interfaces.nsIAppShellService)
   //                 .hiddenDOMWindow;
@@ -62,7 +90,7 @@ MozMillController.prototype.open = function(url){
   // .getService(Components.interfaces.nsIIOService)
   // .newURI(url, null, null);
   // hwindow.Application.activeWindow.open(uri);
-}
+};
 
 MozMillController.prototype.click = function(el){
     var element = el.getNode();
@@ -129,6 +157,7 @@ MozMillController.prototype.sleep = function (milliseconds) {
     },
 
     observe : function (subject, topic, data) {
+      dump("\n\nHELLO I AM An OBSERVER On A TIMER!!!!\n\n");
       return true;
     }
   };
@@ -140,7 +169,7 @@ MozMillController.prototype.sleep = function (milliseconds) {
 };
 
 MozMillController.prototype.type = function (el, text){
-  element = el.getNode();
+  var element = el.getNode();
   if (!element){ 
     throw new Error("could not find element " + el.getInfo());     
     return false; 
@@ -452,4 +481,3 @@ MozMillController.prototype.assertImageLoaded = function (el) {
   }
   return ret;
 };
-

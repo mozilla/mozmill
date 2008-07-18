@@ -103,14 +103,14 @@ Link.prototype.getNode = function () {
   //sometimes the windows won't have this function
   try { var links = this._document.getElementsByTagName('a'); }
   catch(err){ results.write('Error: '+ err, 'lightred'); }
-  debugger;
+ // debugger;
   for (var i = 0; i < links.length; i++) {
     var el = links[i];
     //if (getText(el).indexOf(this.linkName) != -1) {
     if (el.innerHTML.indexOf(this.linkName) != -1){
       return el;
     }
-    debugger;
+   // debugger;
   }
   return null;
 }
