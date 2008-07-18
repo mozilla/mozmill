@@ -88,6 +88,8 @@ function getPreferencesController() {
 
 // window.document.documentElement.getAttribute('windowtype')
 
+// controller.window.document.getAnonymousElementByAttribute(controller.window.document.documentElement, 'anonid', 'selector')
+
 // var $ = function(id) {
 //   return document.getElementById(id);
 // };

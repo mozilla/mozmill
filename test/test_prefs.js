@@ -4,5 +4,7 @@ var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js
 controller = mozmill.getPreferencesController();
 
 var test_clickTab = function() {
-  controller.click(new elementslib.XPath(controller.window.document, "/prefwindow[@id='BrowserPreferences']/xul:radiogroup/radio[4]"));
+  e = new elementslib.Elem(
+    controller.window.document.getAnonymousElementByAttribute(controller.window.document.documentElement, 'anonid', 'selector').childNodes[3] )
+  controller.click(e);
 }
