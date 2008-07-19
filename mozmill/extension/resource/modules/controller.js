@@ -36,16 +36,51 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["MozMillController"];
+var EXPORTED_SYMBOLS = ["MozMillController", "sleep"];
 
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 
+function sleep (milliseconds) { 
+  var observer = {
+    QueryInterface : function (iid) {
+      const interfaces = [Components.interfaces.nsIObserver,
+                          Components.interfaces.nsISupports,
+                          Components.interfaces.nsISupportsWeakReference];
+
+      if (!interfaces.some( function(v) { return iid.equals(v) } ))
+        throw Components.results.NS_ERROR_NO_INTERFACE;
+      return this;
+    },
+
+    observe : function (subject, topic, data) {
+      dump("\n\nHELLO I AM An OBSERVER On A TIMER!!!!\n\n");
+      return true;
+    }
+  };
+
+  var timer = Components.classes["@mozilla.org/timer;1"]
+              .createInstance(Components.interfaces.nsITimer);
+  timer.init(observer, milliseconds,
+             Components.interfaces.nsITimer.TYPE_ONE_SHOT);
+};
+
 var MozMillController = function (window) {
   // TODO: Check if window is loaded and block until it has if it hasn't.
   this.window = window;
   this.elementLoaded = false;
+  // if ( window.document.documentElement != undefined ) {
+  //   while (window.document.documentElement.getAttribute('windowtype') == null) {
+  //     sleep(2000);
+  //   }
+  //   if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined) {
+  //     this.test = 'Ran this stuff';
+  //     this.prototype = new utils.Copy(this.prototype);
+  //     controllerAdditions[window.document.documentElement.getAttribute('windowtype')](this);
+  //   }
+  // }
+  
 }
 MozMillController.prototype.open = function(url, elementToWaitFor){
   //this.window.content.document.location.href = url;
@@ -143,30 +178,10 @@ MozMillController.prototype.click = function(el){
     return true;    
 };
 
-MozMillController.prototype.sleep = function (milliseconds) { 
-  debugger;
-  var observer = {
-    QueryInterface : function (iid) {
-      const interfaces = [Components.interfaces.nsIObserver,
-                          Components.interfaces.nsISupports,
-                          Components.interfaces.nsISupportsWeakReference];
-
-      if (!interfaces.some( function(v) { return iid.equals(v) } ))
-        throw Components.results.NS_ERROR_NO_INTERFACE;
-      return this;
-    },
-
-    observe : function (subject, topic, data) {
-      dump("\n\nHELLO I AM An OBSERVER On A TIMER!!!!\n\n");
-      return true;
-    }
-  };
-
-  var timer = Components.classes["@mozilla.org/timer;1"]
-              .createInstance(Components.interfaces.nsITimer);
-  timer.init(observer, milliseconds,
-             Components.interfaces.nsITimer.TYPE_ONE_SHOT);
-};
+MozMillController.prototype.sleep = function (milleseconds) {
+  sleep(milleseconds);
+  return this;
+}
 
 MozMillController.prototype.type = function (el, text){
   var element = el.getNode();
@@ -326,17 +341,6 @@ MozMillController.prototype.doubleClick = function(el) {
  return true;
 };
 
-//Tab crap
-MozMillController.prototype.getTab = function(index) {
-  return this.window.gBrowser.browsers[index + 1].contentDocument;
-}
-MozMillController.prototype.__defineGetter__("activeTab", function() {
-  return this.window.gBrowser.selectedBrowser.contentDocument;
-})
-MozMillController.prototype.selectTab = function(index) {
-  // GO in to tab manager and grab the tab by index and call focus.
-}
-
 asserts_lib = Components.utils.import('resource://mozmill/modules/asserts.js')
 
 for (name in asserts_lib) {
@@ -481,3 +485,41 @@ MozMillController.prototype.assertImageLoaded = function (el) {
   }
   return ret;
 };
+
+function preferencesAdditions(controller) {
+  var mainTabs = controller.window.document.getAnonymousElementByAttribute(controller.window.document.documentElement, 'anonid', 'selector');
+  controller.tabButtons = {};
+  for (i in mainTabs.childNodes) {
+    var node  = mainTabs.childNodes[i];
+    controller.tabButtons[i] = node;
+    var label = node.getAttribute('label').value;
+    controller.tabButtons[label] = node;
+  }
+  controller.prototype.__defineGetter__("activeTabButton", 
+    function () {return mainTabs.getElementsByAttribute('selected', true)[0]; 
+  })
+}
+
+function browserAdditions( controller ) {
+  //Tab crap
+  controller.prototype.getTab = function(index) {
+    return this.window.gBrowser.browsers[index + 1].contentDocument;
+  }
+  controller.prototype.__defineGetter__("activeTab", function() {
+    return this.window.gBrowser.selectedBrowser.contentDocument;
+  })
+  controller.prototype.selectTab = function(index) {
+    // GO in to tab manager and grab the tab by index and call focus.
+  }
+  
+}
+
+controllerAdditions = {
+  'Browser:Preferences':preferencesAdditions,
+  'navigator:browser'  :browserAdditions,
+}
+
+
+
+
+
