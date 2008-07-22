@@ -36,35 +36,71 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["MozMillController", "sleep"];
+var EXPORTED_SYMBOLS = ["MozMillController", "sleep", "waitForEval"];
 
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 
-function sleep (milliseconds) { 
-  var observer = {
-    QueryInterface : function (iid) {
-      const interfaces = [Components.interfaces.nsIObserver,
-                          Components.interfaces.nsISupports,
-                          Components.interfaces.nsISupportsWeakReference];
+var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
+                .getService(Components.interfaces.nsIAppShellService)
+                .hiddenDOMWindow;
 
-      if (!interfaces.some( function(v) { return iid.equals(v) } ))
-        throw Components.results.NS_ERROR_NO_INTERFACE;
-      return this;
-    },
+function sleep (milliseconds) {
+  var self = {};
 
-    observe : function (subject, topic, data) {
-      dump("\n\nHELLO I AM An OBSERVER On A TIMER!!!!\n\n");
-      return true;
-    }
-  };
+  // We basically just call this once after the specified number of milliseconds
+  function wait() {
+    self.timeup = true;
+  }
 
-  var timer = Components.classes["@mozilla.org/timer;1"]
-              .createInstance(Components.interfaces.nsITimer);
-  timer.init(observer, milliseconds,
-             Components.interfaces.nsITimer.TYPE_ONE_SHOT);
-};
+  // Calls repeatedly every X milliseconds until clearInterval is called
+  var interval = hwindow.setInterval(wait, milliseconds);
+
+  thread = Components.classes["@mozilla.org/thread-manager;1"]
+            .getService()
+            .currentThread;
+  // This blocks execution until our while loop condition is invalidated.  Note
+  // that you must use a simple boolean expression for the loop, a function call
+  // will not work.
+  while(!self.timeup)
+    thread.processNextEvent(true);
+  hwindow.clearInterval(interval);
+
+  return true;
+}
+
+function waitForEval (expression, timeout, interval) {
+  if (interval == undefined) {
+    interval = 100;
+  }
+  if (timeout == undefined) {
+    timeout = 30000;
+  }
+  
+  self = {};
+  self.counter = 0;
+  self.result = eval(expression);
+  
+  function wait(){
+    self.result = eval(expression);
+    self.counter += interval;
+  }
+  
+  var timeoutInterval = hwindow.setInterval(wait, interval);
+  
+  thread = Components.classes["@mozilla.org/thread-manager;1"]
+            .getService()
+            .currentThread;
+  
+  while(self.result != true || self.counter < timeout) {
+    thread.processNextEvent(true);
+  }  
+  hwindow.clearInterval(timeoutInterval);
+  
+  return true;
+}
+
 
 var MozMillController = function (window) {
   // TODO: Check if window is loaded and block until it has if it hasn't.
@@ -151,29 +187,7 @@ MozMillController.prototype.click = function(el){
     return true;    
 };
 
-MozMillController.prototype.sleep = function (milliseconds) {
-  var self = this;
-
-  // We basically just call this once after the specified number of milliseconds
-  function wait() {
-    self.timeup = true;
-  }
-
-  // Calls repeatedly every X milliseconds until clearInterval is called
-  var interval = this.window.setInterval(wait, milliseconds);
-
-  thread = Components.classes["@mozilla.org/thread-manager;1"]
-            .getService()
-            .currentThread;
-  // This blocks execution until our while loop condition is invalidated.  Note
-  // that you must use a simple boolean expression for the loop, a function call
-  // will not work.
-  while(!this.timeup)
-    thread.processNextEvent(true);
-  this.window.clearInterval(interval);
-
-  return true;
-}
+MozMillController.prototype.sleep = sleep;
 
 MozMillController.prototype.type = function (el, text){
   var element = el.getNode();
