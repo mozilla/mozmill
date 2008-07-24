@@ -57,7 +57,7 @@ function sleep (milliseconds) {
   // Calls repeatedly every X milliseconds until clearInterval is called
   var interval = hwindow.setInterval(wait, milliseconds);
 
-  thread = Components.classes["@mozilla.org/thread-manager;1"]
+  var thread = Components.classes["@mozilla.org/thread-manager;1"]
             .getService()
             .currentThread;
   // This blocks execution until our while loop condition is invalidated.  Note
@@ -70,7 +70,7 @@ function sleep (milliseconds) {
   return true;
 }
 
-function waitForEval (expression, timeout, interval) {
+function waitForEval (expression, timeout, interval, subject) {
   if (interval == undefined) {
     interval = 100;
   }
@@ -78,7 +78,7 @@ function waitForEval (expression, timeout, interval) {
     timeout = 30000;
   }
   
-  self = {};
+  var self = {};
   self.counter = 0;
   self.result = eval(expression);
   
@@ -89,11 +89,11 @@ function waitForEval (expression, timeout, interval) {
   
   var timeoutInterval = hwindow.setInterval(wait, interval);
   
-  thread = Components.classes["@mozilla.org/thread-manager;1"]
+  var thread = Components.classes["@mozilla.org/thread-manager;1"]
             .getService()
             .currentThread;
   
-  while(self.result != true || self.counter < timeout) {
+  while((self.result != true) && (self.counter < timeout))  {
     thread.processNextEvent(true);
   }  
   hwindow.clearInterval(timeoutInterval);
@@ -104,18 +104,17 @@ function waitForEval (expression, timeout, interval) {
 
 var MozMillController = function (window) {
   // TODO: Check if window is loaded and block until it has if it hasn't.
+  
   this.window = window;
   this.elementLoaded = false;
-  // if ( window.document.documentElement != undefined ) {
-  //   while (window.document.documentElement.getAttribute('windowtype') == null) {
-  //     sleep(2000);
-  //   }
-  //   if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined) {
-  //     this.test = 'Ran this stuff';
-  //     this.prototype = new utils.Copy(this.prototype);
-  //     controllerAdditions[window.document.documentElement.getAttribute('windowtype')](this);
-  //   }
-  // }
+  if ( window.document.documentElement != undefined ) {
+    // waitForEval("typeof(subject.document.documentElement.getAttribute) == 'function'", 10000, 100, window)
+    waitForEval("subject.document.documentElement.getAttribute('windowtype') != null", 10000, 100, window)
+    if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined ) {
+      this.prototype = new utils.Copy(this.prototype);
+      controllerAdditions[window.document.documentElement.getAttribute('windowtype')](this);
+    }
+  }
   
 }
 MozMillController.prototype.open = function(url, elementToWaitFor){
@@ -494,12 +493,13 @@ MozMillController.prototype.assertImageLoaded = function (el) {
 
 function preferencesAdditions(controller) {
   var mainTabs = controller.window.document.getAnonymousElementByAttribute(controller.window.document.documentElement, 'anonid', 'selector');
-  controller.tabButtons = {};
-  for (i in mainTabs.childNodes) {
+  controller.tabs = {};
+  for (var i = 0; i < mainTabs.childNodes.length; i++) {
     var node  = mainTabs.childNodes[i];
-    controller.tabButtons[i] = node;
-    var label = node.getAttribute('label').value;
-    controller.tabButtons[label] = node;
+    obj = {'button':node}
+    controller.tabs[i] = obj;
+    var label = node.attributes.item('label').value.replace('pane', '');
+    controller.tabs[label] = obj;
   }
   controller.prototype.__defineGetter__("activeTabButton", 
     function () {return mainTabs.getElementsByAttribute('selected', true)[0]; 

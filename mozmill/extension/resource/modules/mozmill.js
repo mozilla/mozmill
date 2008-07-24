@@ -81,6 +81,7 @@ function getAddonsController () {
 
 function getPreferencesController() {
   hwindow.openPreferences();
+  controller.sleep(1000)
   return new controller.MozMillController(wm.getMostRecentWindow(''));
 }
 
