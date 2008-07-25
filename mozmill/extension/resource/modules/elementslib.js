@@ -132,7 +132,12 @@ XPath.prototype.getNode = function () {
       throw new Error("Unknown namespace: " + prefix + ".");
     }
   }
-  return this._document.evaluate(this.expr, this._document, nsResolver, 0, null).iterateNext();
+  var node = null;
+  try {
+    node = this._document.evaluate(this.expr, this._document, nsResolver, 0, null).iterateNext();  
+  }
+  catch(err){ node = null; }
+  return node;
 }
 
 var Name = function(_document, nName) {

@@ -32,19 +32,19 @@ var MozMilldx = new function() {
      }
     
      if (target.id != "") {
-        $('dxDisplay').textContent= "ID: " + target.id;
+        $('dxDisplay').value= "ID: " + target.id;
       }
       else if ((target.name != "") && (typeof(target.name) != "undefined")) {
-        $('dxDisplay').textContent = "Name: " + target.name;
+        $('dxDisplay').value = "Name: " + target.name;
       }
       else if (target.nodeName == "A") {
-        $('dxDisplay').textContent = "Link: " + target.innerHTML;
+        $('dxDisplay').value = "Link: " + target.innerHTML;
       }
       //if not just use the xpath
       else {
         var stringXpath = getXSPath(target);
         //$("domExp").innerHTML = 'XPath: ' + stringXpath;
-        $('dxDisplay').textContent = 'XPath: ' + stringXpath;
+        $('dxDisplay').value = 'XPath: ' + stringXpath;
       }
   }
   
