@@ -119,11 +119,11 @@ var MozMillController = function (window) {
 }
 MozMillController.prototype.open = function(url, elementToWaitFor){
   //this.window.content.document.location.href = url;
-
+  this.window.focus();
   this.window.openLocation(url);
   var el = new elementslib.ID(this.window.document, 'urlbar').getNode();
   this.type(new elementslib.ID(this.window.document, 'urlbar'), url);
-  events.triggerKeyEvent(el, 'keypress', '13', true, false,false, false,false); 
+  events.triggerKeyEvent(el, 'keypress', '13', true, false, false, false,false); 
 
   // var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
   //                 .getService(Components.interfaces.nsIAppShellService)
@@ -136,6 +136,7 @@ MozMillController.prototype.open = function(url, elementToWaitFor){
 };
 
 MozMillController.prototype.click = function(el){
+    this.window.focus();
     var element = el.getNode();
     if (!element){ 
       throw new Error("could not find element " + el.getInfo());     
@@ -189,6 +190,7 @@ MozMillController.prototype.click = function(el){
 MozMillController.prototype.sleep = sleep;
 
 MozMillController.prototype.type = function (el, text){
+  this.window.focus();
   var element = el.getNode();
   if (!element){ 
     throw new Error("could not find element " + el.getInfo());     
@@ -239,6 +241,7 @@ MozMillController.prototype.type = function (el, text){
 
 /* Select the specified option and trigger the relevant events of the element.*/
 MozMillController.prototype.select = function (el) {
+  this.window.focus();
   element = el.getNode();
   if (!element){ 
     throw new Error("could not find element " + el.getInfo());     
@@ -283,24 +286,28 @@ MozMillController.prototype.select = function (el) {
 
 //Directly access mouse events
 MozMillController.prototype.mousedown = function (el){
+  this.window.focus();
   var mdnElement = el.getNode();
   events.triggerMouseEvent(mdnElement, 'mousedown', true);    
   return true;
 };
 
 MozMillController.prototype.mouseup = function (el){
+  this.window.focus();
   var mupElement = el.getNode();
   events.triggerMouseEvent(mdnElement, 'mupElement', true);  
   return true;
 };
 
 MozMillController.prototype.mouseover = function (el){
+  this.window.focus();
   var mdnElement = el.getNode();
   events.triggerMouseEvent(mdnElement, 'mouseover', true);  
   return true;
 };
 
 MozMillController.prototype.mouseout = function (el){
+  this.window.focus();
   var moutElement = el.getNode();
   events.triggerMouseEvent(moutElement, 'mouseout', true);
   return true;
@@ -308,42 +315,48 @@ MozMillController.prototype.mouseout = function (el){
 
 //Browser navigation functions
 MozMillController.prototype.goBack = function(){
+  this.window.focus();
   this.window.history.back();
   return true;
 }
 MozMillController.prototype.goForward = function(){
+  this.window.focus();
   this.window.history.forward();
   return true;
 }
 MozMillController.prototype.refresh = function(){
+  this.window.focus();
   this.window.location.reload(true);
   return true;
 }
 
 //there is a problem with checking via click in safari
 MozMillController.prototype.check = function(el){
+  this.window.focus();
   var element = el.getNode();
   return MozMillController.click(element);    
 }
 
 //Radio buttons are even WIERDER in safari, not breaking in FF
 MozMillController.radio = function(el){
+  this.window.focus();
   var element = el.getNode();
   return MozMillController.click(element);      
 }
 
 //Double click for Mozilla
 MozMillController.prototype.doubleClick = function(el) {
- var element = element.getNode();
- if (!element){ 
-  throw new Error("could not find element " + el.getInfo());     
-  return false; 
- } 
- events.triggerEvent(element, 'focus', false);
- events.triggerMouseEvent(element, 'dblclick', true);
- events.triggerEvent(element, 'blur', false);
+   this.window.focus();
+   var element = element.getNode();
+   if (!element){ 
+    throw new Error("could not find element " + el.getInfo());     
+    return false; 
+   } 
+   events.triggerEvent(element, 'focus', false);
+   events.triggerMouseEvent(element, 'dblclick', true);
+   events.triggerEvent(element, 'blur', false);
  
- return true;
+   return true;
 };
 
 asserts_lib = Components.utils.import('resource://mozmill/modules/asserts.js')
@@ -354,7 +367,7 @@ for (name in asserts_lib) {
   }
 
 MozMillController.prototype.assertText = function (el, text) {
-
+  this.window.focus();
   var n = el.getNode();
   var validator = text;
   try{
@@ -380,6 +393,7 @@ MozMillController.prototype.assertText = function (el, text) {
 
 //Assert that a specified node exists
 MozMillController.prototype.assertNode = function (el) {
+  this.window.focus();
   var element = el.getNode();
   if (!element){ 
     throw new Error("could not find element " + el.getInfo());     
@@ -390,6 +404,7 @@ MozMillController.prototype.assertNode = function (el) {
 
 //Assert that a form element contains the expected value
 MozMillController.prototype.assertValue = function (el, value) {
+  this.window.focus();
   var n = el.getNode();
   var validator = value;
 
@@ -401,12 +416,14 @@ MozMillController.prototype.assertValue = function (el, value) {
 
 //Assert that a provided value is selected in a select element
 MozMillController.prototype.assertJS = function (js) {
+  this.window.focus();
   var result = eval(js);
   return result;
 };
 
 //Assert that a provided value is selected in a select element
 MozMillController.prototype.assertSelected = function (el, value) {
+  this.window.focus();
   var n = el.getNode();
   var validator = value;
 
@@ -418,6 +435,7 @@ MozMillController.prototype.assertSelected = function (el, value) {
 
 //Assert that a provided checkbox is checked
 MozMillController.prototype.assertChecked = function (el) {
+  this.window.focus();
   var n = el.getNode();
 
   if (n.checked == true){
@@ -428,6 +446,7 @@ MozMillController.prototype.assertChecked = function (el) {
 
 // Assert that a an element's property is a particular value
 MozMillController.prototype.assertProperty = function (el, attrib, value) {
+  this.window.focus();
   var element = el.getNode();
   if (!element){ 
     throw new Error("could not find element " + el.getInfo());     
@@ -453,6 +472,7 @@ MozMillController.prototype.assertProperty = function (el, attrib, value) {
 // The Safari workaround results in additional requests
 // for broken images (in Safari only) but works reliably
 MozMillController.prototype.assertImageLoaded = function (el) {
+  this.window.focus();
   var img = el.getNode();
   if (!img || img.tagName != 'IMG') {
     return false;

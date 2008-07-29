@@ -79,7 +79,7 @@ title="&title.label;">
   </hbox>
 </hbox>
 <hbox id="dxContainer" class="dx" flex="1">
-  <textbox id="dxDisplay" value="" cols="51" rows="5" multiline="true"/>
+  <textbox id="dxDisplay" value="" multiline="true" flex="1" style="width:95%;height:90%"/>
 </hbox>
 <hbox class="m" flex="1">
   <tabbox flex="1">
@@ -92,8 +92,8 @@ title="&title.label;">
     
     <tabpanels flex="1" id="mmtabs">
       <tabpanel flex="1">
-        <hbox>
-          <textbox id="editorInput" value="" cols="51" rows="18" multiline="true"/>
+        <hbox flex="1">
+          <textbox id="editorInput" value="" multiline="true" style="width:98%;height:100%" flex="1"/>
         </hbox>
       </tabpanel>
       <tabpanel id="outputtab" flex="1">
