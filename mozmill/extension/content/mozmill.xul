@@ -34,6 +34,7 @@ title="&title.label;">
         <menuitem label="Clear Editor" oncommand="$('editorInput').value = '';"/>
         <menuseparator/>
         <menuitem label="New Boilerplate" oncommand="genBoiler();"/>
+        <menuitem id = "copyout" label="Show Copyable Output" oncommand="accessOutput();"/>
       </menupopup>
     </menu>
     <menu id="modes-menu" label="Modes">
@@ -77,8 +78,8 @@ title="&title.label;">
     Status: Ready...
   </hbox>
 </hbox>
-<hbox id="dxContainer" class="dx" height="50px">
-  <textbox id="dxDisplay" value="" cols="51" rows="2" multiline="true"/>
+<hbox id="dxContainer" class="dx" height="50px" flex="1">
+  <textbox id="dxDisplay" value="" cols="51" rows="5" multiline="true"/>
 </hbox>
 <hbox class="m" flex="1">
   <tabbox flex="1">
