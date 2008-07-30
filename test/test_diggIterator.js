@@ -2,7 +2,7 @@ var elementslib = {}; Components.utils.import('resource://mozmill/modules/elemen
 var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
 var results = {}; Components.utils.import('resource://mozmill/modules/results.js', results);
 
-var test_GoogleIterator = function () {
+var test_DiggIterator = function () {
   // Bring up browser controller.
   var controller = mozmill.getBrowserController();
   controller.open('http://www.digg.com');
@@ -13,7 +13,7 @@ var test_GoogleIterator = function () {
   for (var i = 0; i<links.length; i++){
     results.write(links[i].innerHTML);
     controller.click(new elementslib.Elem( links[i] ));
-    controller.sleep(5000);
+    controller.sleep(3000);
     links = controller.window.content.document.getElementsByTagName('a');
     controller.sleep(2000);
   }
