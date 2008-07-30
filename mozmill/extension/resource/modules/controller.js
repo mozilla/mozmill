@@ -115,13 +115,13 @@ var MozMillController = function (window) {
   // TODO: Check if window is loaded and block until it has if it hasn't.
   
   this.window = window;
-  this.elementLoaded = false;
   if ( window.document.documentElement != undefined ) {
     // waitForEval("typeof(subject.document.documentElement.getAttribute) == 'function'", 10000, 100, window)
     waitForEval("subject.document.documentElement.getAttribute('windowtype') != null", 10000, 100, window)
     if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined ) {
       this.prototype = new utils.Copy(this.prototype);
       controllerAdditions[window.document.documentElement.getAttribute('windowtype')](this);
+      this.windowtype = window.document.documentElement.getAttribute('windowtype');
     }
   }
   
@@ -198,8 +198,7 @@ MozMillController.prototype.click = function(el){
 
 MozMillController.prototype.sleep = sleep;
 MozMillController.prototype.waitForEval = waitForEval;
-MozMillController.prototype.waitForElement = waitForEvalElement;
-
+MozMillController.prototype.waitForElement = waitForElement;
 
 MozMillController.prototype.type = function (el, text){
   this.window.focus();
@@ -538,18 +537,32 @@ function preferencesAdditions(controller) {
   })
 }
 
+function Tabs (controller) {
+  this.controller = controller;
+}
+Tabs.prototype.getTab = function(index) {
+  return this.controller.window.gBrowser.browsers[index + 1].contentDocument;
+}
+Tabs.prototype.__defineGetter__("activeTab", function() {
+  return this.controller.window.gBrowser.selectedBrowser.contentDocument;
+})
+Tabs.prototype.selectTab = function(index) {
+  // GO in to tab manager and grab the tab by index and call focus.
+}
+
+
 function browserAdditions( controller ) {
-  //Tab crap
-  controller.prototype.getTab = function(index) {
-    return this.window.gBrowser.browsers[index + 1].contentDocument;
+  controller.tabs = new Tabs(controller);
+  controller.waitForPageLoad = function(_document, timeout, interval) {
+    if (interval == undefined) {
+      interval = 100;
+    }
+    if (timeout == undefined) {
+      timeout = 30000;
+    }
+    
+    waitForEval("subject.body != undefined", timeout, interval, _document);
   }
-  controller.prototype.__defineGetter__("activeTab", function() {
-    return this.window.gBrowser.selectedBrowser.contentDocument;
-  })
-  controller.prototype.selectTab = function(index) {
-    // GO in to tab manager and grab the tab by index and call focus.
-  }
-  
 }
 
 controllerAdditions = {

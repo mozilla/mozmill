@@ -7,9 +7,10 @@ var test_PrefsContentTab = function() {
   // click on the Content prefs tab
   controller.click(new elementslib.Elem( controller.tabs.Content.button ));
   // sleep for a second
-  controller.sleep(500);
+  e = new elementslib.ID(controller.window.document, 'popupPolicy')
+  controller.waitForElement(e);
   // disable "Block popups"
-  controller.click(new elementslib.ID(controller.window.document, 'popupPolicy'));
+  controller.click(e);
   // disable "Load Images"
   controller.click(new elementslib.ID(controller.window.document, 'loadImages'));
   // disable JavaScript
