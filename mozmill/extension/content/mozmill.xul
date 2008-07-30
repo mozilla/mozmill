@@ -19,6 +19,23 @@ title="&title.label;">
   <key id="save-as" modifiers="accel" key="a" oncommand="saveAsFile();"/>
 </keyset>
 
+<menubar id="mozmill-menubar">
+  <menu id="window-menu" label="Window">
+    <menupopup id="how">
+      <menuitem label="does"/>
+      <menuitem label="this"/>
+      <menuitem label="work"/>
+    </menupopup>
+  </menu>
+  <menu id="help-menu" label="Help">
+    <menupopup id="howh">
+      <menuitem label="does"/>
+      <menuitem label="this"/>
+      <menuitem label="work"/>
+    </menupopup>
+  </menu>
+</menubar>
+
 <toolbox>
   <toolbar id="nav-toolbar">
     <menu id="fileMenu" label="File">
