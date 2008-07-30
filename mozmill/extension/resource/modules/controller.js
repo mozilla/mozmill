@@ -101,6 +101,15 @@ function waitForEval (expression, timeout, interval, subject) {
   return true;
 }
 
+function waitForElement(elem, timeout, interval) {
+  if (interval == undefined) {
+    interval = 100;
+  }
+  if (timeout == undefined) {
+    timeout = 30000;
+  }
+  waitForEval('subject.exists()', timeout, interval, elem);
+}
 
 var MozMillController = function (window) {
   // TODO: Check if window is loaded and block until it has if it hasn't.
