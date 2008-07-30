@@ -197,6 +197,9 @@ MozMillController.prototype.click = function(el){
 };
 
 MozMillController.prototype.sleep = sleep;
+MozMillController.prototype.waitForEval = waitForEval;
+MozMillController.prototype.waitForElement = waitForEvalElement;
+
 
 MozMillController.prototype.type = function (el, text){
   this.window.focus();
