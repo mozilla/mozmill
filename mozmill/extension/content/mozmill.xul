@@ -13,28 +13,34 @@ title="&title.label;">
 <script src="js/recorder.js"/>
 <script src="js/glue.js"/>
 
+<keyset>
+  <key id="open-key" modifiers="accel" key="o" oncommand="openFile();"/>
+  <key id="run-editor" modifiers="accel" key="r" oncommand="runEditor();"/>
+  <key id="save-as" modifiers="accel" key="a" oncommand="saveAsFile();"/>
+</keyset>
 
 <toolbox>
   <toolbar id="nav-toolbar">
     <menu id="fileMenu" label="File">
       <menupopup id="action-popup">
-        <menuitem label="Open Test File" oncommand="openFile();"/>
+        <menuitem id="open-key" key="open-key" label="Open" oncommand="openFile();"/>
         <menuseparator/>
-        <menuitem id="saveMenu" label="Save" disabled="true" oncommand="saveFile();"/>
-        <menuitem label="Save As" oncommand="saveAsFile();"/>
+        <menuitem id="saveMenu"  label="Save" disabled="true" oncommand="saveFile();"/>
+        <menuitem label="Save As" key="save-as" oncommand="saveAsFile();"/>
         <menuseparator/>
-        <menuitem id="closeMenu" label="Close" disabled="true" oncommand="closeFile();"/>
+        <menuitem id="closeMenu"  label="Close" disabled="true" oncommand="closeFile();"/>
       </menupopup>
     </menu>
     <menu id="testMenu" label="Tests">
       <menupopup id="action-popup">
         <menuitem label="Run Test File" oncommand="runFile();"/>
         <menuseparator/>
-        <menuitem label="Run Editor" oncommand="runEditor();"/>
+        <menuitem key="run-editor" label="Run Editor" oncommand="runEditor();"/>
         <menuitem label="Clear Editor" oncommand="$('editorInput').value = '';"/>
         <menuseparator/>
         <menuitem label="New Boilerplate" oncommand="genBoiler();"/>
-        <menuitem id = "copyout" label="Show Copyable Output" oncommand="accessOutput();"/>
+        <menuitem id="copyout" label="Show Copyable Output" 
+          oncommand="accessOutput();" type="checkbox" checked="false"/>
       </menupopup>
     </menu>
     <menu id="modes-menu" label="Modes">

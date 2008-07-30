@@ -2,8 +2,8 @@ function openFile(){
   var openFn = utils.openFile(window);
   if (openFn){
     window.openFn = openFn;
-    $('saveMenu').setAttribute("disabled","false");
-    $('closeMenu').setAttribute("disabled","false");
+    $('saveMenu').removeAttribute("disabled");
+    $('closeMenu').removeAttribute("disabled");
   }
 }
 
@@ -11,16 +11,18 @@ function saveAsFile() {
   var openFn = utils.saveAsFile(window);
   if (openFn){
     window.openFn = openFn;
-    $('saveMenu').setAttribute("disabled","false");
-    $('closeMenu').setAttribute("disabled","false");
+    $('saveMenu').removeAttribute("disabled");
+    $('closeMenu').removeAttribute("disabled");
   }
 }
 
 function saveFile() {
+  if ($('saveMenu').getAttribute("disabled")){ return; }
   utils.saveFile(window);
 }
 
 function closeFile() {
+ if ($('closeMenu').getAttribute("disabled")){ return; }
  var really = confirm("Are you sure you want to close this file?");
  if (really == true) {
    $('editorInput').value = '';
@@ -50,35 +52,33 @@ function logicalClear(){
   var idx = $('mmtabs').selectedIndex;
   if (idx == 0){ $('editorInput').value = ''; }
   else if (idx == 1){ $('resOut').textContent = ''; }
+  else if (idx == 2){ $('perfOut').textContent = ''; }
 }
 
 function accessOutput(){
   var copyOutputBox = $('copyout');
-  var dx = $('dxContainer')
-  var dxDisp = $('dxDisplay');
-  
-  //if copyable output is already shown
-  if (copyOutputBox.label == 'Hide Copyable Output'){
-   copyOutputBox.label = 'Show Copyable Output';
-   dx.style.display = 'none';
-   dxDisp.textContent = '';
-   return;
-  }
-  
-  var n = $('outputtab');
-  var txt = '';
-  for (var c = 0; c < n.childNodes.length; c++){
-    if (n.childNodes[c].textContent){
-      txt += n.childNodes[c].textContent + '\n';  
-    }
-    else{
-      txt += n.childNodes[c].value + '\n';
-    }
-  }
-  if (txt == undefined){ return; }
-  
-  dx.style.display = 'block';
-  dxDisp.value = txt;
-  
-  $('copyout').label = 'Hide Copyable Output';
+      var dx = $('dxContainer')
+      var dxDisp = $('dxDisplay');
+      
+      //if copyable output is shown
+      if (!copyOutputBox.getAttribute("checked")){
+       dx.style.display = 'none';
+       dxDisp.textContent = '';
+       return;
+      }
+      
+      var n = $('outputtab');
+      var txt = '';
+      for (var c = 0; c < n.childNodes.length; c++){
+        if (n.childNodes[c].textContent){
+          txt += n.childNodes[c].textContent + '\n';  
+        }
+        else{
+          txt += n.childNodes[c].value + '\n';
+        }
+      }
+      if (txt == undefined){ return; }
+      
+      dx.style.display = 'block';
+      dxDisp.value = txt;
 }

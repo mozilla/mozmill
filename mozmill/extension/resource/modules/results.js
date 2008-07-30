@@ -36,7 +36,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["write"];
+var EXPORTED_SYMBOLS = ["write", "perf"];
 
 var write = function(s, color){
  var win = null;
@@ -62,6 +62,32 @@ var write = function(s, color){
     }
   }
 }
+
+var perf = function(s){
+ var win = null;
+ var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                     .getService(Components.interfaces.nsIWindowMediator)
+                     .getEnumerator("");
+  while(enumerator.hasMoreElements()) {
+    var win = enumerator.getNext();
+    if (win.document.title == 'MozMill IDE'){
+      win.focus();
+      var r = win.document.getElementById("perfOut");
+      var msg = win.document.createElement('hbox');
+      msg.setAttribute("class", "resultrow");
+      // if (typeof(color) != 'undefined'){
+      //   msg.style.background = color;
+      // }
+      // else{
+      //   msg.style.background = 'lightyellow';
+      // }
+      msg.style.background = 'lightyellow';
+      msg.textContent = s;
+      r.insertBefore(msg, r.childNodes[0]);
+    }
+  }
+}
+
 
 //Functions for writing status to the UI
 /***************************************/

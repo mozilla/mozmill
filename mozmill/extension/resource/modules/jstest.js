@@ -67,13 +67,20 @@ var run = function(tests, code){
     try { 
       var func = eval(tests[test]);
       if (typeof func == 'function'){
-        func.call(this)
+        //do some timing and run the func
+        var d = new Date();
+        var startMS = d.getTime();
+        func.call(this);
+        var d = new Date();
+        var endMS  = d.getTime();
+        var runTime = endMS - startMS;
+        results.perf('Test '+ tests[test]+' had runtime of '+runTime+' ms.');
       }
     }
     catch(err){
       results.write('Error running '+tests[test]+", "+err, 'lightred');
     }
-     results.write("Succesfully ran "+tests[test], 'lightgreen');
+    results.write("Succesfully ran "+tests[test], 'lightgreen');
   }
   return true;
 }

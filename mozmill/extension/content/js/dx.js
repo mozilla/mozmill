@@ -75,7 +75,7 @@ var MozMilldx = new function() {
     this.dxOff = function() {
         //because they share this box
         var copyOutputBox = $('copyout');
-        copyOutputBox.label = 'Show Copyable Output';
+        copyOutputBox.removeAttribute("checked");
         
         $('stopDX').setAttribute("disabled","true");
         $('startDX').setAttribute("disabled","false");
