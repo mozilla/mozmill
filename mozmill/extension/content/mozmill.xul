@@ -20,10 +20,10 @@ title="&title.label;">
       <menupopup id="action-popup">
         <menuitem label="Open Test File" oncommand="openFile();"/>
         <menuseparator/>
-        <menuitem label="Save" disabled="true"/>
-        <menuitem label="Save As" disabled="true"/>
+        <menuitem id="saveMenu" label="Save" disabled="true" oncommand="saveFile();"/>
+        <menuitem label="Save As" oncommand="saveAsFile();"/>
         <menuseparator/>
-        <menuitem label="Close" disabled="true"/>
+        <menuitem id="closeMenu" label="Close" disabled="true" oncommand="closeFile();"/>
       </menupopup>
     </menu>
     <menu id="testMenu" label="Tests">

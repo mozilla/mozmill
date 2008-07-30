@@ -1,5 +1,33 @@
 function openFile(){
-  utils.openFile(window);
+  var openFn = utils.openFile(window);
+  if (openFn){
+    window.openFn = openFn;
+    $('saveMenu').setAttribute("disabled","false");
+    $('closeMenu').setAttribute("disabled","false");
+  }
+}
+
+function saveAsFile() {
+  var openFn = utils.saveAsFile(window);
+  if (openFn){
+    window.openFn = openFn;
+    $('saveMenu').setAttribute("disabled","false");
+    $('closeMenu').setAttribute("disabled","false");
+  }
+}
+
+function saveFile() {
+  utils.saveFile(window);
+}
+
+function closeFile() {
+ var really = confirm("Are you sure you want to close this file?");
+ if (really == true) {
+   $('editorInput').value = '';
+   delete window.openFn;
+   $('saveMenu').setAttribute("disabled","true");
+   $('closeMenu').setAttribute("disabled","true");
+ }
 }
 
 function runFile(){

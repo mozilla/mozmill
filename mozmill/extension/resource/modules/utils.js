@@ -36,7 +36,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["openFile", "genBoiler", "getFile", "Copy", "getWindows", "runEditor", "runFile"];
+var EXPORTED_SYMBOLS = ["openFile", "saveFile","saveAsFile","genBoiler", "getFile", "Copy", "getWindows", "runEditor", "runFile"];
 
 var jstest = {}; 
 Components.utils.import('resource://mozmill/modules/jstest.js', jstest);
@@ -150,8 +150,57 @@ var checkChrome = function() {
    //send it into the JS test framework to run the file   
    jstest.runFromString(data);
  };
+
+ var saveFile = function(w){
+   //define the file interface
+   var file = Components.classes["@mozilla.org/file/local;1"]
+                        .createInstance(Components.interfaces.nsILocalFile);
+   //point it at the file we want to get at
+   file.initWithPath(w.openFn);
+   
+   // file is nsIFile, data is a string
+   var foStream = Components.classes["@mozilla.org/network/file-output-stream;1"]
+                            .createInstance(Components.interfaces.nsIFileOutputStream);
+
+   // use 0x02 | 0x10 to open file for appending.
+   foStream.init(file, 0x02 | 0x08 | 0x20, 0666, 0); 
+   // write, create, truncate
+   // In a c file operation, we have no need to set file mode with or operation,
+   // directly using "r" or "w" usually.
+   var data = w.document.getElementById('editorInput').value;
+   foStream.write(data, data.length);
+   foStream.close();
+ };
  
- 
+  var saveAsFile = function(w){
+     //define the interface
+     var nsIFilePicker = Components.interfaces.nsIFilePicker;
+     var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+     //define the file picker window
+     fp.init(w, "Select a File", nsIFilePicker.modeSave);
+     fp.appendFilter("JavaScript Files","*.js");
+     //show the window
+     var res = fp.show();
+     //if we got a file
+     if (res == nsIFilePicker.returnOK){
+       var thefile = fp.file;
+       // file is nsIFile, data is a string
+       var foStream = Components.classes["@mozilla.org/network/file-output-stream;1"]
+                               .createInstance(Components.interfaces.nsIFileOutputStream);
+
+       // use 0x02 | 0x10 to open file for appending.
+       foStream.init(thefile, 0x02 | 0x08 | 0x20, 0666, 0); 
+       // write, create, truncate
+       // In a c file operation, we have no need to set file mode with or operation,
+       // directly using "r" or "w" usually.
+       var data = w.document.getElementById('editorInput').value;
+       foStream.write(data, data.length);
+       foStream.close();
+      
+       return thefile.path;
+     }
+  };
+  
  var openFile = function(w){
     //define the interface
     var nsIFilePicker = Components.interfaces.nsIFilePicker;
@@ -172,6 +221,7 @@ var checkChrome = function() {
       //send it into the JS test framework to run the file
       //mozmill.utils.jsTests(paramObj);
       //jsTest.runFromString(thefile.path);
+      return thefile.path;
     }
   };
   
