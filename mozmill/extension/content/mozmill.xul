@@ -161,9 +161,9 @@ title="&title.label;">
 <hbox>
   <toolbox>
     <toolbars>
-      <toolbarbutton id="nav-users"  accesskey="U" label="Preferences" onclick="showPrefs();"/>
-      <toolbarbutton id="nav-groups" accesskey="p" label="Clear" onclick="logicalClear();"/>
-      <toolbarbutton id="nav-events" accesskey="X" label="Close" onclick="close();"/>
+      <!-- <toolbarbutton id="nav-users"  accesskey="U" label="Preferences" onclick="showPrefs();"/> -->
+      <toolbarbutton id="nav-groups" accesskey="p" label="Clear Current Tab" onclick="logicalClear();"/>
+      <toolbarbutton id="nav-events" accesskey="X" label="Exit Mozmill" onclick="close();"/>
     </toolbars>
   </toolbox>
 </hbox>
