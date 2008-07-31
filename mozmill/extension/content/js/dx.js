@@ -65,7 +65,8 @@ var MozMilldx = new function() {
                          .getEnumerator("");
       while(enumerator.hasMoreElements()) {
         var win = enumerator.getNext();
-        if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
+        //if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
+        if (win.title != 'MozMill IDE'){
           this.dxRecursiveBind(win);
           win.focus();
         }
@@ -86,7 +87,8 @@ var MozMilldx = new function() {
                              .getEnumerator("");
           while(enumerator.hasMoreElements()) {
             var win = enumerator.getNext();
-            if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
+            //if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
+            if (win.title != 'MozMill IDE'){  
               this.dxRecursiveUnBind(win);
             }
           }

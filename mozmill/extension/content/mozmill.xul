@@ -124,7 +124,7 @@ function switchFocus(elem)
       <tab label="Editor"/>
       <tab label="Output"/>
       <tab label="Performance"/>
-      <tab label="Test Repo"/>
+      <tab label="Community"/>
     </tabs>
     
     <tabpanels flex="1" id="mmtabs">
