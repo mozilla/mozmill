@@ -36,7 +36,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["write", "perf"];
+var EXPORTED_SYMBOLS = ["write", "perf", "status"];
 
 var write = function(s, color){
  var win = null;
@@ -46,7 +46,7 @@ var write = function(s, color){
   while(enumerator.hasMoreElements()) {
     var win = enumerator.getNext();
     if (win.document.title == 'MozMill IDE'){
-      win.focus();
+ //     win.focus();
       var r = win.document.getElementById("resOut");
       var msg = win.document.createElement('hbox');
       msg.setAttribute("class", "resultrow");
@@ -63,6 +63,21 @@ var write = function(s, color){
   }
 }
 
+var status = function(s){
+ var win = null;
+ var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                     .getService(Components.interfaces.nsIWindowMediator)
+                     .getEnumerator("");
+  while(enumerator.hasMoreElements()) {
+    var win = enumerator.getNext();
+    if (win.document.title == 'MozMill IDE'){
+//      win.focus();
+      var r = win.document.getElementById("runningStatus");
+      r.textContent = "Status: "+s;
+    }
+  }
+}
+
 var perf = function(s){
  var win = null;
  var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
@@ -71,7 +86,7 @@ var perf = function(s){
   while(enumerator.hasMoreElements()) {
     var win = enumerator.getNext();
     if (win.document.title == 'MozMill IDE'){
-      win.focus();
+  //    win.focus();
       var r = win.document.getElementById("perfOut");
       var msg = win.document.createElement('hbox');
       msg.setAttribute("class", "resultrow");

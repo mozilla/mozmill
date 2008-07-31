@@ -106,17 +106,14 @@ var checkChrome = function() {
  
  var genBoiler = function(w){
    w.document.getElementById('editorInput').value = 
-   "var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);\n"+
-   "var controller = {}; Components.utils.import('resource://mozmill/modules/controller.js', controller);\n\n"+
-   "var wm = Components.classes[\"@mozilla.org/appshell/window-mediator;1\"]"+
-   ".getService(Components.interfaces.nsIWindowMediator);\n"+
-   "var _w = wm.getMostRecentWindow(\"navigator:browser\");\n"+
-   "var browser = new controller.MozMillController(_w);\n\n"+
+   "var elementslib = {}; \nComponents.utils.import('resource://mozmill/modules/elementslib.js', elementslib);\n"+
+   "var mozmill = {}; \nComponents.utils.import('resource://mozmill/modules/mozmill.js', mozmill);\n\n"+
    "var test_foo = function(){\n"+
-   " browser.type(new elementslib.ID(_w.document, 'urlbar'), \"http://www.heckyes.com\");\n"+
-   " browser.sleep(5000);\n"+
-   " browser.click(new elementslib.ID(_w.document, 'home-button'));\n"+
-   " browser.open('http://www.google.com');\n"+
+   " var controller = mozmill.getBrowserController();\n"+
+   " controller.open('http://www.google.com');\n"+
+   " controller.sleep(2000);\n"+
+   " controller.type(new elementslib.Name(controller.window.content.document, 'q'), 'Mozilla');\n"+
+   " controller.click(new elementslib.Name(controller.window.content.document, 'btnG'));\n"+
    "}";
  }
  var runFile = function(w){

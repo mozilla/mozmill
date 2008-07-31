@@ -64,6 +64,8 @@ var run = function(tests, code){
   
   for (test in tests){
     results.write("Running "+tests[test]+'...');    
+    results.status(tests[test]+'...');    
+    
     try { 
       var func = eval(tests[test]);
       if (typeof func == 'function'){

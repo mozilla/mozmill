@@ -18,23 +18,37 @@ title="&title.label;">
   <key id="run-editor" modifiers="accel" key="r" oncommand="runEditor();"/>
   <key id="save-as" modifiers="accel" key="a" oncommand="saveAsFile();"/>
 </keyset>
-
-<menubar id="mozmill-menubar">
-  <menu id="window-menu" label="Window">
-    <menupopup id="how">
-      <menuitem label="does"/>
-      <menuitem label="this"/>
-      <menuitem label="work"/>
-    </menupopup>
-  </menu>
+ <menubar id="windowlist-menubar">
+  <menu label="Window" oncommand="switchFocus(event.target);">
+   <menupopup id="window-menu" datasources="rdf:window-mediator" ref="NC:WindowMediatorRoot">
+    <template>
+     <rule>
+      <menuitem uri="rdf:*" label="rdf:http://home.netscape.com/NC-rdf#Name"/>
+     </rule>
+    </template>
+   </menupopup>
+  </menu>    
   <menu id="help-menu" label="Help">
-    <menupopup id="howh">
-      <menuitem label="does"/>
-      <menuitem label="this"/>
-      <menuitem label="work"/>
-    </menupopup>
-  </menu>
-</menubar>
+     <menupopup id="help-popup">
+       <menuitem label="About MozMill"/>
+     </menupopup>
+   </menu>      
+ </menubar>
+ 
+<script>
+function switchFocus(elem)
+{
+  var mediator = Components.classes["@mozilla.org/rdf/datasource;1?name=window-mediator"].getService();
+  mediator.QueryInterface(Components.interfaces.nsIWindowDataSource);
+
+  var resource = elem.getAttribute('id');
+  switchwindow = mediator.getWindowForResource(resource);
+
+  if (switchwindow){
+    switchwindow.focus();
+  }
+}
+</script>
 
 <toolbox>
   <toolbar id="nav-toolbar">
@@ -110,7 +124,7 @@ title="&title.label;">
       <tab label="Editor"/>
       <tab label="Output"/>
       <tab label="Performance"/>
-      <tab label="Tests"/>
+      <tab label="Test Repo"/>
     </tabs>
     
     <tabpanels flex="1" id="mmtabs">
@@ -127,7 +141,8 @@ title="&title.label;">
       </tabpanel>
       <tabpanel id="teststab">
   		  <hbox flex="1" id="suiteList" class="a">
-        <tree id="suiteTree" flex="1" hidecolumnpicker="true" seltype="single" class="tree" style="width:98%;height:98%">
+        <tree id="suiteTree" disabled="true" flex="1" hidecolumnpicker="true" 
+          seltype="single" class="tree" style="width:95%;height:98%">
           <treecols id="myTree2-treeCols">
             <treecol id="myTree2-treeCol0" primary="true" flex="2" label="Test Suites" persist="width" ordinal="1"/>
             <splitter class="tree-splitter" ordinal="2"/>
@@ -185,8 +200,8 @@ title="&title.label;">
   <toolbox>
     <toolbars>
       <!-- <toolbarbutton id="nav-users"  accesskey="U" label="Preferences" onclick="showPrefs();"/> -->
-      <toolbarbutton id="nav-groups" accesskey="p" label="Clear Current Tab" onclick="logicalClear();"/>
-      <toolbarbutton id="nav-events" accesskey="X" label="Exit Mozmill" onclick="close();"/>
+      <toolbarbutton id="nav-groups" accesskey="p" label="Clear Tab" onclick="logicalClear();"/>
+      <toolbarbutton id="nav-events" accesskey="X" label="Exit!" onclick="close();"/>
     </toolbars>
   </toolbox>
 </hbox>
