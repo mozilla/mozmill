@@ -127,21 +127,15 @@ var MozMillController = function (window) {
   
 }
 MozMillController.prototype.open = function(url, elementToWaitFor){
-  //this.window.content.document.location.href = url;
-  //this.window.focus();
   this.window.openLocation(url);
   var el = new elementslib.ID(this.window.document, 'urlbar').getNode();
   this.type(new elementslib.ID(this.window.document, 'urlbar'), url);
   events.triggerKeyEvent(el, 'keypress', '13', true, false, false, false,false); 
 
-  // var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
-  //                 .getService(Components.interfaces.nsIAppShellService)
-  //                 .hiddenDOMWindow;
-  // //Application.activeWindow.activeTab.url = url;
-  // var uri = Components.classes["@mozilla.org/network/io-service;1"]
-  // .getService(Components.interfaces.nsIIOService)
-  // .newURI(url, null, null);
-  // hwindow.Application.activeWindow.open(uri);
+};
+MozMillController.prototype.keypress = function(el, keycode){
+  var element = el.getNode();
+  events.triggerKeyEvent(element, 'keypress', keycode, true, false, false, false,false);
 };
 
 MozMillController.prototype.click = function(el){
@@ -382,23 +376,19 @@ MozMillController.prototype.assertText = function (el, text) {
   var n = el.getNode();
   var validator = text;
   try{
-    if (n.innerHTML.indexOf(validator) != -1){
-      return true;
-    }
+    if (n.innerHTML.indexOf(validator) != -1){ return true; }
     if (n.hasChildNodes()){
       for(var m = n.firstChild; m != null; m = m.nextSibling) {
- if (m.innerHTML.indexOf(validator) != -1){
-   return true;
- }
- if (m.value.indexOf(validator) != -1){
-   return true;
- }
+        if (m.innerHTML.indexOf(validator) != -1){ return true; }
+        if (m.value.indexOf(validator) != -1){ return true; }
       }
     }
   }
   catch(error){
+    throw new Error("could not validate element " + el.getInfo()+" with text "+ text);
     return false;
   }
+  throw new Error("could not validate element " + el.getInfo()+" with text "+ text);
   return false;
 };
 
@@ -419,9 +409,8 @@ MozMillController.prototype.assertValue = function (el, value) {
   var n = el.getNode();
   var validator = value;
 
-  if (n.value.indexOf(validator) != -1){
-    return true;
-  }
+  if (n.value.indexOf(validator) != -1){ return true; }
+  throw new Error("could not validate element " + el.getInfo()+" with value "+ value);
   return false;
 };
 
@@ -429,7 +418,9 @@ MozMillController.prototype.assertValue = function (el, value) {
 MozMillController.prototype.assertJS = function (js) {
   //this.window.focus();
   var result = eval(js);
-  return result;
+  if (result){ return result; }
+  
+  else{ throw new Error("javascript assert was not succesful"); }
 };
 
 //Assert that a provided value is selected in a select element
@@ -438,9 +429,8 @@ MozMillController.prototype.assertSelected = function (el, value) {
   var n = el.getNode();
   var validator = value;
 
-  if (n.options[n.selectedIndex].value == validator){
-    return true;
-  }
+  if (n.options[n.selectedIndex].value == validator){ return true; }
+  throw new Error("could not assert value for element " + el.getInfo()+" with value "+ value);
   return false;
 };
 
@@ -449,9 +439,9 @@ MozMillController.prototype.assertChecked = function (el) {
   //this.window.focus();
   var n = el.getNode();
 
-  if (n.checked == true){
-    return true;
-  }
+  if (n.checked == true){ return true; }
+  throw new Error("assert failed for checked element " + el.getInfo());
+  
   return false;
 };
 
