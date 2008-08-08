@@ -446,24 +446,22 @@ MozMillController.prototype.assertChecked = function (el) {
 };
 
 // Assert that a an element's property is a particular value
-MozMillController.prototype.assertProperty = function (el, attrib, value) {
-  //this.window.focus();
+windmill.controller.asserts.assertProperty = function (el, attrib, val) {
   var element = el.getNode();
-  if (!element){ 
+  if (!element){
     throw new Error("could not find element " + el.getInfo());     
-    return false; 
-  } 
-  
+    return false;
+  }
   var value = eval ('element.' + attrib+';');
   var res = false;
   try {
-    if (value.indexOf(value) != -1){
+    if (value.indexOf(val) != -1){
       res = true;
     }
   }
   catch(err){
   }
-  if (String(value) == String(vArray[1])) {
+  if (String(value) == String(val)) {
     res = true;
   }
   return res;
