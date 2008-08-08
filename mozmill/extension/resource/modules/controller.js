@@ -446,7 +446,6 @@ MozMillController.prototype.assertChecked = function (el) {
 };
 
 // Assert that a an element's property is a particular value
-// Adam: Is this right?? --> windmill.controller.asserts.assertProperty = function (el, attrib, val) {
 MozMillController.prototype.assertProperty = function(el, attrib, val) {
   var element = el.getNode();
   if (!element){
