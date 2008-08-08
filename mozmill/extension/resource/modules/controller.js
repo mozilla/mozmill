@@ -126,7 +126,7 @@ var MozMillController = function (window) {
   }
   
 }
-MozMillController.prototype.open = function(url, elementToWaitFor){
+MozMillController.prototype.open = function(url){
   this.window.openLocation(url);
   var el = new elementslib.ID(this.window.document, 'urlbar').getNode();
   this.type(new elementslib.ID(this.window.document, 'urlbar'), url);
