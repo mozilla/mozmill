@@ -176,22 +176,46 @@ Anon.prototype.getNode = function () {
    var domNode = n.getNode()
    var collection = this._document.getAnonymousNodes(domNode);
 
-   //If we received an index
-   if (typeof(this.accessor) == "number"){
-     return collection[this.accessor];
-   }
-   //else
-   else {
-     for (i in collection){
-       if (collection[i].getAttribute('anonid') == this.accessor){
-         return collection[i];
-       }
+   try {
+     //If we received an index
+     if (typeof(this.accessor) == "number"){
+       return collection[this.accessor];
      }
+     //else
+     else if (typeof(this.accessor) == "string"){
+       this._document.getAnonymousElementByAttribute(domNode, 'anonid', accessor);
+     }
+     else {
+       this._document.getAnonymousElementByAttribute(domNode, this.accessor.property, this.accessor.value);
+     } 
    }
+   catch(err){
+     return null;  
+   }
+   
    //if nothing matched the accessor, return null
    return null;
 }
-
+var AnonXPath = function(_document, XPath) {
+  this._document = _document;
+  this.XPath = XPath;
+  
+  return this;
+}
+AnonXPath.prototype = new utils.Copy(ElemBase.prototype);
+AnonXPath.prototype.getInfo = function () {
+  return "AnonXPath: " + this.XPath;
+}
+AnonXPath.prototype.getNode = function () {
+  //Break up the XPath string by {}'s
+  //iterate through array using document.evaluate to get to anony nodes
+  //use getAnonymousElementByAttribute to get the anony node
+  //use that node passed to document.evaluate to get to the next anony node
+  //and the loop continues
+  
+  // ex this._document.getAnonymousElementByAttribute(domNode, this.accessor.property, this.accessor.value);
+  
+}
 
 // 
 // var Element = function(){
