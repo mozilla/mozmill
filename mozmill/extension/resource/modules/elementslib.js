@@ -36,7 +36,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["Elem", "ID", "Link", "XPath", "Name"];
+var EXPORTED_SYMBOLS = ["Elem", "ID", "Link", "XPath", "Name","Anon"];
 
 utils = Components.utils.import('resource://mozmill/modules/utils.js');
 var results = {}; Components.utils.import('resource://mozmill/modules/results.js', results);
@@ -158,6 +158,39 @@ Name.prototype.getNode = function () {
   return null;
 }
 
+var Anon = function(_document, lookupMethod, searchValue, accessor) {
+  this._document = _document;
+  this.lookupMethod = lookupMethod;
+  this.searchValue = searchValue;
+  this.accessor = accessor;
+  
+  return this;
+}
+Anon.prototype = new utils.Copy(ElemBase.prototype);
+Anon.prototype.getInfo = function () {
+  return "Anon: " + this.lookupMethod + ': '+this.searchValue+ ' '+ this.DOMOp;
+}
+Anon.prototype.getNode = function () {
+   var func = eval(this.lookupMethod);
+   var n = new func(this._document, this.searchValue);
+   var domNode = n.getNode()
+   var collection = this._document.getAnonymousNodes(domNode);
+
+   //If we received an index
+   if (typeof(this.accessor) == "number"){
+     return collection[this.accessor];
+   }
+   //else
+   else {
+     for (i in collection){
+       if (collection[i].getAttribute('anonid') == this.accessor){
+         return collection[i];
+       }
+     }
+   }
+   //if nothing matched the accessor, return null
+   return null;
+}
 
 
 // 
