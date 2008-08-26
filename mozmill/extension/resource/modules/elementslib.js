@@ -239,7 +239,7 @@ AnonXPath.prototype.getNode = function () {
     //if there is an anon node in the matching array position
     if (typeof(anonsArr[i]) == "string"){
      var anonObj = null;
-     eval('anonObj = '+anonsArr[i]+';');
+     this._document.defaultView.eval('anonObj = '+anonsArr[i]+';');
      //get the property name
      var propName = null;
      var propValue = null;
