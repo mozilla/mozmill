@@ -21,6 +21,7 @@ mozmill/extension/content/mozmill.js
 mozmill/extension/content/mozmill.xul
 mozmill/extension/content/overlay.js
 mozmill/extension/content/overlay.xul
+mozmill/extension/content/overlay_tb.xul
 mozmill/extension/content/prefs.xul
 mozmill/extension/content/testwindow.xul
 mozmill/extension/content/css/mozmill.css
@@ -49,6 +50,11 @@ mozmill/extension/resource/modules/timing.js
 mozmill/extension/resource/modules/utils.js
 mozmill/extension/resource/modules/waits.js
 mozmill/extension/skin/overlay.css
+test/first_sunbird_test.js
+test/first_thunderbird_test.js
+test/test_assert.js
 test/test_demo.js
+test/test_diggIterator.js
+test/test_googleIterator.js
 test/test_prefs.js
 test/test_replpage.js
