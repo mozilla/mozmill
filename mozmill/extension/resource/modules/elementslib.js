@@ -36,7 +36,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["Elem", "ID", "Link", "XPath", "Name","Anon"];
+var EXPORTED_SYMBOLS = ["Elem", "ID", "Link", "XPath", "Name", "Anon", "AnonXPath"];
 
 utils = Components.utils.import('resource://mozmill/modules/utils.js');
 var results = {}; Components.utils.import('resource://mozmill/modules/results.js', results);
@@ -206,15 +206,62 @@ AnonXPath.prototype = new utils.Copy(ElemBase.prototype);
 AnonXPath.prototype.getInfo = function () {
   return "AnonXPath: " + this.XPath;
 }
+
+//iterate through array using document.evaluate to get to anony nodes
+ //use getAnonymousElementByAttribute to get the anony node
+ //use that node passed to document.evaluate to get to the next anony node
+ //and the loop continues
+ // ex this._document.getAnonymousElementByAttribute(domNode, this.accessor.property, this.accessor.value);
 AnonXPath.prototype.getNode = function () {
+  var returnNode = null;
+  
   //Break up the XPath string by {}'s
-  //iterate through array using document.evaluate to get to anony nodes
-  //use getAnonymousElementByAttribute to get the anony node
-  //use that node passed to document.evaluate to get to the next anony node
-  //and the loop continues
+  var xpathsArr = this.XPath.split(/{[^}]*}/g);
+  var anonsArr = this.XPath.match(/{[^}]*}/g);
   
-  // ex this._document.getAnonymousElementByAttribute(domNode, this.accessor.property, this.accessor.value);
+  //if they used like id() and there was an empty xpath entry rm it
+  for (k in xpathsArr){
+    if (xpathsArr[k] == ""){ 
+        xpathsArr.pop();
+    }
+  }
   
+  //the context for looking up the xpath
+  var lookupParent = this._document;
+  //for each piece of xpath
+  for (i in xpathsArr){
+    if (xpathsArr[i].charAt(xpathsArr[i].length-1) == "/"){
+      xpathsArr[i] = xpathsArr[i].substr(0, xpathsArr[i].length-1)
+    }
+    var xpNode = this._document.evaluate(xpathsArr[i], lookupParent, null, this._document.defaultView.XPathResult.ANY_TYPE, null).iterateNext();
+    if (xpNode == null){ return null; }
+    
+    //if there is an anon node in the matching array position
+    if (typeof(anonsArr[i]) == "string"){
+     var anonObj = null;
+     eval('anonObj = '+anonsArr[i]+';');
+     //get the property name
+     var propName = null;
+     var propValue = null;
+     
+     for (j in anonObj){
+       propName = j;
+       propValue = anonObj[j];
+       break;
+     }
+     //look up the node
+     var anonNode = this._document.getAnonymousElementByAttribute(xpNode, propName, propValue);
+     if (anonNode == null){ return null; }
+     else{ lookupParent = anonNode; }
+     
+     //if this is the last anony node, were at the destination node
+     if (i == anonsArr.length-1){
+       returnNode = anonNode;
+       break;
+     }
+    }
+  }  
+  return returnNode; 
 }
 
 // 
