@@ -253,7 +253,7 @@ MozMillController.prototype.select = function (el) {
     return false; 
   } 
 
- try{ windmill.events.triggerEvent(element, 'focus', false);}
+ try{ events.triggerEvent(element, 'focus', false);}
  catch(err){};
 
  var optionToSelect = null;
@@ -267,7 +267,7 @@ MozMillController.prototype.select = function (el) {
        }
        optionToSelect = el;
        optionToSelect.selected = true;
-       windmill.events.triggerEvent(element, 'change', true);
+       events.triggerEvent(element, 'change', true);
        break;
      }
    }
@@ -278,7 +278,7 @@ MozMillController.prototype.select = function (el) {
          }
          optionToSelect = el;
          optionToSelect.selected = true;
-         windmill.events.triggerEvent(element, 'change', true);
+         events.triggerEvent(element, 'change', true);
          break;
        }
    }
@@ -521,6 +521,38 @@ MozMillController.prototype.assertImageLoaded = function (el) {
   return ret;
 };
 
+//Drag one eleent to the top x,y coords of another specified element
+MozMillController.prototype.dragDropElemToElem = function (dstart, ddest) {
+  //Get the drag and dest
+  var drag = dstart.getNode();
+  var dest = ddest.getNode();
+  
+  //if one of these elements couldn't be looked up
+  if (!drag){
+    throw new Error("could not find element " + drag.getInfo());     
+    return false;
+  }
+  if (!dest){
+    throw new Error("could not find element " + dest.getInfo());     
+    return false;
+  }
+ 
+  var dragCoords = null;
+  var destCoords = null; 
+
+  dragCoords = drag.getBoundingClientRect();
+  destCoords = dest.getBoundingClientRect();
+    
+  //Do the initial move to the drag element position
+  events.triggerMouseEvent(drag.ownerDocument.body, 'mousemove', true, dragCoords.left, dragCoords.top);
+  events.triggerMouseEvent(drag, 'mousedown', true, dragCoords.left, dragCoords.top); //do the mousedown
+  events.triggerMouseEvent(drag.ownerDocument.body, 'mousemove', true, destCoords.left, destCoords.top); 
+  events.triggerMouseEvent(dest, 'mouseup', true, destCoords.left, destCoords.top);
+  events.triggerMouseEvent(dest, 'click', true, destCoords.left, destCoords.top);
+  
+  return true;
+}
+
 function preferencesAdditions(controller) {
   var mainTabs = controller.window.document.getAnonymousElementByAttribute(controller.window.document.documentElement, 'anonid', 'selector');
   controller.tabs = {};
@@ -568,8 +600,3 @@ controllerAdditions = {
   'Browser:Preferences':preferencesAdditions,
   'navigator:browser'  :browserAdditions,
 }
-
-
-
-
-
