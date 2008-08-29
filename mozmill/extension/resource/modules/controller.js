@@ -522,6 +522,24 @@ MozMillController.prototype.assertImageLoaded = function (el) {
 };
 
 //Drag one eleent to the top x,y coords of another specified element
+MozMillController.prototype.mouseMove = function (doc, start, dest) {
+  //if one of these elements couldn't be looked up
+  if (typeof start != 'object'){
+    throw new Error("received bad coordinates");     
+    return false;
+  }
+  if (typeof dest != 'object'){
+    throw new Error("received bad coordinates");     
+    return false;
+  }
+    
+  //Do the initial move to the drag element position
+  events.triggerMouseEvent(doc.body, 'mousemove', true, start[0], start[1]);
+  events.triggerMouseEvent(doc.body, 'mousemove', true, dest[0], dest[1]);  
+  return true;
+}
+
+//Drag one eleent to the top x,y coords of another specified element
 MozMillController.prototype.dragDropElemToElem = function (dstart, ddest) {
   //Get the drag and dest
   var drag = dstart.getNode();
