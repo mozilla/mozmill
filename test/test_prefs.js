@@ -6,7 +6,8 @@ controller = mozmill.getPreferencesController();
 var test_TabsTab = function() {
   // Click on Tab tab
   controller.click(new elementslib.Elem( controller.tabs.Tabs.button ));
-  
+  controller.sleep(1000);  
+
   // Set to Links in New Window.
   // e = new elementslib.XPATH(controller.window.document, '/prefwindow[@id='BrowserPreferences']/prefpane[@id='paneTabs']/vbox[@id='linksOpenInBox']/radiogroup[@id='linkTargeting']/radio[1]')
   // controller.click(e)
@@ -19,12 +20,13 @@ var test_TabsTab = function() {
   controller.click(new elementslib.ID(controller.window.document, 'showTabBar'));
   // Switch to new Tabs
   controller.click(new elementslib.ID(controller.window.document, 'switchToNewTabs'));
-
+  controller.sleep(1000);
 }
 
 var test_ContentTab = function() {
   // Click on the proper Tab Button
   controller.click(new elementslib.Elem( controller.tabs.Content.button ));
+  controller.sleep(1000);
   
   // disable "Block popups"
   controller.click(new elementslib.ID(controller.window.document, 'popupPolicy'));
