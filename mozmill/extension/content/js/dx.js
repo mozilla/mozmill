@@ -42,15 +42,8 @@ var MozMilldx = new function() {
       }
       //if not just use the xpath or XBL lookup
       else {
-        //if XBL lookup is off
-        if ($('useXBLLookup').getAttribute('checked') != 'true'){
-          var stringXpath = getXSPath(target);
-          $('dxDisplay').value = 'XPath: ' + stringXpath;
-        }
-        //Use XBL lookup
-        else {
-          $('dxDisplay').value = 'Using XBL Lookup';
-        }
+        var stringXpath = getXSPath(target);
+        $('dxDisplay').value = 'XPath: ' + stringXpath;
       }
   }
   
