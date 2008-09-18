@@ -100,6 +100,8 @@ function switchFocus(elem)
       </menu>
         <menu id="domexp-menu" label="DOM Explorer">
           <menupopup id="domexpPopup">
+            <menuitem id="useXBLLookup" label="Use XBL Lookup" type="checkbox" checked="true"/>
+            <menuseparator/>
             <menuitem id="startDX" label="Start" oncommand="MozMilldx.dxOn();"/>
             <menuitem id="stopDX" label="Stop" disabled="true" oncommand="MozMilldx.dxOff();"/>
           </menupopup>

@@ -40,11 +40,17 @@ var MozMilldx = new function() {
       else if (target.nodeName == "A") {
         $('dxDisplay').value = "Link: " + target.innerHTML;
       }
-      //if not just use the xpath
+      //if not just use the xpath or XBL lookup
       else {
-        var stringXpath = getXSPath(target);
-        //$("domExp").innerHTML = 'XPath: ' + stringXpath;
-        $('dxDisplay').value = 'XPath: ' + stringXpath;
+        //if XBL lookup is off
+        if ($('useXBLLookup').getAttribute('checked') != 'true'){
+          var stringXpath = getXSPath(target);
+          $('dxDisplay').value = 'XPath: ' + stringXpath;
+        }
+        //Use XBL lookup
+        else {
+          $('dxDisplay').value = 'Using XBL Lookup';
+        }
       }
   }
   
