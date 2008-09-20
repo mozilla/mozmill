@@ -56,3 +56,22 @@ function getSet (array) {
   }
   return narray;
 }
+
+function indexOf (array, v) {
+  for (i in array) {
+    if (array[i] == v) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+function rindexOf (array, v) {
+  var l = array.length;
+  for (i in array) {
+    if (array[l - i] == v) {
+      return l - i;
+    }
+  }
+  return -1;
+}

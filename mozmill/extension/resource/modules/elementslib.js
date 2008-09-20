@@ -38,13 +38,15 @@
 
 var EXPORTED_SYMBOLS = ["Elem", "ID", "Link", "XPath", "Name", "Anon", "AnonXPath"];
 
-utils = Components.utils.import('resource://mozmill/modules/utils.js');
+var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var results = {}; Components.utils.import('resource://mozmill/modules/results.js', results);
+var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js', strings);
+var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 
 var ElemBase = function(){
   this.isElement = true;
 }
-ElemBase.prototype.exists = function(){
+ElemBase.prototype.exists = function() {
   if (this.getNode()){ return true; }
   else{ return false; }
 }
@@ -262,4 +264,138 @@ AnonXPath.prototype.getNode = function () {
     }
   }  
   return returnNode; 
+}
+
+function Lookup (_document, expression) {
+  this._document = _document;
+  this.expression = expression;
+}
+Lookup.prototype = new utils.Copy(ElemBase.prototype);
+var _returnResult = function (results) {
+  if (results.length == 0) {
+    // TODO Throw exception, did not return any elements
+  } else if (results.length == 1) {
+    return results[0];
+  } else {
+    return results;
+  }
+}
+var _forChildren = function (element, name, value) {
+  var results = [];
+  for (i in element.childNodes) {
+    var n = element.childNodes[i];
+    if (n[name] == value) {
+      results.push(n);
+    }
+  }
+  return results;
+}
+var _forAnonChildren = function (_document, element, name, value) {
+  var results = [];
+  var nodes = _document.getAnoymousNodes(element);
+  for (i in nodes ) {
+    var n = nodes[i];
+    if (n[name] == value) {
+      results.push(n);
+    }
+  }
+  return results;
+}
+var _byID = function (_document, parent, value) {
+  return _returnResult(_forChildren(parent, 'id', value));
+}
+var _byName = function (_document, parent, value) {
+  return _returnResult(_forChildren(parent, 'tagName', value));
+}
+var _byAttrib = function (parent, value) {
+  var results = [];
+  for (i in parent.childNodes) {
+    var n = parent.childNodes[i];
+    requirementPass = 0;
+    requirementLength = 0;
+    for (a in value) {
+      requirementLength++;
+      if (n.getAttribute(a) == value[a]) {
+        requirementPass++;
+      }
+    }
+    if (requirementPass == requirementLength) {
+      results.push(n);
+    }
+  }
+  return results
+}
+var _byAnonAttrib = function (_document, parent, value) {
+  var results = [];
+  var nodes = _document.getAnonymousNodes(parent);
+  for (i in nodes) {
+    var n = nodes[i];
+    requirementPass = 0;
+    requirementLength = 0;
+    for (a in value) {
+      requirementLength++;
+      if (n.getAttribute(a) == value[a]) {
+        requirementPass++;
+      }
+    }
+    if (requirementPass == requirementLength) {
+      results.push(n);
+    }
+  }
+  return results
+}
+var _byIndex = function (_document, parent, i) {
+  return parent.childNodes[i];
+}
+var _anonByName = function (_document, parent, value) {
+  return _returnResult(_forAnonChildren(_document, parent, 'tagName', value));
+}
+var _anonByAttrib = function (_document, parent, value) {
+  return _returnResult(_forAnonAttrib(_document, parent, value))
+}
+var _anonByIndex = function (_document, parent, i) {
+  return _document.getAnonymousNodes(parent)[i];
+} 
+Lookup.prototype.getNode = function () {
+  var expSplit = this.expression.split('/');
+  expSplit.unshift(this._document.documentElement)
+  _document = this._document;
+  var nCases = {'id':_byID, 'name':_byName, 'attrib':_byAttrib, 'index':_byIndex};
+  var aCases = {'name':_anonByName, 'attrib':_anonByAttrib, 'index':_byAnonIndex};
+  function reduceLookup (parent, exp) {
+    // Handle case where only index is provided
+    var cases = nCases;
+    // Handle ending index before any of the expression gets mangled
+    if (strings.endsWith(']')) {
+      var expIndex = strings.vslice(exp, '[', ']');
+    }
+    // Handle anon
+    if (!strings.startsWith(exp, 'anon')) {
+      var exp = strings.vslice(exp, '(', ')');
+      var cases = aCases;
+    }
+    if (strings.startsWith(exp, '[')) {
+      return cases['index'](_document, parent, strings.vslice(exp, '[', ']'));
+    }
+    
+    for (c in cases) {
+      if (strings.startsWith(exp, c)) {
+        var result = cases[c](_document, parent, strings.vslice(exp, '(', ')'));
+      }
+    }
+    if (!result) {
+      // TODO Throw exception
+    }
+    
+    // Final return
+    if (expIndex) {
+      // TODO: Check length and raise error
+      return result[expIndex];
+    } else {
+      // TODO: Check length and raise error
+      return result;
+    }
+  }
+
+  return expSplit.reduce(reduceLookup);
 }
