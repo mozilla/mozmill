@@ -16,6 +16,29 @@ Copyright 2006-2007, Open Source Applications Foundation
 
 //Recorder Functionality
 //*********************************/
+
+var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
+var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
+
+var isNotAnonymous = function (elem, result) {
+  if (result == undefined) {
+    var result = true;
+  }
+  if ( elem.parentNode ) {
+    var p = elem.parentNode;
+    return isNotAnonymous(p, result == arrays.inArray(p.childNodes, elem) == true);
+  } else {
+    return result;
+  }
+}
+
+var getDocument = function (elem) {
+  while (elem.parentNode) {
+    var elem = elem.parentNode;
+  }
+  return elem;
+}
+
 var MozMilldx = new function() {
   this.grab = function(){
     var disp = $('dxDisplay').textContent;
@@ -30,21 +53,32 @@ var MozMilldx = new function() {
      else {
        target = e.target;
      }
+     
+     if ( isNotAnonymous(target) ) {
+       var _document = getDocument(target);
+       var windowtype = _document.documentElement.getAttribute('windowtype');
+       displayText = "windowtype: " + windowtype + '\n';
+       if (target.id != "") {
+         displayText += "ID: " + target.id + '\n';
+         var telem = new elementslib.ID(_document, target.id);
+       } else if ((target.name != "") && (typeof(target.name) != "undefined")) {
+         displayText += "Name: " + target.name + '\n';
+         var telem = new elementslib.Name(_document, target.name);
+       } else if (target.nodeName == "A") {
+         displayText += "Link: " + target.innerHTML + '\n';
+         var telem = new elementslib.Link(_document, target.innerHTML);
+       } else {
+         var stringXpath = getXSPath(target);
+         displayText += 'XPath: ' + stringXpath + '\n';
+         var telem = new elementslib.XPath(_document, stringXpath);
+       }
+       displayText += "Validation: " + ( target == telem.getNode() );
+       $('dxDisplay').value = displayText;
+     } else {
+       $('dxDisplay').value = 'Lookup'
+     }
     
-     if (target.id != "") {
-        $('dxDisplay').value= "ID: " + target.id;
-      }
-      else if ((target.name != "") && (typeof(target.name) != "undefined")) {
-        $('dxDisplay').value = "Name: " + target.name;
-      }
-      else if (target.nodeName == "A") {
-        $('dxDisplay').value = "Link: " + target.innerHTML;
-      }
-      //if not just use the xpath or XBL lookup
-      else {
-        var stringXpath = getXSPath(target);
-        $('dxDisplay').value = 'XPath: ' + stringXpath;
-      }
+     
   }
   
   this.getFoc = function(){
