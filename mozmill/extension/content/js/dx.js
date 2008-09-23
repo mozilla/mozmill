@@ -53,8 +53,8 @@ var getLookupExpression = function (_document, elem) {
     var getUniqueAttributes = function (attributes, node) {
       var nattributes = {};
       for (i in attributes) {
-        if ( node.getAttribute(i) != attributes(i) ) {
-          nattributes[i] = attributes(i);
+        if ( node.getAttribute(i) != attributes[i] ) {
+          nattributes[i] = attributes[i];
         } 
       }
       return nattributes;
@@ -120,7 +120,6 @@ var MozMilldx = new function() {
       } else {
         var stringXpath = getXULXpath(target, _document);
       }      
-      var stringXpath = xpathCase(target);
       var telem = new elementslib.XPath(_document, stringXpath);
       if ( telem.getNode() == target ) {
         displayText += 'XPath: ' + stringXpath + '\n';
