@@ -95,15 +95,6 @@ var MozMilldx = new function() {
       target = e.target;
     }
     
-    //helper function for grabbing the xpath string
-    function xpathCase(target){
-      if (windowtype == null) {
-        var stringXpath = getXSPath(target);
-      } else {
-        var stringXpath = getXULXpath(target, _document);
-      }
-      return stringXpath;
-    }
     var _document = getDocument(target);
     var windowtype = _document.documentElement.getAttribute('windowtype');
     displayText = "windowtype: " + windowtype + '\n';
@@ -122,15 +113,20 @@ var MozMilldx = new function() {
         var telem = new elementslib.Link(_document, linkText);
       } 
     }
-    
+    // Fallback on XPath
     if (telem == undefined || telem.getNode() != target) {
+      if (windowtype == null) {
+        var stringXpath = getXSPath(target);
+      } else {
+        var stringXpath = getXULXpath(target, _document);
+      }      
       var stringXpath = xpathCase(target);
       var telem = new elementslib.XPath(_document, stringXpath);
       if ( telem.getNode() == target ) {
         displayText += 'XPath: ' + stringXpath + '\n';
       }
     }
-    
+    // Fallback to Lookup
     if (telem == undefined || telem.getNode() != target) {
       displayText += 'Lookup' + '\n';
     } 
