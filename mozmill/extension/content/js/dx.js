@@ -104,11 +104,11 @@ var MozMilldx = new function() {
       }
       return stringXpath;
     }
-   
-    if ( isNotAnonymous(target) ) {
-      var _document = getDocument(target);
-      var windowtype = _document.documentElement.getAttribute('windowtype');
-      displayText = "windowtype: " + windowtype + '\n';
+    var _document = getDocument(target);
+    var windowtype = _document.documentElement.getAttribute('windowtype');
+    displayText = "windowtype: " + windowtype + '\n';
+    
+    if ( isNotAnonymous(target) ) {  
       // Logic for which identifier to use is duplicated above
       if (target.id != "") {
         displayText += "ID: " + target.id + '\n';
@@ -120,23 +120,24 @@ var MozMilldx = new function() {
         var linkText = removeHTMLTags(target.innerHTML);
         displayText += "Link: " + linkText + '\n';
         var telem = new elementslib.Link(_document, linkText);
-        //in the case where multiple links on the page have the same
-        //innerHTML we can default to xpath
-        if (telem.getNode() != target){
-          var stringXpath = xpathCase(target);
-          displayText += 'XPath: ' + stringXpath + '\n';
-          var telem = new elementslib.XPath(_document, stringXpath);
-        }
-      } else {
-        var stringXpath = xpathCase(target);
+      } 
+    }
+    
+    if (telem == undefined || telem.getNode() != target) {
+      var stringXpath = xpathCase(target);
+      var telem = new elementslib.XPath(_document, stringXpath);
+      if ( telem.getNode() == target ) {
         displayText += 'XPath: ' + stringXpath + '\n';
-        var telem = new elementslib.XPath(_document, stringXpath);
       }
-      displayText += "Validation: " + ( target == telem.getNode() );
-      $('dxDisplay').value = displayText;
-    } else {
-      $('dxDisplay').value = 'Lookup'
+    }
+    
+    if (telem == undefined || telem.getNode() != target) {
+      displayText += 'Lookup' + '\n';
     } 
+    
+    displayText += "Validation: " + ( target == telem.getNode() );
+    $('dxDisplay').value = displayText;
+    
   }
   
   this.getFoc = function(){
