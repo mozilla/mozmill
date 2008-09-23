@@ -68,7 +68,12 @@ var MozMilldx = new function() {
          displayText += "Link: " + target.innerHTML + '\n';
          var telem = new elementslib.Link(_document, target.innerHTML);
        } else {
-         var stringXpath = getXSPath(target);
+         if (windowtype == null) {
+           var stringXpath = getXSPath(target);
+         } else {
+           var stringXpath = getXULXpath(target);
+         }
+         
          displayText += 'XPath: ' + stringXpath + '\n';
          var telem = new elementslib.XPath(_document, stringXpath);
        }

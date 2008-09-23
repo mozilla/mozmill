@@ -61,3 +61,8 @@ function getXPath(node, path) {
     stringXpath = stringXpath.replace('//','/');
     return stringXpath;
 }
+function getXULXpath (node) {
+  // Add XUL Code
+  // Docs http://developer.mozilla.org/en/Using_XPath
+  return '/XULXPath/'
+}
