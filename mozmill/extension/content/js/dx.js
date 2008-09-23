@@ -19,6 +19,9 @@ Copyright 2006-2007, Open Source Applications Foundation
 
 var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
+var dom = {}; Components.utils.import('resource://mozmill/stdlib/dom.js', dom);
+var objects = {}; Components.utils.import('resource://mozmill/stdlib/objects.js', objects);
+var json2 = {}; Components.utils.import('resource://mozmill/stdlib/json2.js', json2);
 
 var isNotAnonymous = function (elem, result) {
   if (result == undefined) {
@@ -39,6 +42,35 @@ var getDocument = function (elem) {
   return elem;
 }
 
+var getLookupExpression = function (_document, elem) {
+  if ( arrays.inArray(elem.parentNode.childNodes, elem) ) {
+    // Logic copied from below, inside the inspector.
+    
+  } else {
+    // Handle Anonymous Nodes
+    var parse = elem.parentNode.childNodes;
+    parse.unshift(dom.getAttributes(elem));
+    var getUniqueAttributes = function (attributes, node) {
+      var nattributes = {};
+      for (i in attributes) {
+        if ( node.getAttribute(i) != attributes(i) ) {
+          nattributes[i] = attributes(i);
+        } 
+      }
+      return nattributes;
+    }
+    var uniqueAttributes = parse.reduce(getUniqueAttributes);
+    if (objects.getLength(uniqueAttributes) == 0) {
+      return 'anon(['+arrays.indexOf(elem.parentNode.childNodes, elem)+'])';
+    } else if (arrays.inArray(uniqueAttributes, 'anonid')) {
+      return 'anon({"anonid":"'+uniqueAttributes['anonid']+'"})';
+    } else {
+      return 'anon('+json2.JSON.stringify(uniqueAttributes)+')';
+    }    
+
+  }
+}
+
 var MozMilldx = new function() {
   this.grab = function(){
     var disp = $('dxDisplay').textContent;
@@ -47,103 +79,88 @@ var MozMilldx = new function() {
   }
   
   this.evtDispatch = function(e){
+    /// 
     if (e.originalTarget != undefined) {
       target = e.originalTarget;
+    } else {
+      target = e.target;
     }
-    else { target = e.target; }
-    
-    //helper function for grabbing the xpath string
-    function xpathCase(target){
-      if (windowtype == null) {
-        var stringXpath = getXSPath(target);
-      } 
-      else {
-        var stringXpath = getXULXpath(target, _document);
-      }
-      return stringXpath;
-    }
-    
+   
     if ( isNotAnonymous(target) ) {
       var _document = getDocument(target);
       var windowtype = _document.documentElement.getAttribute('windowtype');
-      var displayText = "windowtype: " + windowtype + '\n';
-      
+      displayText = "windowtype: " + windowtype + '\n';
+      // Logic for which identifier to use is duplicated above
       if (target.id != "") {
         displayText += "ID: " + target.id + '\n';
         var telem = new elementslib.ID(_document, target.id);
-      } 
-      else if ((target.name != "") && (typeof(target.name) != "undefined")) {
+      } else if ((target.name != "") && (typeof(target.name) != "undefined")) {
         displayText += "Name: " + target.name + '\n';
         var telem = new elementslib.Name(_document, target.name);
-      } 
-      else if (target.nodeName == "A") {
+      } else if (target.nodeName == "A") {
         displayText += "Link: " + target.innerHTML + '\n';
         var telem = new elementslib.Link(_document, target.innerHTML);
-        
-        //in the case where multiple links on the page have the same
-        //innerHTML we can default to xpath
-        if (telem.getNode() != target){
-          var stringXpath = xpathCase(target);
-          displayText += 'XPath: ' + stringXpath + '\n';
-          var telem = new elementslib.XPath(_document, stringXpath);
+      } else {
+        if (windowtype == null) {
+          var stringXpath = getXSPath(target);
+        } else {
+          var stringXpath = getXULXpath(target);
         }
-      } 
-      else {   
-        var stringXpath = xpathCase(target);
         displayText += 'XPath: ' + stringXpath + '\n';
         var telem = new elementslib.XPath(_document, stringXpath);
       }
-      
       displayText += "Validation: " + ( target == telem.getNode() );
       $('dxDisplay').value = displayText;
+    } else {
+      $('dxDisplay').value = 'Lookup'
     } 
-    else { $('dxDisplay').value = 'Lookup' }
-
   }
   
-  this.getFoc = function(){ window.focus(); }
+  this.getFoc = function(){
+    window.focus();
+  }
   
     //Turn on the recorder
     //Since the click event does things like firing twice when a double click goes also
     //and can be obnoxious im enabling it to be turned off and on with a toggle check box
-  this.dxOn = function() {
-    $('stopDX').setAttribute("disabled","false");
-    $('startDX').setAttribute("disabled","true");
-    $('dxContainer').style.display = "block";
-    //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
-    var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                       .getService(Components.interfaces.nsIWindowMediator)
-                       .getEnumerator("");
-    while(enumerator.hasMoreElements()) {
-      var win = enumerator.getNext();
-      //if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
-      if (win.title != 'MozMill IDE'){
-        this.dxRecursiveBind(win);
-        win.focus();
-      }
-    }
-  }
-
-  this.dxOff = function() {
-    //because they share this box
-    var copyOutputBox = $('copyout');
-    copyOutputBox.removeAttribute("checked");
-
-    $('stopDX').setAttribute("disabled","true");
-    $('startDX').setAttribute("disabled","false");
-    $('dxContainer').style.display = "none";
-    //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
-     var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+    this.dxOn = function() {
+      $('stopDX').setAttribute("disabled","false");
+      $('startDX').setAttribute("disabled","true");
+      $('dxContainer').style.display = "block";
+      //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
+      var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                          .getService(Components.interfaces.nsIWindowMediator)
                          .getEnumerator("");
       while(enumerator.hasMoreElements()) {
         var win = enumerator.getNext();
         //if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
-        if (win.title != 'MozMill IDE'){  
-          this.dxRecursiveUnBind(win);
+        if (win.title != 'MozMill IDE'){
+          this.dxRecursiveBind(win);
+          win.focus();
         }
       }
-  }
+    }
+
+    this.dxOff = function() {
+        //because they share this box
+        var copyOutputBox = $('copyout');
+        copyOutputBox.removeAttribute("checked");
+        
+        $('stopDX').setAttribute("disabled","true");
+        $('startDX').setAttribute("disabled","false");
+        $('dxContainer').style.display = "none";
+        //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
+         var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                             .getService(Components.interfaces.nsIWindowMediator)
+                             .getEnumerator("");
+          while(enumerator.hasMoreElements()) {
+            var win = enumerator.getNext();
+            //if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
+            if (win.title != 'MozMill IDE'){  
+              this.dxRecursiveUnBind(win);
+            }
+          }
+    }
 
     //Recursively bind to all the iframes and frames within
     this.dxRecursiveBind = function(frame) {
@@ -153,7 +170,7 @@ var MozMilldx = new function() {
         frame.addEventListener('mouseover', this.evtDispatch, true);
         frame.addEventListener('mouseout', this.evtDispatch, true);
         frame.addEventListener('dblclick', this.getFoc, true);
-
+        
         var iframeCount = frame.window.frames.length;
         var iframeArray = frame.window.frames;
 
@@ -180,7 +197,7 @@ var MozMilldx = new function() {
         frame.removeEventListener('mouseover', this.evtDispatch, true);
         frame.removeEventListener('mouseout', this.evtDispatch, true);
         frame.removeEventListener('dblclick', this.getFoc, true);
-
+        
         var iframeCount = frame.window.frames.length;
         var iframeArray = frame.window.frames;
 
@@ -190,7 +207,7 @@ var MozMilldx = new function() {
               iframeArray[i].removeEventListener('mouseover', this.evtDispatch, true);
               iframeArray[i].removeEventListener('mouseout', this.evtDispatch, true);
               iframeArray[i].removeEventListener('dblclick', this.getFoc, true);
-
+    
               this.dxRecursiveUnBind(iframeArray[i]);
             }
             catch(error) {
