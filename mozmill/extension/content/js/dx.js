@@ -71,6 +71,15 @@ var getLookupExpression = function (_document, elem) {
   }
 }
 
+var removeHTMLTags = function(str){
+ 	 	str = str.replace(/&(lt|gt);/g, function (strMatch, p1){
+ 		 	return (p1 == "lt")? "<" : ">";
+ 		});
+ 		var strTagStrippedText = str.replace(/<\/?[^>]+(>|$)/g, "");
+ 		strTagStrippedText = strTagStrippedText.replace(/&nbsp;/g,"");
+	return strTagStrippedText;
+}
+
 var MozMilldx = new function() {
   this.grab = function(){
     var disp = $('dxDisplay').textContent;
@@ -85,6 +94,16 @@ var MozMilldx = new function() {
     } else {
       target = e.target;
     }
+    
+    //helper function for grabbing the xpath string
+    function xpathCase(target){
+      if (windowtype == null) {
+        var stringXpath = getXSPath(target);
+      } else {
+        var stringXpath = getXULXpath(target, _document);
+      }
+      return stringXpath;
+    }
    
     if ( isNotAnonymous(target) ) {
       var _document = getDocument(target);
@@ -98,14 +117,18 @@ var MozMilldx = new function() {
         displayText += "Name: " + target.name + '\n';
         var telem = new elementslib.Name(_document, target.name);
       } else if (target.nodeName == "A") {
-        displayText += "Link: " + target.innerHTML + '\n';
-        var telem = new elementslib.Link(_document, target.innerHTML);
-      } else {
-        if (windowtype == null) {
-          var stringXpath = getXSPath(target);
-        } else {
-          var stringXpath = getXULXpath(target);
+        var linkText = removeHTMLTags(target.innerHTML);
+        displayText += "Link: " + linkText + '\n';
+        var telem = new elementslib.Link(_document, linkText);
+        //in the case where multiple links on the page have the same
+        //innerHTML we can default to xpath
+        if (telem.getNode() != target){
+          var stringXpath = xpathCase(target);
+          displayText += 'XPath: ' + stringXpath + '\n';
+          var telem = new elementslib.XPath(_document, stringXpath);
         }
+      } else {
+        var stringXpath = xpathCase(target);
         displayText += 'XPath: ' + stringXpath + '\n';
         var telem = new elementslib.XPath(_document, stringXpath);
       }
