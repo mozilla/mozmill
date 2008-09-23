@@ -47,90 +47,103 @@ var MozMilldx = new function() {
   }
   
   this.evtDispatch = function(e){
-     if (e.originalTarget != undefined) {
-       target = e.originalTarget;
-     }
-     else {
-       target = e.target;
-     }
-     
-     if ( isNotAnonymous(target) ) {
-       var _document = getDocument(target);
-       var windowtype = _document.documentElement.getAttribute('windowtype');
-       displayText = "windowtype: " + windowtype + '\n';
-       if (target.id != "") {
-         displayText += "ID: " + target.id + '\n';
-         var telem = new elementslib.ID(_document, target.id);
-       } else if ((target.name != "") && (typeof(target.name) != "undefined")) {
-         displayText += "Name: " + target.name + '\n';
-         var telem = new elementslib.Name(_document, target.name);
-       } else if (target.nodeName == "A") {
-         displayText += "Link: " + target.innerHTML + '\n';
-         var telem = new elementslib.Link(_document, target.innerHTML);
-       } else {
-         if (windowtype == null) {
-           var stringXpath = getXSPath(target);
-         } else {
-           var stringXpath = getXULXpath(target, _document);
-         }
-         
-         displayText += 'XPath: ' + stringXpath + '\n';
-         var telem = new elementslib.XPath(_document, stringXpath);
-       }
-       displayText += "Validation: " + ( target == telem.getNode() );
-       $('dxDisplay').value = displayText;
-     } else {
-       $('dxDisplay').value = 'Lookup'
-     }
+    if (e.originalTarget != undefined) {
+      target = e.originalTarget;
+    }
+    else { target = e.target; }
     
-     
+    //helper function for grabbing the xpath string
+    function xpathCase(target){
+      if (windowtype == null) {
+        var stringXpath = getXSPath(target);
+      } 
+      else {
+        var stringXpath = getXULXpath(target, _document);
+      }
+      return stringXpath;
+    }
+    
+    if ( isNotAnonymous(target) ) {
+      var _document = getDocument(target);
+      var windowtype = _document.documentElement.getAttribute('windowtype');
+      var displayText = "windowtype: " + windowtype + '\n';
+      
+      if (target.id != "") {
+        displayText += "ID: " + target.id + '\n';
+        var telem = new elementslib.ID(_document, target.id);
+      } 
+      else if ((target.name != "") && (typeof(target.name) != "undefined")) {
+        displayText += "Name: " + target.name + '\n';
+        var telem = new elementslib.Name(_document, target.name);
+      } 
+      else if (target.nodeName == "A") {
+        displayText += "Link: " + target.innerHTML + '\n';
+        var telem = new elementslib.Link(_document, target.innerHTML);
+        
+        //in the case where multiple links on the page have the same
+        //innerHTML we can default to xpath
+        if (telem.getNode() != target){
+          var stringXpath = xpathCase(target);
+          displayText += 'XPath: ' + stringXpath + '\n';
+          var telem = new elementslib.XPath(_document, stringXpath);
+        }
+      } 
+      else {   
+        var stringXpath = xpathCase(target);
+        displayText += 'XPath: ' + stringXpath + '\n';
+        var telem = new elementslib.XPath(_document, stringXpath);
+      }
+      
+      displayText += "Validation: " + ( target == telem.getNode() );
+      $('dxDisplay').value = displayText;
+    } 
+    else { $('dxDisplay').value = 'Lookup' }
+
   }
   
-  this.getFoc = function(){
-    window.focus();
-  }
+  this.getFoc = function(){ window.focus(); }
   
     //Turn on the recorder
     //Since the click event does things like firing twice when a double click goes also
     //and can be obnoxious im enabling it to be turned off and on with a toggle check box
-    this.dxOn = function() {
-      $('stopDX').setAttribute("disabled","false");
-      $('startDX').setAttribute("disabled","true");
-      $('dxContainer').style.display = "block";
-      //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
-      var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+  this.dxOn = function() {
+    $('stopDX').setAttribute("disabled","false");
+    $('startDX').setAttribute("disabled","true");
+    $('dxContainer').style.display = "block";
+    //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
+    var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                       .getService(Components.interfaces.nsIWindowMediator)
+                       .getEnumerator("");
+    while(enumerator.hasMoreElements()) {
+      var win = enumerator.getNext();
+      //if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
+      if (win.title != 'MozMill IDE'){
+        this.dxRecursiveBind(win);
+        win.focus();
+      }
+    }
+  }
+
+  this.dxOff = function() {
+    //because they share this box
+    var copyOutputBox = $('copyout');
+    copyOutputBox.removeAttribute("checked");
+
+    $('stopDX').setAttribute("disabled","true");
+    $('startDX').setAttribute("disabled","false");
+    $('dxContainer').style.display = "none";
+    //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
+     var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                          .getService(Components.interfaces.nsIWindowMediator)
                          .getEnumerator("");
       while(enumerator.hasMoreElements()) {
         var win = enumerator.getNext();
         //if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
-        if (win.title != 'MozMill IDE'){
-          this.dxRecursiveBind(win);
-          win.focus();
+        if (win.title != 'MozMill IDE'){  
+          this.dxRecursiveUnBind(win);
         }
       }
-    }
-
-    this.dxOff = function() {
-        //because they share this box
-        var copyOutputBox = $('copyout');
-        copyOutputBox.removeAttribute("checked");
-        
-        $('stopDX').setAttribute("disabled","true");
-        $('startDX').setAttribute("disabled","false");
-        $('dxContainer').style.display = "none";
-        //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
-         var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                             .getService(Components.interfaces.nsIWindowMediator)
-                             .getEnumerator("");
-          while(enumerator.hasMoreElements()) {
-            var win = enumerator.getNext();
-            //if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
-            if (win.title != 'MozMill IDE'){  
-              this.dxRecursiveUnBind(win);
-            }
-          }
-    }
+  }
 
     //Recursively bind to all the iframes and frames within
     this.dxRecursiveBind = function(frame) {
@@ -140,7 +153,7 @@ var MozMilldx = new function() {
         frame.addEventListener('mouseover', this.evtDispatch, true);
         frame.addEventListener('mouseout', this.evtDispatch, true);
         frame.addEventListener('dblclick', this.getFoc, true);
-        
+
         var iframeCount = frame.window.frames.length;
         var iframeArray = frame.window.frames;
 
@@ -167,7 +180,7 @@ var MozMilldx = new function() {
         frame.removeEventListener('mouseover', this.evtDispatch, true);
         frame.removeEventListener('mouseout', this.evtDispatch, true);
         frame.removeEventListener('dblclick', this.getFoc, true);
-        
+
         var iframeCount = frame.window.frames.length;
         var iframeArray = frame.window.frames;
 
@@ -177,7 +190,7 @@ var MozMilldx = new function() {
               iframeArray[i].removeEventListener('mouseover', this.evtDispatch, true);
               iframeArray[i].removeEventListener('mouseout', this.evtDispatch, true);
               iframeArray[i].removeEventListener('dblclick', this.getFoc, true);
-    
+
               this.dxRecursiveUnBind(iframeArray[i]);
             }
             catch(error) {
