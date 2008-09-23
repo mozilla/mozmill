@@ -71,7 +71,7 @@ var MozMilldx = new function() {
          if (windowtype == null) {
            var stringXpath = getXSPath(target);
          } else {
-           var stringXpath = getXULXpath(target);
+           var stringXpath = getXULXpath(target, _document);
          }
          
          displayText += 'XPath: ' + stringXpath + '\n';

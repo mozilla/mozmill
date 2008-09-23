@@ -124,22 +124,36 @@ XPath.prototype = new utils.Copy(ElemBase.prototype);
 XPath.prototype.getInfo = function () {
   return "XPath: " + this.expr;
 }
+// XPath.prototype.getNode = function () {
+//   var nsResolver = function (prefix) {
+//     if (prefix == 'html' || prefix == 'xhtml' || prefix == 'x') {
+//       return 'http://www.w3.org/1999/xhtml';
+//     } else if (prefix == 'mathml') {
+//       return 'http://www.w3.org/1998/Math/MathML';
+//     } else {
+//       throw new Error("Unknown namespace: " + prefix + ".");
+//     }
+//   }
+//   var node = null;
+//   try {
+//     node = this._document.evaluate(this.expr, this._document, nsResolver, 0, null).iterateNext();  
+//   }
+//   catch(err){ node = null; }
+//   return node;
+// }
 XPath.prototype.getNode = function () {
-  var nsResolver = function (prefix) {
-    if (prefix == 'html' || prefix == 'xhtml' || prefix == 'x') {
-      return 'http://www.w3.org/1999/xhtml';
-    } else if (prefix == 'mathml') {
-      return 'http://www.w3.org/1998/Math/MathML';
-    } else {
-      throw new Error("Unknown namespace: " + prefix + ".");
-    }
-  }
-  var node = null;
-  try {
-    node = this._document.evaluate(this.expr, this._document, nsResolver, 0, null).iterateNext();  
-  }
-  catch(err){ node = null; }
-  return node;
+  var aNode = this._document;
+  var aExpr = this.expr;
+
+  var xpe = new this._document.defaultView.XPathEvaluator();
+  var nsResolver = xpe.createNSResolver(aNode.ownerDocument == null ?
+    aNode.documentElement : aNode.ownerDocument.documentElement);
+  var result = xpe.evaluate(aExpr, aNode, nsResolver, 0, null);
+  var found = [];
+  var res;
+  while (res = result.iterateNext())
+    found.push(res);
+  return found[0];
 }
 
 var Name = function(_document, nName) {
