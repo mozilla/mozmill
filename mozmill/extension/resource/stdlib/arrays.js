@@ -35,7 +35,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ['inArray', 'getSet'];
+var EXPORTED_SYMBOLS = ['inArray', 'getSet', 'indexOf', 'rindexOf'];
 
 function inArray (array, value) {
   for (i in array) {

@@ -22,6 +22,7 @@ var elementslib = {}; Components.utils.import('resource://mozmill/modules/elemen
 var dom = {}; Components.utils.import('resource://mozmill/stdlib/dom.js', dom);
 var objects = {}; Components.utils.import('resource://mozmill/stdlib/objects.js', objects);
 var json2 = {}; Components.utils.import('resource://mozmill/stdlib/json2.js', json2);
+var r = {}; Components.utils.import('resource://mozmill/modules/results.js', r);
 
 var isNotAnonymous = function (elem, result) {
   if (result == undefined) {
@@ -42,33 +43,80 @@ var getDocument = function (elem) {
   return elem;
 }
 
+var getUniqueAttributesReduction = function (attributes, node) {
+  var nattributes = {};
+  for (i in attributes) {
+    if ( node.getAttribute(i) != attributes[i] ) {
+      nattributes[i] = attributes[i];
+    } 
+  }
+  return nattributes;
+}
+
 var getLookupExpression = function (_document, elem) {
+  expArray = [];
+  while ( elem.parentNode ) {
+    var exp = getLookupForElem(_document, elem);
+    // r.write('exp: '+exp);
+    expArray.push();
+    var elem = elem.parentNode;
+  }
+  expArray.reverse();
+  return '/' + expArray.join('/');
+}
+
+var getLookupForElem = function (_document, elem) {
   if ( arrays.inArray(elem.parentNode.childNodes, elem) ) {
-    // Logic copied from below, inside the inspector.
+    if (elem.id != "") {  
+      identifier = {'name':'id', 'value':elem.id};
+    } else if ((elem.name != "") && (typeof(elem.name) != "undefined")) {
+      identifier = {'name':'name', 'value':elem.name};
+    } else {
+      identifier = null;
+    }
+    
+    if (identifier) {
+      var result = {'id':elementslib._byID, 'name':elementslib._byName}[identifier.name](_document, elem.parentNode, identifier.value);
+      if ( typeof(result != 'array') ) {
+        return identifier.name+'('+json2.JSON.stringify(identifier.value)+')'
+      }
+    }
+    
+    // At this point there is either no identifier or it returns multiple
+    var parse = new Array(elem.parentNode.childNodes);
+    parse.unshift(dom.getAttributes(elem));
+    var uniqueAttributes = parse.reduce(getUniqueAttributesReduction);
+    if (!result) {
+      var result = elementslib._byAttrib(_document, elem.parentNode, uniqueAttributes)
+    } else if (!identifier || typeof(result) == 'array' ) {
+      return json2.JSON.stringify(uniqueAttributes) + '['+arrays.indexOf(result, elem)+']'
+    } else {
+      var aresult = elementslib._byAttrib(_document, elem.parentNode, uniqueAttributes);
+      if ( typeof(aresult != 'array') ) {
+        return json2.JSON.stringify(uniqueAttributes)
+      } else if ( result.length > aresult.length ) {
+        return json2.JSON.stringify(uniqueAttributes) + '['+arrays.indexOf(aresult, elem)+']'
+      } else {
+        return identifier.name+'('+json2.JSON.stringify(identifier.value)+')' + '['+arrays.indexOf(result, elem)+']'
+      }
+    }
     
   } else {
     // Handle Anonymous Nodes
-    var parse = elem.parentNode.childNodes;
+    var parse = new Array(_document.getAnonymousNodes(elem.parentNode));
     parse.unshift(dom.getAttributes(elem));
-    var getUniqueAttributes = function (attributes, node) {
-      var nattributes = {};
-      for (i in attributes) {
-        if ( node.getAttribute(i) != attributes[i] ) {
-          nattributes[i] = attributes[i];
-        } 
-      }
-      return nattributes;
-    }
-    var uniqueAttributes = parse.reduce(getUniqueAttributes);
+    var uniqueAttributes = parse.reduce(getUniqueAttributesReduction);
+    
     if (objects.getLength(uniqueAttributes) == 0) {
-      return 'anon(['+arrays.indexOf(elem.parentNode.childNodes, elem)+'])';
+      return 'anon(['+arrays.indexOf(_document.getAnonymousNodes(elem.parentNode), elem)+'])';
     } else if (arrays.inArray(uniqueAttributes, 'anonid')) {
       return 'anon({"anonid":"'+uniqueAttributes['anonid']+'"})';
     } else {
       return 'anon('+json2.JSON.stringify(uniqueAttributes)+')';
     }    
-
+    
   }
+  return 'broken'
 }
 
 var removeHTMLTags = function(str){
@@ -127,7 +175,7 @@ var MozMilldx = new function() {
     }
     // Fallback to Lookup
     if (telem == undefined || telem.getNode() != target) {
-      displayText += 'Lookup' + '\n';
+      displayText += 'Lookup: ' + getLookupExpression(_document, target) + '\n';
     } 
     
     displayText += "Validation: " + ( target == telem.getNode() );
