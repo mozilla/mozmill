@@ -88,7 +88,7 @@ var run = function(tests, code){
 }
 
 var parseTest = function(s){
-  var re = /test_\S+/g;
+  var re = /test\S+/g;
   var tests = s.match(re);
   
   var re = /setup/;
