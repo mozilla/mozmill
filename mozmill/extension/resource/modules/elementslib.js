@@ -37,7 +37,7 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ["Elem", "ID", "Link", "XPath", "Name", "Anon", "AnonXPath",
-                        "Lookup", "_byID", "_byName", "_byAttrib",
+                        "Lookup", "_byID", "_byName", "_byAttrib", "_byAnonAttrib",
                        ];
 
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
@@ -176,112 +176,6 @@ Name.prototype.getNode = function () {
   return null;
 }
 
-var Anon = function(_document, lookupMethod, searchValue, accessor) {
-  this._document = _document;
-  this.lookupMethod = lookupMethod;
-  this.searchValue = searchValue;
-  this.accessor = accessor;
-  
-  return this;
-}
-Anon.prototype = new utils.Copy(ElemBase.prototype);
-Anon.prototype.getInfo = function () {
-  return "Anon: " + this.lookupMethod + ': '+this.searchValue+ ' '+ this.DOMOp;
-}
-Anon.prototype.getNode = function () {
-   var func = this._document.defaultView.eval(this.lookupMethod);
-   var n = new func(this._document, this.searchValue);
-   var domNode = n.getNode()
-   var collection = this._document.getAnonymousNodes(domNode);
-
-   try {
-     //If we received an index
-     if (typeof(this.accessor) == "number"){
-       return collection[this.accessor];
-     }
-     //else
-     else if (typeof(this.accessor) == "string"){
-       this._document.getAnonymousElementByAttribute(domNode, 'anonid', accessor);
-     }
-     else {
-       this._document.getAnonymousElementByAttribute(domNode, this.accessor.property, this.accessor.value);
-     } 
-   }
-   catch(err){
-     return null;  
-   }
-   
-   //if nothing matched the accessor, return null
-   return null;
-}
-var AnonXPath = function(_document, XPath) {
-  this._document = _document;
-  this.XPath = XPath;
-  
-  return this;
-}
-AnonXPath.prototype = new utils.Copy(ElemBase.prototype);
-AnonXPath.prototype.getInfo = function () {
-  return "AnonXPath: " + this.XPath;
-}
-
-//iterate through array using document.evaluate to get to anony nodes
- //use getAnonymousElementByAttribute to get the anony node
- //use that node passed to document.evaluate to get to the next anony node
- //and the loop continues
- // ex this._document.getAnonymousElementByAttribute(domNode, this.accessor.property, this.accessor.value);
-AnonXPath.prototype.getNode = function () {
-  var returnNode = null;
-  
-  //Break up the XPath string by {}'s
-  var xpathsArr = this.XPath.split(/{[^}]*}/g);
-  var anonsArr = this.XPath.match(/{[^}]*}/g);
-  
-  //if they used like id() and there was an empty xpath entry rm it
-  for (k in xpathsArr){
-    if (xpathsArr[k] == ""){ 
-        xpathsArr.pop();
-    }
-  }
-  
-  //the context for looking up the xpath
-  var lookupParent = this._document;
-  //for each piece of xpath
-  for (i in xpathsArr){
-    if (xpathsArr[i].charAt(xpathsArr[i].length-1) == "/"){
-      xpathsArr[i] = xpathsArr[i].substr(0, xpathsArr[i].length-1)
-    }
-    var xpNode = this._document.evaluate(xpathsArr[i], lookupParent, null, this._document.defaultView.XPathResult.ANY_TYPE, null).iterateNext();
-    if (xpNode == null){ return null; }
-    
-    //if there is an anon node in the matching array position
-    if (typeof(anonsArr[i]) == "string"){
-     var anonObj = null;
-     this._document.defaultView.eval('anonObj = '+anonsArr[i]+';');
-     //get the property name
-     var propName = null;
-     var propValue = null;
-     
-     for (j in anonObj){
-       propName = j;
-       propValue = anonObj[j];
-       break;
-     }
-     //look up the node
-     var anonNode = this._document.getAnonymousElementByAttribute(xpNode, propName, propValue);
-     if (anonNode == null){ return null; }
-     else{ lookupParent = anonNode; }
-     
-     //if this is the last anony node, were at the destination node
-     if (i == anonsArr.length-1){
-       returnNode = anonNode;
-       break;
-     }
-    }
-  }  
-  return returnNode; 
-}
-
 function Lookup (_document, expression) {
   this._document = _document;
   this.expression = expression;
@@ -289,7 +183,7 @@ function Lookup (_document, expression) {
 Lookup.prototype = new utils.Copy(ElemBase.prototype);
 var _returnResult = function (results) {
   if (results.length == 0) {
-    // TODO Throw exception, did not return any elements
+    return null
   } else if (results.length == 1) {
     return results[0];
   } else {
@@ -346,7 +240,7 @@ var _byAttrib = function (parent, value) {
       results.push(n);
     }
   }
-  return results
+  return _returnResult(results)
 }
 var _byAnonAttrib = function (_document, parent, value) {
   var results = [];
@@ -365,7 +259,7 @@ var _byAnonAttrib = function (_document, parent, value) {
       results.push(n);
     }
   }
-  return results
+  return _returnResult(results)
 }
 var _byIndex = function (_document, parent, i) {
   return parent.childNodes[i];

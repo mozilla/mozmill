@@ -51,13 +51,12 @@ var getDocument = function (elem) {
 }
 
 var getUniqueAttributesReduction = function (attributes, node) {
-  var nattributes = {};
   for (i in attributes) {
-    if ( node.getAttribute(i) != attributes[i] ) {
-      nattributes[i] = attributes[i];
+    if ( node.getAttribute(i) == attributes[i] ) {
+      delete attributes[i];
     } 
   }
-  return nattributes;
+  return attributes;
 }
 
 var getLookupExpression = function (_document, elem) {
@@ -84,23 +83,25 @@ var getLookupForElem = function (_document, elem) {
     if (identifier) {
       var result = {'id':elementslib._byID, 'name':elementslib._byName}[identifier.name](_document, elem.parentNode, identifier.value);
       if ( typeof(result != 'array') ) {
-        return identifier.name+'('+json2.JSON.stringify(identifier.value)+')'
+        return identifier.name+'('+json2.JSON.stringify(identifier.value)+')';
       }
     }
     
     // At this point there is either no identifier or it returns multiple
-    var parse = [n for each (n in elem.parentNode.childNodes) if (n.getAttribute)];
+    var parse = [n for each (n in elem.parentNode.childNodes) if 
+                 (n.getAttribute && n != elem)
+                 ];
     parse.unshift(dom.getAttributes(elem));
     var uniqueAttributes = parse.reduce(getUniqueAttributesReduction);
+    
     if (!result) {
-      var result = elementslib._byAttrib(_document, elem.parentNode, uniqueAttributes);
-      r.write(json2.JSON.stringify(dom.getAttributes(elem)))
+      var result = elementslib._byAttrib(elem.parentNode, uniqueAttributes);  
     } 
     
-    if (!identifier || typeof(result) == 'array' ) {
+    if (!identifier && typeof(result) == 'array' ) {
       return json2.JSON.stringify(uniqueAttributes) + '['+arrays.indexOf(result, elem)+']'
     } else {
-      var aresult = elementslib._byAttrib(_document, elem.parentNode, uniqueAttributes);
+      var aresult = elementslib._byAttrib(elem.parentNode, uniqueAttributes);
       if ( typeof(aresult != 'array') ) {
         return json2.JSON.stringify(uniqueAttributes)
       } else if ( result.length > aresult.length ) {
@@ -112,9 +113,15 @@ var getLookupForElem = function (_document, elem) {
     
   } else {
     // Handle Anonymous Nodes
-    var parse = [n for each (n in _document.getAnonymousNodes(elem.parentNode)) if (n.getAttribute)];
+    var parse = [n for each (n in _document.getAnonymousNodes(elem.parentNode)) if 
+                 (n.getAttribute && n != elem)
+                 ];
     parse.unshift(dom.getAttributes(elem));
     var uniqueAttributes = parse.reduce(getUniqueAttributesReduction);
+    if (uniqueAttributes.anonid && typeof(elementslib._byAnonAttrib(_document, 
+        elem.parentNode, {'anonid':uniqueAttributes.anonid})) != 'array') {
+      uniqueAttributes = {'anonid':uniqueAttributes.anonid};
+    }
     
     if (objects.getLength(uniqueAttributes) == 0) {
       return 'anon(['+arrays.indexOf(_document.getAnonymousNodes(elem.parentNode), elem)+'])';

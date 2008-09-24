@@ -42,7 +42,7 @@ var results = {}; Components.utils.import("resource://mozmill/modules/results.js
 var getAttributes = function (node) {
   var attributes = {};
   for (i in node.attributes) {
-    if (String(Number(i)) != 'NaN') {
+    if ( !isNaN(i) ) {
       try {
         var attr = node.attributes[i];
         attributes[attr.name] = attr.value;
