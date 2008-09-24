@@ -36,6 +36,13 @@ var isNotAnonymous = function (elem, result) {
   }
 }
 
+var elemIsAnonymous = function (elem) {
+  if (elem.getAttribute('anonid') || !arrays.inArray(elem.parentNode.childNodes, elem)) {
+    return true;
+  }
+  return false;
+}
+
 var getDocument = function (elem) {
   while (elem.parentNode) {
     var elem = elem.parentNode;
@@ -57,8 +64,7 @@ var getLookupExpression = function (_document, elem) {
   expArray = [];
   while ( elem.parentNode ) {
     var exp = getLookupForElem(_document, elem);
-    // r.write('exp: '+exp);
-    expArray.push();
+    expArray.push(exp);
     var elem = elem.parentNode;
   }
   expArray.reverse();
@@ -66,7 +72,7 @@ var getLookupExpression = function (_document, elem) {
 }
 
 var getLookupForElem = function (_document, elem) {
-  if ( arrays.inArray(elem.parentNode.childNodes, elem) ) {
+  if ( !elemIsAnonymous(elem) ) {
     if (elem.id != "") {  
       identifier = {'name':'id', 'value':elem.id};
     } else if ((elem.name != "") && (typeof(elem.name) != "undefined")) {
@@ -83,12 +89,15 @@ var getLookupForElem = function (_document, elem) {
     }
     
     // At this point there is either no identifier or it returns multiple
-    var parse = new Array(elem.parentNode.childNodes);
+    var parse = [n for each (n in elem.parentNode.childNodes) if (n.getAttribute)];
     parse.unshift(dom.getAttributes(elem));
     var uniqueAttributes = parse.reduce(getUniqueAttributesReduction);
     if (!result) {
-      var result = elementslib._byAttrib(_document, elem.parentNode, uniqueAttributes)
-    } else if (!identifier || typeof(result) == 'array' ) {
+      var result = elementslib._byAttrib(_document, elem.parentNode, uniqueAttributes);
+      r.write(json2.JSON.stringify(dom.getAttributes(elem)))
+    } 
+    
+    if (!identifier || typeof(result) == 'array' ) {
       return json2.JSON.stringify(uniqueAttributes) + '['+arrays.indexOf(result, elem)+']'
     } else {
       var aresult = elementslib._byAttrib(_document, elem.parentNode, uniqueAttributes);
@@ -103,7 +112,7 @@ var getLookupForElem = function (_document, elem) {
     
   } else {
     // Handle Anonymous Nodes
-    var parse = new Array(_document.getAnonymousNodes(elem.parentNode));
+    var parse = [n for each (n in _document.getAnonymousNodes(elem.parentNode)) if (n.getAttribute)];
     parse.unshift(dom.getAttributes(elem));
     var uniqueAttributes = parse.reduce(getUniqueAttributesReduction);
     
@@ -116,7 +125,7 @@ var getLookupForElem = function (_document, elem) {
     }    
     
   }
-  return 'broken'
+  return 'broken '+elemIsAnonymous(elem)
 }
 
 var removeHTMLTags = function(str){

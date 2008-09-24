@@ -36,7 +36,9 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["Elem", "ID", "Link", "XPath", "Name", "Anon", "AnonXPath"];
+var EXPORTED_SYMBOLS = ["Elem", "ID", "Link", "XPath", "Name", "Anon", "AnonXPath",
+                        "Lookup", "_byID", "_byName", "_byAttrib",
+                       ];
 
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var results = {}; Components.utils.import('resource://mozmill/modules/results.js', results);
@@ -321,17 +323,24 @@ var _byID = function (_document, parent, value) {
 var _byName = function (_document, parent, value) {
   return _returnResult(_forChildren(parent, 'tagName', value));
 }
+var r = results;
 var _byAttrib = function (parent, value) {
   var results = [];
-  for (i in parent.childNodes) {
-    var n = parent.childNodes[i];
+  var nodes = [n for each (n in parent.childNodes) if (n.getAttribute)];
+  for (i in nodes) {
+    var n = nodes[i];
     requirementPass = 0;
     requirementLength = 0;
     for (a in value) {
       requirementLength++;
-      if (n.getAttribute(a) == value[a]) {
-        requirementPass++;
+      try {
+        if (n.getAttribute(a) == value[a]) {
+          requirementPass++;
+        }
+      } catch (err) {
+        // Workaround any bugs in custom attribute crap in XUL elements
       }
+      
     }
     if (requirementPass == requirementLength) {
       results.push(n);
@@ -341,7 +350,7 @@ var _byAttrib = function (parent, value) {
 }
 var _byAnonAttrib = function (_document, parent, value) {
   var results = [];
-  var nodes = _document.getAnonymousNodes(parent);
+  var nodes = [n for each (n in _document.getAnonymousNodes(parent)) if (n.getAttribute)];
   for (i in nodes) {
     var n = nodes[i];
     requirementPass = 0;

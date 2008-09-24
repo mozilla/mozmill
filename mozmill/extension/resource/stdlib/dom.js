@@ -37,12 +37,18 @@
 
 var EXPORTED_SYMBOLS = ['getAttributes'];
 
+var results = {}; Components.utils.import("resource://mozmill/modules/results.js", results);
+
 var getAttributes = function (node) {
   var attributes = {};
   for (i in node.attributes) {
-    if (typeof(i) == 'number') {
-      var attr = node.attributes[i];
-      attributes[attr.name] = attr.value;
+    if (String(Number(i)) != 'NaN') {
+      try {
+        var attr = node.attributes[i];
+        attributes[attr.name] = attr.value;
+      } catch (err) {
+        results.write(err, 'light-red');
+      }
     }
   }
   return attributes;
