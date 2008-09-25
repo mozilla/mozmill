@@ -35,22 +35,17 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ['startsWith', 'endsWith', 'trim'];
+var EXPORTED_SYMBOLS = ['trim', 'vslice'];
 
 var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
-
-var startsWith = function (str, substring) {
-  return (str.match("^"+substring)==substring);
-}
-
-var endsWith = function (str, substring) {
-  return (str.match(substring+"$")==substring);
-}
+var results = {}; Components.utils.import('resource://mozmill/modules/results.js', results);
 
 var trim = function (str) {
   return (str.replace(/^[\s\xA0]+/, "").replace(/[\s\xA0]+$/, ""));
 }
 
 var vslice = function (str, svalue, evalue) {
-  str.slice(arrays.indexOf(str, svalue) + 1, arrays.rindexOf(str, evalue));
+  var sindex = arrays.indexOf(str, svalue);
+  var eindex = arrays.rindexOf(str, evalue);
+  return str.slice(sindex + 1, eindex);
 }

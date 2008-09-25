@@ -59,8 +59,8 @@ function getSet (array) {
 
 function indexOf (array, v) {
   for (i in array) {
-    if (array[i] == v) {
-      return i;
+    if ( !isNaN(i) && array[i] == v) {
+      return new Number(i);
     }
   }
   return -1;
@@ -69,7 +69,10 @@ function indexOf (array, v) {
 function rindexOf (array, v) {
   var l = array.length;
   for (i in array) {
-    if (array[l - i] == v) {
+    if (!isNaN(i)) {
+      var i = new Number(i)
+    }
+    if (!isNaN(i) && array[l - i] == v) {
       return l - i;
     }
   }

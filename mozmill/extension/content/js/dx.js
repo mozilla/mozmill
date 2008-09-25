@@ -50,12 +50,15 @@ var getDocument = function (elem) {
   return elem;
 }
 
+var attributeToIgnore = ['focus', 'focused', 'selected', 'select'];
+
 var getUniqueAttributesReduction = function (attributes, node) {
   for (i in attributes) {
-    if ( node.getAttribute(i) == attributes[i] ) {
+    if ( node.getAttribute(i) == attributes[i] || arrays.inArray(attributeToIgnore, i) ) {
       delete attributes[i];
     } 
   }
+  
   return attributes;
 }
 
@@ -191,11 +194,21 @@ var MozMilldx = new function() {
     }
     // Fallback to Lookup
     if (telem == undefined || telem.getNode() != target) {
-      displayText += 'Lookup: ' + getLookupExpression(_document, target) + '\n';
+      var exp = getLookupExpression(_document, target);
+      displayText += 'Lookup: ' + exp + '\n';
+      var telem = new elementslib.Lookup(_document, exp);
     } 
     
-    displayText += "Validation: " + ( target == telem.getNode() );
-    $('dxDisplay').value = displayText;
+    try {
+      displayText += "Validation: " + ( target == telem.getNode() );
+      $('dxDisplay').value = displayText;
+    } catch (err) {
+      displayText += "Validation: false";
+      $('dxDisplay').value = displayText;
+      throw err;
+    }
+    
+    
     
   }
   

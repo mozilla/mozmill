@@ -41,9 +41,12 @@ var EXPORTED_SYMBOLS = ["Elem", "ID", "Link", "XPath", "Name", "Anon", "AnonXPat
                        ];
 
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
-var results = {}; Components.utils.import('resource://mozmill/modules/results.js', results);
+var mresults = {}; Components.utils.import('resource://mozmill/modules/results.js', mresults);
 var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js', strings);
 var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
+var json2 = {}; Components.utils.import('resource://mozmill/stdlib/json2.js', json2);
+var withs = {}; Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
+var dom = {}; Components.utils.import('resource://mozmill/stdlib/dom.js', dom);
 
 var ElemBase = function(){
   this.isElement = true;
@@ -106,7 +109,7 @@ Link.prototype.getNode = function () {
   }
   //sometimes the windows won't have this function
   try { var links = this._document.getElementsByTagName('a'); }
-  catch(err){ results.write('Error: '+ err, 'lightred'); }
+  catch(err){ mresults.write('Error: '+ err, 'lightred'); }
   for (var i = 0; i < links.length; i++) {
     var el = links[i];
     //if (getText(el).indexOf(this.linkName) != -1) {
@@ -217,18 +220,19 @@ var _byID = function (_document, parent, value) {
 var _byName = function (_document, parent, value) {
   return _returnResult(_forChildren(parent, 'tagName', value));
 }
-var r = results;
-var _byAttrib = function (parent, value) {
+var _byAttrib = function (parent, attributes) {
   var results = [];
-  var nodes = [n for each (n in parent.childNodes) if (n.getAttribute)];
+
+  var nodes = parent.childNodes;
   for (i in nodes) {
     var n = nodes[i];
+    // mresults.write(n.getAttribute('label')+' || '+(n.getAttribute('label') == attributes.label))
     requirementPass = 0;
     requirementLength = 0;
-    for (a in value) {
+    for (a in attributes) {
       requirementLength++;
       try {
-        if (n.getAttribute(a) == value[a]) {
+        if (n.getAttribute(a) == attributes[a]) {
           requirementPass++;
         }
       } catch (err) {
@@ -242,16 +246,16 @@ var _byAttrib = function (parent, value) {
   }
   return _returnResult(results)
 }
-var _byAnonAttrib = function (_document, parent, value) {
+var _byAnonAttrib = function (_document, parent, attributes) {
   var results = [];
   var nodes = [n for each (n in _document.getAnonymousNodes(parent)) if (n.getAttribute)];
   for (i in nodes) {
     var n = nodes[i];
     requirementPass = 0;
     requirementLength = 0;
-    for (a in value) {
+    for (a in attributes) {
       requirementLength++;
-      if (n.getAttribute(a) == value[a]) {
+      if (n.getAttribute(a) == attributes[a]) {
         requirementPass++;
       }
     }
@@ -268,40 +272,55 @@ var _anonByName = function (_document, parent, value) {
   return _returnResult(_forAnonChildren(_document, parent, 'tagName', value));
 }
 var _anonByAttrib = function (_document, parent, value) {
-  return _returnResult(_forAnonAttrib(_document, parent, value))
+  return _byAnonAttrib(_document, parent, value);
 }
 var _anonByIndex = function (_document, parent, i) {
   return _document.getAnonymousNodes(parent)[i];
 } 
 Lookup.prototype.getNode = function () {
-  var expSplit = this.expression.split('/');
-  expSplit.unshift(this._document.documentElement)
+  var expSplit = [e for each (e in this.expression.split('/') ) if (e != '')];
+  expSplit.unshift(this._document)
   _document = this._document;
   var nCases = {'id':_byID, 'name':_byName, 'attrib':_byAttrib, 'index':_byIndex};
-  var aCases = {'name':_anonByName, 'attrib':_anonByAttrib, 'index':_byAnonIndex};
-  function reduceLookup (parent, exp) {
+  var aCases = {'name':_anonByName, 'attrib':_anonByAttrib, 'index':_anonByIndex};
+  var reduceLookup = function (parent, exp) {
     // Handle case where only index is provided
     var cases = nCases;
+    
     // Handle ending index before any of the expression gets mangled
-    if (strings.endsWith(']')) {
-      var expIndex = strings.vslice(exp, '[', ']');
+    if (withs.endsWith(exp, ']')) {
+      var expIndex = json2.JSON.parse(strings.vslice(exp, '[', ']'));
     }
     // Handle anon
-    if (!strings.startsWith(exp, 'anon')) {
+    if (withs.startsWith(exp, 'anon')) {
       var exp = strings.vslice(exp, '(', ')');
       var cases = aCases;
     }
-    if (strings.startsWith(exp, '[')) {
-      return cases['index'](_document, parent, strings.vslice(exp, '[', ']'));
+    if (withs.startsWith(exp, '[')) {
+      var r = cases['index'](_document, parent, json2.JSON.parse(strings.vslice(exp, '[', ']')));
+      if (r == null) {
+        throw 'Expression "'+exp+'" returned null. Anonymous == '+(cases == aCases) 
+      }
+      return r;
     }
     
     for (c in cases) {
-      if (strings.startsWith(exp, c)) {
-        var result = cases[c](_document, parent, strings.vslice(exp, '(', ')'));
+      if (withs.startsWith(exp, c)) {
+        var result = cases[c](_document, parent, json2.JSON.parse(strings.vslice(exp, '(', ')')));
       }
     }
+    
     if (!result) {
-      // TODO Throw exception
+      if ( withs.startsWith(exp, '{') ) {
+        if (cases == aCases) {
+          var result = _anonByAttrib(_document, parent, json2.JSON.parse(exp))
+        } else {
+          var result = _byAttrib(parent, json2.JSON.parse(exp))
+        }
+      }
+      if (!result) {
+        throw 'Expression "'+exp+'" returned null. Anonymous == '+(cases == aCases)
+      }
     }
     
     // Final return
@@ -312,7 +331,7 @@ Lookup.prototype.getNode = function () {
       // TODO: Check length and raise error
       return result;
     }
+    return 'broken'
   }
-
   return expSplit.reduce(reduceLookup);
 }
