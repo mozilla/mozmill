@@ -47,7 +47,7 @@ var getAttributes = function (node) {
         var attr = node.attributes[i];
         attributes[attr.name] = attr.value;
       } catch (err) {
-        results.write(err, 'light-red');
+        // results.write(err, 'light-red');
       }
     }
   }

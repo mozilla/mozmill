@@ -50,11 +50,11 @@ var getDocument = function (elem) {
   return elem;
 }
 
-var attributeToIgnore = ['focus', 'focused', 'selected', 'select'];
+var attributeToIgnore = ['focus', 'focused', 'selected', 'select', 'flex'];
 
 var getUniqueAttributesReduction = function (attributes, node) {
   for (i in attributes) {
-    if ( node.getAttribute(i) == attributes[i] || arrays.inArray(attributeToIgnore, i) ) {
+    if ( node.getAttribute(i) == attributes[i] || arrays.inArray(attributeToIgnore, i) || arrays.inArray(attributeToIgnore, attributes[i])) {
       delete attributes[i];
     } 
   }
@@ -106,6 +106,9 @@ var getLookupForElem = function (_document, elem) {
     } else {
       var aresult = elementslib._byAttrib(elem.parentNode, uniqueAttributes);
       if ( typeof(aresult != 'array') ) {
+        if (objects.getLength(uniqueAttributes) == 0) {
+          return '['+arrays.indexOf(elem.parentNode.childNodes, elem)+']'
+        }
         return json2.JSON.stringify(uniqueAttributes)
       } else if ( result.length > aresult.length ) {
         return json2.JSON.stringify(uniqueAttributes) + '['+arrays.indexOf(aresult, elem)+']'

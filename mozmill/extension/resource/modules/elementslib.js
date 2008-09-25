@@ -47,6 +47,7 @@ var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', 
 var json2 = {}; Components.utils.import('resource://mozmill/stdlib/json2.js', json2);
 var withs = {}; Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
 var dom = {}; Components.utils.import('resource://mozmill/stdlib/dom.js', dom);
+var objects = {}; Components.utils.import('resource://mozmill/stdlib/objects.js', objects);
 
 var ElemBase = function(){
   this.isElement = true;
@@ -195,8 +196,9 @@ var _returnResult = function (results) {
 }
 var _forChildren = function (element, name, value) {
   var results = [];
-  for (i in element.childNodes) {
-    var n = element.childNodes[i];
+  var nodes = [e for each (e in element.childNodes) if (e)]
+  for (i in nodes) {
+    var n = nodes[i];
     if (n[name] == value) {
       results.push(n);
     }
@@ -205,7 +207,7 @@ var _forChildren = function (element, name, value) {
 }
 var _forAnonChildren = function (_document, element, name, value) {
   var results = [];
-  var nodes = _document.getAnoymousNodes(element);
+  var nodes = [e for each (e in _document.getAnoymousNodes(element)) if (e)];
   for (i in nodes ) {
     var n = nodes[i];
     if (n[name] == value) {
@@ -238,29 +240,51 @@ var _byAttrib = function (parent, attributes) {
       } catch (err) {
         // Workaround any bugs in custom attribute crap in XUL elements
       }
-      
     }
     if (requirementPass == requirementLength) {
       results.push(n);
     }
   }
+  if (results.length == 0) {
+    // mresults.write(json2.JSON.stringify(attributes));
+  }
   return _returnResult(results)
 }
 var _byAnonAttrib = function (_document, parent, attributes) {
   var results = [];
+  
+  if (objects.getLength(attributes) == 1) {
+    for (i in attributes) {var k = i; var v = attributes[i]; }
+    var result = _document.getAnonymousElementByAttribute(parent, k, v)
+    if (result) {
+      return result;
+      
+    } 
+  }
   var nodes = [n for each (n in _document.getAnonymousNodes(parent)) if (n.getAttribute)];
-  for (i in nodes) {
-    var n = nodes[i];
-    requirementPass = 0;
-    requirementLength = 0;
-    for (a in attributes) {
-      requirementLength++;
-      if (n.getAttribute(a) == attributes[a]) {
-        requirementPass++;
+  function resultsForNodes (nodes) {
+    for (i in nodes) {
+      var n = nodes[i];
+      requirementPass = 0;
+      requirementLength = 0;
+      for (a in attributes) {
+        requirementLength++;
+        if (n.getAttribute(a) == attributes[a]) {
+          requirementPass++;
+        }
+      }
+      if (requirementPass == requirementLength) {
+        results.push(n);
       }
     }
-    if (requirementPass == requirementLength) {
-      results.push(n);
+  }  
+  resultsForNodes(nodes)  
+  if (results.length == 0) {
+    resultsForNodes([n for each (n in parent.childNodes) if (n.getAttribute)])
+    if (results.length == 0) {
+      // mresults.write('anon '+json2.JSON.stringify(attributes)+parent.childNodes.length);
+      // mresults.write('anon '+json2.JSON.stringify(attributes)+_document.getAnonymousNodes(parent).length);
+      // mresults.write('anon || '+json2.JSON.stringify(attributes));
     }
   }
   return _returnResult(results)
