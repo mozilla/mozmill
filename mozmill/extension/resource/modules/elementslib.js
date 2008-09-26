@@ -49,6 +49,31 @@ var withs = {}; Components.utils.import('resource://mozmill/stdlib/withs.js', wi
 var dom = {}; Components.utils.import('resource://mozmill/stdlib/dom.js', dom);
 var objects = {}; Components.utils.import('resource://mozmill/stdlib/objects.js', objects);
 
+var smartSplit = function (str) {
+  // Note: I would love it if someone good with regular expressions 
+  // could just replace this function with a good regex
+  var repls = [];
+  while (str.indexOf('"') != -1) {
+    var i = str.indexOf('"');
+    var s = str.slice(i, str.indexOf('"', i + 1) +1)
+    var str = str.replace(s, '%$^'+repls.length);
+    repls.push(s)
+  }
+  
+  var split = str.split('/');
+  var rindex = 0;
+  for (i in split) {
+    while (split[i].indexOf('%$^') != -1) {
+      var s = split[i];
+      var si = rindex;
+      split[i] = s.replace('%$^'+si, repls[si]);
+      rindex++;
+    }
+  }
+  return split;
+}
+
+
 var ElemBase = function(){
   this.isElement = true;
 }
@@ -302,7 +327,7 @@ var _anonByIndex = function (_document, parent, i) {
   return _document.getAnonymousNodes(parent)[i];
 } 
 Lookup.prototype.getNode = function () {
-  var expSplit = [e for each (e in this.expression.split('/') ) if (e != '')];
+  var expSplit = [e for each (e in smartSplit(this.expression) ) if (e != '')];
   expSplit.unshift(this._document)
   _document = this._document;
   var nCases = {'id':_byID, 'name':_byName, 'attrib':_byAttrib, 'index':_byIndex};
@@ -321,7 +346,12 @@ Lookup.prototype.getNode = function () {
       var cases = aCases;
     }
     if (withs.startsWith(exp, '[')) {
-      var r = cases['index'](_document, parent, json2.JSON.parse(strings.vslice(exp, '[', ']')));
+      try {
+        var obj = json2.JSON.parse(strings.vslice(exp, '[', ']'))
+      } catch (err) {
+        throw err+'. String to be parsed was || '+strings.vslice(exp, '[', ']')+' ||'
+      }
+      var r = cases['index'](_document, parent, obj);
       if (r == null) {
         throw 'Expression "'+exp+'" returned null. Anonymous == '+(cases == aCases) 
       }
@@ -330,16 +360,27 @@ Lookup.prototype.getNode = function () {
     
     for (c in cases) {
       if (withs.startsWith(exp, c)) {
-        var result = cases[c](_document, parent, json2.JSON.parse(strings.vslice(exp, '(', ')')));
+        try {
+          var obj = json2.JSON.parse(strings.vslice(exp, '(', ')'))
+        } catch(err) {
+           throw err+'. String to be parsed was || '+strings.vslice(exp, '(', ')')+'  ||'
+        }
+        var result = cases[c](_document, parent, obj);
       }
     }
     
     if (!result) {
       if ( withs.startsWith(exp, '{') ) {
+        try {
+          var obj = json2.JSON.parse(exp)
+        } catch(err) {
+          throw err+'. String to be parsed was || '+exp+' ||'
+        }
+        
         if (cases == aCases) {
-          var result = _anonByAttrib(_document, parent, json2.JSON.parse(exp))
+          var result = _anonByAttrib(_document, parent, obj)
         } else {
-          var result = _byAttrib(parent, json2.JSON.parse(exp))
+          var result = _byAttrib(parent, obj)
         }
       }
       if (!result) {
