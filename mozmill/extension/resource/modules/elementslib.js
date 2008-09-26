@@ -167,8 +167,16 @@ XPath.prototype.getInfo = function () {
 XPath.prototype.getNode = function () {
   var aNode = this._document;
   var aExpr = this.expr;
+  var xpe = null;
 
-  var xpe = new this._document.defaultView.XPathEvaluator();
+  if (this._document.defaultView == null) {
+    var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
+                    .getService(Components.interfaces.nsIAppShellService)
+                    .hiddenDOMWindow;
+    xpe = new hwindow.XPathEvaluator();
+  } else {
+    xpe = new this._document.defaultView.XPathEvaluator();
+  }
   var nsResolver = xpe.createNSResolver(aNode.ownerDocument == null ?
     aNode.documentElement : aNode.ownerDocument.documentElement);
   var result = xpe.evaluate(aExpr, aNode, nsResolver, 0, null);

@@ -14,6 +14,8 @@ var test_assert = function(){
  controller.type(new elementslib.Name(controller.window.content.document, 'q'), 'Mozilla Summit');
  controller.click(new elementslib.Name(controller.window.content.document, 'btnG'));
  controller.sleep(2000);
+ 
+ // chrome
  controller.assertNode(new elementslib.ID(controller.window.document, 'searchbar'));
  controller.type(new elementslib.ID(controller.window.document, 'searchbar'), 'Mozilla Summit');
  controller.assertValue(new elementslib.ID(controller.window.document, 'searchbar'), 'Mozilla Summit');
