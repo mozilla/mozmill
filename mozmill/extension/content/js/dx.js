@@ -150,6 +150,16 @@ var removeHTMLTags = function(str){
 	return strTagStrippedText;
 }
 
+var isMagicAnonymousDiv = function (_document, node) {
+  if (node.getAttribute && node.getAttribute('class') == 'anonymous-div') {
+    if (!arrays.inArray(node.parentNode.childNodes, node) && (_document.getAnonymousNodes(node) == null || 
+        !arrays.inArray(_document.getAnonymousNodes(node), node) ) ) {
+          return true;
+        }
+  }
+  return false;
+}
+
 var MozMilldx = new function() {
   this.grab = function(){
     var disp = $('dxDisplay').textContent;
@@ -164,8 +174,11 @@ var MozMilldx = new function() {
     } else {
       target = e.target;
     }
-    
     var _document = getDocument(target);
+    if (isMagicAnonymousDiv(_document, target)) {
+      target = target.parentNode;
+    }
+    
     var windowtype = _document.documentElement.getAttribute('windowtype');
     displayText = "windowtype: " + windowtype + '\n';
     

@@ -90,6 +90,9 @@ Elem.prototype = new utils.Copy(ElemBase.prototype);
 Elem.prototype.getNode = function () { return this.node; }
 
 var ID = function(_document, nodeID) {
+  if (_document == undefined || nodeID == undefined) {
+    throw 'ID constructor did not recieve enough arguments.'
+  }
   this._document = _document;
   this.nodeID = nodeID;
   return this;
@@ -103,6 +106,9 @@ ID.prototype.getNode = function () {
 }
 
 var Link = function(_document, linkName) {
+  if (_document == undefined || linkName == undefined) {
+    throw 'Link constructor did not recieve enough arguments.'
+  }
   this._document = _document;
   this.linkName = linkName;
   return this;
@@ -147,6 +153,9 @@ Link.prototype.getNode = function () {
 }
 
 var XPath = function(_document, expr) {
+  if (_document == undefined || expr == undefined) {
+    throw 'XPath constructor did not recieve enough arguments.'
+  }
   this._document = _document;
   this.expr = expr;
   return this;
@@ -155,23 +164,6 @@ XPath.prototype = new utils.Copy(ElemBase.prototype);
 XPath.prototype.getInfo = function () {
   return "XPath: " + this.expr;
 }
-// XPath.prototype.getNode = function () {
-//   var nsResolver = function (prefix) {
-//     if (prefix == 'html' || prefix == 'xhtml' || prefix == 'x') {
-//       return 'http://www.w3.org/1999/xhtml';
-//     } else if (prefix == 'mathml') {
-//       return 'http://www.w3.org/1998/Math/MathML';
-//     } else {
-//       throw new Error("Unknown namespace: " + prefix + ".");
-//     }
-//   }
-//   var node = null;
-//   try {
-//     node = this._document.evaluate(this.expr, this._document, nsResolver, 0, null).iterateNext();  
-//   }
-//   catch(err){ node = null; }
-//   return node;
-// }
 XPath.prototype.getNode = function () {
   var aNode = this._document;
   var aExpr = this.expr;
@@ -188,6 +180,9 @@ XPath.prototype.getNode = function () {
 }
 
 var Name = function(_document, nName) {
+  if (_document == undefined || nName == undefined) {
+    throw 'Name constructor did not recieve enough arguments.'
+  }
   this._document = _document;
   this.nName = nName;
   return this;
@@ -206,6 +201,9 @@ Name.prototype.getNode = function () {
 }
 
 function Lookup (_document, expression) {
+  if (_document == undefined || expression == undefined) {
+    throw 'Lookup constructor did not recieve enough arguments.'
+  }
   this._document = _document;
   this.expression = expression;
 }
