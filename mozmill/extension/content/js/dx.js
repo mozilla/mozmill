@@ -24,6 +24,9 @@ var objects = {}; Components.utils.import('resource://mozmill/stdlib/objects.js'
 var json2 = {}; Components.utils.import('resource://mozmill/stdlib/json2.js', json2);
 var r = {}; Components.utils.import('resource://mozmill/modules/results.js', r);
 
+var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+           .getService(Components.interfaces.nsIWindowMediator);
+
 var isNotAnonymous = function (elem, result) {
   if (result == undefined) {
     var result = true;
@@ -164,6 +167,49 @@ var turnDXOff = function(){
   MozMilldx.dxOff();
 }
 
+var getControllerAndDocument = function (_document, windowtype) {
+  if (windowtype == null || windowtype == 'navigator:browser') {
+    var c = mozmill.getBrowserController();
+    if (c.tabs.activeTab == _document) {
+      return {'controllerString':'mozmill.getBrowserController()',
+              'documentString'  :'controller.tabs.activeTab',}
+    } else if (windowtype == 'navigator:browser') {
+      w = wm.getMostRecentWindow('navigator:browser');
+      controllerString = 'mozmill.getBrowserController()';
+    }
+  }
+  var controllerString = null;
+  var w = null;
+  // TODO replace with object based cases
+  if (windowtype == 'Browser:Preferences') {
+    var w = wm.getMostRecentWindow('Browser:Preferences');
+    controllerString = 'controller = mozmill.getPreferencesController()'
+  } else if (windowtype == 'Extension:Manager') {
+    var w = wm.getMostRecentWindow('Extension:Manager');
+    controllerString = 'controller = mozmill.getAddonsController()'
+  }
+  
+  if (!w) {
+    if (windowtype == null) {
+      var windowtype = '';
+    }
+    w = wm.getMostRecentWindow(windowtype);
+    controllerString = 'controller = new mozmill.controller.Controller(mozmill.wm.getMostRecentWindow("'+windowtype+'"))';
+  }
+  
+  if (w.document == _document) {
+    return {'controllerString':controllerString, 'documentString':'controller.window.document'}
+  } else {
+    for (i in w.frames) {
+      if (!isNaN(i) && (w.frames[i]) && w.frames[i].document == document) {
+        return {'controllerString':controllerString,
+                'documentString':'controller.window.frames['+i+'].document',}
+      }
+    }
+    return {'controllerString':controllerString, 'documentString':'Cannot find document',}
+  } 
+}
+
 
 var MozMilldx = new function() {
   this.lastEvent = null;
@@ -174,7 +220,13 @@ var MozMilldx = new function() {
     $('editorInput').value += 'new elementslib.'+dispArr[0].toUpperCase()+"('"+dispArr[1]+"')\n";
   }
   
-  this.evtDispatch = function(e){
+  this.evtDispatch = function(e){    
+    if (e.originalTarget != undefined) {
+      target = e.originalTarget;
+    } else {
+      target = e.target;
+    }
+    
     //Element hilighting
     if (e.type == "mouseover"){
       try {
@@ -186,36 +238,28 @@ var MozMilldx = new function() {
       } catch(err){}
     }
     else { e.target.style.border = ""; }
-    
-    if (e.originalTarget != undefined) {
-      target = e.originalTarget;
-    } else {
-      target = e.target;
-    }
-    
-    //Sometimes getDocument is undefined ?, and it freezes firefox
-    try {
-      var _document = getDocument(target);
-    }catch(err){return;}
-    
+
+    _document = getDocument(target);
+
     if (isMagicAnonymousDiv(_document, target)) {
       target = target.parentNode;
     }
     
     var windowtype = _document.documentElement.getAttribute('windowtype');
-    displayText = "windowtype: " + windowtype + '\n';
+    r = getControllerAndDocument(_document, windowtype);
     
+    displayText = "Controller: " + r.controllerString + '\n\n';
     if ( isNotAnonymous(target) ) {  
       // Logic for which identifier to use is duplicated above
       if (target.id != "") {
-        displayText += "ID: " + target.id + '\n';
+        elemText = "Element: new elementslib.ID("+ r.documentString + ', "' + target.id + '");' + '\n';
         var telem = new elementslib.ID(_document, target.id);
       } else if ((target.name != "") && (typeof(target.name) != "undefined")) {
-        displayText += "Name: " + target.name + '\n';
+        elemText = "Element: new elementslib.Name("+ r.documentString + ', "' + target.name + '");' + '\n';
         var telem = new elementslib.Name(_document, target.name);
       } else if (target.nodeName == "A") {
         var linkText = removeHTMLTags(target.innerHTML);
-        displayText += "Link: " + linkText + '\n';
+        elemText = "Element: new elementslib.Link("+ r.documentString + ', "' + linkText + '");' + '\n';
         var telem = new elementslib.Link(_document, linkText);
       } 
     }
@@ -228,21 +272,23 @@ var MozMilldx = new function() {
       }      
       var telem = new elementslib.XPath(_document, stringXpath);
       if ( telem.getNode() == target ) {
-        displayText += 'XPath: ' + stringXpath + '\n';
+        elemText = "Element: new elementslib.XPath("+ r.documentString + ', "' + stringXpath + '");' + '\n';
       }
     }
     // Fallback to Lookup
     if (telem == undefined || telem.getNode() != target) {
       var exp = getLookupExpression(_document, target);
-      displayText += 'Lookup: ' + exp + '\n';
+      elemText = "Element: new elementslib.Lookup("+ r.documentString + ", '" + exp + "')" + '\n';
       var telem = new elementslib.Lookup(_document, exp);
     } 
     
+    displayText += elemText;
+    
     try {
-      displayText += "Validation: " + ( target == telem.getNode() );
+      displayText += "\nValidation: " + ( target == telem.getNode() );
       $('dxDisplay').value = displayText;
     } catch (err) {
-      displayText += "Validation: false";
+      displayText += "\nValidation: false";
       $('dxDisplay').value = displayText;
       throw err;
     }

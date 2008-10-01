@@ -37,7 +37,7 @@
 
 var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib",
                         "getBrowserController", "newBrowserController", "getAddonsController",
-                        "getPreferencesController"];
+                        "getPreferencesController", "wm"];
                         
 // "hash", "controller", "events", "timing", 
 // "results", "jstest", "utils", "elementslib", "getXPath"];
