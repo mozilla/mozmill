@@ -172,6 +172,11 @@ var turnDXOn = function(){
   MozMilldx.dxOn();
 }
 
+var copyToClipboard = function(str){
+  const gClipboardHelper = Components.classes["@mozilla.org/widget/clipboardhelper;1"] .getService(Components.interfaces.nsIClipboardHelper); 
+  gClipboardHelper.copyString(str);
+}
+
 var getControllerAndDocument = function (_document, windowtype) {
   if (windowtype == null || windowtype == 'navigator:browser') {
     var c = mozmill.getBrowserController();
@@ -317,7 +322,7 @@ var MozMilldx = new function() {
     //Turn on the recorder
     //Since the click event does things like firing twice when a double click goes also
     //and can be obnoxious im enabling it to be turned off and on with a toggle check box
-    this.dxOn = function() {
+    this.dxOn = function() {      
       $('domExplorer').setAttribute('label', 'Disable Inspector');
       $('dxContainer').style.display = "block";
       //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
@@ -365,6 +370,15 @@ var MozMilldx = new function() {
       window.focus();
     }
     
+    //Copy inspector output to clipboard if alt,shift,c is pressed
+    this.clipCopy = function(e){
+       if (e.altKey && e.shiftKey){
+         if (e.charCode == 199){
+           copyToClipboard($('dxDisplay').value);
+         }
+       }
+    }
+    
     //Recursively bind to all the iframes and frames within
     this.dxRecursiveBind = function(frame) {
         //Make sure we haven't already bound anything to this frame yet
@@ -373,6 +387,8 @@ var MozMilldx = new function() {
         frame.addEventListener('mouseover', this.evtDispatch, true);
         frame.addEventListener('mouseout', this.evtDispatch, true);
         frame.addEventListener('click', this.getFoc, true);
+        frame.addEventListener('keypress', this.clipCopy, true);
+        
         
         var iframeCount = frame.window.frames.length;
         var iframeArray = frame.window.frames;
@@ -383,6 +399,8 @@ var MozMilldx = new function() {
               iframeArray[i].addEventListener('mouseover', this.evtDispatch, true);
               iframeArray[i].addEventListener('mouseout', this.evtDispatch, true);
               iframeArray[i].addEventListener('click', this.getFoc, true);
+              iframeArray[i].addEventListener('keypress', this.clipCopy, true);
+              
 
               this.dxRecursiveBind(iframeArray[i]);
             }
@@ -400,6 +418,8 @@ var MozMilldx = new function() {
         frame.removeEventListener('mouseover', this.evtDispatch, true);
         frame.removeEventListener('mouseout', this.evtDispatch, true);
         frame.removeEventListener('click', this.getFoc, true);
+        frame.removeEventListener('keypress', this.clipCopy, true);
+        
         
         var iframeCount = frame.window.frames.length;
         var iframeArray = frame.window.frames;
@@ -410,7 +430,8 @@ var MozMilldx = new function() {
               iframeArray[i].removeEventListener('mouseover', this.evtDispatch, true);
               iframeArray[i].removeEventListener('mouseout', this.evtDispatch, true);
               iframeArray[i].removeEventListener('click', this.getFoc, true);
-    
+              iframeArray[i].removeEventListener('keypress', this.clipCopy, true);
+
               this.dxRecursiveUnBind(iframeArray[i]);
             }
             catch(error) {
