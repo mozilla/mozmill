@@ -27,6 +27,8 @@ var r = {}; Components.utils.import('resource://mozmill/modules/results.js', r);
 var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
            .getService(Components.interfaces.nsIWindowMediator);
 
+var dprint = r.write;
+
 var isNotAnonymous = function (elem, result) {
   if (result == undefined) {
     var result = true;
@@ -176,15 +178,20 @@ var getControllerAndDocument = function (_document, windowtype) {
     if (c.tabs.activeTab == _document) {
       return {'controllerString':'mozmill.getBrowserController()',
               'documentString'  :'controller.tabs.activeTab',}
-    } else if (windowtype == 'navigator:browser') {
-      w = wm.getMostRecentWindow('navigator:browser');
-      controllerString = 'mozmill.getBrowserController()';
-    }
-  }
+    } 
+  }  
   var controllerString = null;
   var w = null;
+  
+  if (windowtype == null || windowtype == '') {
+    var windowtype = wm.getMostRecentWindow('').document.documentElement.getAttribute('windowtype');
+  } 
+  
   // TODO replace with object based cases
-  if (windowtype == 'Browser:Preferences') {
+  if (windowtype == 'navigator:browser') {
+    var w = wm.getMostRecentWindow('navigator:browser');
+    controllerString = 'controller = mozmill.getBrowserController()'
+  } else if (windowtype == 'Browser:Preferences') {
     var w = wm.getMostRecentWindow('Browser:Preferences');
     controllerString = 'controller = mozmill.getPreferencesController()'
   } else if (windowtype == 'Extension:Manager') {
@@ -202,15 +209,15 @@ var getControllerAndDocument = function (_document, windowtype) {
   
   if (w.document == _document) {
     return {'controllerString':controllerString, 'documentString':'controller.window.document'}
-  } else {
-    for (i in w.frames) {
-      if (!isNaN(i) && (w.frames[i]) && w.frames[i].document == document) {
+  } else if ((w.frames) && Array(w.frames).length > 0) {
+    for (i in Array(w.frames)) {
+      if (w.frames[i].document == _document) {
         return {'controllerString':controllerString,
                 'documentString':'controller.window.frames['+i+'].document',}
       }
     }
-    return {'controllerString':controllerString, 'documentString':'Cannot find document',}
   } 
+  return {'controllerString':controllerString, 'documentString':'Cannot find document',}
 }
 
 
