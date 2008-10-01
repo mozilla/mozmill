@@ -160,7 +160,14 @@ var isMagicAnonymousDiv = function (_document, node) {
   return false;
 }
 
+var turnDXOff = function(){
+  MozMilldx.dxOff();
+}
+
+
 var MozMilldx = new function() {
+  this.lastEvent = null;
+  
   this.grab = function(){
     var disp = $('dxDisplay').textContent;
     var dispArr = disp.split(': ');
@@ -168,13 +175,29 @@ var MozMilldx = new function() {
   }
   
   this.evtDispatch = function(e){
-    /// 
+    //Element hilighting
+    if (e.type == "mouseover"){
+      try {
+        if (this.lastEvent){
+          this.lastEvent.target.style.border = "";
+        }
+        this.lastEvent = e;
+        e.target.style.border = "1px solid darkblue";
+      } catch(err){}
+    }
+    else { e.target.style.border = ""; }
+    
     if (e.originalTarget != undefined) {
       target = e.originalTarget;
     } else {
       target = e.target;
     }
-    var _document = getDocument(target);
+    
+    //Sometimes getDocument is undefined ?, and it freezes firefox
+    try {
+      var _document = getDocument(target);
+    }catch(err){return;}
+    
     if (isMagicAnonymousDiv(_document, target)) {
       target = target.parentNode;
     }
@@ -224,20 +247,14 @@ var MozMilldx = new function() {
       throw err;
     }
     
-    
-    
-  }
-  
-  this.getFoc = function(){
-    window.focus();
   }
   
     //Turn on the recorder
     //Since the click event does things like firing twice when a double click goes also
     //and can be obnoxious im enabling it to be turned off and on with a toggle check box
     this.dxOn = function() {
-      $('stopDX').setAttribute("disabled","false");
-      $('startDX').setAttribute("disabled","true");
+      $('domExplorer').setAttribute("oncommand", "MozMilldx.dxOff();")
+      $('domExplorer').setAttribute('label', 'Disable Inspector');
       $('dxContainer').style.display = "block";
       //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
       var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
@@ -254,13 +271,11 @@ var MozMilldx = new function() {
     }
 
     this.dxOff = function() {
+      $('domExplorer').setAttribute("oncommand", "MozMilldx.dxOn();")
         //because they share this box
         var copyOutputBox = $('copyout');
-        copyOutputBox.removeAttribute("checked");
-        
-        $('stopDX').setAttribute("disabled","true");
-        $('startDX').setAttribute("disabled","false");
-        $('dxContainer').style.display = "none";
+        $('domExplorer').setAttribute('label', 'Enable Inspector');
+        //$('dxContainer').style.display = "none";
         //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
          var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                              .getService(Components.interfaces.nsIWindowMediator)
@@ -273,7 +288,14 @@ var MozMilldx = new function() {
             }
           }
     }
-
+    
+    this.getFoc = function(e){
+      turnDXOff();
+      e.stopPropagation();
+      e.preventDefault();
+      window.focus();
+    }
+    
     //Recursively bind to all the iframes and frames within
     this.dxRecursiveBind = function(frame) {
         //Make sure we haven't already bound anything to this frame yet
@@ -281,7 +303,7 @@ var MozMilldx = new function() {
 
         frame.addEventListener('mouseover', this.evtDispatch, true);
         frame.addEventListener('mouseout', this.evtDispatch, true);
-        frame.addEventListener('dblclick', this.getFoc, true);
+        frame.addEventListener('click', this.getFoc, true);
         
         var iframeCount = frame.window.frames.length;
         var iframeArray = frame.window.frames;
@@ -291,7 +313,7 @@ var MozMilldx = new function() {
             try {
               iframeArray[i].addEventListener('mouseover', this.evtDispatch, true);
               iframeArray[i].addEventListener('mouseout', this.evtDispatch, true);
-              iframeArray[i].addEventListener('dblclick', this.getFoc, true);
+              iframeArray[i].addEventListener('click', this.getFoc, true);
 
               this.dxRecursiveBind(iframeArray[i]);
             }
@@ -308,7 +330,7 @@ var MozMilldx = new function() {
 
         frame.removeEventListener('mouseover', this.evtDispatch, true);
         frame.removeEventListener('mouseout', this.evtDispatch, true);
-        frame.removeEventListener('dblclick', this.getFoc, true);
+        frame.removeEventListener('click', this.getFoc, true);
         
         var iframeCount = frame.window.frames.length;
         var iframeArray = frame.window.frames;
@@ -318,7 +340,7 @@ var MozMilldx = new function() {
             try {
               iframeArray[i].removeEventListener('mouseover', this.evtDispatch, true);
               iframeArray[i].removeEventListener('mouseout', this.evtDispatch, true);
-              iframeArray[i].removeEventListener('dblclick', this.getFoc, true);
+              iframeArray[i].removeEventListener('click', this.getFoc, true);
     
               this.dxRecursiveUnBind(iframeArray[i]);
             }
@@ -328,5 +350,4 @@ var MozMilldx = new function() {
             }
         }
     }
-
 };

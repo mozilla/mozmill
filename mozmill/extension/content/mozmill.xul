@@ -52,7 +52,7 @@ function switchFocus(elem)
 
 <toolbox>
   <toolbar id="nav-toolbar">
-    <menu id="fileMenu" label="File">
+    <button type="menu" id="fileMenu" label="File">
       <menupopup id="action-popup">
         <menuitem id="open-key" key="open-key" label="Open" oncommand="openFile();"/>
         <menuseparator/>
@@ -60,9 +60,12 @@ function switchFocus(elem)
         <menuitem label="Save As" key="save-as" oncommand="saveAsFile();"/>
         <menuseparator/>
         <menuitem id="closeMenu"  label="Close" disabled="true" oncommand="closeFile();"/>
+        <menuseparator/>
+      	<menuitem id="exitMenu" label="Exit Mozmill" oncommand="close();"/>
+
       </menupopup>
-    </menu>
-    <menu id="testMenu" label="Tests">
+    </button>
+    <button type="menu" id="testMenu" label="Tests">
       <menupopup id="action-popup">
         <menuitem label="Run Test File" oncommand="runFile();"/>
         <menuseparator/>
@@ -73,39 +76,8 @@ function switchFocus(elem)
         <menuitem id="copyout" label="Show Copyable Output" 
           oncommand="accessOutput();" type="checkbox" checked="false"/>
       </menupopup>
-    </menu>
-    <menu id="modes-menu" label="Modes">
-      <menupopup id="pb-popup">
-        <menu id="playbackMenu" label="Playback" disabled="true">
-          <menupopup id="playbackPopup">
-            <menuitem label="Start"/>
-            <menuitem label="Stop" disabled="true"/>
-          </menupopup>
-        </menu>
-      <menu id="rec-menu" label="Recorder" disabled="true">
-        <menupopup id="recorderPopup">
-          <menuitem id="startRec" label="Start" oncommand="MozMillRec.recordOn();"/>
-          <menuitem id="stopRec" label="Stop" disabled="true" oncommand="MozMillRec.recordOff();"/>
-        </menupopup>
-      </menu>
-      </menupopup>
-    </menu>
-  <menu id="exp-menu" label="Explorers">
-    <menupopup id="explorerPopup">
-      <menu id="asx-menu" label="Assertion Explorer" disabled="true">
-        <menupopup id="">
-          <menuitem label="Start"/>
-          <menuitem label="Stop" disabled="true"/>
-        </menupopup>
-      </menu>
-        <menu id="domexp-menu" label="DOM Explorer">
-          <menupopup id="domexpPopup">
-            <menuitem id="startDX" label="Start" oncommand="MozMilldx.dxOn();"/>
-            <menuitem id="stopDX" label="Stop" disabled="true" oncommand="MozMilldx.dxOff();"/>
-          </menupopup>
-        </menu>
-    </menupopup>
-  </menu>
+    </button>
+	<button id="domExplorer" label="Enable Inspector" oncommand="MozMilldx.dxOn();"/>
   </toolbar>
 </toolbox>
 
@@ -201,7 +173,6 @@ function switchFocus(elem)
     <toolbars>
       <!-- <toolbarbutton id="nav-users"  accesskey="U" label="Preferences" onclick="showPrefs();"/> -->
       <toolbarbutton id="nav-groups" accesskey="p" label="Clear Tab" onclick="logicalClear();"/>
-      <toolbarbutton id="nav-events" accesskey="X" label="Exit!" onclick="close();"/>
     </toolbars>
   </toolbox>
 </hbox>

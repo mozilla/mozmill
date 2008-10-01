@@ -45,7 +45,7 @@ var MozMill = {
   },
 
   onMenuItemCommand: function() {
-    var w = window.open("chrome://mozmill/content/mozmill.xul", "", "chrome,centerscreen,resizable,height=450,width=400");
+    var w = window.open("chrome://mozmill/content/mozmill.xul", "", "chrome,centerscreen,resizable,height=740,width=600");
   }
 };
 

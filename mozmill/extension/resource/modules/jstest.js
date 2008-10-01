@@ -62,13 +62,14 @@ var run = function(tests, code){
     results.write('Please run valid JavaScript only. '+err, 'lightred');
   }
   
-  for (test in tests){
-    results.write("Running "+tests[test]+'...');    
-    results.status(tests[test]+'...');    
-    
-    try { 
+  for (test in tests){   
+    try {
       var func = eval(tests[test]);
       if (typeof func == 'function'){
+        
+        results.write("Running "+tests[test]+'...');    
+        results.status(tests[test]+'...');
+        
         //do some timing and run the func
         var d = new Date();
         var startMS = d.getTime();
@@ -77,12 +78,12 @@ var run = function(tests, code){
         var endMS  = d.getTime();
         var runTime = endMS - startMS;
         results.perf('Test '+ tests[test]+' had runtime of '+runTime+' ms.');
+        results.write("Succesfully ran "+tests[test], 'lightgreen');
       }
     }
     catch(err){
       results.write('Error running '+tests[test]+", "+err, 'lightred');
     }
-    results.write("Succesfully ran "+tests[test], 'lightgreen');
   }
   return true;
 }
