@@ -77,7 +77,7 @@ function switchFocus(elem)
           oncommand="accessOutput();" type="checkbox" checked="false"/>
       </menupopup>
     </button>
-	<button id="domExplorer" label="Enable Inspector" oncommand="MozMilldx.dxOn();"/>
+	<button id="domExplorer" label="Enable Inspector" oncommand="MozMilldx.dxToggle();"/>
   </toolbar>
 </toolbox>
 

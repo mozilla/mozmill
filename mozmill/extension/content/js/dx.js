@@ -166,6 +166,9 @@ var isMagicAnonymousDiv = function (_document, node) {
 var turnDXOff = function(){
   MozMilldx.dxOff();
 }
+var turnDXOn = function(){
+  MozMilldx.dxOn();
+}
 
 var getControllerAndDocument = function (_document, windowtype) {
   if (windowtype == null || windowtype == 'navigator:browser') {
@@ -238,9 +241,9 @@ var MozMilldx = new function() {
       } catch(err){}
     }
     else { e.target.style.border = ""; }
-
-    _document = getDocument(target);
-
+    
+    var _document = getDocument(target);
+    
     if (isMagicAnonymousDiv(_document, target)) {
       target = target.parentNode;
     }
@@ -295,11 +298,19 @@ var MozMilldx = new function() {
     
   }
   
+    this.dxToggle = function(){
+      if ($('domExplorer').getAttribute('label') ==  'Disable Inspector'){
+        turnDXOff();
+      }
+      else{
+        turnDXOn();
+      }
+    }
+  
     //Turn on the recorder
     //Since the click event does things like firing twice when a double click goes also
     //and can be obnoxious im enabling it to be turned off and on with a toggle check box
     this.dxOn = function() {
-      $('domExplorer').setAttribute("oncommand", "MozMilldx.dxOff();")
       $('domExplorer').setAttribute('label', 'Disable Inspector');
       $('dxContainer').style.display = "block";
       //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
@@ -317,7 +328,11 @@ var MozMilldx = new function() {
     }
 
     this.dxOff = function() {
-      $('domExplorer').setAttribute("oncommand", "MozMilldx.dxOn();")
+        //try to cleanup left over outlines
+        if (this.lastEvent){
+          this.lastEvent.target.style.border = "";
+        }
+        
         //because they share this box
         var copyOutputBox = $('copyout');
         $('domExplorer').setAttribute('label', 'Enable Inspector');
@@ -337,6 +352,7 @@ var MozMilldx = new function() {
     
     this.getFoc = function(e){
       turnDXOff();
+      e.target.style.border = "";
       e.stopPropagation();
       e.preventDefault();
       window.focus();
