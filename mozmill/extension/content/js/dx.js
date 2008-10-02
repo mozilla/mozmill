@@ -322,8 +322,14 @@ var MozMilldx = new function() {
     //Turn on the recorder
     //Since the click event does things like firing twice when a double click goes also
     //and can be obnoxious im enabling it to be turned off and on with a toggle check box
-    this.dxOn = function() {      
+    this.dxOn = function() {
+      $('inspectClickSelection').disabled = true;
       $('domExplorer').setAttribute('label', 'Disable Inspector');
+      //defined the click method, default to dblclick
+      var clickMethod = "dblclick";
+      if ($('inspectSingle').selected){
+        clickMethod = 'click';
+      }
       $('dxContainer').style.display = "block";
       //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
       var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
@@ -333,16 +339,24 @@ var MozMilldx = new function() {
         var win = enumerator.getNext();
         //if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
         if (win.title != 'MozMill IDE'){
-          this.dxRecursiveBind(win);
+          this.dxRecursiveBind(win, clickMethod);
           win.focus();
         }
       }
     }
 
     this.dxOff = function() {
+        $('inspectClickSelection').disabled = false;
+      
         //try to cleanup left over outlines
         if (this.lastEvent){
           this.lastEvent.target.style.border = "";
+        }
+        
+        //defined the click method, default to dblclick
+        var clickMethod = "dblclick";
+        if ($('inspectSingle').selected){
+          clickMethod = 'click';
         }
         
         //because they share this box
@@ -356,8 +370,8 @@ var MozMilldx = new function() {
           while(enumerator.hasMoreElements()) {
             var win = enumerator.getNext();
             //if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
-            if (win.title != 'MozMill IDE'){  
-              this.dxRecursiveUnBind(win);
+            if (win.title != 'MozMill IDE'){
+              this.dxRecursiveUnBind(win, clickMethod);
             }
           }
     }
@@ -380,13 +394,13 @@ var MozMilldx = new function() {
     }
     
     //Recursively bind to all the iframes and frames within
-    this.dxRecursiveBind = function(frame) {
+    this.dxRecursiveBind = function(frame, clickMethod) {
         //Make sure we haven't already bound anything to this frame yet
-        this.dxRecursiveUnBind(frame);
-
+        this.dxRecursiveUnBind(frame, clickMethod);
+        
         frame.addEventListener('mouseover', this.evtDispatch, true);
         frame.addEventListener('mouseout', this.evtDispatch, true);
-        frame.addEventListener('click', this.getFoc, true);
+        frame.addEventListener(clickMethod, this.getFoc, true);
         frame.addEventListener('keypress', this.clipCopy, true);
         
         
@@ -398,11 +412,11 @@ var MozMilldx = new function() {
             try {
               iframeArray[i].addEventListener('mouseover', this.evtDispatch, true);
               iframeArray[i].addEventListener('mouseout', this.evtDispatch, true);
-              iframeArray[i].addEventListener('click', this.getFoc, true);
+              iframeArray[i].addEventListener(clickMethod, this.getFoc, true);
               iframeArray[i].addEventListener('keypress', this.clipCopy, true);
               
 
-              this.dxRecursiveBind(iframeArray[i]);
+              this.dxRecursiveBind(iframeArray[i], clickMethod);
             }
             catch(error) {
                 //mozmill.results.writeResult('There was a problem binding to one of your iframes, is it cross domain?' + 
@@ -413,11 +427,11 @@ var MozMilldx = new function() {
     }
 
     //Recursively bind to all the iframes and frames within
-    this.dxRecursiveUnBind = function(frame) {
+    this.dxRecursiveUnBind = function(frame, clickMethod) {
 
         frame.removeEventListener('mouseover', this.evtDispatch, true);
         frame.removeEventListener('mouseout', this.evtDispatch, true);
-        frame.removeEventListener('click', this.getFoc, true);
+        frame.removeEventListener(clickMethod, this.getFoc, true);
         frame.removeEventListener('keypress', this.clipCopy, true);
         
         
@@ -429,10 +443,10 @@ var MozMilldx = new function() {
             try {
               iframeArray[i].removeEventListener('mouseover', this.evtDispatch, true);
               iframeArray[i].removeEventListener('mouseout', this.evtDispatch, true);
-              iframeArray[i].removeEventListener('click', this.getFoc, true);
+              iframeArray[i].removeEventListener(clickMethod, this.getFoc, true);
               iframeArray[i].removeEventListener('keypress', this.clipCopy, true);
 
-              this.dxRecursiveUnBind(iframeArray[i]);
+              this.dxRecursiveUnBind(iframeArray[i], clickMethod);
             }
             catch(error) {
                 //mozmill.results.writeResult('There was a problem binding to one of your iframes, is it cross domain?' + 

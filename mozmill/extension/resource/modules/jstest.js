@@ -92,6 +92,17 @@ var parseTest = function(s){
   var re = /test\S+/g;
   var tests = s.match(re);
   
+  //in the case the tests contains something like
+  //var blah = "test"
+  for (test in tests){
+    //we may get an unterminated literal string err
+    try {
+      if (tests[test].indexOf('"') != -1){
+        tests[test] = "";
+      }
+    } catch(err){ tests[test] = ""; }
+  }
+  
   var re = /setup/;
   var hasSetup = re.test(s);
   if (hasSetup){

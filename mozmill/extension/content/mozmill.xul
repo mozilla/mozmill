@@ -77,7 +77,12 @@ function switchFocus(elem)
           oncommand="accessOutput();" type="checkbox" checked="false"/>
       </menupopup>
     </button>
+	<toolbarseparator/>
 	<button id="domExplorer" label="Enable Inspector" oncommand="MozMilldx.dxToggle();"/>
+	<radiogroup id="inspectClickSelection">
+	  <radio id="inspectDouble" label="Double Click" value="double"/>
+	  <radio id="inspectSingle" label="Single Click" value="single"/>
+	</radiogroup>
   </toolbar>
 </toolbox>
 

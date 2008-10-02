@@ -131,7 +131,6 @@ MozMillController.prototype.open = function(url){
   var el = new elementslib.ID(this.window.document, 'urlbar').getNode();
   this.type(new elementslib.ID(this.window.document, 'urlbar'), url);
   events.triggerKeyEvent(el, 'keypress', '13', true, false, false, false,false); 
-
 };
 MozMillController.prototype.keypress = function(el, keycode){
   var element = el.getNode();
@@ -608,9 +607,11 @@ function browserAdditions( controller ) {
     }
     if (timeout == undefined) {
       timeout = 30000;
-    }
-    
-    waitForEval("subject.body != undefined", timeout, interval, _document);
+    }    
+    waitForEval("subject.body.style != undefined", timeout, interval, _document);
+    //Once the object is available it's somewhere between 1 and 3 seconds before the DOM
+    //Actually becomes available to us
+    sleep(3000);
   }
 }
 
