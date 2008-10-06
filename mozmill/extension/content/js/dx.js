@@ -211,7 +211,7 @@ var getControllerAndDocument = function (_document, windowtype) {
       var windowtype = '';
     }
     w = wm.getMostRecentWindow(windowtype);
-    controllerString = 'controller = new mozmill.controller.Controller(mozmill.wm.getMostRecentWindow("'+windowtype+'"))';
+    controllerString = 'controller = new mozmill.controller.Controller(mozmill.utils.getWindowByTitle"'+w.title+'"))';
   }
   
   if (w.document == _document) {

@@ -36,7 +36,9 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["openFile", "saveFile","saveAsFile","genBoiler", "getFile", "Copy", "getWindows", "runEditor", "runFile"];
+var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler", 
+                        "getFile", "Copy", "getWindows", "runEditor", 
+                        "runFile", "getWindowByTitle"];
 
 var jstest = {}; 
 Components.utils.import('resource://mozmill/modules/jstest.js', jstest);
@@ -56,9 +58,17 @@ function getWindows(type) {
                      .getService(Components.interfaces.nsIWindowMediator)
                      .getEnumerator(type);
   while(enumerator.hasMoreElements()) {
-    windows = windows.concat(enumerator.getNext());
+    windows.push(enumerator.getNext());
   }
   return windows;
+}
+
+function getWindowByTitle(title) {
+  for each(w in getWindows()) {
+    if (w.title && w.title == title) {
+      return w;
+    }
+  }
 }
 
 
