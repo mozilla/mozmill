@@ -55,7 +55,9 @@ var getDocument = function (elem) {
   return elem;
 }
 
-var attributeToIgnore = ['focus', 'focused', 'selected', 'select', 'flex'];
+var attributeToIgnore = ['focus', 'focused', 'selected', 'select', 'flex', // General Omissions
+                         'linkedpanel', 'last-tab', 'afterselected', // From Tabs UI, thanks Farhad
+                         ];
 
 var getUniqueAttributesReduction = function (attributes, node) {
   for (i in attributes) {
