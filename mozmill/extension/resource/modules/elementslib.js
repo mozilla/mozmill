@@ -81,6 +81,30 @@ ElemBase.prototype.exists = function() {
   if (this.getNode()){ return true; }
   else{ return false; }
 }
+ElemBase.prototype.nodeSearch = function(d, func, s) {
+    var win = d.defaultView;
+    var e = null;
+    var element = null;
+    //inline function to recursively find the element in the DOM, cross frame.
+    var recurse = function(w, func, s){
+     //do the lookup in the current window
+     try{ element = func.call(w, s);}
+     catch(err){ element = null; }
+     
+      if (!element){
+        var fc = w.frames.length;
+        var fa = w.frames;   
+        for (var i=0;i<fc;i++){
+          recurse(fa[i], func, s); 
+        }
+     }
+     else { e = element; }
+    };
+    
+    recurse(win, func, s);
+    
+    return e;
+}
 
 var Elem = function(node) {
   this.node = node;
@@ -101,8 +125,11 @@ ID.prototype = new utils.Copy(ElemBase.prototype);
 ID.prototype.getInfo = function () {
   return "ID: " + this.nodeID;
 }
+ID.prototype.getNodeForDocument = function (s) {
+  return this.document.getElementById(s);
+}
 ID.prototype.getNode = function () {
-  return this._document.getElementById(this.nodeID);
+  return this.nodeSearch(this._document, this.getNodeForDocument, this.nodeID);
 }
 
 var Link = function(_document, linkName) {
@@ -117,7 +144,7 @@ Link.prototype = new utils.Copy(ElemBase.prototype);
 Link.prototype.getInfo = function () {
   return "Link: " + this.linkName;
 }
-Link.prototype.getNode = function () {
+Link.prototype.getNodeForDocument = function (linkName) {
   var getText = function(el){
     var text = "";
     if (el.nodeType == 3){ //textNode
@@ -139,17 +166,22 @@ Link.prototype.getNode = function () {
     }
     return text;
   }
+  
   //sometimes the windows won't have this function
-  try { var links = this._document.getElementsByTagName('a'); }
+  try { var links = this.document.getElementsByTagName('a'); }
   catch(err){ mresults.write('Error: '+ err, 'lightred'); }
   for (var i = 0; i < links.length; i++) {
     var el = links[i];
     //if (getText(el).indexOf(this.linkName) != -1) {
-    if (el.innerHTML.indexOf(this.linkName) != -1){
+    if (el.innerHTML.indexOf(linkName) != -1){
       return el;
     }
   }
   return null;
+}
+
+Link.prototype.getNode = function () {
+  return this.nodeSearch(this._document, this.getNodeForDocument, this.linkName);
 }
 
 var XPath = function(_document, expr) {
@@ -164,18 +196,18 @@ XPath.prototype = new utils.Copy(ElemBase.prototype);
 XPath.prototype.getInfo = function () {
   return "XPath: " + this.expr;
 }
-XPath.prototype.getNode = function () {
-  var aNode = this._document;
-  var aExpr = this.expr;
+XPath.prototype.getNodeForDocument = function (s) {
+  var aNode = this.document;
+  var aExpr = s;
   var xpe = null;
 
-  if (this._document.defaultView == null) {
+  if (this.document.defaultView == null) {
     var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
                     .getService(Components.interfaces.nsIAppShellService)
                     .hiddenDOMWindow;
     xpe = new hwindow.XPathEvaluator();
   } else {
-    xpe = new this._document.defaultView.XPathEvaluator();
+    xpe = new this.document.defaultView.XPathEvaluator();
   }
   var nsResolver = xpe.createNSResolver(aNode.ownerDocument == null ?
     aNode.documentElement : aNode.ownerDocument.documentElement);
@@ -185,6 +217,10 @@ XPath.prototype.getNode = function () {
   while (res = result.iterateNext())
     found.push(res);
   return found[0];
+}
+
+XPath.prototype.getNode = function () {
+  return this.nodeSearch(this._document, this.getNodeForDocument, this.expr);
 }
 
 var Name = function(_document, nName) {
@@ -199,14 +235,19 @@ Name.prototype = new utils.Copy(ElemBase.prototype);
 Name.prototype.getInfo = function () {
   return "Name: " + this.nName;
 }
-Name.prototype.getNode = function () {
+Name.prototype.getNodeForDocument = function (s) {
   try{
-    var els = this._document.getElementsByName(this.nName);
+    var els = this.document.getElementsByName(s);
     if (els.length > 0) { return els[0]; }
   }
   catch(err){};
   return null;
 }
+
+Name.prototype.getNode = function () {
+  return this.nodeSearch(this._document, this.getNodeForDocument, this.nName);
+}
+
 
 function Lookup (_document, expression) {
   if (_document == undefined || expression == undefined) {

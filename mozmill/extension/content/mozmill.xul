@@ -101,7 +101,6 @@ function switchFocus(elem)
       <tab label="Editor"/>
       <tab label="Output"/>
       <tab label="Performance"/>
-      <tab label="Community"/>
     </tabs>
     
     <tabpanels flex="1" id="mmtabs">
@@ -115,59 +114,6 @@ function switchFocus(elem)
       </tabpanel>
       <tabpanel id="performancetab">
   		  <hbox flex="1" id="perfOut" class="a" style="overflow:auto">Waiting...</hbox>
-      </tabpanel>
-      <tabpanel id="teststab">
-  		  <hbox flex="1" id="suiteList" class="a">
-        <tree id="suiteTree" disabled="true" flex="1" hidecolumnpicker="true" 
-          seltype="single" class="tree" style="width:95%;height:98%">
-          <treecols id="myTree2-treeCols">
-            <treecol id="myTree2-treeCol0" primary="true" flex="2" label="Test Suites" persist="width" ordinal="1"/>
-            <splitter class="tree-splitter" ordinal="2"/>
-          </treecols>
-          <treechildren>
-            <treeitem container="true" open="false">
-              <treerow>
-                <treecell label="Suite Number One"/>
-              </treerow>
-               <treechildren>
-                  <treeitem>
-                    <treerow>
-                      <treecell label="s1test1.js"/>
-                    </treerow>
-                  </treeitem>
-                  <treeitem>
-                    <treerow>
-                      <treecell label="s1test2.js"/>
-                    </treerow>
-                  </treeitem>
-                  <treeitem>
-                    <treerow>
-                      <treecell label="s1test3.js"/>
-                    </treerow>
-                  </treeitem>
-                </treechildren>
-            </treeitem>
-            <!-- Make sure to set container="true" -->
-            <treeitem container="true" open="false">
-              <treerow>
-                <treecell label="Suite Number Two"/>
-              </treerow>
-              <treechildren>
-                <treeitem>
-                  <treerow>
-                    <treecell label="s2test1.js"/>
-                  </treerow>
-                </treeitem>
-                <treeitem>
-                  <treerow>
-                    <treecell label="s2test2.js"/>
-                  </treerow>
-                </treeitem>
-              </treechildren>
-            </treeitem>
-          </treechildren>
-        </tree>
-  		  </hbox>
       </tabpanel>
     </tabpanels>
   </tabbox>
