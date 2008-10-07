@@ -57,6 +57,7 @@ var getDocument = function (elem) {
 
 var attributeToIgnore = ['focus', 'focused', 'selected', 'select', 'flex', // General Omissions
                          'linkedpanel', 'last-tab', 'afterselected', // From Tabs UI, thanks Farhad
+                         'style', // Gets set dynamically all the time, also effected by dx display code
                          ];
 
 var getUniqueAttributesReduction = function (attributes, node) {
