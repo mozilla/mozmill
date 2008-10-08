@@ -132,9 +132,22 @@ MozMillController.prototype.open = function(url){
   this.type(new elementslib.ID(this.window.document, 'urlbar'), url);
   events.triggerKeyEvent(el, 'keypress', '13', true, false, false, false,false); 
 };
-MozMillController.prototype.keypress = function(el, keycode){
+MozMillController.prototype.keypress = function(el, keycode, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown){
+  if (!controlKeyDown){
+    var controlKeyDown = false;
+  }
+  if (!altKeyDown){
+    var altKeyDown = false;
+  }
+  if (!shiftKeyDown){
+    var shiftKeyDown = false
+  }
+  if (!metaKeyDown){
+    var metaKeyDown = false;
+  }
+  
   var element = el.getNode();
-  events.triggerKeyEvent(element, 'keypress', keycode, true, false, false, false,false);
+  events.triggerKeyEvent(element, 'keypress', keycode, true, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown);  
 };
 
 MozMillController.prototype.click = function(el){

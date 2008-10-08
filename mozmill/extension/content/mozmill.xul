@@ -75,6 +75,7 @@ function switchFocus(elem)
         <menuitem label="New Boilerplate" oncommand="genBoiler();"/>
         <menuitem id="copyout" label="Show Copyable Output" 
           oncommand="accessOutput();" type="checkbox" checked="false"/>
+        <menuseparator/>
       </menupopup>
     </button>
 	<toolbarseparator/>
@@ -101,6 +102,7 @@ function switchFocus(elem)
       <tab label="Editor"/>
       <tab label="Output"/>
       <tab label="Performance"/>
+      <tab label="Events"/>
     </tabs>
     
     <tabpanels flex="1" id="mmtabs">
@@ -114,6 +116,9 @@ function switchFocus(elem)
       </tabpanel>
       <tabpanel id="performancetab">
   		  <hbox flex="1" id="perfOut" class="a" style="overflow:auto">Waiting...</hbox>
+      </tabpanel>
+      <tabpanel id="eventstab">
+      	<textbox id="eventsOut" value="" multiline="true" style="width:98%;height:100%" flex="1"/>
       </tabpanel>
     </tabpanels>
   </tabbox>
