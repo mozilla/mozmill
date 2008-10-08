@@ -63,7 +63,7 @@ function getXPath(node, path) {
 }
 function getXULXpath (el, xml) {
   // Add XUL Code
-  // Docs http://developer.mozilla.org/en/Using_XPath
+  // Docs http://developer.mozilla.org/en/Using_XPath 
   //return '/XULXPath/'
 	var xpath = '';
 	var pos, tempitem2;

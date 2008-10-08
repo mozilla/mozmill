@@ -1,19 +1,19 @@
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
+var results = {}; Components.utils.import('resource://mozmill/modules/results.js', results);
 
-controller = mozmill.getPreferencesController();
+
+var setupModule = function(module) {
+  module.controller = mozmill.getPreferencesController(); 
+}
 
 var test_TabsTab = function() {
   // Click on Tab tab
   controller.click(new elementslib.Elem( controller.tabs.Tabs.button ));
-  controller.sleep(1000);  
-
-  // Set to Links in New Window.
-  // e = new elementslib.XPATH(controller.window.document, '/prefwindow[@id='BrowserPreferences']/prefpane[@id='paneTabs']/vbox[@id='linksOpenInBox']/radiogroup[@id='linkTargeting']/radio[1]')
-  // controller.click(e)
-  
   // Warn on close
-  controller.click(new elementslib.ID(controller.window.document, 'warnCloseMultiple'));
+  var warnElem = new elementslib.ID(controller.window.document, 'warnCloseMultiple');
+  controller.waitForElement(warnElem);
+  controller.click(warnElem);
   // Warn on opening many windows
   controller.click(new elementslib.ID(controller.window.document, 'warnOpenMany'));
   // Show the tab bar

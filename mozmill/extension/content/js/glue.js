@@ -1,3 +1,30 @@
+
+var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
+var results = {}; Components.utils.import('resource://mozmill/modules/results.js', results);
+// var utils = {}; Components.utils.import('resouce://mozmill/modules/utils.js', utils);
+
+// Set UI Listeners in frame
+function stateListener (state) {
+  if (state != 'test') {  
+    $('runningStatus').textContent = 'Status: '+state;
+    results.write(state)
+  }
+}
+frame.events.addListener('setState', stateListener);
+function testListener (test) {
+  $('runningStatus').textContent = 'Status: Running test: '+test.__name__;
+  results.write('Started running test: '+test.__name__);
+}
+frame.events.addListener('setTest', testListener);
+function passListener (text) {
+  results.write('Pass: '+text, 'green');
+}
+frame.events.addListener('pass', passListener);
+function failListener (text) {
+  results.write('Fail: '+text, 'red');
+}
+frame.events.addListener('fail', failListener);
+
 function openFile(){
   var openFn = utils.openFile(window);
   if (openFn){
@@ -34,7 +61,29 @@ function closeFile() {
 
 function runFile(){
   $('runningStatus').textContent = 'Status: Running File...';
-  utils.runFile(window);
+  var nsIFilePicker = Components.interfaces.nsIFilePicker;
+  var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+  //define the file picker window
+  fp.init(window, "Select a File", nsIFilePicker.modeOpen);
+  fp.appendFilter("JavaScript Files","*.js");
+  //show the window
+  var res = fp.show();
+  //if we got a file
+  if (res == nsIFilePicker.returnOK){
+    var thefile = fp.file;
+    //create the paramObj with a files array attrib
+    var paramObj = {};
+    paramObj.files = [];
+    paramObj.files.push(thefile.path);
+
+    //Move focus to output tab
+    //w.document.getElementById('mmtabs').setAttribute("selectedIndex", 2);
+    //send it into the JS test framework to run the file
+    var collector = new frame.Collector();
+    var module = collector.initTestModule(thefile.path);
+    var runner = new frame.Runner(collector);
+    runner.runTestModule(module);
+  }
   $('runningStatus').textContent = 'Status: See Output Tab...';
 }
 
