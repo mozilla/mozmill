@@ -314,6 +314,7 @@ var MozMilldx = new function() {
       throw err;
     }
     
+    return elemText;
   }
   
     this.dxToggle = function(){
@@ -396,18 +397,20 @@ var MozMilldx = new function() {
        if (e.altKey && e.shiftKey && (e.charCode == 199)){
            copyToClipboard($('dxDisplay').value);
        }
-       else if (e.charCode != 0){
+       else {
+         $('eventsOut').value += "-----\n";
          $('eventsOut').value += "Shift Key: "+ e.shiftKey + "\n";
          $('eventsOut').value += "Control Key: "+ e.ctrlKey + "\n";
          $('eventsOut').value += "Alt Key: "+ e.altKey + "\n";
          $('eventsOut').value += "Meta Key: "+ e.metaKey + "\n\n";
          
          var ctrlString = "";
-         ctrlString += "Controller:\ncontroller.keypress(element,"+e.charCode+",";
+         ctrlString += MozMilldx.evtDispatch(e);
+         ctrlString += "Controller: controller.keypress(element,"+e.charCode+",";
          ctrlString += e.ctrlKey.toString()+",";
          ctrlString += e.altKey.toString()+",";
          ctrlString += e.shiftKey.toString()+",";
-         ctrlString += e.metaKey.toString()+");\n\n";
+         ctrlString += e.metaKey.toString()+");\n";
          
          ctrlString = ctrlString.replace(/undefined/g, "false");         
          $('eventsOut').value += ctrlString;
