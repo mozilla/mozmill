@@ -329,7 +329,6 @@ var MozMilldx = new function() {
     //Since the click event does things like firing twice when a double click goes also
     //and can be obnoxious im enabling it to be turned off and on with a toggle check box
     this.dxOn = function() {
-      $('eventsOut').value = "";
       $('inspectClickSelection').disabled = true;
       $('domExplorer').setAttribute('label', 'Disable Inspector');
       //defined the click method, default to dblclick
@@ -393,24 +392,10 @@ var MozMilldx = new function() {
     
     //Copy inspector output to clipboard if alt,shift,c is pressed
     this.clipCopy = function(e){
-       if (e.altKey && e.shiftKey && (e.charCode == 199)){
+       if (e.altKey && e.shiftKey){
+         if (e.charCode == 199){
            copyToClipboard($('dxDisplay').value);
-       }
-       else if (e.charCode != 0){
-         $('eventsOut').value += "Shift Key: "+ e.shiftKey + "\n";
-         $('eventsOut').value += "Control Key: "+ e.ctrlKey + "\n";
-         $('eventsOut').value += "Alt Key: "+ e.altKey + "\n";
-         $('eventsOut').value += "Meta Key: "+ e.metaKey + "\n\n";
-         
-         var ctrlString = "";
-         ctrlString += "Controller:\ncontroller.keypress(element,"+e.charCode+",";
-         ctrlString += e.ctrlKey.toString()+",";
-         ctrlString += e.altKey.toString()+",";
-         ctrlString += e.shiftKey.toString()+",";
-         ctrlString += e.metaKey.toString()+");\n\n";
-         
-         ctrlString = ctrlString.replace(/undefined/g, "false");         
-         $('eventsOut').value += ctrlString;
+         }
        }
     }
     
