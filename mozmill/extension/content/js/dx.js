@@ -23,6 +23,7 @@ var dom = {}; Components.utils.import('resource://mozmill/stdlib/dom.js', dom);
 var objects = {}; Components.utils.import('resource://mozmill/stdlib/objects.js', objects);
 var json2 = {}; Components.utils.import('resource://mozmill/stdlib/json2.js', json2);
 var r = {}; Components.utils.import('resource://mozmill/modules/results.js', r);
+var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 
 var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
            .getService(Components.interfaces.nsIWindowMediator);
@@ -372,16 +373,10 @@ var MozMilldx = new function() {
         $('domExplorer').setAttribute('label', 'Enable Inspector');
         //$('dxContainer').style.display = "none";
         //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
-         var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
-                             .getService(Components.interfaces.nsIWindowMediator)
-                             .getEnumerator("");
-          while(enumerator.hasMoreElements()) {
-            var win = enumerator.getNext();
-            //if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
-            if (win.title != 'MozMill IDE'){
-              this.dxRecursiveUnBind(win, clickMethod);
-            }
-          }
+        for each(win in utils.getWindows()) {
+          this.dxRecursiveUnBind(win, clickMethod);
+        }
+        
     }
     
     this.getFoc = function(e){
