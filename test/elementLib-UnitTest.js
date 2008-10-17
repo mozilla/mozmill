@@ -2,8 +2,6 @@ var elementslib = {};
 Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 var mozmill = {}; 
 Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
-var results = {};
-Components.utils.import('resource://mozmill/modules/results.js', results);
 
 var test_foo = function(){
   var controller = mozmill.getBrowserController();
@@ -17,7 +15,6 @@ var test_foo = function(){
   var image = new elementslib.XPath(controller.window.content.document, "/html/body[@id='firstrun']/div[@id='wrapper']/div[@id='doc']/div[@id='main-feature']/h2/img");
   controller.waitForElement(image);
   controller.sleep(1000);
-  //results.write ("caught first image");
 
   // Test content - ID detection
   e = new elementslib.ID(content, "return");

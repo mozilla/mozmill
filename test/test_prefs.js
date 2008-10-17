@@ -1,7 +1,5 @@
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
-var results = {}; Components.utils.import('resource://mozmill/modules/results.js', results);
-
 
 var setupModule = function(module) {
   module.controller = mozmill.getPreferencesController(); 
