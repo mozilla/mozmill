@@ -8,6 +8,7 @@
 title="&title.label;">
 
 <script src="mozmill.js"/>
+<script src="output.js"/>
 <script src="js/lib/getXPath.js"/>
 <script src="js/dx.js"/>
 <script src="js/recorder.js"/>
@@ -112,7 +113,7 @@ function switchFocus(elem)
         </hbox>
       </tabpanel>
       <tabpanel id="outputtab" flex="1">
-        <hbox flex="1" id="resOut" orient="vertical" style="overflow:auto">Waiting...</hbox>
+		<hbox flex="1" id="resOut" orient="vertical" style="overflow:auto">Waiting...</hbox>
       </tabpanel>
       <tabpanel id="performancetab">
   		  <hbox flex="1" id="perfOut" class="a" style="overflow:auto">Waiting...</hbox>

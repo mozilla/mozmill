@@ -3,27 +3,27 @@ var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', f
 var results = {}; Components.utils.import('resource://mozmill/modules/results.js', results);
 // var utils = {}; Components.utils.import('resouce://mozmill/modules/utils.js', utils);
 
-// Set UI Listeners in frame
-function stateListener (state) {
-  if (state != 'test') {  
-    $('runningStatus').textContent = 'Status: '+state;
-    results.write(state)
-  }
-}
-frame.events.addListener('setState', stateListener);
-function testListener (test) {
-  $('runningStatus').textContent = 'Status: Running test: '+test.__name__;
-  results.write('Started running test: '+test.__name__);
-}
-frame.events.addListener('setTest', testListener);
-function passListener (text) {
-  results.write('Pass: '+text, 'green');
-}
-frame.events.addListener('pass', passListener);
-function failListener (text) {
-  results.write('Fail: '+text, 'red');
-}
-frame.events.addListener('fail', failListener);
+// // Set UI Listeners in frame
+// function stateListener (state) {
+//   if (state != 'test') {  
+//     $('runningStatus').textContent = 'Status: '+state;
+//     results.write(state)
+//   }
+// }
+// frame.events.addListener('setState', stateListener);
+// function testListener (test) {
+//   $('runningStatus').textContent = 'Status: Running test: '+test.__name__;
+//   results.write('Started running test: '+test.__name__);
+// }
+// frame.events.addListener('setTest', testListener);
+// function passListener (text) {
+//   results.write('Pass: '+text, 'green');
+// }
+// frame.events.addListener('pass', passListener);
+// function failListener (text) {
+//   results.write('Fail: '+text, 'red');
+// }
+// frame.events.addListener('fail', failListener);
 
 function openFile(){
   var openFn = utils.openFile(window);

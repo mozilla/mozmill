@@ -41,6 +41,7 @@ var EXPORTED_SYMBOLS = ["MozMillController", "sleep", "waitForEval"];
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
+var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
                 .getService(Components.interfaces.nsIAppShellService)
@@ -113,7 +114,6 @@ function waitForElement(elem, timeout, interval) {
 
 var MozMillController = function (window) {
   // TODO: Check if window is loaded and block until it has if it hasn't.
-  
   this.window = window;
   if ( window.document.documentElement != undefined ) {
     // waitForEval("typeof(subject.document.documentElement.getAttribute) == 'function'", 10000, 100, window)
@@ -124,13 +124,13 @@ var MozMillController = function (window) {
       this.windowtype = window.document.documentElement.getAttribute('windowtype');
     }
   }
-  
 }
 MozMillController.prototype.open = function(url){
   this.window.openLocation(url);
   var el = new elementslib.ID(this.window.document, 'urlbar').getNode();
   this.type(new elementslib.ID(this.window.document, 'urlbar'), url);
   events.triggerKeyEvent(el, 'keypress', '13', true, false, false, false,false); 
+  frame.events.pass('open()');
 };
 MozMillController.prototype.keypress = function(el, keycode, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown){
   if (!controlKeyDown){
@@ -154,6 +154,7 @@ MozMillController.prototype.click = function(el){
     //this.window.focus();
     var element = el.getNode();
     if (!element){ 
+      frame.events.fail('click()');
       throw new Error("could not find element " + el.getInfo());     
       return false; 
     }     
@@ -163,6 +164,7 @@ MozMillController.prototype.click = function(el){
     //launch the click on firefox chrome
     if (element.baseURI.indexOf('chrome://') != -1){
       element.click();
+      frame.events.pass('click()');
       return true;
     }
 
@@ -198,7 +200,11 @@ MozMillController.prototype.click = function(el){
           }
       }
     }
-    catch(err){ return false; }
+    catch(err){ 
+      frame.events.fail('click()'); 
+      return false; 
+      }
+    frame.events.pass('click()');
     return true;    
 };
 
@@ -210,6 +216,7 @@ MozMillController.prototype.type = function (el, text){
   //this.window.focus();
   var element = el.getNode();
   if (!element){ 
+    frame.events.fail('type()');
     throw new Error("could not find element " + el.getInfo());     
     return false; 
   } 
@@ -251,8 +258,12 @@ MozMillController.prototype.type = function (el, text){
   //Another wierd chrome thing?
   try {
     events.triggerEvent(element, 'change', true);
-  }catch(err){}
+  }catch(err){
+    frame.events.fail('type()');
+    return false
+  }
    
+  frame.events.pass('type()');
   return true;
 };
 
@@ -261,6 +272,7 @@ MozMillController.prototype.select = function (el) {
   //this.window.focus();
   element = el.getNode();
   if (!element){ 
+    frame.events.fail('select()');
     throw new Error("could not find element " + el.getInfo());     
     return false; 
   } 
@@ -296,8 +308,10 @@ MozMillController.prototype.select = function (el) {
    }
  }
  if (optionToSelect == null){
+   frame.events.fail('select()');
    return false;
  }
+ frame.events.pass('select()');
  return true;
 };
 
@@ -306,6 +320,7 @@ MozMillController.prototype.mousedown = function (el){
   //this.window.focus();
   var mdnElement = el.getNode();
   events.triggerMouseEvent(mdnElement, 'mousedown', true);    
+  frame.events.pass('mousedown()');
   return true;
 };
 
@@ -313,6 +328,7 @@ MozMillController.prototype.mouseup = function (el){
   //this.window.focus();
   var mupElement = el.getNode();
   events.triggerMouseEvent(mdnElement, 'mupElement', true);  
+  frame.events.pass('mouseup()');
   return true;
 };
 
@@ -320,6 +336,7 @@ MozMillController.prototype.mouseover = function (el){
   //this.window.focus();
   var mdnElement = el.getNode();
   events.triggerMouseEvent(mdnElement, 'mouseover', true);  
+  frame.events.pass('mouseover()');
   return true;
 };
 
@@ -327,6 +344,7 @@ MozMillController.prototype.mouseout = function (el){
   //this.window.focus();
   var moutElement = el.getNode();
   events.triggerMouseEvent(moutElement, 'mouseout', true);
+  frame.events.pass('mouseout()');
   return true;
 };
 
@@ -334,16 +352,19 @@ MozMillController.prototype.mouseout = function (el){
 MozMillController.prototype.goBack = function(){
   //this.window.focus();
   this.window.history.back();
+  frame.events.pass('goBack()');
   return true;
 }
 MozMillController.prototype.goForward = function(){
   //this.window.focus();
   this.window.history.forward();
+  frame.events.pass('goForward()');
   return true;
 }
 MozMillController.prototype.refresh = function(){
   //this.window.focus();
   this.window.location.reload(true);
+  frame.events.pass('refresh()');
   return true;
 }
 
@@ -366,6 +387,7 @@ MozMillController.prototype.doubleClick = function(el) {
    //this.window.focus();
    var element = element.getNode();
    if (!element){ 
+    frame.events.fail('doubleClick()');
     throw new Error("could not find element " + el.getInfo());     
     return false; 
    } 
@@ -373,6 +395,7 @@ MozMillController.prototype.doubleClick = function(el) {
    events.triggerMouseEvent(element, 'dblclick', true);
    events.triggerEvent(element, 'blur', false);
  
+   frame.events.pass('doubleClick()');
    return true;
 };
 
@@ -388,20 +411,32 @@ MozMillController.prototype.assertText = function (el, text) {
   var n = el.getNode();
   var validator = text;
   try{
-    if (n.innerHTML.indexOf(validator) != -1){ return true; }
+    if (n.innerHTML.indexOf(validator) != -1){ 
+      frame.events.pass('assertText()');
+      return true; 
+      }
     if (n.hasChildNodes()){
       for(var m = n.firstChild; m != null; m = m.nextSibling) {
-        if (m.innerHTML.indexOf(validator) != -1){ return true; }
-        if (m.value.indexOf(validator) != -1){ return true; }
+        if (m.innerHTML.indexOf(validator) != -1){ 
+          frame.events.pass('assertText()');
+          return true; 
+          }
+        if (m.value.indexOf(validator) != -1){ 
+          frame.events.pass('assertText()');
+          return true; 
+          }
       }
     }
   }
   catch(error){
+    frame.events.fail('assertText()');
     throw new Error("could not validate element " + el.getInfo()+" with text "+ text);
     return false;
   }
+  frame.events.fail('assertText()');
   throw new Error("could not validate element " + el.getInfo()+" with text "+ text);
   return false;
+  
 };
 
 //Assert that a specified node exists
@@ -409,9 +444,11 @@ MozMillController.prototype.assertNode = function (el) {
   //this.window.focus();
   var element = el.getNode();
   if (!element){ 
+    frame.events.fail('assertNode()');
     throw new Error("could not find element " + el.getInfo());     
     return false; 
   }
+  frame.events.pass('assertNode()');
   return true;
 };
 
@@ -420,8 +457,10 @@ MozMillController.prototype.assertNodeNotExist = function (el) {
   //this.window.focus();
   var element = el.getNode();
   if (!element){ 
+    frame.events.pass('assertNodeNotExist()');
     return true; 
   }
+  frame.events.fail('assertNodeNotExist()');
   throw new Error("Unexpectedly found element " + el.getInfo());     
   return false;
 };
@@ -432,7 +471,11 @@ MozMillController.prototype.assertValue = function (el, value) {
   var n = el.getNode();
   var validator = value;
 
-  if (n.value.indexOf(validator) != -1){ return true; }
+  if (n.value.indexOf(validator) != -1){
+    frame.events.pass('assertValue()');
+    return true; 
+    }
+  frame.events.fail('assertValue()');
   throw new Error("could not validate element " + el.getInfo()+" with value "+ value);
   return false;
 };
@@ -441,9 +484,15 @@ MozMillController.prototype.assertValue = function (el, value) {
 MozMillController.prototype.assertJS = function (js) {
   //this.window.focus();
   var result = eval(js);
-  if (result){ return result; }
+  if (result){ 
+    frame.events.pass('assertJS()');
+    return result; 
+  }
   
-  else{ throw new Error("javascript assert was not succesful"); }
+  else{ 
+    frame.events.fail('assertJS()');
+    throw new Error("javascript assert was not succesful"); 
+    return result;}
 };
 
 //Assert that a provided value is selected in a select element
@@ -452,7 +501,11 @@ MozMillController.prototype.assertSelected = function (el, value) {
   var n = el.getNode();
   var validator = value;
 
-  if (n.options[n.selectedIndex].value == validator){ return true; }
+  if (n.options[n.selectedIndex].value == validator){ 
+    frame.events.pass('assertSelected()');
+    return true; 
+    }
+  frame.events.fail('assertSelected()');
   throw new Error("could not assert value for element " + el.getInfo()+" with value "+ value);
   return false;
 };
@@ -462,9 +515,12 @@ MozMillController.prototype.assertChecked = function (el) {
   //this.window.focus();
   var n = el.getNode();
 
-  if (n.checked == true){ return true; }
+  if (n.checked == true){ 
+    frame.events.pass('assertChecked()');
+    return true; 
+    }
+  frame.events.fail('assertChecked()');
   throw new Error("assert failed for checked element " + el.getInfo());
-  
   return false;
 };
 
@@ -472,6 +528,7 @@ MozMillController.prototype.assertChecked = function (el) {
 MozMillController.prototype.assertProperty = function(el, attrib, val) {
   var element = el.getNode();
   if (!element){
+    frame.events.fail('assertProperty()');
     throw new Error("could not find element " + el.getInfo());     
     return false;
   }
@@ -487,6 +544,12 @@ MozMillController.prototype.assertProperty = function(el, attrib, val) {
   if (String(value) == String(val)) {
     res = true;
   }
+  if (res) {
+    frame.events.pass('assertProperty()');
+  } else {
+    frame.events.fail('assertProperty()');
+  }
+  
   return res;
 };
 
@@ -497,6 +560,7 @@ MozMillController.prototype.assertImageLoaded = function (el) {
   //this.window.focus();
   var img = el.getNode();
   if (!img || img.tagName != 'IMG') {
+    frame.events.fail('assertImageLoaded()');
     return false;
   }
   var comp = img.complete;
@@ -530,6 +594,12 @@ MozMillController.prototype.assertImageLoaded = function (el) {
   else {
     ret = true;
   }
+  if (ret) {
+    frame.events.pass('assertImageLoaded()');
+  } else {
+    frame.events.fail('assertImageLoaded()');
+  }
+  
   return ret;
 };
 
@@ -537,10 +607,12 @@ MozMillController.prototype.assertImageLoaded = function (el) {
 MozMillController.prototype.mouseMove = function (doc, start, dest) {
   //if one of these elements couldn't be looked up
   if (typeof start != 'object'){
+    frame.events.fail('mouseMove()');
     throw new Error("received bad coordinates");     
     return false;
   }
   if (typeof dest != 'object'){
+    frame.events.fail('mouseMove()');
     throw new Error("received bad coordinates");     
     return false;
   }
@@ -548,6 +620,7 @@ MozMillController.prototype.mouseMove = function (doc, start, dest) {
   //Do the initial move to the drag element position
   events.triggerMouseEvent(doc.body, 'mousemove', true, start[0], start[1]);
   events.triggerMouseEvent(doc.body, 'mousemove', true, dest[0], dest[1]);  
+  frame.events.pass('mouseMove()');
   return true;
 }
 
@@ -559,10 +632,12 @@ MozMillController.prototype.dragDropElemToElem = function (dstart, ddest) {
   
   //if one of these elements couldn't be looked up
   if (!drag){
+    frame.events.fail('dragDropElemToElem()');
     throw new Error("could not find element " + drag.getInfo());     
     return false;
   }
   if (!dest){
+    frame.events.fail('dragDropElemToElem()');
     throw new Error("could not find element " + dest.getInfo());     
     return false;
   }
@@ -579,7 +654,7 @@ MozMillController.prototype.dragDropElemToElem = function (dstart, ddest) {
   events.triggerMouseEvent(drag.ownerDocument.body, 'mousemove', true, destCoords.left, destCoords.top); 
   events.triggerMouseEvent(dest, 'mouseup', true, destCoords.left, destCoords.top);
   events.triggerMouseEvent(dest, 'click', true, destCoords.left, destCoords.top);
-  
+  frame.events.pass('dragDropElemToElem()');
   return true;
 }
 
