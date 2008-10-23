@@ -12,6 +12,7 @@ mozmill/extension/config_build.sh
 mozmill/extension/install.rdf
 mozmill/extension/mozmill@mozilla.doslash.org
 mozmill/extension/readme.txt
+mozmill/extension/zipexclude.lst
 mozmill/extension/build/chrome.manifest
 mozmill/extension/build/install.rdf
 mozmill/extension/build/mozmill.xpi
@@ -19,6 +20,7 @@ mozmill/extension/build/readme.txt
 mozmill/extension/content/dxwindow.xul
 mozmill/extension/content/mozmill.js
 mozmill/extension/content/mozmill.xul
+mozmill/extension/content/output.js
 mozmill/extension/content/overlay.js
 mozmill/extension/content/overlay.xul
 mozmill/extension/content/overlay_tb.xul
@@ -60,6 +62,7 @@ mozmill/extension/resource/stdlib/os.js
 mozmill/extension/resource/stdlib/strings.js
 mozmill/extension/resource/stdlib/withs.js
 mozmill/extension/skin/overlay.css
+test/elementLib-UnitTest.js
 test/first_sunbird_test.js
 test/first_thunderbird_test.js
 test/test_assert.js

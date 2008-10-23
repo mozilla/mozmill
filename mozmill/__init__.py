@@ -48,4 +48,18 @@ global_settings.MOZILLA_PLUGINS.append(os.path.join(basedir, 'extension'))
 
 sys.argv.append('--launch')
 
-main = jsbridge.main
+main = lambda : jsbridge.cli(shell=False)
+# 
+# def main():
+#     bridge, moz = jsbridge.start()
+#     moz.start()
+#     print 'Started:', ' '.join(moz.command)
+#     try:
+#         moz.wait()
+#     except KeyboardInterrupt:
+#         moz.stop()
+#     if jsbridge.settings['MOZILLA_CREATE_NEW_PROFILE']:
+#         shutil.rmtree(jsbridge.settings['MOZILLA_PROFILE'])
+#     else:
+#         install.clean_prefs_file(os.path.join(jsbridge.settings['MOZILLA_PROFILE'], 'prefs.js'))
+# 
