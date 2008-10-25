@@ -46,7 +46,38 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 global_settings.MOZILLA_PLUGINS.append(os.path.join(basedir, 'extension'))
 
-sys.argv.append('--launch')
+passes = []
+fails = []
 
-main = lambda : jsbridge.cli(shell=False)
+pass_listener = lambda obj: passes.append(obj)
+fail_listener = lambda obj: fails.append(obj)
+
+def endRunner_listener(obj):
+    print 'Passed '+str(len(passes))+' :: Failed '+str(len(fails))        
+
+def main():
+    parser = jsbridge.parser
+    parser.remove_option('-l')
+    parser.set_default('launch', True)
+    parser.add_option("-t", "--test", 
+                      dest="test", default=False,
+                      help="Run test file or directory.")
+    
+    (options, args) = parser.parse_args()
+    if options.test:
+        moz = jsbridge.cli(shell=False, options=options, block=False)
+        
+        from jsbridge import network, events
+        from jsbridge.jsobjects import JSObject
+        
+        events.add_listener(pass_listener, event='mozmill.pass')
+        events.add_listener(fail_listener, event='mozmill.fail') 
+        events.add_listener(endRunner_listener, event='mozmill.endRunner')
+        
+        frame = JSObject(network.bridge, "Components.utils.import('resource://mozmill/modules/frame.js')")
+        frame.runTestFile(options.test)
+        moz.stop()
+    else:    
+        jsbridge.cli(shell=False, options=options)
+
 

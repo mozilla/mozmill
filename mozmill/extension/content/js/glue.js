@@ -79,10 +79,11 @@ function runFile(){
     //Move focus to output tab
     //w.document.getElementById('mmtabs').setAttribute("selectedIndex", 2);
     //send it into the JS test framework to run the file
-    var collector = new frame.Collector();
-    var module = collector.initTestModule(thefile.path);
-    var runner = new frame.Runner(collector);
-    runner.runTestModule(module);
+    // var collector = new frame.Collector();
+    // var module = collector.initTestModule(thefile.path);
+    // var runner = new frame.Runner(collector);
+    // runner.runTestModule(module);
+    frame.runTestFile(thefile.path);
   }
   $('runningStatus').textContent = 'Status: See Output Tab...';
 }

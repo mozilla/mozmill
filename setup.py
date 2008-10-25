@@ -41,7 +41,7 @@ desc = """UI Automation tool for Mozilla applications."""
 summ = """A tool for full UI automation of Mozilla applications. API is a decendent from a port of the windmill controller API."""
 
 PACKAGE_NAME = "mozmill"
-PACKAGE_VERSION = "0.1pre"
+PACKAGE_VERSION = "1.0beta3"
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,

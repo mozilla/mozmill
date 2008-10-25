@@ -35,7 +35,8 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','events', 'jsbridge'];
+var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','events', 
+                        'jsbridge', 'runTestDirectory', 'runTestFile'];
 
 var os = {};      Components.utils.import('resource://mozmill/stdlib/os.js', os);
 var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js', strings);
@@ -108,6 +109,10 @@ events.setTest = function (test) {
   events.currentTest = test;
   events.fireEvent('setTest', test);
 }
+events.endTest = function (test) {
+  events.currentTest = null;
+  events.fireEvent('endTest', test);
+}
 events.setModule = function (v) {
   return stateChangeBase( null, [function (v) {return (v.__file__ != undefined)}], 
                           'currentModule', 'setModule', v);
@@ -148,7 +153,7 @@ try {
 }
 
 if (jsbridge) {
-  events.addListener('', function (name, obj) {jsbridge.Events.fireEvent(name, obj)} );
+  events.addListener('', function (name, obj) {jsbridge.Events.fireEvent('mozmill.'+name, obj)} );
 }
 
 function Collector () {
@@ -211,12 +216,20 @@ Collector.prototype.initTestDirectory = function (directory) {
 
 function Runner (collector) {
   this.collector = collector;
+  events.fireEvent('startRunner', null);
+}
+Runner.prototype.runTestDirectory = function (directory) {
+  
 }
 Runner.prototype.runTestFile = function (directory) {
   if ( !arrays.inArray(this.test_modules_by_filename, directory) ) {
     this.collector.initTestModule(directory);
   }
+  
   this.runTestModule(this.collector.test_modules_by_filename[directory]);
+}
+Runner.prototype.end = function () {
+  events.fireEvent('endRunner', null);
 }
 Runner.prototype.getDependencies = function (module) {
   var alldeps = [];
@@ -233,6 +246,18 @@ Runner.prototype.getDependencies = function (module) {
   }
   return alldeps;
 }
+Runner.prototype.wrapper = function (func, arg) {
+  try {
+    if (arg) {
+      func(arg);
+    } else {
+      func();
+    }
+  } catch (e) {
+    events.fail({'exception':e, 'test':func})
+  }
+}
+
 Runner.prototype._runTestModule = function (module) {
   var attrs = [];
   for (i in module) {
@@ -243,7 +268,7 @@ Runner.prototype._runTestModule = function (module) {
   if (module.__setupModule__) { 
     events.setState('setupModule');
     events.setTest(module.__setupModule__)
-    module.__setupModule__(module); 
+    this.wrapper(module.__setupModule__, module); 
     }
   for (i in module.__tests__) {
     var test = module.__tests__[i];
@@ -251,21 +276,22 @@ Runner.prototype._runTestModule = function (module) {
     if (module.__setupTest__) { 
       events.setState('setupTest');
       events.setTest(module.__setupTest__);
-      module.__setupTest__(test); 
+      this.wrapper(module.__setupTest__, test); 
       }  
     events.setState('test'); 
     events.setTest(test);
-    test();
+    this.wrapper(test)
     if (module.__teardownTest___) {
       events.setState('teardownTest'); 
       events.setTest(module.__teardownTest__)
-      module.__teardownTest__(test); 
+      this.wrapper(module.__teardownTest__, test); 
       }
+    events.endTest(test)
   }
   if (module.__teardownModule__) {
     events.setState('teardownModule');
     events.setTest(module.__teardownModule__)
-    module.__teardownModule__(module);
+    this.wrapper(module.__teardownModule__, module);
   }
 }
 Runner.prototype.runTestModule = function (module) {
@@ -276,4 +302,16 @@ Runner.prototype.runTestModule = function (module) {
     this._runTestModule(dep);
   }
   this._runTestModule(module);
+}
+
+var runTestDirectory = function (dir) {
+  runner = new Runner(new Collector());
+  runner.runTestDirectory(dir);
+  runner.end();
+}
+var runTestFile = function (filename) {
+  runner = new Runner(new Collector());
+  runner.runTestFile(filename);
+  runner.end();
+  // return true;
 }
