@@ -35,7 +35,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','events'];
+var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','events', 'jsbridge'];
 
 var os = {};      Components.utils.import('resource://mozmill/stdlib/os.js', os);
 var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js', strings);
@@ -126,13 +126,29 @@ events.fireEvent = function (name, obj) {
       this.listeners[name][i](obj);
     }
   }
+  for each(listener in this.globalListeners) {
+    listener(name, obj);
+  }
 }
+events.globalListeners = [];
 events.addListener = function (name, listener) {
   if (this.listeners[name]) {
     this.listeners[name].push(listener);
+  } else if (name =='') {
+    this.globalListeners.push(listener)
   } else {
     this.listeners[name] = [listener];
   }
+}
+
+try {
+  var jsbridge = {}; Components.utils.import('resource://jsbridge/modules/server.js', jsbridge);
+} catch(err) {
+  var jsbridge = null;
+}
+
+if (jsbridge) {
+  events.addListener('', function (name, obj) {jsbridge.Events.fireEvent(name, obj)} );
 }
 
 function Collector () {
