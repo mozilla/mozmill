@@ -111,7 +111,14 @@ events.setTest = function (test) {
 }
 events.endTest = function (test) {
   events.currentTest = null;
-  events.fireEvent('endTest', test);
+  obj = {'filename':events.currentModule.__file__, 
+         'passed':test.__passes__.length,
+         'failed':test.__fails__.length,
+         'passes':test.__passes__,
+         'fails' :test.__fails__,
+         'name'  :test.__name__,
+         }
+  events.fireEvent('endTest', obj);
 }
 events.setModule = function (v) {
   return stateChangeBase( null, [function (v) {return (v.__file__ != undefined)}], 
@@ -264,11 +271,13 @@ Runner.prototype._runTestModule = function (module) {
     attrs.push(i);
   }
   events.setModule(module);
+  module.__status__ = 'running';
   module.registeredFunctions = registeredFunctions;
   if (module.__setupModule__) { 
     events.setState('setupModule');
-    events.setTest(module.__setupModule__)
+    events.setTest(module.__setupModule__);
     this.wrapper(module.__setupModule__, module); 
+    events.endTest(module.__setupModule__);
     }
   for (i in module.__tests__) {
     var test = module.__tests__[i];
@@ -277,22 +286,26 @@ Runner.prototype._runTestModule = function (module) {
       events.setState('setupTest');
       events.setTest(module.__setupTest__);
       this.wrapper(module.__setupTest__, test); 
+      events.endTest(module.__setupTest__);
       }  
     events.setState('test'); 
     events.setTest(test);
-    this.wrapper(test)
+    this.wrapper(test);
     if (module.__teardownTest___) {
       events.setState('teardownTest'); 
-      events.setTest(module.__teardownTest__)
+      events.setTest(module.__teardownTest__);
       this.wrapper(module.__teardownTest__, test); 
+      events.endTest(module.__teardownTest__);
       }
     events.endTest(test)
   }
   if (module.__teardownModule__) {
     events.setState('teardownModule');
-    events.setTest(module.__teardownModule__)
+    events.setTest(module.__teardownModule__);
     this.wrapper(module.__teardownModule__, module);
+    events.endTest(module.__teardownModule__);
   }
+  module.__status__ = 'done'
 }
 Runner.prototype.runTestModule = function (module) {
   events.setState('dependencies')

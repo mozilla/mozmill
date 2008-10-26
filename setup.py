@@ -38,7 +38,7 @@
 from setuptools import setup, find_packages
 
 desc = """UI Automation tool for Mozilla applications."""
-summ = """A tool for full UI automation of Mozilla applications. API is a decendent from a port of the windmill controller API."""
+summ = """A tool for full UI automation of Mozilla applications."""
 
 PACKAGE_NAME = "mozmill"
 PACKAGE_VERSION = "1.0beta3"
@@ -49,7 +49,7 @@ setup(name=PACKAGE_NAME,
       summary=summ,
       author='Mozilla, Mikeal Rogers',
       author_email='mikeal.rogers@gmail.com',
-      #url='',
+      url='http://code.google.com/p/mozmill',
       license='http://www.apache.org/licenses/LICENSE-2.0',
       packages=find_packages(),
       entry_points="""

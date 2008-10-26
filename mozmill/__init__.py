@@ -38,9 +38,13 @@
 import os
 import sys
 import urllib
+import logging
+logger = logging.getLogger('mozmill')
 
 import jsbridge
 from jsbridge import global_settings
+from jsbridge import network, events
+from jsbridge.jsobjects import JSObject
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
@@ -49,11 +53,32 @@ global_settings.MOZILLA_PLUGINS.append(os.path.join(basedir, 'extension'))
 passes = []
 fails = []
 
-pass_listener = lambda obj: passes.append(obj)
-fail_listener = lambda obj: fails.append(obj)
+def endTest_listener(test):
+    if test['failed'] > 0:
+        print 'Test Failed : '+test['name']+' in '+test['filename']
+        fails.append(test)
+    else:
+        passes.append(test)
 
 def endRunner_listener(obj):
-    print 'Passed '+str(len(passes))+' :: Failed '+str(len(fails))        
+    print 'Passed '+str(len(passes))+' :: Failed '+str(len(fails))
+
+class LoggerListener(object):
+    cases = {
+        'mozmill.pass':   lambda obj: logger.debug('Test Pass: '+repr(obj)),
+        'mozmill.fail':   lambda obj: logger.error('Test Failure: '+repr(obj)),
+    }
+    
+    class default(object):
+        def __init__(self, eName): self.eName = eName
+        def __call__(self, obj): logger.info(self.eName+' :: '+repr(obj))
+    
+    def __call__(self, eName, obj):
+        if self.cases.has_key(eName):
+            self.cases[eName](obj)
+        else:
+            self.cases[eName] = self.default(eName)
+            self.cases[eName](obj)
 
 def main():
     parser = jsbridge.parser
@@ -62,22 +87,50 @@ def main():
     parser.add_option("-t", "--test", 
                       dest="test", default=False,
                       help="Run test file or directory.")
+    parser.add_option("-l", "--logfile",
+                      dest="logfile", default=None,
+                      help="Log all events to file.")
+    parser.add_option("--show-errors",
+                      dest="showerrors", default=False, action="store_true",
+                      help="Print logger errors to the console.")
+    parser.add_option("--shell",
+                      dest="shell", default=False, action="store_true",
+                      help="Bring up the jsbridge shell. For debugging only, incompatible with (-t, --test)")
     
     (options, args) = parser.parse_args()
+    
+    events.add_global_listener(LoggerListener())
+    
+    if options.showerrors:
+        outs = logging.StreamHandler()
+        outs.setLevel(logging.ERROR)
+        formatter = logging.Formatter("%(levelname)s - %(message)s")
+        outs.setFormatter(formatter)
+        logger.addHandler(outs)
+    
+    if options.logfile:
+        logging.basicConfig(filename=options.logfile, filemode='w', level=logging.DEBUG)
+        
+    if (not options.showall) and (not options.showerrors) and (not options.logfile):
+        logging.basicConfig(level=logging.CRITICAL)
+    
     if options.test:
+        
+        if options.showall:
+            logging.basicConfig(level=logging.DEBUG)
+            options.showall = False
+        
         moz = jsbridge.cli(shell=False, options=options, block=False)
         
-        from jsbridge import network, events
-        from jsbridge.jsobjects import JSObject
-        
-        events.add_listener(pass_listener, event='mozmill.pass')
-        events.add_listener(fail_listener, event='mozmill.fail') 
+        events.add_listener(endTest_listener, event='mozmill.endTest')
         events.add_listener(endRunner_listener, event='mozmill.endRunner')
         
         frame = JSObject(network.bridge, "Components.utils.import('resource://mozmill/modules/frame.js')")
         frame.runTestFile(options.test)
         moz.stop()
+        if len(fails) > 0:
+            sys.exit(1)
     else:    
-        jsbridge.cli(shell=False, options=options)
+        jsbridge.cli(shell=options.shell, options=options)
 
 

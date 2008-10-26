@@ -115,16 +115,17 @@ var checkChrome = function() {
  }*/
  
  var genBoiler = function(w){
-   w.document.getElementById('editorInput').value = 
-   "var elementslib = {}; \nComponents.utils.import('resource://mozmill/modules/elementslib.js', elementslib);\n"+
-   "var mozmill = {}; \nComponents.utils.import('resource://mozmill/modules/mozmill.js', mozmill);\n\n"+
-   "var test_foo = function(){\n"+
-   " var controller = mozmill.getBrowserController();\n"+
-   " controller.open('http://www.google.com');\n"+
-   " controller.sleep(2000);\n"+
-   " controller.type(new elementslib.Name(controller.window.content.document, 'q'), 'Mozilla');\n"+
-   " controller.click(new elementslib.Name(controller.window.content.document, 'btnG'));\n"+
-   "}";
+   w.document.getElementById('editorInput').value = '' +
+   "var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);\n" +
+   "var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);\n" +
+   "\n" +
+   "var setupModule = function(module) {\n" +
+   "  module.controller = mozmill.getBrowserController();\n" +
+   "}\n" +
+   "\n" +
+   "var testFoo = function(){\n" +
+   "  controller.open('http://www.google.com');\n" +
+   "}\n"
  }
  var runFile = function(w){
    //define the interface
