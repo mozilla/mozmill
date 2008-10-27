@@ -40,8 +40,8 @@ var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler",
                         "getFile", "Copy", "getWindows", "runEditor", 
                         "runFile", "getWindowByTitle"];
 
-var jstest = {}; 
-Components.utils.import('resource://mozmill/modules/jstest.js', jstest);
+// var jstest = {}; 
+// Components.utils.import('resource://mozmill/modules/jstest.js', jstest);
 
 function Copy (obj) {
   for (n in obj) {
@@ -147,7 +147,7 @@ var checkChrome = function() {
      //Move focus to output tab
      //w.document.getElementById('mmtabs').setAttribute("selectedIndex", 2);
      //send it into the JS test framework to run the file
-     jstest.runFromFile(thefile.path);
+     // jstest.runFromFile(thefile.path);
    }
  };
  
@@ -156,7 +156,7 @@ var checkChrome = function() {
    //Move focus to output tab
    //w.document.getElementById('mmtabs').setAttribute("selectedIndex", 2);
    //send it into the JS test framework to run the file   
-   jstest.runFromString(data);
+   // jstest.runFromString(data);
  };
 
  var saveFile = function(w){
