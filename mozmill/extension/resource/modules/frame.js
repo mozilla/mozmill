@@ -57,7 +57,7 @@ var loadFile = function(path) {
   var file = Components.classes["@mozilla.org/file/local;1"]
                        .createInstance(Components.interfaces.nsILocalFile);
   file.initWithPath(path);
-  uri = ios.newFileURI(file).spec;
+  var uri = ios.newFileURI(file).spec;
 
   var module = {};  
   module.registeredFunctions = registeredFunctions;
@@ -154,13 +154,13 @@ events.addListener = function (name, listener) {
 }
 
 try {
-  var jsbridge = {}; Components.utils.import('resource://jsbridge/modules/server.js', jsbridge);
+  var jsbridge = {}; Components.utils.import('resource://jsbridge/modules/events.js', jsbridge);
 } catch(err) {
   var jsbridge = null;
 }
 
 if (jsbridge) {
-  events.addListener('', function (name, obj) {jsbridge.Events.fireEvent('mozmill.'+name, obj)} );
+  events.addListener('', function (name, obj) {jsbridge.fireEvent('mozmill.'+name, obj)} );
 }
 
 function Collector () {
