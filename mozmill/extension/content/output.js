@@ -1,24 +1,40 @@
 
 var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 
-var typeColorMap = {
-  "fail":'lightred',
-  "pass":'lightgreen',
-  "test":'lightyellow',
-}
+// var typeColorMap = {
+//   "fail":'lightred',
+//   "pass":'lightgreen',
+//   "test":'lightyellow',
+// }
 
 var createCell = function (t, obj, message) {
-  var color = typeColorMap[t];
-  if (color == undefined) {
-    var color = 'lightyellow';
-  }
+  // var color = typeColorMap[t];
+  // if (color == undefined) {
+  //   var color = 'lightyellow';
+  // }
+  // 
   
   var r = window.document.getElementById("resOut");
   var msg = window.document.createElement('hbox');
-  msg.setAttribute("class", "resultrow");
-  msg.style.background = color;
+  msg.setAttribute("class", t);
+  //msg.style.background = color;
   msg.textContent = t+' :: '+message;
+  msg.setAttribute("orient", "vertical");
+
+  var stuff = window.document.createElement('hbox');
+  stuff.textContent = "Some more stuff";
+  stuff.style.width = "100%";
+  msg.appendChild(stuff);
+  
+  msg.addEventListener('mousedown', function(e){ 
+    if (e.target.style.height == "15px"){
+      e.target.style.height = "50px";
+    }
+    else { e.target.style.height = "15px"; }
+    }, true);
+    
   r.insertBefore(msg, r.childNodes[0]);
+  updateOutput();
 }
 
 var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);

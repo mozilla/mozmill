@@ -39,3 +39,30 @@ var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js
 var $ = function(id) {
    return document.getElementById(id);
 };
+
+var updateOutput = function(){
+  //get the checkboxes
+  var pass = $('outPass');
+  var fail = $('outFail');
+  var info = $('outTest');
+
+  //get the collections
+  var passCollect = window.document.getElementsByClassName('pass');
+  var failCollect = window.document.getElementsByClassName('fail');
+  var infoCollect = window.document.getElementsByClassName('test');
+  
+  //set the htmlcollection display property in accordance item.checked
+  var setDisplay = function(item, collection){
+    for (var i = 0; i < collection.length; i++){
+      if (item.getAttribute('checked') == "true"){
+        collection[i].style.display = "block";
+      } else {
+        collection[i].style.display = "none";
+      }
+    }
+  };
+  
+  setDisplay(pass, passCollect);
+  setDisplay(fail, failCollect);
+  setDisplay(info, infoCollect);
+};
