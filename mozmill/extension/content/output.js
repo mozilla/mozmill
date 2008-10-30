@@ -19,16 +19,21 @@ var createCell = function (t, obj, message) {
     count = "15";
     msg.textContent = t+' :: '+message;
   }
-  else{
+  else {
     //add each piece in its own hbox
     msg.textContent = t+' :: '+message['function'] + ' ( Toggle.. )';
+    //For each attribute
     for (i in message){
+      //if the value isn't undefined
+      if (message[i] != undefined){
         var stuff = window.document.createElement('hbox');
         stuff.setAttribute("style", "font-weight:normal");
         stuff.textContent = i +": " +message[i];
         stuff.style.width = "100%";
         msg.appendChild(stuff);
         count += 20;
+      }
+      else { count += 20; }
     }
   }
   
