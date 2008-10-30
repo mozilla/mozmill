@@ -1,31 +1,22 @@
 
 var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
-
-// var typeColorMap = {
-//   "fail":'lightred',
-//   "pass":'lightgreen',
-//   "test":'lightyellow',
-// }
+var json2 = {}; Components.utils.import('resource://mozmill/stdlib/json2.js', json2);
 
 var createCell = function (t, obj, message) {
-  // var color = typeColorMap[t];
-  // if (color == undefined) {
-  //   var color = 'lightyellow';
-  // }
-  // 
-  
+
   var r = window.document.getElementById("resOut");
   var msg = window.document.createElement('hbox');
   msg.setAttribute("class", t);
   //msg.style.background = color;
-  msg.textContent = t+' :: '+message;
+  var serialized = json2.JSON.stringify(message);
+  msg.textContent = t+' :: '+serialized;
   msg.setAttribute("orient", "vertical");
 
-  var stuff = window.document.createElement('hbox');
-  stuff.textContent = "Some more stuff";
-  stuff.style.width = "100%";
-  msg.appendChild(stuff);
-  
+  // var stuff = window.document.createElement('hbox');
+  // stuff.textContent = "";
+  // stuff.style.width = "100%";
+  // msg.appendChild(stuff);
+
   msg.addEventListener('mousedown', function(e){ 
     if (e.target.style.height == "15px"){
       e.target.style.height = "50px";
