@@ -8,20 +8,38 @@ var createCell = function (t, obj, message) {
   var msg = window.document.createElement('hbox');
   msg.setAttribute("class", t);
   //msg.style.background = color;
-  var serialized = json2.JSON.stringify(message);
-  msg.textContent = t+' :: '+serialized;
+  //var serialized = json2.JSON.stringify(message);
   msg.setAttribute("orient", "vertical");
-
-  // var stuff = window.document.createElement('hbox');
-  // stuff.textContent = "";
-  // stuff.style.width = "100%";
-  // msg.appendChild(stuff);
-
+  msg.setAttribute("style", "font-weight:bold");
+  
+  //Adding each of the message attributes dynamically
+  var count = 0; //height
+  //if message isn't an object
+  if (typeof(message) == "string"){
+    count = "15";
+    msg.textContent = t+' :: '+message;
+  }
+  else{
+    //add each piece in its own hbox
+    msg.textContent = t+' :: '+message['function'] + ' ( Toggle.. )';
+    for (i in message){
+        var stuff = window.document.createElement('hbox');
+        stuff.setAttribute("style", "font-weight:normal");
+        stuff.textContent = i +": " +message[i];
+        stuff.style.width = "100%";
+        msg.appendChild(stuff);
+        count += 20;
+    }
+  }
+  
+  //Add the event listener for clicking on the box to see more info
   msg.addEventListener('mousedown', function(e){ 
     if (e.target.style.height == "15px"){
-      e.target.style.height = "50px";
+      e.target.style.height = count+"px";
     }
-    else { e.target.style.height = "15px"; }
+    else { 
+      e.target.style.height = "15px"; 
+    }
     }, true);
     
   r.insertBefore(msg, r.childNodes[0]);
