@@ -182,7 +182,7 @@ var assertNotUndefined = function (value, comment) {
 }
 
 var assertNaN = function (value, comment) {
-  if (NaN(value)) {
+  if (isNaN(value)) {
     frame.events.pass({'function':'jum.assertNaN', 'comment':comment,
                        'value':ifJSONable(value)});
     return true;
@@ -194,7 +194,7 @@ var assertNaN = function (value, comment) {
 }
 
 var assertNotNaN = function (value, comment) {
-  if (!NaN(value)) {
+  if (!isNaN(value)) {
     frame.events.pass({'function':'jum.assertNotNaN', 'comment':comment,
                        'value':ifJSONable(value)});
     return true;
