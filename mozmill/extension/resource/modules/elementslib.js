@@ -87,6 +87,9 @@ ElemBase.prototype.nodeSearch = function(d, func, s) {
     var element = null;
     //inline function to recursively find the element in the DOM, cross frame.
     var recurse = function(w, func, s){
+     if (w == null){
+       return;
+     }
      //do the lookup in the current window
      try{ element = func.call(w, s);}
      catch(err){ element = null; }
