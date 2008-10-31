@@ -63,27 +63,23 @@ function runFile(){
   $('runningStatus').textContent = 'Status: Running File...';
   var nsIFilePicker = Components.interfaces.nsIFilePicker;
   var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
-  //define the file picker window
   fp.init(window, "Select a File", nsIFilePicker.modeOpen);
   fp.appendFilter("JavaScript Files","*.js");
-  //show the window
   var res = fp.show();
-  //if we got a file
   if (res == nsIFilePicker.returnOK){
-    var thefile = fp.file;
-    //create the paramObj with a files array attrib
-    var paramObj = {};
-    paramObj.files = [];
-    paramObj.files.push(thefile.path);
+    frame.runTestFile(fp.file.path);
+  }
+  $('runningStatus').textContent = 'Status: See Output Tab...';
+}
 
-    //Move focus to output tab
-    //w.document.getElementById('mmtabs').setAttribute("selectedIndex", 2);
-    //send it into the JS test framework to run the file
-    // var collector = new frame.Collector();
-    // var module = collector.initTestModule(thefile.path);
-    // var runner = new frame.Runner(collector);
-    // runner.runTestModule(module);
-    frame.runTestFile(thefile.path);
+function runDirectory(){
+  $('runningStatus').textContent = 'Status: Running File...';
+  var nsIFilePicker = Components.interfaces.nsIFilePicker;
+  var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
+  fp.init(window, "Select a Directory", nsIFilePicker.modeGetFolder);
+  var res = fp.show();
+  if (res == nsIFilePicker.returnOK){
+    frame.runTestDirectory(fp.file.path);
   }
   $('runningStatus').textContent = 'Status: See Output Tab...';
 }

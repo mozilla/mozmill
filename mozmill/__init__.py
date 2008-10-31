@@ -38,6 +38,7 @@
 import os
 import sys
 import urllib
+from time import sleep
 import logging
 logger = logging.getLogger('mozmill')
 
@@ -126,7 +127,12 @@ def main():
         events.add_listener(endRunner_listener, event='mozmill.endRunner')
         
         frame = JSObject(network.bridge, "Components.utils.import('resource://mozmill/modules/frame.js')")
-        frame.runTestFile(os.path.abspath(os.path.expanduser(options.test)))
+        
+        test = os.path.abspath(os.path.expanduser(options.test))
+        if os.path.isdir(test):
+            frame.runTestDirectory(test)
+        else:
+            frame.runTestFile(test)
         moz.stop()
         if len(fails) > 0:
             sys.exit(1)

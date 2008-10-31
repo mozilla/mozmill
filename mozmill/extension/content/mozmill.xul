@@ -69,6 +69,7 @@ function switchFocus(elem)
     <button type="menu" id="testMenu" label="Tests">
       <menupopup id="action-popup">
         <menuitem label="Run Test File" oncommand="runFile();"/>
+        <menuitem label="Run Test Directory" oncommand="runDirectory();"/>
         <menuseparator/>
         <menuitem key="run-editor" label="Run Editor" oncommand="runEditor();"/>
         <menuitem label="Clear Editor" oncommand="$('editorInput').value = '';"/>

@@ -75,7 +75,10 @@ function failListener (text) {
   createCell('fail', text, text)
 }
 frame.events.addListener('fail', failListener);
-
+function logListener (obj) {
+  createCell('log', obj, obj)
+}
+frame.events.addListener('log', logListener);
 
 // 
 // var write = function(s, color){

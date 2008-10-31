@@ -216,7 +216,6 @@ MozMillController.prototype.type = function (el, text){
   //this.window.focus();
   var element = el.getNode();
   if (!element){ 
-    frame.events.fail('type()');
     throw new Error("could not find element " + el.getInfo());     
     return false; 
   } 
@@ -258,10 +257,7 @@ MozMillController.prototype.type = function (el, text){
   //Another wierd chrome thing?
   try {
     events.triggerEvent(element, 'change', true);
-  }catch(err){
-    frame.events.fail('type()');
-    return false
-  }
+  }catch(err){ }
    
   frame.events.pass('type()');
   return true;

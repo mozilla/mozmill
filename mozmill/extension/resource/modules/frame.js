@@ -36,7 +36,7 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','events', 
-                        'jsbridge', 'runTestDirectory', 'runTestFile'];
+                        'jsbridge', 'runTestDirectory', 'runTestFile', 'log'];
 
 var os = {};      Components.utils.import('resource://mozmill/stdlib/os.js', os);
 var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js', strings);
@@ -110,6 +110,7 @@ events.setTest = function (test) {
   events.fireEvent('setTest', test);
 }
 events.endTest = function (test) {
+  test.status = 'done';
   events.currentTest = null;
   obj = {'filename':events.currentModule.__file__, 
          'passed':test.__passes__.length,
@@ -151,6 +152,10 @@ events.addListener = function (name, listener) {
   } else {
     this.listeners[name] = [listener];
   }
+}
+
+var log = function (obj) {
+  events.fireEvent('log', obj);
 }
 
 try {
@@ -201,6 +206,7 @@ Collector.prototype.initTestModule = function (filename) {
       this.test_modules_by_name[test_module[i]] = test_module;
     }
   }
+  test_module.status = 'loaded';
   this.test_modules_by_filename[filename] = test_module;
   return test_module;
 }
@@ -226,14 +232,22 @@ function Runner (collector) {
   events.fireEvent('startRunner', null);
 }
 Runner.prototype.runTestDirectory = function (directory) {
+  this.collector.initTestDirectory(directory);
   
-}
-Runner.prototype.runTestFile = function (directory) {
-  if ( !arrays.inArray(this.test_modules_by_filename, directory) ) {
-    this.collector.initTestModule(directory);
+  for (i in this.collector.test_modules_by_filename) {
+    var test = this.collector.test_modules_by_filename[i];
+    if (test.status != 'done') {
+      this.runTestModule(test);
+    }
   }
+}
+Runner.prototype.runTestFile = function (filename) {
+  // if ( !arrays.inArray(this.test_modules_by_filename, directory) ) {
+  //   this.collector.initTestModule(directory);
+  // }
+  this.collector.initTestModule(filename);
   
-  this.runTestModule(this.collector.test_modules_by_filename[directory]);
+  this.runTestModule(this.collector.test_modules_by_filename[filename]);
 }
 Runner.prototype.end = function () {
   events.fireEvent('endRunner', null);
@@ -312,7 +326,9 @@ Runner.prototype.runTestModule = function (module) {
   var deps = this.getDependencies(module);
   for (i in deps) {
     var dep = deps[i];
-    this._runTestModule(dep);
+    if (dep.status != 'done') {
+      this._runTestModule(dep);
+    }
   }
   this._runTestModule(module);
 }
