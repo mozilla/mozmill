@@ -35,7 +35,9 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ['listDirectory', 'getFileForPath'];
+var EXPORTED_SYMBOLS = ['listDirectory', 'getFileForPath', 'abspath', 'getPlatform'];
+
+
 
 function listDirectory (file) {
   // file is the given directory (nsIFile)
@@ -55,6 +57,25 @@ function getFileForPath (path) {
                        .createInstance(Components.interfaces.nsILocalFile);
   file.initWithPath(path);
   return file;
+}
+
+function abspath (rel, file) {  
+  var relSplit = rel.split('/');
+  if (relSplit[0] == '..' && !file.isDirectory()) {
+    file = file.parent;
+  }
+  for each(p in relSplit) {
+    if (p == '..') {
+      file = file.parent;
+    } else if (p == '.'){
+      if (!file.isDirectory()) {
+        file = file.parent;
+      }
+    } else {
+      file.append(p);
+    }
+  }
+  return file.path;
 }
 
 function getPlatform () {

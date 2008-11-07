@@ -40,12 +40,15 @@ var EXPORTED_SYMBOLS = ['Logger', 'getLogger'];
 function Logger (name) {
   this._name = name;
   this._all = [];
+  this.frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', this.frame);
 }
 Logger.prototype.log = function (level, message) {
   var x = {"level":level, "message":message};
   this._all.push(x);
   this.onLogMessage(x);
   this.listeners = [];
+  x.loggerName = this._name;
+  this.frame.events.fireEvent('logger', x);
 }
 Logger.prototype.onLogMessage = function (logMessage) {
   for (i in this.listeners) {
@@ -61,7 +64,6 @@ Logger.prototype.error = function (message) { this.log('ERROR', message) };
 Logger.prototype.exception = function (message) {
   var stack = new Error().stack.split(/\n/);
   this.log('EXCEPTION', stack.map(function(val) { return val; }).join("\n")+'MESSAGE: '+message);
-  
   throw Components.results.NS_ERROR_ABORT;
 }
 

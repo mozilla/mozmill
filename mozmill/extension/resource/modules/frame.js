@@ -88,7 +88,7 @@ function stateChangeBase (possibilties, restrictions, target, cmeta, v) {
   }
   // Fire jsbridge notification, logging notification, listener notifications
   events[target] = v;
-  events.fireEvent(cmeta, v);
+  events.fireEvent(cmeta, target);
 }
 
 var events = {
@@ -175,7 +175,13 @@ function Collector () {
   this.test_modules_by_name = {};
   this.requirements_run = {};
   this.all_requirements = [];
+  this.loaded_directories = [];
   this.testing = [];
+  var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
+  this.logger = new logging.Logger('Collector');
+}
+Collector.prototype.getModule = function (name) {
+  return this.test_modules_by_name[name];
 }
 Collector.prototype.initTestModule = function (filename) {
   var test_module = loadFile(filename);
@@ -199,6 +205,9 @@ Collector.prototype.initTestModule = function (filename) {
         test_module.__tests__.push(test_module[i]);
       }
     }
+    if (i == "RELATIVE_ROOT") {
+      test_module.__root_path__ = os.abspath(test_module[i], os.getFileForPath(filename));
+    }
     if (i == "MODULE_REQUIRES") {
       test_module.__requirements__ = test_module[i];
       this.all_requirements.push.apply(backstage, test_module[i]);
@@ -208,6 +217,7 @@ Collector.prototype.initTestModule = function (filename) {
       this.test_modules_by_name[test_module[i]] = test_module;
     }
   }
+  test_module.collector = this;
   test_module.status = 'loaded';
   this.test_modules_by_filename[filename] = test_module;
   return test_module;
@@ -215,12 +225,17 @@ Collector.prototype.initTestModule = function (filename) {
 Collector.prototype.initTestDirectory = function (directory) {
   var r = this;
   function recursiveModuleLoader(dfile) {
+    r.loaded_directories.push(directory);
     var dfiles = os.listDirectory(dfile);
     for (i in dfiles) {
       var f = dfiles[i];
-      if ( f.isDirectory() && !withs.startsWith(f.leafName, '.') ) {
-        recursiveModuleLoader(f.path);
-      } else if ( withs.startsWith(f.leafName, "test") && withs.endsWith(f.leafName, ".js") ) {
+      if ( f.isDirectory() && 
+           !withs.startsWith(f.leafName, '.') && 
+           !arrays.inArray(r.loaded_directories, f.path) ) {
+        recursiveModuleLoader(os.getFileForPath(f.path));
+      } else if ( withs.startsWith(f.leafName, "test") && 
+                  withs.endsWith(f.leafName, ".js")    &&
+                  !arrays.inArray(r.test_modules_by_filename, f.path) ) {
         r.initTestModule(f.path);
       }
       r.testing.push(f.path);
@@ -232,6 +247,8 @@ Collector.prototype.initTestDirectory = function (directory) {
 function Runner (collector) {
   this.collector = collector;
   events.fireEvent('startRunner', null);
+  var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
+  this.logger = new logging.Logger('Runner');
 }
 Runner.prototype.runTestDirectory = function (directory) {
   this.collector.initTestDirectory(directory);
@@ -248,13 +265,13 @@ Runner.prototype.runTestFile = function (filename) {
   //   this.collector.initTestModule(directory);
   // }
   this.collector.initTestModule(filename);
-  
   this.runTestModule(this.collector.test_modules_by_filename[filename]);
 }
 Runner.prototype.end = function () {
   events.fireEvent('endRunner', null);
 }
 Runner.prototype.getDependencies = function (module) {
+  events.setState('dependencies');
   var alldeps = [];
   function recursiveGetDeps (mod) {
     for (i in mod.__dependencies__) {
@@ -288,7 +305,6 @@ Runner.prototype._runTestModule = function (module) {
   }
   events.setModule(module);
   module.__status__ = 'running';
-  module.registeredFunctions = registeredFunctions;
   if (module.__setupModule__) { 
     events.setState('setupModule');
     events.setTest(module.__setupModule__);
@@ -324,12 +340,16 @@ Runner.prototype._runTestModule = function (module) {
   module.__status__ = 'done'
 }
 Runner.prototype.runTestModule = function (module) {
-  events.setState('dependencies')
-  var deps = this.getDependencies(module);
-  for (i in deps) {
-    var dep = deps[i];
-    if (dep.status != 'done') {
-      this._runTestModule(dep);
+  if (module.__requirements__ != undefined) {
+    if (!arrays.inArray(this.collector.loaded_directories, module.__root_path__)) {
+      this.collector.initTestDirectory(module.__root_path__);
+    }
+    var deps = this.getDependencies(module);
+    for (i in deps) {
+      var dep = deps[i];
+      if (dep.status != 'done') {
+        this._runTestModule(dep);
+      }
     }
   }
   this._runTestModule(module);
