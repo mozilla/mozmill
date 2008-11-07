@@ -10,8 +10,7 @@ title="&title.label;">
 <script src="mozmill.js"/>
 <script src="output.js"/>
 <script src="dx.js"/>
-<script src="js/recorder.js"/>
-<script src="js/glue.js"/>
+<script src="menus.js"/>
 
 <keyset>
   <key id="open-key" modifiers="accel" key="o" oncommand="openFile();"/>

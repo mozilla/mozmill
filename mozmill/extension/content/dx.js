@@ -30,9 +30,9 @@ DomInspectorConnector.prototype.grab = function(){
 }  
 DomInspectorConnector.prototype.evtDispatch = function(e) {
   var i = inspection.inspectElement(e);
-  displayText = 'Controller: '+e.controllerText+'\n';
-  displayText += 'Element   : '+e.elementText+'\n';
-  displayText += 'Validation: '+String(e.validation)+'\n';
+  displayText = 'Controller: '+i.controllerText+'\n';
+  displayText += 'Element   : '+i.elementText+'\n';
+  displayText += 'Validation: '+String(i.validation)+'\n';
   $('dxDisplay').value = displayText;
 }
 DomInspectorConnector.prototype.dxToggle = function(){

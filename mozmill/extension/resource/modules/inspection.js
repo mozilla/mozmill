@@ -308,14 +308,14 @@ var inspectElement = function(e){
   if ( isNotAnonymous(target) ) {  
     // Logic for which identifier to use is duplicated above
     if (target.id != "") {
-      elemText = "new elementslib.ID("+ r.documentString + ', "' + target.id + '");' + '\n';
+      elemText = "new elementslib.ID("+ r.documentString + ', "' + target.id + '");';
       var telem = new elementslib.ID(_document, target.id);
     } else if ((target.name != "") && (typeof(target.name) != "undefined")) {
-      elemText = "new elementslib.Name("+ r.documentString + ', "' + target.name + '");' + '\n';
+      elemText = "new elementslib.Name("+ r.documentString + ', "' + target.name + '");';
       var telem = new elementslib.Name(_document, target.name);
     } else if (target.nodeName == "A") {
       var linkText = removeHTMLTags(target.innerHTML);
-      elemText = "new elementslib.Link("+ r.documentString + ', "' + linkText + '");' + '\n';
+      elemText = "new elementslib.Link("+ r.documentString + ', "' + linkText + '");';
       var telem = new elementslib.Link(_document, linkText);
     } 
   }
@@ -328,13 +328,13 @@ var inspectElement = function(e){
     }      
     var telem = new elementslib.XPath(_document, stringXpath);
     if ( telem.getNode() == target ) {
-      elemText = "new elementslib.XPath("+ r.documentString + ', "' + stringXpath + '");' + '\n';
+      elemText = "new elementslib.XPath("+ r.documentString + ', "' + stringXpath + '");';
     }
   }
   // Fallback to Lookup
   if (telem == undefined || telem.getNode() != target) {
     var exp = getLookupExpression(_document, target);
-    elemText = "new elementslib.Lookup("+ r.documentString + ", '" + exp + "')" + '\n';
+    elemText = "new elementslib.Lookup("+ r.documentString + ", '" + exp + "')";
     var telem = new elementslib.Lookup(_document, exp);
   } 
   

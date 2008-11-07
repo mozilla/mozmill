@@ -39,19 +39,10 @@ var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib",
                         "getBrowserController", "newBrowserController", "getAddonsController",
                         "getPreferencesController", "wm"];
                         
-// "hash", "controller", "events", "timing", 
-// "results", "jstest", "utils", "elementslib", "getXPath"];
-
-//fleegix     = Components.utils.import('resource://mozmill/lib/fleegix_js/trunk/fleegix.js.uncompressed.js');
-// hash        = Components.utils.import('resource://mozmill/lib/fleegix_js/trunk/plugins/hash.js');
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 var events = {};      Components.utils.import('resource://mozmill/modules/events.js', events);
-// timing      = Components.utils.import('resource://mozmill/modules/timing.js');
-// results     = Components.utils.import('resource://mozmill/modules/results.js');
-// var jstest = {};      Components.utils.import('resource://mozmill/modules/jstest.js', jstest);
 var utils = {};       Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
-// getXPath    = Components.utils.import('resource://mozmill/lib/getXPath.js');
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
                 .getService(Components.interfaces.nsIAppShellService)
