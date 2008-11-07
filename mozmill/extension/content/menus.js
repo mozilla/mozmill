@@ -42,8 +42,10 @@ function openFile(){
   var openFn = utils.openFile(window);
   if (openFn){
     window.openFn = openFn;
-    $('saveMenu').removeAttribute("disabled");
+    //$('saveMenu').removeAttribute("disabled");
     $('closeMenu').removeAttribute("disabled");
+    $('editorMessage').innerHTML = "Loaded File: " + window.openFn;
+    $('reloadBtn').style.visibility = "visible";
   }
 }
 
@@ -51,14 +53,21 @@ function saveAsFile() {
   var openFn = utils.saveAsFile(window);
   if (openFn){
     window.openFn = openFn;
-    $('saveMenu').removeAttribute("disabled");
+    //$('saveMenu').removeAttribute("disabled");
     $('closeMenu').removeAttribute("disabled");
+    $('editorMessage').innerHTML = "Loaded File: " + window.openFn;
+    $('reloadBtn').style.visibility = "visible";
   }
 }
 
 function saveFile() {
-  if ($('saveMenu').getAttribute("disabled")){ return; }
+  //if ($('saveMenu').getAttribute("disabled")){ return; }
+  $('saveMenu').setAttribute("disabled", "true");
   utils.saveFile(window);
+}
+
+function changeEditor() {
+  $('saveMenu').setAttribute("disabled", "false");
 }
 
 function closeFile() {
@@ -69,6 +78,8 @@ function closeFile() {
    delete window.openFn;
    $('saveMenu').setAttribute("disabled","true");
    $('closeMenu').setAttribute("disabled","true");
+   $('editorMessage').innerHTML = 'Please load a test, or generate and save a new one..';
+   $('reloadBtn').style.visibility = "hidden";
  }
 }
 
@@ -97,14 +108,40 @@ function runDirectory(){
   $('runningStatus').textContent = 'Status: See Output Tab...';
 }
 
+function reloadFile(){
+   var data = utils.getFile(window.openFn);
+   $('editorInput').value = data;
+}
+
 function runEditor(){
-  $('runningStatus').textContent = 'Status: Running Editor...';
-  utils.runEditor(window);
-  $('runningStatus').textContent = 'Status: See Output Tab...';
+  var doRun = function(){
+    $('runningStatus').textContent = 'Status: Running Test...';
+    //utils.runEditor(window);
+    frame.runTestFile(window.openFn);
+    $('runningStatus').textContent = 'Status: See Output Tab...';
+  }
+  //If there isn't a file system pointer to a test open
+  if (!window.openFn){
+    alert('You must save this test to the file system before it can be run, See: File > Save As.');
+    return;
+  }
+  //if the test is open but hasn't been modified
+  if ($('saveMenu').getAttribute("disabled") == "true"){
+    doRun();
+  }
+  //if the test was modified
+  else {
+    really = confirm("To run this file you must save it, shall I do this for you?");
+    if (really){
+      saveFile();
+      doRun();
+    } else { return; }
+  }
 }
 
 function genBoiler(){
   utils.genBoiler(window);
+  $('editorMessage').innerHTML = "You must save this as a file before you run it..";
 }
 
 function logicalClear(){

@@ -100,8 +100,8 @@ function stateListener (state) {
 }
 frame.events.addListener('setState', stateListener);
 function testListener (test) {
-  createCell('test', test, 'Started running test: '+test.__name__)
-  $('runningStatus').textContent = 'Running test: '+test.__name__;
+  createCell('test', test, 'Started running test: '+test.name)
+  $('runningStatus').textContent = 'Running test: '+test.name;
 }
 frame.events.addListener('setTest', testListener);
 function passListener (text) {

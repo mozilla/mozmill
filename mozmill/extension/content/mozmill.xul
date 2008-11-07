@@ -4,7 +4,10 @@
 
 <!DOCTYPE window SYSTEM "chrome://mozmill/locale/mozmill.dtd">
 
-<window id="main" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul" 
+<window 
+id="main" 
+xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+xmlns:html="http://www.w3.org/1999/xhtml"
 title="&title.label;">
 
 <script src="mozmill.js"/>
@@ -69,8 +72,7 @@ function switchFocus(elem)
         <menuitem label="Run Test File" oncommand="runFile();"/>
         <menuitem label="Run Test Directory" oncommand="runDirectory();"/>
         <menuseparator/>
-        <menuitem key="run-editor" label="Run Editor" oncommand="runEditor();"/>
-        <menuitem label="Clear Editor" oncommand="$('editorInput').value = '';"/>
+        <menuitem key="run-editor" label="Run Loaded Test" oncommand="runEditor();"/>
         <menuseparator/>
         <menuitem label="New Boilerplate" oncommand="genBoiler();"/>
         <menuitem id="copyout" label="Show Copyable Output" 
@@ -106,7 +108,7 @@ function switchFocus(elem)
 <hbox class="m" flex="1">
   <tabbox flex="1">
     <tabs>
-      <tab label="Editor"/>
+      <tab label="Test"/>
       <tab label="Output"/>
       <tab label="Performance"/>
       <tab label="Events"/>
@@ -114,9 +116,12 @@ function switchFocus(elem)
     
     <tabpanels flex="1" id="mmtabs">
       <tabpanel flex="1">
-        <hbox flex="1">
-          <textbox id="editorInput" value="" multiline="true" style="width:98%;height:100%" flex="1"/>
-        </hbox>
+        <html:div>
+          <html:div id="editorMessage" style="font-weight:bold">Please load a test, or generate and save a new one..</html:div>
+          <html:input id="reloadBtn" type="button" value="Reload File" style="float:right;visibility:hidden" onclick="reloadFile();"/>
+        </html:div>
+        <html:br></html:br>
+        <textbox id="editorInput" value="" multiline="true" style="width:98%;height:90%" flex="1" onkeypress="changeEditor()"/>
       </tabpanel>
       <tabpanel id="outputtab" flex="1">
 		<hbox flex="1" id="resOut" orient="vertical" style="overflow:auto">Waiting...</hbox>
