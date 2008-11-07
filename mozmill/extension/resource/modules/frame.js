@@ -107,12 +107,15 @@ events.setTest = function (test) {
   test.__passes__ = [];
   test.__fails__ = [];
   events.currentTest = test;
-  events.fireEvent('setTest', test);
+  var obj = {'filename':events.currentModule.__file__,
+             'name':test.__name__,
+            }
+  events.fireEvent('setTest', obj);
 }
 events.endTest = function (test) {
   test.status = 'done';
   events.currentTest = null;
-  obj = {'filename':events.currentModule.__file__, 
+  var obj = {'filename':events.currentModule.__file__, 
          'passed':test.__passes__.length,
          'failed':test.__fails__.length,
          'passes':test.__passes__,
