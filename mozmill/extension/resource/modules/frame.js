@@ -41,7 +41,6 @@ var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','eve
 var os = {};      Components.utils.import('resource://mozmill/stdlib/os.js', os);
 var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js', strings);
 var arrays = {};  Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
-var results = {}; Components.utils.import('resource://mozmill/modules/results.js', results);
 var withs = {}; Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
 
 var ios = Components.classes["@mozilla.org/network/io-service;1"]

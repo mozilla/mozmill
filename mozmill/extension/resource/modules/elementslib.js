@@ -41,7 +41,6 @@ var EXPORTED_SYMBOLS = ["Elem", "ID", "Link", "XPath", "Name", "Anon", "AnonXPat
                        ];
 
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
-var mresults = {}; Components.utils.import('resource://mozmill/modules/results.js', mresults);
 var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js', strings);
 var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var json2 = {}; Components.utils.import('resource://mozmill/stdlib/json2.js', json2);
@@ -172,7 +171,8 @@ Link.prototype.getNodeForDocument = function (linkName) {
   
   //sometimes the windows won't have this function
   try { var links = this.document.getElementsByTagName('a'); }
-  catch(err){ mresults.write('Error: '+ err, 'lightred'); }
+  catch(err){ // ADD LOG LINE mresults.write('Error: '+ err, 'lightred'); 
+  }
   for (var i = 0; i < links.length; i++) {
     var el = links[i];
     //if (getText(el).indexOf(this.linkName) != -1) {
@@ -303,7 +303,6 @@ var _byAttrib = function (parent, attributes) {
   var nodes = parent.childNodes;
   for (i in nodes) {
     var n = nodes[i];
-    // mresults.write(n.getAttribute('label')+' || '+(n.getAttribute('label') == attributes.label))
     requirementPass = 0;
     requirementLength = 0;
     for (a in attributes) {
@@ -321,7 +320,6 @@ var _byAttrib = function (parent, attributes) {
     }
   }
   if (results.length == 0) {
-    // mresults.write(json2.JSON.stringify(attributes));
   }
   return _returnResult(results)
 }
@@ -357,9 +355,6 @@ var _byAnonAttrib = function (_document, parent, attributes) {
   if (results.length == 0) {
     resultsForNodes([n for each (n in parent.childNodes) if (n.getAttribute)])
     if (results.length == 0) {
-      // mresults.write('anon '+json2.JSON.stringify(attributes)+parent.childNodes.length);
-      // mresults.write('anon '+json2.JSON.stringify(attributes)+_document.getAnonymousNodes(parent).length);
-      // mresults.write('anon || '+json2.JSON.stringify(attributes));
     }
   }
   return _returnResult(results)
