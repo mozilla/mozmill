@@ -395,12 +395,6 @@ MozMillController.prototype.doubleClick = function(el) {
    return true;
 };
 
-asserts_lib = Components.utils.import('resource://mozmill/modules/asserts.js')
-
-for (name in asserts_lib) {
-  if (name != 'EXPORTED_SYMBOLS' && name != '_AssertFactory' && name != 'assertRegistry')
-  MozMillController.prototype[name] = asserts_lib[name];
-  }
 
 MozMillController.prototype.assertText = function (el, text) {
   //this.window.focus();
