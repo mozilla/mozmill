@@ -18,6 +18,7 @@ Copyright 2006-2007, Open Source Applications Foundation
 //*********************************/
 
 var inspection = {}; Components.utils.import('resource://mozmill/modules/inspection.js', inspection);
+var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 
 var DomInspectorConnector = function() {
   this.lastEvent = null;
@@ -92,7 +93,7 @@ DomInspectorConnector.prototype.dxOff = function() {
   }
 }
 DomInspectorConnector.prototype.getFoc = function(e){
-  this.dxOff();
+  disableDX();
   e.target.style.border = "";
   e.stopPropagation();
   e.preventDefault();
@@ -183,3 +184,11 @@ DomInspectorConnector.prototype.dxRecursiveUnBind = function(frame, clickMethod)
 }
 
 var MozMilldx = new DomInspectorConnector();
+
+// Scoping bug workarounds
+var enableDX = function () {
+  MozMilldx.dxOn();
+}
+var disableDX = function () {
+  MozMilldx.dxOff();
+}
