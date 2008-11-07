@@ -44,6 +44,7 @@ var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', 
 var dom = {}; Components.utils.import('resource://mozmill/stdlib/dom.js', dom);
 var objects = {}; Components.utils.import('resource://mozmill/stdlib/objects.js', objects);
 var json2 = {}; Components.utils.import('resource://mozmill/stdlib/json2.js', json2);
+var withs = {}; Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
 
 var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
            .getService(Components.interfaces.nsIWindowMediator);
@@ -151,7 +152,7 @@ var attributeToIgnore = ['focus', 'focused', 'selected', 'select', 'flex', // Ge
 
 var getUniqueAttributesReduction = function (attributes, node) {
   for (i in attributes) {
-    if ( node.getAttribute(i) == attributes[i] || arrays.inArray(attributeToIgnore, i) || arrays.inArray(attributeToIgnore, attributes[i])) {
+    if ( node.getAttribute(i) == attributes[i] || arrays.inArray(attributeToIgnore, i) || arrays.inArray(attributeToIgnore, attributes[i]) || i == 'id') {
       delete attributes[i];
     } 
   }
@@ -172,7 +173,7 @@ var getLookupExpression = function (_document, elem) {
 
 var getLookupForElem = function (_document, elem) {
   if ( !elemIsAnonymous(elem) ) {
-    if (elem.id != "") {  
+    if (elem.id != "" && !withs.startsWith(elem.id, 'panel')) {  
       identifier = {'name':'id', 'value':elem.id};
     } else if ((elem.name != "") && (typeof(elem.name) != "undefined")) {
       identifier = {'name':'name', 'value':elem.name};
@@ -344,7 +345,7 @@ var inspectElement = function(e){
   // displayText = "Controller: " + r.controllerString + '\n\n';
   if ( isNotAnonymous(target) ) {  
     // Logic for which identifier to use is duplicated above
-    if (target.id != "") {
+    if (target.id != "" && !withs.startsWith(target.id, 'panel')) {
       elemText = "new elementslib.ID("+ r.documentString + ', "' + target.id + '");';
       var telem = new elementslib.ID(_document, target.id);
     } else if ((target.name != "") && (typeof(target.name) != "undefined")) {
