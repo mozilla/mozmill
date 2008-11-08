@@ -156,7 +156,6 @@ var getUniqueAttributesReduction = function (attributes, node) {
       delete attributes[i];
     } 
   }
-  
   return attributes;
 }
 

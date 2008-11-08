@@ -112,6 +112,17 @@ function waitForElement(elem, timeout, interval) {
   waitForEval('subject.exists()', timeout, interval, elem);
 }
 
+var Menu = function (elements) {
+  for each(node in elements) {
+    if (node.tagName == "menu") {
+      this[node.getAttribute("label")] = new Menu(node.getElementsByTagName("menupopup")[0].childNodes);
+    } else if (node.tagName == "menuitem") {
+      this[node.getAttribute("label")] = node;
+    } 
+  }
+}
+
+
 var MozMillController = function (window) {
   // TODO: Check if window is loaded and block until it has if it hasn't.
   this.window = window;
@@ -124,6 +135,7 @@ var MozMillController = function (window) {
       this.windowtype = window.document.documentElement.getAttribute('windowtype');
     }
   }
+  this.menus = new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes);
 }
 MozMillController.prototype.open = function(url){
   this.window.openLocation(url);
