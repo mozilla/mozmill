@@ -52,7 +52,7 @@ DomInspectorConnector.prototype.evtDispatch = function(e) {
   displayText = 'Controller: '+i.controllerText+'\n';
   displayText += 'Element   : '+i.elementText+'\n';
   displayText += 'Validation: '+String(i.validation)+'\n';
-  $('dxDisplay').value = displayText;
+  $('dxDisplay').textContent = displayText;
 }
 DomInspectorConnector.prototype.dxToggle = function(){
   if ($('domExplorer').getAttribute('label') ==  'Disable Inspector'){
@@ -121,7 +121,7 @@ DomInspectorConnector.prototype.getFoc = function(e){
 //Copy inspector output to clipboard if alt,shift,c is pressed
 DomInspectorConnector.prototype.clipCopy = function(e){
    if (e.altKey && e.shiftKey && (e.charCode == 199)){
-       copyToClipboard($('dxDisplay').value);
+       copyToClipboard($('dxDisplay').textContent);
    }
    else {
      $('eventsOut').value += "-----\n";

@@ -78,7 +78,7 @@ function closeFile() {
    delete window.openFn;
    $('saveMenu').setAttribute("disabled","true");
    $('closeMenu').setAttribute("disabled","true");
-   $('editorMessage').innerHTML = 'Please load a test, or generate and save a new one..';
+   $('editorMessage').innerHTML = 'Please open a test, or generate and save a new one..';
    $('reloadBtn').style.visibility = "hidden";
  }
 }
@@ -156,12 +156,12 @@ function accessOutput(){
   var dx = $('dxContainer')
   var dxDisp = $('dxDisplay');
   
-  //if copyable output is shown
-  if (!copyOutputBox.getAttribute("checked")){
-   dx.style.display = 'none';
-   dxDisp.textContent = '';
-   return;
-  }
+  // //if copyable output is shown
+  //  if (!copyOutputBox.getAttribute("checked")){
+  //   dx.style.display = 'none';
+  //   dxDisp.textContent = '';
+  //   return;
+  //  }
   
   var n = $('outputtab');
   var txt = '';
@@ -176,5 +176,5 @@ function accessOutput(){
   if (txt == undefined){ return; }
   
   dx.style.display = 'block';
-  dxDisp.value = txt;
+  dxDisp.textContent = txt;
 }
