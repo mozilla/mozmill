@@ -101,8 +101,16 @@ function switchFocus(elem)
     Status: Ready...
   </hbox>
 </hbox>
-<html:div id="dxContainer" class="dx">
-  <description id="dxDisplay" style="-moz-user-select: text;"></description>
+<html:div id="dxContainer" class="dx" style="padding:3px;font-wight:bold;">
+  <html:strong>Element</html:strong>:: 
+  <description ondblclick="copyToClipboard(this.textContent);" id="dxElement" style="-moz-user-select: text;"></description>
+  <html:br></html:br>
+  <html:strong>Controller</html:strong>:: 
+  <description ondblclick="copyToClipboard(this.textContent);" id="dxController" style="-moz-user-select: text;"></description>
+  <html:br></html:br>
+  <html:strong>Validation</html:strong>:: 
+  <description ondblclick="copyToClipboard(this.textContent);" id="dxValidation" style="-moz-user-select: text;"></description>
+  <html:br></html:br>
   <html:input type="button" value="Close" style="position:relative;left:90%" onclick="this.parentNode.style.display = 'none';"/>
 </html:div>
 <hbox class="m" flex="1">
@@ -117,7 +125,7 @@ function switchFocus(elem)
     <tabpanels flex="1" id="mmtabs">
       <tabpanel flex="1">
         <html:div>
-          <html:div id="editorMessage" style="font-weight:bold">Please open a test, or generate and save a new one..</html:div>
+          <html:div id="editorMessage" style="font-weight:bold">Use the 'File' menu to open a test, or generate and save a new one..</html:div>
           <html:input id="reloadBtn" type="button" value="Reload File" style="float:right;visibility:hidden" onclick="reloadFile();"/>
         </html:div>
         <html:br></html:br>

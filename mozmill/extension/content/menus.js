@@ -78,7 +78,7 @@ function closeFile() {
    delete window.openFn;
    $('saveMenu').setAttribute("disabled","true");
    $('closeMenu').setAttribute("disabled","true");
-   $('editorMessage').innerHTML = 'Please open a test, or generate and save a new one..';
+   $('editorMessage').innerHTML = "Use the 'File' menu to open a test, or generate and save a new one..";
    $('reloadBtn').style.visibility = "hidden";
  }
 }
@@ -177,4 +177,9 @@ function accessOutput(){
   
   dx.style.display = 'block';
   dxDisp.textContent = txt;
+}
+
+var copyToClipboard = function(str){
+  const gClipboardHelper = Components.classes["@mozilla.org/widget/clipboardhelper;1"] .getService(Components.interfaces.nsIClipboardHelper); 
+  gClipboardHelper.copyString(str);
 }

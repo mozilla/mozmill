@@ -49,10 +49,13 @@ DomInspectorConnector.prototype.grab = function(){
 }  
 DomInspectorConnector.prototype.evtDispatch = function(e) {
   var i = inspection.inspectElement(e);
-  displayText = 'Controller: '+i.controllerText+'\n';
-  displayText += 'Element   : '+i.elementText+'\n';
-  displayText += 'Validation: '+String(i.validation)+'\n';
-  $('dxDisplay').textContent = displayText;
+  var dxC = i.controllerText;
+  var dxE = i.elementText;
+  var dxV = String(i.validation);
+
+  $('dxController').textContent = dxC;
+  $('dxValidation').textContent = dxV;
+  $('dxElement').textContent = dxE;
 }
 DomInspectorConnector.prototype.dxToggle = function(){
   if ($('domExplorer').getAttribute('label') ==  'Disable Inspector'){
@@ -121,7 +124,7 @@ DomInspectorConnector.prototype.getFoc = function(e){
 //Copy inspector output to clipboard if alt,shift,c is pressed
 DomInspectorConnector.prototype.clipCopy = function(e){
    if (e.altKey && e.shiftKey && (e.charCode == 199)){
-       copyToClipboard($('dxDisplay').textContent);
+       copyToClipboard($('dxElement').textContent + ' '+$('dxValidation').textContent + ' ' + $('dxController').textContent);
    }
    else {
      $('eventsOut').value += "-----\n";
