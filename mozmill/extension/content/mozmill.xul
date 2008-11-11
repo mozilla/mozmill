@@ -75,17 +75,37 @@ function switchFocus(elem)
         <menuitem key="run-editor" label="Run Loaded Test" oncommand="runEditor();"/>
         <menuseparator/>
         <menuitem label="New Boilerplate" oncommand="genBoiler();"/>
-        <menuitem id="copyout" label="Show Copyable Output" oncommand="accessOutput();"/>
         <menuseparator/>
-        <menu label="Output">
-          <menupopup>
-            <menuitem id="outPass" label="Pass" type="checkbox" checked="true" oncommand="updateOutput();"/>
-            <menuitem id="outFail" label="Fail" type="checkbox" checked="true" oncommand="updateOutput();"/>
-            <menuitem id="outTest" label="Test" type="checkbox" checked="true" oncommand="updateOutput();"/>            
-          </menupopup>
-        </menu>
       </menupopup>
     </button>
+      <button type="menu" id="optionsMenu" label="Options">
+        <menupopup id="options-popup">
+        <menu label="Inspector" disabled="true">
+            <menupopup>
+              <menuitem class="inspectorOption" id="lookupId" label="ID Enabled" type="checkbox" checked="true"/>
+              <menuitem class="inspectorOption" id="lookupName" label="Name Enabled" type="checkbox" checked="true"/>
+              <menuitem class="inspectorOption" id="lookupXPath" label="XPath Enabled" type="checkbox" checked="true"/>
+              <menuitem class="inspectorOption" id="lookupLookup" label="Lookup Enabled" type="checkbox" checked="true"/>
+              
+                <menu label="Lookup Options" disabled="true">
+                  <menupopup>
+                    <menuitem class="lookupOption" id="lookupById" label="By Id" type="checkbox" checked="true"/>
+                    <menuitem class="lookupOption" id="lookupByAttributes" label="By Attributes" type="checkbox" checked="true"/>
+                    <menuitem class="lookupOption" id="lookupPositionally" label="Positionally" type="checkbox" checked="true" />
+                  </menupopup>
+                </menu>             
+            </menupopup>
+         </menu>
+           <menu label="Output">
+              <menupopup>
+                <menuitem id="outPass" label="Pass" type="checkbox" checked="true" oncommand="updateOutput();"/>
+                <menuitem id="outFail" label="Fail" type="checkbox" checked="true" oncommand="updateOutput();"/>
+                <menuitem id="outTest" label="Test" type="checkbox" checked="true" oncommand="updateOutput();"/>            
+              </menupopup>
+            </menu>
+            <menuitem id="copyout" label="Show Copyable Output" oncommand="accessOutput();"/>
+        </menupopup>
+      </button>
 	<toolbarseparator/>
 	<button id="domExplorer" label="Enable Inspector" oncommand="MozMilldx.dxToggle();"/>
 	<radiogroup id="inspectClickSelection">
