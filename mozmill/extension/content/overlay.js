@@ -36,7 +36,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-//Components.utils.import('resource://mozmill/modules/init.js')
+var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 
 var MozMill = {
   onLoad: function() {
@@ -45,7 +45,10 @@ var MozMill = {
   },
 
   onMenuItemCommand: function() {
-    var w = window.open("chrome://mozmill/content/mozmill.xul", "", "chrome,centerscreen,resizable,height=740,width=600");
+    var mmWindows = utils.getWindows('Extension:Mozmill');
+    if (mmWindows.length == 0){
+      var w = window.open("chrome://mozmill/content/mozmill.xul", "", "chrome,centerscreen,resizable,height=740,width=600");
+    } else { mmWindows[0].focus(); }
   }
 };
 
