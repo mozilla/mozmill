@@ -2,7 +2,7 @@ Metadata-Version: 1.0
 Name: mozmill
 Version: 1.0beta3
 Summary: UI Automation tool for Mozilla applications.
-Home-page: UNKNOWN
+Home-page: http://code.google.com/p/mozmill
 Author: Mozilla, Mikeal Rogers
 Author-email: mikeal.rogers@gmail.com
 License: http://www.apache.org/licenses/LICENSE-2.0

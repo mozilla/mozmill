@@ -441,7 +441,8 @@ Lookup.prototype.getNode = function () {
       // TODO: Check length and raise error
       return result;
     }
-    return 'broken'
+    // Maybe we should cause an exception here
+    return false
   }
   return expSplit.reduce(reduceLookup);
 }
