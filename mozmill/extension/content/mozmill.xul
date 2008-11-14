@@ -14,6 +14,7 @@ title="&title.label;">
 <script src="mozmill.js"/>
 <script src="output.js"/>
 <script src="dx.js"/>
+<script src="rec.js"/>
 <script src="menus.js"/>
 
 <keyset>
@@ -113,6 +114,8 @@ function switchFocus(elem)
 	  <radio id="inspectDouble" label="Double Click" value="double"/>
 	  <radio id="inspectSingle" label="Single Click" value="single"/>
 	</radiogroup>
+	<toolbarseparator/>
+	<button id="recorder" label="Record" oncommand="MozMillrec.toggle();"/>
   </toolbar>
 </toolbox>
 
