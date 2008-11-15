@@ -52,7 +52,65 @@ RecorderConnector.prototype.toggle = function(){
   }
 };
 
+RecorderConnector.prototype.dispatch = function(evt){
+  alert('Event recorded');
+}
+
+//Recursively bind to all the iframes and frames within
+RecorderConnector.prototype.bindListeners = function(frame) {
+  //Make sure we haven't already bound anything to this frame yet
+  this.unbindListeners(frame);
+  
+  frame.addEventListener('click', this.dispatch, true);
+  frame.addEventListener('dblclick', this.dispatch, true);
+  frame.addEventListener('change', this.dispatch, true);
+  frame.addEventListener('keypress', this.dispatch, true);
+  
+  var iframeCount = frame.window.frames.length;
+  var iframeArray = frame.window.frames;
+
+  for (var i = 0; i < iframeCount; i++)
+  {
+      try {
+        iframeArray[i].addEventListener('click', this.dispatch, true);
+        iframeArray[i].addEventListener('dblclick', this.dispatch, true);
+        iframeArray[i].addEventListener('change', this.dispatch, true);
+        iframeArray[i].addEventListener('keypress', this.dispatch, true);
+        this.bindListeners(iframeArray[i]);
+      }
+      catch(error) {}
+  }
+}
+
+//Recursively bind to all the iframes and frames within
+RecorderConnector.prototype.unbindListeners = function(frame) {
+  frame.removeEventListener('click', this.dispatch, true);
+  frame.removeEventListener('dblclick', this.dispatch, true);
+  frame.removeEventListener('change', this.dispatch, true);
+  frame.removeEventListener('keypress', this.dispatch, true);
+  
+  var iframeCount = frame.window.frames.length;
+  var iframeArray = frame.window.frames;
+
+  for (var i = 0; i < iframeCount; i++)
+  {
+      try {
+        iframeArray[i].removeEventListener('click', this.dispatch, true);
+        iframeArray[i].removeEventListener('dblclick', this.dispatch, true);
+        iframeArray[i].removeEventListener('change', this.dispatch, true);
+        iframeArray[i].removeEventListener('keypress', this.dispatch, true);
+        this.bindListeners(iframeArray[i]);
+      }
+      catch(error) {}
+  }
+}
+
 RecorderConnector.prototype.on = function() {
+  //Bind
+  for each(win in utils.getWindows()) {
+    this.bindListeners(win);
+  }
+  //Update UI
   $('recorder').setAttribute('label', 'Stop');
   var mmWindows = utils.getWindows('navigator:browser');
   if (mmWindows.length != 0){
@@ -61,6 +119,10 @@ RecorderConnector.prototype.on = function() {
 };
 
 RecorderConnector.prototype.off = function() {
+  //Bind
+  for each(win in utils.getWindows()) {
+    this.unbindListeners(win);
+  }
   $('recorder').setAttribute('label', 'Record');
 };
 
