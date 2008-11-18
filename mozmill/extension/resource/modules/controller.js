@@ -162,6 +162,18 @@ MozMillController.prototype.keypress = function(el, keycode, controlKeyDown, alt
   events.triggerKeyEvent(element, 'keypress', keycode, true, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown);  
 };
 
+MozMillController.prototype.rightclick = function(el){
+  var element = el.getNode();
+  if (!element){ 
+    throw new Error("could not find element " + el.getInfo());     
+    return false; 
+  }
+  
+  var evt = element.ownerDocument.defaultView.document.createEvent('MouseEvents');
+  evt.initMouseEvent("click", true, true, element.ownerDocument.defaultView, 0, 0, 0, 0, 0, false, false, false, false, 2, null);
+  return true;
+}
+
 MozMillController.prototype.click = function(el){
     //this.window.focus();
     var element = el.getNode();

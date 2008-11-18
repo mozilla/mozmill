@@ -77,12 +77,12 @@ var createCell = function (t, obj, message) {
   //Add the event listener for clicking on the box to see more info
   msg.addEventListener('mousedown', function(e){ 
     if (e.target.style.height == "15px"){
-      e.target.style.height = count+"px";
+      e.target.style.height = (count*2)+"px";
     }
     else { 
-      e.target.style.height = "15px"; 
+      e.target.style.height = "15px";
     }
-    }, true);
+  }, true);
     
   r.insertBefore(msg, r.childNodes[0]);
   updateOutput();
