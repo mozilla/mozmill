@@ -116,3 +116,8 @@ function logListener (obj) {
   createCell('log', obj, obj)
 }
 frame.events.addListener('log', logListener);
+function loggerListener (obj) {
+  createCell('logger', obj, obj)
+}
+frame.events.addListener('logger', loggerListener);
+

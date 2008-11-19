@@ -35,7 +35,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ['inArray', 'getSet', 'indexOf', 'rindexOf'];
+var EXPORTED_SYMBOLS = ['inArray', 'getSet', 'indexOf', 'rindexOf', 'compare'];
 
 function inArray (array, value) {
   for (i in array) {
@@ -57,10 +57,12 @@ function getSet (array) {
   return narray;
 }
 
-function indexOf (array, v) {
+function indexOf (array, v, offset) {
   for (i in array) {
-    if ( !isNaN(i) && array[i] == v) {
-      return new Number(i);
+    if (offset == undefined || i <= offset) {
+      if ( !isNaN(i) && array[i] == v) {
+        return new Number(i);
+      }
     }
   }
   return -1;
@@ -77,4 +79,16 @@ function rindexOf (array, v) {
     }
   }
   return -1;
+}
+
+function compare (array, carray) {
+  if (array.length != carray.length) {
+    return false;
+  }
+  for (i in array) {
+    if (array[i] != carray[i]) {
+      return false;
+    }
+  }
+  return true;
 }

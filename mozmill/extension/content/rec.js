@@ -39,6 +39,11 @@
 var inspection = {}; Components.utils.import('resource://mozmill/modules/inspection.js', inspection);
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var objects = {}; Components.utils.import('resource://mozmill/stdlib/objects.js', objects);
+var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
+var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
+var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
+
+var recorderLogger = logging.getLogger('recorderLogger');
 
 var currentRecorderArray = [];
 
@@ -48,9 +53,42 @@ var recorderMethodCases = {
   'change': function (x) {return 'type('+x['inspected'].elementText+',"'+x['evt'].target.value+'")';}  ,
 }
 
+var cleanupEventsArray = function (recorder_array) {
+  var indexesForRemoval = [];
+  var type_indexes = [x['evt'].type for each(x in recorder_array)];
+  if (arrays.inArray(type_indexes, 'change')) {
+    var offset = 0;
+    while (arrays.indexOf(type_indexes, 'change', offset) != -1) {
+      
+      var eIndex = arrays.indexOf(type_indexes, 'change', offset);
+      recorderLogger.info('got change event at '+eIndex)
+      var e = recorder_array[eIndex];
+      recorderLogger.info('value '+events.getKeyCodeFromKeySequence([x['evt'].charCode for 
+      each(x in recorder_array.slice(eIndex - (e['evt'].target.value.length + 1) ,eIndex - 1))]))
+      
+      if (arrays.compare(e['evt'].target.value, 
+        events.getKeyCodeFromKeySequence([x['evt'].charCode for 
+        each(x in recorder_array.slice(eIndex - (e['evt'].target.value.length + 1) ,eIndex - 1))
+        ]))) {
+          recorderLogger.info('cleaning up keypress events')
+          var type_indexes = type_indexes.slice(0, eIndex -  (e['evt'].target.value.length + 1)) + 
+                             type_indexes.slice(eIndex, type_indexes.length);
+          var recorder_array = recorder_array.slice(0, eIndex -  (e['evt'].target.value.length + 1)) +
+                               recorder_array.slice(eIndex, type_indexes.length);
+        }
+      var offset = arrays.indexOf(type_indexes, 'change', offset) + 1;
+    }
+  }
+  return recorder_array;
+}
+
 var getRecordedScript = function (recorder_array) {
   var setup = {};
   var test = [];
+  recorderLogger.info('adsf');
+  
+  var recorder_array = cleanupEventsArray(recorder_array);
+  
   for each(x in recorder_array) {
     var inspected = x['inspected'];
     if (!setup[inspected.controllerText]) {
@@ -61,7 +99,8 @@ var getRecordedScript = function (recorder_array) {
       }
       setup[inspected.controllerText] = 'controller'+ext
     }
-    test.push(setup[inspected.controllerText]  + '.' + recorderMethodCases[x['evt'].type](x) + ';');
+    var methodString = recorderMethodCases[x['evt'].type](x).replace(inspected.documentString, inspected.documentString.replace('controller.', setup[inspected.controllerText]+'.'))
+    test.push(setup[inspected.controllerText]  + '.' + methodString + ';');
   }
   
   var rscript = [
@@ -166,7 +205,7 @@ RecorderConnector.prototype.off = function() {
     this.unbindListeners(win);
   }
   $('recorder').setAttribute('label', 'Record');
-  r = getRecordedScript(currentRecorderArray);
+  var r = getRecordedScript(currentRecorderArray);
   window.document.getElementById('editorInput').value = r;
   currentRecorderArray = [];
 };

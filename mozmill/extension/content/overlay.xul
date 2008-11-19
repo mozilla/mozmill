@@ -8,7 +8,5 @@
   <menupopup id="menu_ToolsPopup">
     <menuitem id="mozmill-mozmill" label="&mozmill;" 
               oncommand="MozMill.onMenuItemCommand(event);"/>
-    <menuitem id="mozmill-testing" label="Test Mozmill"
-              oncommand="mozMillTestWindow();"/>
   </menupopup>
 </overlay>

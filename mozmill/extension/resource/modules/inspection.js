@@ -379,6 +379,7 @@ var inspectElement = function(e){
           'elementText':elemText, 
           'elementType':telem.constructor.name,
           'controllerText':r.controllerString,
+          'documentString':r.documentString,
           }  
 }
 
