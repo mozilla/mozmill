@@ -280,13 +280,13 @@ var getControllerAndDocument = function (_document, windowtype) {
   // TODO replace with object based cases
   if (windowtype == 'navigator:browser') {
     var w = wm.getMostRecentWindow('navigator:browser');
-    controllerString = 'controller = mozmill.getBrowserController()'
+    controllerString = 'mozmill.getBrowserController()'
   } else if (windowtype == 'Browser:Preferences') {
     var w = wm.getMostRecentWindow('Browser:Preferences');
-    controllerString = 'controller = mozmill.getPreferencesController()'
+    controllerString = 'mozmill.getPreferencesController()'
   } else if (windowtype == 'Extension:Manager') {
     var w = wm.getMostRecentWindow('Extension:Manager');
-    controllerString = 'controller = mozmill.getAddonsController()'
+    controllerString = 'mozmill.getAddonsController()'
   }
   
   if (!w) {
@@ -294,7 +294,7 @@ var getControllerAndDocument = function (_document, windowtype) {
       var windowtype = '';
     }
     w = wm.getMostRecentWindow(windowtype);
-    controllerString = 'controller = new mozmill.controller.MozMillController(mozmill.utils.getWindowByTitle("'+w.title+'"))';
+    controllerString = 'new mozmill.controller.MozMillController(mozmill.utils.getWindowByTitle("'+w.title+'"))';
   }
   
   if (w.document == _document) {
@@ -307,7 +307,7 @@ var getControllerAndDocument = function (_document, windowtype) {
       }
     }
   } 
-  if (controllerString == 'controller = mozmill.getBrowserController()') {
+  if (controllerString == 'mozmill.getBrowserController()') {
     var documentString = 'controller.tabs.activeTab';
   } else { var documentString = 'Cannot find document'; }
   return {'controllerString':controllerString, 'documentString':documentString,}
@@ -345,14 +345,14 @@ var inspectElement = function(e){
   if ( isNotAnonymous(target) ) {  
     // Logic for which identifier to use is duplicated above
     if (target.id != "" && !withs.startsWith(target.id, 'panel')) {
-      elemText = "new elementslib.ID("+ r.documentString + ', "' + target.id + '");';
+      elemText = "new elementslib.ID("+ r.documentString + ', "' + target.id + '")';
       var telem = new elementslib.ID(_document, target.id);
     } else if ((target.name != "") && (typeof(target.name) != "undefined")) {
-      elemText = "new elementslib.Name("+ r.documentString + ', "' + target.name + '");';
+      elemText = "new elementslib.Name("+ r.documentString + ', "' + target.name + '")';
       var telem = new elementslib.Name(_document, target.name);
     } else if (target.nodeName == "A") {
       var linkText = removeHTMLTags(target.innerHTML);
-      elemText = "new elementslib.Link("+ r.documentString + ', "' + linkText + '");';
+      elemText = "new elementslib.Link("+ r.documentString + ', "' + linkText + '")';
       var telem = new elementslib.Link(_document, linkText);
     } 
   }
@@ -365,7 +365,7 @@ var inspectElement = function(e){
     }      
     var telem = new elementslib.XPath(_document, stringXpath);
     if ( telem.getNode() == target ) {
-      elemText = "new elementslib.XPath("+ r.documentString + ', "' + stringXpath + '");';
+      elemText = "new elementslib.XPath("+ r.documentString + ', "' + stringXpath + '")';
     }
   }
   // Fallback to Lookup

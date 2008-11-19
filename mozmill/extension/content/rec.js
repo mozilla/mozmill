@@ -38,6 +38,49 @@
 
 var inspection = {}; Components.utils.import('resource://mozmill/modules/inspection.js', inspection);
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
+var objects = {}; Components.utils.import('resource://mozmill/stdlib/objects.js', objects);
+
+var currentRecorderArray = [];
+
+var recorderMethodCases = {
+  'click': function (x) {return 'click('+x['inspected'].elementText+')';},
+  'keypress': function (x) {return 'keypress('+x['inspected'].elementText+')';},
+  'change': function (x) {return 'change('+x['inspected'].elementText+')';}  ,
+}
+
+var getRecordedScript = function (recorder_array) {
+  var setup = {};
+  var test = [];
+  for each(x in recorder_array) {
+    var inspected = x['inspected'];
+    if (!setup[inspected.controllerText]) {
+      if (objects.getLength(setup) > 0) {
+        var ext = String(objects.getLength(setup) + 1);
+      } else {
+        var ext = '';
+      }
+      setup[inspected.controllerText] = 'controller'+ext
+    }
+    test.push(setup[inspected.controllerText]  + '.' + recorderMethodCases[x['evt'].type](x) + ';');
+  }
+  
+  var rscript = [
+    "var mozmill = {}; Components.utils.import('resource://mozmill/resource/mozmill.js');",
+    "var elementslib = {}; Components.utils.import('resource://mozmill/resource/elementslib.js';",
+    '', 'var setupModule = function(module) {',
+  ];
+  for (i in setup) {
+    rscript.push("  "+setup[i]+' = '+i+';')
+  }
+  rscript.push('}')
+  rscript.push('')
+  rscript.push('var testRecorded = function () {')
+  for each(t in test){
+    rscript.push('  '+t);
+  }
+  rscript.push('}')
+  return rscript.join('\n');
+}
 
 var RecorderConnector = function() {
   this.lastEvent = null;
@@ -53,7 +96,8 @@ RecorderConnector.prototype.toggle = function(){
 };
 
 RecorderConnector.prototype.dispatch = function(evt){
-  alert('Event recorded');
+  currentRecorderArray.push({'evt':evt, 'inspected':inspection.inspectElement(evt)});
+  window.document.getElementById('editorInput').value += evt.type+'\n';
 }
 
 //Recursively bind to all the iframes and frames within
@@ -116,6 +160,7 @@ RecorderConnector.prototype.on = function() {
   if (mmWindows.length != 0){
     mmWindows[0].focus();
   }
+  currentRecorderArray = [];
 };
 
 RecorderConnector.prototype.off = function() {
@@ -124,6 +169,9 @@ RecorderConnector.prototype.off = function() {
     this.unbindListeners(win);
   }
   $('recorder').setAttribute('label', 'Record');
+  r = getRecordedScript(currentRecorderArray);
+  window.document.getElementById('editorInput').value = r;
+  currentRecorderArray = [];
 };
 
 var MozMillrec = new RecorderConnector();
