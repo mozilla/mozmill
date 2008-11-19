@@ -44,8 +44,8 @@ var currentRecorderArray = [];
 
 var recorderMethodCases = {
   'click': function (x) {return 'click('+x['inspected'].elementText+')';},
-  'keypress': function (x) {return 'keypress('+x['inspected'].elementText+')';},
-  'change': function (x) {return 'change('+x['inspected'].elementText+')';}  ,
+  'keypress': function (x) {return 'keypress('+x['inspected'].elementText+','+x['evt'].charCode+','+x['evt'].ctrlKey+','+x['evt'].altKey+','+x['evt'].shiftKey+','+x['evt'].metaKey+')';},
+  'change': function (x) {return 'type('+x['inspected'].elementText+',"'+x['evt'].target.value+'")';}  ,
 }
 
 var getRecordedScript = function (recorder_array) {
@@ -65,8 +65,8 @@ var getRecordedScript = function (recorder_array) {
   }
   
   var rscript = [
-    "var mozmill = {}; Components.utils.import('resource://mozmill/resource/mozmill.js');",
-    "var elementslib = {}; Components.utils.import('resource://mozmill/resource/elementslib.js';",
+    "var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);",
+    "var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);",
     '', 'var setupModule = function(module) {',
   ];
   for (i in setup) {
@@ -89,15 +89,12 @@ var RecorderConnector = function() {
 RecorderConnector.prototype.toggle = function(){
   if ($('recorder').getAttribute('label') ==  'Stop'){
     this.off();
-  }
-  else{
-    this.on();
-  }
+  } else{ this.on(); }
 };
 
 RecorderConnector.prototype.dispatch = function(evt){
   currentRecorderArray.push({'evt':evt, 'inspected':inspection.inspectElement(evt)});
-  window.document.getElementById('editorInput').value += evt.type+'\n';
+  //window.document.getElementById('editorInput').value += evt.type+'\n';
 }
 
 //Recursively bind to all the iframes and frames within
@@ -143,7 +140,7 @@ RecorderConnector.prototype.unbindListeners = function(frame) {
         iframeArray[i].removeEventListener('dblclick', this.dispatch, true);
         iframeArray[i].removeEventListener('change', this.dispatch, true);
         iframeArray[i].removeEventListener('keypress', this.dispatch, true);
-        this.bindListeners(iframeArray[i]);
+        this.unbindListeners(iframeArray[i]);
       }
       catch(error) {}
   }

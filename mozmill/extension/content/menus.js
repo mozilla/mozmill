@@ -122,7 +122,10 @@ function runEditor(){
   }
   //If there isn't a file system pointer to a test open
   if (!window.openFn){
-    alert('You must save this test to the file system before it can be run, See: File > Save As.');
+    var saveAs = confirm('You must save this test to the file system before it can be run, do this now?');
+    if (saveAs){
+     saveAsFile(); 
+    }
     return;
   }
   //if the test is open but hasn't been modified

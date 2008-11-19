@@ -56,6 +56,8 @@ DomInspectorConnector.prototype.evtDispatch = function(e) {
   $('dxController').textContent = dxC;
   $('dxValidation').textContent = dxV;
   $('dxElement').textContent = dxE;
+
+  return dxE;
 }
 DomInspectorConnector.prototype.dxToggle = function(){
   if ($('domExplorer').getAttribute('label') ==  'Disable Inspector'){
@@ -135,7 +137,7 @@ DomInspectorConnector.prototype.clipCopy = function(e){
      
      var ctrlString = "";
      ctrlString += MozMilldx.evtDispatch(e);
-     ctrlString += "Controller: controller.keypress(element,"+e.charCode+",";
+     ctrlString += "\nController: controller.keypress(element,"+e.charCode+",";
      ctrlString += e.ctrlKey.toString()+",";
      ctrlString += e.altKey.toString()+",";
      ctrlString += e.shiftKey.toString()+",";
