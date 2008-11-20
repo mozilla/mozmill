@@ -97,13 +97,18 @@ DomInspectorConnector.prototype.dxOn = function() {
     Components.classes["@mozilla.org/observer-service;1"]
       .getService(Components.interfaces.nsIObserverService);
 
-  observerService.addObserver(this.observer, "domwindowopened", false);
+  observerService.addObserver(this.observer, "toplevel-window-ready", false);
 };
 
 //when a new dom window gets opened
 DomInspectorConnector.prototype.observer = {
   observe: function(subject,topic,data){
+    var clickMethod = "dblclick";
+    if ($('inspectSingle').selected){
+      clickMethod = 'click';
+    }
     //Attach listener to new window here
+    MozMilldx.dxRecursiveBind(subject, clickMethod);
   }
 };
 
@@ -134,7 +139,7 @@ DomInspectorConnector.prototype.dxOff = function() {
     Components.classes["@mozilla.org/observer-service;1"]
       .getService(Components.interfaces.nsIObserverService);
 
-  observerService.removeObserver(this.observer, "domwindowopened");
+  observerService.removeObserver(this.observer, "toplevel-window-ready");
 
 };
 

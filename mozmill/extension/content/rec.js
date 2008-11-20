@@ -222,6 +222,7 @@ RecorderConnector.prototype.unbindListeners = function(frame) {
 RecorderConnector.prototype.observer = {
   observe: function(subject,topic,data){
     //Attach listener to new window here
+    MozMillrec.bindListeners(subject);
   }
 };
 
@@ -242,7 +243,7 @@ RecorderConnector.prototype.on = function() {
       .getService(Components.interfaces.nsIObserverService);
   
   //Attach the new window open listener
-  observerService.addObserver(this.observer, "domwindowopened", false);
+  observerService.addObserver(this.observer, "toplevel-window-ready", false);
   
   currentRecorderArray = [];
   window.document.getElementById('editorInput').value = '';
@@ -258,7 +259,7 @@ RecorderConnector.prototype.off = function() {
   window.document.getElementById('editorInput').value = r;
   currentRecorderArray = [];
   //remove new window listener
-  observerService.removeObserver(this.observer, "domwindowopened");
+  observerService.removeObserver(this.observer, "toplevel-window-ready");
 };
 
 var MozMillrec = new RecorderConnector();
