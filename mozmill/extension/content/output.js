@@ -47,7 +47,7 @@ var createCell = function (t, obj, message) {
   //msg.style.background = color;
   //var serialized = json2.JSON.stringify(message);
   msg.setAttribute("orient", "vertical");
-  msg.setAttribute("style", "font-weight:bold");
+  msg.setAttribute("style", "font-weight:bold;display:block");
   
   //Adding each of the message attributes dynamically
   var count = 0; //height
@@ -64,7 +64,7 @@ var createCell = function (t, obj, message) {
       //if the value isn't undefined
       if (message[i] != undefined){
         var stuff = window.document.createElement('hbox');
-        stuff.setAttribute("style", "font-weight:normal");
+        stuff.setAttribute("style", "font-weight:normal;display:block");
         stuff.textContent = i +": " +message[i];
         stuff.style.width = "100%";
         msg.appendChild(stuff);

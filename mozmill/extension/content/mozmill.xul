@@ -125,7 +125,7 @@ function switchFocus(elem)
     Status: Ready...
   </hbox>
 </hbox>
-<html:div id="dxContainer" class="dx" style="padding:3px;font-wight:bold;">
+<html:div id="dxContainer" class="dx" style="padding:3px;">
   <html:strong>Element</html:strong>:: 
   <description ondblclick="copyToClipboard(this.textContent);" id="dxElement" style="-moz-user-select: text;"></description>
   <html:br></html:br>
@@ -147,19 +147,19 @@ function switchFocus(elem)
     </tabs>
     
     <tabpanels flex="1" id="mmtabs">
-      <tabpanel flex="1">
+      <tabpanel flex="1" style="display:block">
         <html:div>
           <html:div id="editorMessage" style="font-weight:bold">Use the 'File' menu to open a test, or generate and save a new one..</html:div>
           <html:input id="reloadBtn" type="button" value="Reload File" style="float:right;visibility:hidden" onclick="reloadFile();"/>
         </html:div>
-        <html:br></html:br>
+        <html:br/>
         <textbox id="editorInput" value="" multiline="true" style="width:98%;height:90%" flex="1" onkeypress="changeEditor()"/>
       </tabpanel>
-      <tabpanel id="outputtab" flex="1">
-		<hbox flex="1" id="resOut" orient="vertical" style="overflow:auto">Waiting...</hbox>
+      <tabpanel id="outputtab" flex="1" style="display:block">
+		    <hbox flex="1" id="resOut" class="a" style="overflow:auto;display:block">Waiting...</hbox>
       </tabpanel>
       <tabpanel id="performancetab">
-  		  <hbox flex="1" id="perfOut" class="a" style="overflow:auto">Waiting...</hbox>
+  		  <hbox flex="1" id="perfOut" class="a" style="overflow:auto;display:block">Waiting...</hbox>
       </tabpanel>
       <tabpanel id="eventstab">
       	<textbox id="eventsOut" value="" multiline="true" style="width:98%;height:100%" flex="1"/>

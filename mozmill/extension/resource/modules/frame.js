@@ -356,12 +356,12 @@ Runner.prototype.runTestModule = function (module) {
 }
 
 var runTestDirectory = function (dir) {
-  runner = new Runner(new Collector());
+  var runner = new Runner(new Collector());
   runner.runTestDirectory(dir);
   runner.end();
 }
 var runTestFile = function (filename) {
-  runner = new Runner(new Collector());
+  var runner = new Runner(new Collector());
   runner.runTestFile(filename);
   runner.end();
   // return true;

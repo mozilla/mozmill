@@ -114,13 +114,16 @@ function waitForElement(elem, timeout, interval) {
 
 var Menu = function (elements) {
   for each(node in elements) {
-    if (node.tagName == "menu") {
-      this[node.getAttribute("label")] = new Menu(node.getElementsByTagName("menupopup")[0].childNodes);
-    } else if (node.tagName == "menuitem") {
-      this[node.getAttribute("label")] = node;
-    } 
+    if (node.tagName){
+      
+      if (node.tagName == "menu") {
+        this[node.getAttribute("label")] = new Menu(node.getElementsByTagName("menupopup")[0].childNodes);
+      } else if (node.tagName == "menuitem") {
+        this[node.getAttribute("label")] = node;
+      } 
+    }
   }
-}
+};
 
 
 var MozMillController = function (window) {
@@ -655,7 +658,7 @@ function preferencesAdditions(controller) {
   controller.tabs = {};
   for (var i = 0; i < mainTabs.childNodes.length; i++) {
     var node  = mainTabs.childNodes[i];
-    obj = {'button':node}
+    var obj = {'button':node}
     controller.tabs[i] = obj;
     var label = node.attributes.item('label').value.replace('pane', '');
     controller.tabs[label] = obj;
