@@ -92,7 +92,21 @@ DomInspectorConnector.prototype.dxOn = function() {
       win.focus();
     }
   }
-}
+
+  var observerService =
+    Components.classes["@mozilla.org/observer-service;1"]
+      .getService(Components.interfaces.nsIObserverService);
+
+  observerService.addObserver(this.observer, "domwindowopened", false);
+};
+
+//when a new dom window gets opened
+DomInspectorConnector.prototype.observer = {
+  observe: function(subject,topic,data){
+    //Attach listener to new window here
+  }
+};
+
 DomInspectorConnector.prototype.dxOff = function() {
   $('inspectClickSelection').disabled = false;
 
@@ -115,7 +129,15 @@ DomInspectorConnector.prototype.dxOff = function() {
   for each(win in utils.getWindows()) {
     this.dxRecursiveUnBind(win, clickMethod);
   }
-}
+
+  var observerService =
+    Components.classes["@mozilla.org/observer-service;1"]
+      .getService(Components.interfaces.nsIObserverService);
+
+  observerService.removeObserver(this.observer, "domwindowopened");
+
+};
+
 DomInspectorConnector.prototype.getFoc = function(e){
   disableDX();
   e.target.style.border = "";

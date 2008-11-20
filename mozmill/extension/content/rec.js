@@ -218,6 +218,13 @@ RecorderConnector.prototype.unbindListeners = function(frame) {
   }
 }
 
+//When a new win dom window gets opened
+RecorderConnector.prototype.observer = {
+  observe: function(subject,topic,data){
+    //Attach listener to new window here
+  }
+};
+
 RecorderConnector.prototype.on = function() {
   //Bind
   for each(win in utils.getWindows()) {
@@ -229,6 +236,14 @@ RecorderConnector.prototype.on = function() {
   if (mmWindows.length != 0){
     mmWindows[0].focus();
   }
+  
+  var observerService =
+    Components.classes["@mozilla.org/observer-service;1"]
+      .getService(Components.interfaces.nsIObserverService);
+  
+  //Attach the new window open listener
+  observerService.addObserver(this.observer, "domwindowopened", false);
+  
   currentRecorderArray = [];
   window.document.getElementById('editorInput').value = '';
 };
@@ -242,6 +257,8 @@ RecorderConnector.prototype.off = function() {
   var r = getRecordedScript(currentRecorderArray);
   window.document.getElementById('editorInput').value = r;
   currentRecorderArray = [];
+  //remove new window listener
+  observerService.removeObserver(this.observer, "domwindowopened");
 };
 
 var MozMillrec = new RecorderConnector();
