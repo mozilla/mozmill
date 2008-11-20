@@ -50,42 +50,71 @@ var currentRecorderArray = [];
 var recorderMethodCases = {
   'click': function (x) {return 'click('+x['inspected'].elementText+')';},
   'keypress': function (x) {return 'keypress('+x['inspected'].elementText+','+x['evt'].charCode+','+x['evt'].ctrlKey+','+x['evt'].altKey+','+x['evt'].shiftKey+','+x['evt'].metaKey+')';},
-  'change': function (x) {return 'type('+x['inspected'].elementText+',"'+x['evt'].target.value+'")';}  ,
+  'change': function (x) {return 'type('+x['inspected'].elementText+',"'+x['evt'].target.value+'")';},
+  'dblclick': function (x) {return 'dblclick('+x['inspected'].elementText+')';},
 }
 
 var cleanupEventsArray = function (recorder_array) {
   var indexesForRemoval = [];
   var type_indexes = [x['evt'].type for each(x in recorder_array)];
+  
+  // Convert a set of keypress events to a single type event
   if (arrays.inArray(type_indexes, 'change')) {
     var offset = 0;
     while (arrays.indexOf(type_indexes, 'change', offset) != -1) {
-      
       var eIndex = arrays.indexOf(type_indexes, 'change', offset);
-      recorderLogger.info('got change event at '+eIndex)
       var e = recorder_array[eIndex];
-      recorderLogger.info('value '+events.getKeyCodeFromKeySequence([x['evt'].charCode for 
-      each(x in recorder_array.slice(eIndex - (e['evt'].target.value.length + 1) ,eIndex - 1))]))
-      
       if (arrays.compare(e['evt'].target.value, 
-        events.getKeyCodeFromKeySequence([x['evt'].charCode for 
+        [String.fromCharCode(x['evt'].charCode) for 
         each(x in recorder_array.slice(eIndex - (e['evt'].target.value.length + 1) ,eIndex - 1))
-        ]))) {
-          recorderLogger.info('cleaning up keypress events')
-          var type_indexes = type_indexes.slice(0, eIndex -  (e['evt'].target.value.length + 1)) + 
-                             type_indexes.slice(eIndex, type_indexes.length);
-          var recorder_array = recorder_array.slice(0, eIndex -  (e['evt'].target.value.length + 1)) +
-                               recorder_array.slice(eIndex, type_indexes.length);
+        ])) {
+          var i = eIndex - (e['evt'].target.value.length + 1)
+          while (i < eIndex) {
+            indexesForRemoval.push(i); i++;            
+          }
+        } else if (arrays.compare(e['evt'].target.value, 
+        [String.fromCharCode(x['evt'].charCode) for 
+        each(x in recorder_array.slice(eIndex - (e['evt'].target.value.length) ,eIndex - 1))
+        ])) {
+          var i = eIndex - (e['evt'].target.value.length )
+          while (i < eIndex) {
+            indexesForRemoval.push(i); i++;
+          }
         }
       var offset = arrays.indexOf(type_indexes, 'change', offset) + 1;
     }
   }
-  return recorder_array;
+  
+  // Cleanup trailing cmd+~
+  var i = 1;
+  while (recorder_array[recorder_array.length - i]['inspected'].controllerText == 'new mozmill.controller.MozMillController(mozmill.utils.getWindowByTitle("MozMill IDE"))') {
+    i++;
+    if (recorder_array[recorder_array.length - i]['evt'].charCode == 96) {
+      indexesForRemoval.push(recorder_array.length - i);
+    }   
+  }
+  
+  // Remove any actions in the mozmill window
+  for (i in recorder_array) {
+    var inspected = recorder_array[i]['inspected'];
+    if (inspected.controllerText == 'new mozmill.controller.MozMillController(mozmill.utils.getWindowByTitle("MozMill IDE"))') {
+      indexesForRemoval.push(i);
+    }
+  }
+  
+  var narray = [];
+  for (i in recorder_array) {
+    if (!arrays.inArray(indexesForRemoval, i)) {
+      narray.push(recorder_array[i])
+    }
+  }
+    
+  return narray;
 }
 
 var getRecordedScript = function (recorder_array) {
   var setup = {};
   var test = [];
-  recorderLogger.info('adsf');
   
   var recorder_array = cleanupEventsArray(recorder_array);
   
@@ -98,6 +127,9 @@ var getRecordedScript = function (recorder_array) {
         var ext = '';
       }
       setup[inspected.controllerText] = 'controller'+ext
+    }
+    if (recorderMethodCases[x['evt'].type] == undefined) {
+      alert("Don't have a case for event type: "+x['evt'].type)
     }
     var methodString = recorderMethodCases[x['evt'].type](x).replace(inspected.documentString, inspected.documentString.replace('controller.', setup[inspected.controllerText]+'.'))
     test.push(setup[inspected.controllerText]  + '.' + methodString + ';');
@@ -133,6 +165,7 @@ RecorderConnector.prototype.toggle = function(){
 
 RecorderConnector.prototype.dispatch = function(evt){
   currentRecorderArray.push({'evt':evt, 'inspected':inspection.inspectElement(evt)});
+  window.document.getElementById('editorInput').value += (evt.type + '\n');
   //window.document.getElementById('editorInput').value += evt.type+'\n';
 }
 
@@ -197,6 +230,7 @@ RecorderConnector.prototype.on = function() {
     mmWindows[0].focus();
   }
   currentRecorderArray = [];
+  window.document.getElementById('editorInput').value = '';
 };
 
 RecorderConnector.prototype.off = function() {

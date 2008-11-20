@@ -49,17 +49,16 @@ function inArray (array, value) {
 function getSet (array) {
   var narray = [];
   for (i in array) {
-    if ( inArray(narray, array[i]) ) {
-    } else {
+    if ( !inArray(narray, array[i]) ) {
       narray.push(array[i]);
-    }
+    } 
   }
   return narray;
 }
 
 function indexOf (array, v, offset) {
   for (i in array) {
-    if (offset == undefined || i <= offset) {
+    if (offset == undefined || i >= offset) {
       if ( !isNaN(i) && array[i] == v) {
         return new Number(i);
       }
