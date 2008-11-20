@@ -38,10 +38,12 @@
 
 var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler", 
                         "getFile", "Copy", "getWindows", "runEditor", 
-                        "runFile", "getWindowByTitle"];
+                        "runFile", "getWindowByTitle", "tempfile"];
 
 // var jstest = {}; 
 // Components.utils.import('resource://mozmill/modules/jstest.js', jstest);
+var uuidgen = Components.classes["@mozilla.org/uuid-generator;1"]
+    .getService(Components.interfaces.nsIUUIDGenerator);
 
 function Copy (obj) {
   for (n in obj) {
@@ -71,6 +73,18 @@ function getWindowByTitle(title) {
   }
 }
 
+function tempfile(appention) {
+  if (appention == undefined) {
+    var appention = "mozmill.utils.tempfile"
+  }
+	var tempfile = Components.classes["@mozilla.org/file/directory_service;1"].getService(Components.interfaces.nsIProperties).get("TmpD", Components.interfaces.nsIFile);
+	tempfile.append(uuidgen.generateUUID().toString().replace('-', '').replace('{', '').replace('}',''))
+	tempfile.create(Components.interfaces.nsIFile.DIRECTORY_TYPE, 0777);
+	tempfile.append(appention);
+	tempfile.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, 0666);
+	// do whatever you need to the created file
+	return tempfile.clone()
+}
 
 var checkChrome = function() {
    var loc = window.document.location.href;
