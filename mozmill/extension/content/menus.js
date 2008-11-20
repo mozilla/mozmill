@@ -37,6 +37,9 @@
 // ***** END LICENSE BLOCK *****
 
 var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
+var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
+
+var menusLogger = logging.getLogger('menusLogger');
 
 function openFile(){
   var openFn = utils.openFile(window);
@@ -45,7 +48,6 @@ function openFile(){
     //$('saveMenu').removeAttribute("disabled");
     $('closeMenu').removeAttribute("disabled");
     $('editorMessage').innerHTML = "Loaded File: " + window.openFn;
-    $('reloadBtn').style.visibility = "visible";
   }
 }
 
@@ -53,21 +55,23 @@ function saveAsFile() {
   var openFn = utils.saveAsFile(window);
   if (openFn){
     window.openFn = openFn;
-    //$('saveMenu').removeAttribute("disabled");
+    $('saveMenu').removeAttribute("disabled");
     $('closeMenu').removeAttribute("disabled");
     $('editorMessage').innerHTML = "Loaded File: " + window.openFn;
-    $('reloadBtn').style.visibility = "visible";
   }
 }
 
 function saveFile() {
   //if ($('saveMenu').getAttribute("disabled")){ return; }
-  $('saveMenu').setAttribute("disabled", "true");
   utils.saveFile(window);
+  $('saveMenu').setAttribute("disabled", "true");
 }
 
 function changeEditor() {
-  $('saveMenu').setAttribute("disabled", "false");
+  if (window.openFn) {
+    menusLogger.info(window.openFn);
+    $('saveMenu').removeAttribute("disabled");
+  } else { menusLogger.info('openFn is '+openFn); }
 }
 
 function closeFile() {
@@ -79,7 +83,6 @@ function closeFile() {
    $('saveMenu').setAttribute("disabled","true");
    $('closeMenu').setAttribute("disabled","true");
    $('editorMessage').innerHTML = "Use the 'File' menu to open a test, or generate and save a new one..";
-   $('reloadBtn').style.visibility = "hidden";
  }
 }
 
@@ -108,38 +111,56 @@ function runDirectory(){
   $('runningStatus').textContent = 'Status: See Output Tab...';
 }
 
-function reloadFile(){
-   var data = utils.getFile(window.openFn);
-   $('editorInput').value = data;
-}
+// function reloadFile(){
+//    var data = utils.getFile(window.openFn);
+//    $('editorInput').value = data;
+// }
 
 function runEditor(){
+  
   var doRun = function(){
     $('runningStatus').textContent = 'Status: Running Test...';
     //utils.runEditor(window);
     frame.runTestFile(window.openFn);
     $('runningStatus').textContent = 'Status: See Output Tab...';
   }
-  //If there isn't a file system pointer to a test open
-  if (!window.openFn){
-    var saveAs = confirm('You must save this test to the file system before it can be run, do this now?');
-    if (saveAs){
-     saveAsFile(); 
-    }
-    return;
-  }
+  
+  // //If there isn't a file system pointer to a test open
+  // if (!window.openFn){
+  //   var saveAs = confirm('You must save this test to the file system before it can be run, do this now?');
+  //   if (saveAs){
+  //    saveAsFile(); 
+  //   }
+  //   return;
+  // }
   //if the test is open but hasn't been modified
-  if ($('saveMenu').getAttribute("disabled") == "true"){
+  
+  if (!window.openFn || $('saveMenu').getAttribute("disabled") != "true") {
+    var oldFn = window.openFn;
+    if (!window.openFn) {
+      window.openFn = utils.tempfile().path;
+    }
+    utils.saveFile(window);
+    doRun();
+    window.openFn = oldFn;
+    if (oldFn == null) {
+      $('saveMenu').setAttribute("disabled", "true"); 
+    }
+  } else if ($('saveMenu').getAttribute("disabled") == "true"){
     doRun();
   }
-  //if the test was modified
-  else {
-    really = confirm("To run this file you must save it, shall I do this for you?");
-    if (really){
-      saveFile();
-      doRun();
-    } else { return; }
-  }
+  
+  // if (!window.openFn){
+  //   
+  // }
+  // //if the test was modified
+  // else {
+  //   really = confirm("To run this file you must save it, shall I do this for you?");
+  //   if (really){
+  //     saveFile();
+  //     doRun();
+  //   } else { return; }
+  // }
 }
 
 function genBoiler(){

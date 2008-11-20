@@ -685,11 +685,15 @@ Tabs.prototype.selectTab = function(index) {
 function browserAdditions( controller ) {
   controller.tabs = new Tabs(controller);
   controller.waitForPageLoad = function(_document, timeout, interval) {
+    if (_document == undefined) {
+      var _document = controller.tabs.activeTab;
+    }
+    
     if (interval == undefined) {
-      interval = 100;
+      var interval = 100;
     }
     if (timeout == undefined) {
-      timeout = 30000;
+      var timeout = 30000;
     }    
     waitForEval("subject.body.style != undefined", timeout, interval, _document);
     //Once the object is available it's somewhere between 1 and 3 seconds before the DOM
