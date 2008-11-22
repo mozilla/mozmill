@@ -231,8 +231,10 @@ RecorderConnector.prototype.observer = {
 
 RecorderConnector.prototype.on = function() {
   //Bind
-  if ($('saveMenu').getAttribute("disabled") != "true" && 
-      window.document.getElementById('editorInput').value != ''){
+  if (($('saveMenu').getAttribute("disabled") != "true" && 
+      window.document.getElementById('editorInput').value != '') || (
+      window.document.getElementById('editorInput').value != '' &&
+      window.openFn == null)){
     var confirmation = confirm('You have unsaved code in the test editor. The Recorder will replace the test you currently have in the test editor if you decide to continue. Would you like to continue regardless?');
   } else {
     var confirmation = true;
