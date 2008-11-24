@@ -69,9 +69,11 @@ function saveFile() {
 
 function changeEditor() {
   if (window.openFn) {
-    menusLogger.info(window.openFn);
+    // menusLogger.info(window.openFn);
     $('saveMenu').removeAttribute("disabled");
-  } else { menusLogger.info('openFn is '+openFn); }
+  } else { 
+    // menusLogger.info('openFn is '+openFn); 
+    }
 }
 
 function closeFile() {

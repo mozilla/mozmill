@@ -131,7 +131,7 @@ var cleanupEventsArray = function (recorder_array) {
       narray.push(recorder_array[i])
     }
   }
-    
+  
   return narray;
 }
 
