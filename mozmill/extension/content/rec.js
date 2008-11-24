@@ -47,6 +47,26 @@ var recorderLogger = logging.getLogger('recorderLogger');
 
 var currentRecorderArray = [];
 
+var getEventSet = function (eArray) {
+  var inSet = function (a, c) {
+    for each(x in a) {
+      if (x.evt.timeStamp == c.evt.timeStamp && c.evt.type == x.evt.type) {
+        return true;
+      }
+    }
+    return false;
+  }
+  
+  var returnArray = [];
+  for each(e in eArray) {
+    // recorderLogger.info('ts '+e.evt.timeStamp+' '+inSet(returnArray, e))
+    if (!inSet(returnArray, e)) {
+      returnArray.push(e);
+    }
+  }
+  return returnArray;
+}
+
 var recorderMethodCases = {
   'click': function (x) {return 'click('+x['inspected'].elementText+')';},
   'keypress': function (x) {
@@ -119,7 +139,7 @@ var getRecordedScript = function (recorder_array) {
   var setup = {};
   var test = [];
   
-  var recorder_array = cleanupEventsArray(recorder_array);
+  var recorder_array = cleanupEventsArray(getEventSet(recorder_array));
   
   for each(x in recorder_array) {
     var inspected = x['inspected'];
@@ -168,7 +188,7 @@ RecorderConnector.prototype.toggle = function(){
 
 RecorderConnector.prototype.dispatch = function(evt){
   currentRecorderArray.push({'evt':evt, 'inspected':inspection.inspectElement(evt)});
-  window.document.getElementById('editorInput').value += (evt.type + '\n');
+  window.document.getElementById('editorInput').value += (evt.type + ':: ' + evt.timeStamp + '\n');
   //window.document.getElementById('editorInput').value += evt.type+'\n';
 }
 
