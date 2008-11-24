@@ -28,6 +28,8 @@
  font-size:14px;
  color:#456068; 
 }
+.log,
+.logger,
 .pass,
 .fail,
 .test {
@@ -46,5 +48,11 @@
   background:lightpink;
 }
 .test {
+  background:lightyellow;
+}
+.log {
+  background:lightyellow;
+}
+.logger {
   background:lightyellow;
 }
