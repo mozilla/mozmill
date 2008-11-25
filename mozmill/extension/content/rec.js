@@ -197,10 +197,10 @@ RecorderConnector.prototype.bindListeners = function(frame) {
   //Make sure we haven't already bound anything to this frame yet
   this.unbindListeners(frame);
   
-  frame.addEventListener('click', this.dispatch, true);
-  frame.addEventListener('dblclick', this.dispatch, true);
-  frame.addEventListener('change', this.dispatch, true);
-  frame.addEventListener('keypress', this.dispatch, true);
+  frame.addEventListener('click', this.dispatch, false);
+  frame.addEventListener('dblclick', this.dispatch, false);
+  frame.addEventListener('change', this.dispatch, false);
+  frame.addEventListener('keypress', this.dispatch, false);
   
   var iframeCount = frame.window.frames.length;
   var iframeArray = frame.window.frames;
@@ -208,10 +208,10 @@ RecorderConnector.prototype.bindListeners = function(frame) {
   for (var i = 0; i < iframeCount; i++)
   {
       try {
-        iframeArray[i].addEventListener('click', this.dispatch, true);
-        iframeArray[i].addEventListener('dblclick', this.dispatch, true);
-        iframeArray[i].addEventListener('change', this.dispatch, true);
-        iframeArray[i].addEventListener('keypress', this.dispatch, true);
+        iframeArray[i].addEventListener('click', this.dispatch, false);
+        iframeArray[i].addEventListener('dblclick', this.dispatch, false);
+        iframeArray[i].addEventListener('change', this.dispatch, false);
+        iframeArray[i].addEventListener('keypress', this.dispatch, false);
         this.bindListeners(iframeArray[i]);
       }
       catch(error) {}
@@ -220,10 +220,10 @@ RecorderConnector.prototype.bindListeners = function(frame) {
 
 //Recursively bind to all the iframes and frames within
 RecorderConnector.prototype.unbindListeners = function(frame) {
-  frame.removeEventListener('click', this.dispatch, true);
-  frame.removeEventListener('dblclick', this.dispatch, true);
-  frame.removeEventListener('change', this.dispatch, true);
-  frame.removeEventListener('keypress', this.dispatch, true);
+  frame.removeEventListener('click', this.dispatch, false);
+  frame.removeEventListener('dblclick', this.dispatch, false);
+  frame.removeEventListener('change', this.dispatch, false);
+  frame.removeEventListener('keypress', this.dispatch, false);
   
   var iframeCount = frame.window.frames.length;
   var iframeArray = frame.window.frames;
@@ -231,10 +231,10 @@ RecorderConnector.prototype.unbindListeners = function(frame) {
   for (var i = 0; i < iframeCount; i++)
   {
       try {
-        iframeArray[i].removeEventListener('click', this.dispatch, true);
-        iframeArray[i].removeEventListener('dblclick', this.dispatch, true);
-        iframeArray[i].removeEventListener('change', this.dispatch, true);
-        iframeArray[i].removeEventListener('keypress', this.dispatch, true);
+        iframeArray[i].removeEventListener('click', this.dispatch, false);
+        iframeArray[i].removeEventListener('dblclick', this.dispatch, false);
+        iframeArray[i].removeEventListener('change', this.dispatch, false);
+        iframeArray[i].removeEventListener('keypress', this.dispatch, false);
         this.unbindListeners(iframeArray[i]);
       }
       catch(error) {}
@@ -296,6 +296,9 @@ RecorderConnector.prototype.off = function() {
   window.document.getElementById('editorInput').value = r;
   currentRecorderArray = [];
   //remove new window listener
+  var observerService =
+    Components.classes["@mozilla.org/observer-service;1"]
+      .getService(Components.interfaces.nsIObserverService);
   observerService.removeObserver(this.observer, "toplevel-window-ready");
 };
 
