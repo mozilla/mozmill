@@ -146,18 +146,18 @@ function switchFocus(elem)
       <tab label="Events"/>
     </tabs>
     
-    <tabpanels flex="1" id="mmtabs">
+    <tabpanels flex="1" id="mmtabs" >
       <tabpanel flex="1" style="display:block">
         <html:div>
           <html:div id="editorMessage" style="font-weight:bold">Use the 'File' menu to open a test, or write a new one..</html:div>
         </html:div>
         <html:br/>
-        <textbox id="editorInput" value="" multiline="true" style="width:98%;height:90%" flex="1" onkeypress="changeEditor()"/>
+        <textbox id="editorInput" value="" multiline="true" style="overflow:auto;width:98%;height:90%" flex="1" onkeypress="changeEditor()"/>
       </tabpanel>
-      <tabpanel id="outputtab" flex="1" style="display:block">
+      <tabpanel id="outputtab" flex="1" style="height:400px;display:block;">
 		    <hbox flex="1" id="resOut" class="a" style="overflow:auto;display:block">Waiting...</hbox>
       </tabpanel>
-      <tabpanel id="performancetab">
+      <tabpanel id="performancetab" flex="1" style="height:400px;display:block;">
   		  <hbox flex="1" id="perfOut" class="a" style="overflow:auto;display:block">Waiting...</hbox>
       </tabpanel>
       <tabpanel id="eventstab">

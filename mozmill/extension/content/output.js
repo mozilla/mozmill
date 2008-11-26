@@ -39,6 +39,10 @@
 var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var json2 = {}; Components.utils.import('resource://mozmill/stdlib/json2.js', json2);
 
+var $ = function(id) {
+   return document.getElementById(id);
+};
+
 var createCell = function (t, obj, message) {
 
   var r = window.document.getElementById("resOut");
