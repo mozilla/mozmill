@@ -52,7 +52,8 @@ setup(name=PACKAGE_NAME,
       url='http://code.google.com/p/mozmill',
       license='http://www.apache.org/licenses/LICENSE-2.0',
       packages=find_packages(exclude=['test']),
-      package_data = {'': ['*.js', '*.css', '*.html', '*.txt', '*.xpi', '*.rdf', '*.xul', '*.jsm', '*.xml' ],},
+      include_package_data = True,
+      package_data = {'': ['*.js', '*.css', '*.html', '*.txt', '*.xpi', '*.rdf', '*.xul', '*.jsm', '*.xml' 'extension'],},
       entry_points="""
           [console_scripts]
           mozmill = mozmill:main
