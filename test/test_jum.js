@@ -16,6 +16,7 @@ var testAsserts = function() {
 }
 
 var testNotAsserts = function() {
+  // All of these calls should fail
   jum.assert(false);
   jum.assertTrue(false);
   jum.assertTrue('asf');

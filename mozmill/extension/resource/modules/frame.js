@@ -246,7 +246,7 @@ Collector.prototype.initTestDirectory = function (directory) {
 
 function Runner (collector) {
   this.collector = collector;
-  events.fireEvent('startRunner', null);
+  events.fireEvent('startRunner', true);
   var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
   this.logger = new logging.Logger('Runner');
 }
@@ -268,7 +268,7 @@ Runner.prototype.runTestFile = function (filename) {
   this.runTestModule(this.collector.test_modules_by_filename[filename]);
 }
 Runner.prototype.end = function () {
-  events.fireEvent('endRunner', null);
+  events.fireEvent('endRunner', true);
 }
 Runner.prototype.getDependencies = function (module) {
   events.setState('dependencies');

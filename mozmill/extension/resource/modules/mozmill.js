@@ -51,6 +51,10 @@ var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
 var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
            .getService(Components.interfaces.nsIWindowMediator);
 
+function addHttpResource (directory, namespace) {
+  return 'http://localhost:4545/'+namespace;
+}
+
 function newBrowserController () {
   return new controller.MozMillController(hwindow.OpenBrowserWindow());
 }
