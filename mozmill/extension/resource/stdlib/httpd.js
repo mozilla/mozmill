@@ -47,8 +47,8 @@ const Cr = Components.results;
 const Cu = Components.utils;
 const CC = Components.Constructor;
 
-var logging = {}; Cu.import('resource://mozmill/stdlib/logging.js', logging);
-var logger = logging.getLogger('httpd.js');
+// var logging = {}; Cu.import('resource://mozmill/stdlib/logging.js', logging);
+// var logger = logging.getLogger('httpd.js');
 
 /** True if debugging output is enabled, false otherwise. */
 var DEBUG = false; // non-const *only* so tweakable in server tests
@@ -62,7 +62,7 @@ var gGlobalObject = this;
  */
 function NS_ASSERT(cond, msg) {
   if (!cond) {
-    logger.exception(msg)
+    // logger.exception(msg)
   }
 }
 
@@ -152,7 +152,7 @@ function dumpStack (loggerMethod) {
   // peel off the frames for dumpStack() and Error()
   var stack = new Error().stack.split(/\n/).slice(2);
   if (!loggerMethod) {
-    var loggerMethod = logger.info;
+    // var loggerMethod = logger.info;
   }
   loggerMethod('STACK DUMP REQUESTED');
   stack.forEach(loggerMethod); 
@@ -287,7 +287,7 @@ function printObj(o, showMembers) {
   }
   s +=    "    };\n";
   s +=    "******************************";
-  logger.info(s);
+  // logger.info(s);
 }
 
 function nsHttpServer(port) {
@@ -322,11 +322,11 @@ nsHttpServer.prototype = {
    * @see nsIServerSocketListener.onSocketAccepted
    */
   onSocketAccepted: function (socket, trans) {
-    logger.debug("onSocketAccepted(socket=" + socket + ", trans=" + trans + ") " +
-                 "on thread " + gThreadManager.currentThread +
-                 " (main is " + gThreadManager.mainThread + ")");
-
-    logger.debug("new connection on " + trans.host + ":" + trans.port);
+    // logger.debug("onSocketAccepted(socket=" + socket + ", trans=" + trans + ") " +
+    //              "on thread " + gThreadManager.currentThread +
+    //              " (main is " + gThreadManager.mainThread + ")");
+    // 
+    // logger.debug("new connection on " + trans.host + ":" + trans.port);
 
     const SEGMENT_SIZE = 8192;
     const SEGMENT_COUNT = 1024;
@@ -355,7 +355,7 @@ nsHttpServer.prototype = {
    * @see nsIServerSocketListener.onStopListening
    */
   onStopListening: function(socket, status) {
-    logger.info("Shutting down server");
+    // logger.info("Shutting down server");
     this._socketClosed = true;
   },
 
@@ -369,7 +369,7 @@ nsHttpServer.prototype = {
                    .createInstance(Ci.nsIServerSocket);
     socket.init(this._port, true, -1);
 
-    logger.info("Listening on port " + socket.port);
+    // logger.info("Listening on port " + socket.port);
     socket.asyncListen(this);
     this._socket = socket;
   },
@@ -378,7 +378,7 @@ nsHttpServer.prototype = {
     if (!this._socket)
       return;
 
-    logger.debug("Stopping listening on port " + this._socket.port);
+    // logger.debug("Stopping listening on port " + this._socket.port);
     this._socket.close();
     this._socket = null;
     this._doQuit = false;
@@ -469,8 +469,8 @@ nsHttpServer.prototype = {
 
   /* Requests that the server be shut down when possible. */
   _requestQuit: function() {
-    logger.debug("Requesting a quit");
-    dumpStack(logger.debug);
+    // logger.debug("Requesting a quit");
+    // dumpStack(logger.debug);
     this._doQuit = true;
   }
 
@@ -623,10 +623,10 @@ RequestReader.prototype = {
    */
   onInputStreamReady: function(input)
   {
-    logger.debug("onInputStreamReady(input=" + input + ") on thread " +
-          gThreadManager.currentThread + " (main is " +
-          gThreadManager.mainThread + ")");
-    logger.debug("this._state == " + this._state);
+    // logger.debug("onInputStreamReady(input=" + input + ") on thread " +
+    //       gThreadManager.currentThread + " (main is " +
+    //       gThreadManager.mainThread + ")");
+    // logger.debug("this._state == " + this._state);
 
     var count = input.available();
 
@@ -687,7 +687,7 @@ RequestReader.prototype = {
     var line = {};
     var readSuccess;
     while ((readSuccess = data.readLine(line)) && line.value == "")
-      logger.debug("Ignoring beginning blank line...");
+      // logger.debug("Ignoring beginning blank line...");
 
     // if we don't have a full line, wait until we do
     if (!readSuccess)
@@ -753,7 +753,7 @@ RequestReader.prototype = {
   _validateRequest: function() {
     NS_ASSERT(this._state == READER_IN_BODY);
 
-    logger.debug("_validateRequest called.");
+    // logger.debug("_validateRequest called.");
 
     var metadata = this._metadata;
     var headers = metadata._headers;
@@ -817,7 +817,7 @@ RequestReader.prototype = {
   _parseRequestLine: function(line) {
     NS_ASSERT(this._state == READER_INITIAL);
 
-    logger.debug("_parseRequestLine('" + line + "')");
+    // logger.debug("_parseRequestLine('" + line + "')");
 
     var metadata = this._metadata;
 
@@ -888,7 +888,7 @@ RequestReader.prototype = {
   _parseHeaders: function() {
     NS_ASSERT(this._state == READER_IN_HEADERS);
 
-    logger.debug("_parseHeaders");
+    // logger.debug("_parseHeaders");
 
     var data = this._data;
     var headers = this._metadata._headers;
@@ -919,7 +919,7 @@ RequestReader.prototype = {
           try {
             headers.setHeader(lastName, lastVal, true);
           } catch (e) {
-            logger.debug("e == " + e);
+            // logger.debug("e == " + e);
             throw HTTP_400;
           }
         } else {
@@ -945,7 +945,7 @@ RequestReader.prototype = {
           try {
             headers.setHeader(lastName, lastVal, true);
           } catch (e) {
-            logger.debug("e == " + e);
+            // logger.debug("e == " + e);
             throw HTTP_400;
           }
         }
@@ -1224,7 +1224,7 @@ function maybeAddHeaders(file, metadata, response) {
       more = lis.readLine(line);
     }
   } catch (e) {
-    logger.error("WARNING: error in headers for " + metadata.path + ": " + e);
+    // logger.error("WARNING: error in headers for " + metadata.path + ": " + e);
     throw HTTP_500;
   }
 }
@@ -1301,7 +1301,7 @@ ServerHandler.prototype =
     var response = new Response();
 
     var path = metadata.path;
-    logger.info("*** path == " + path);
+    // logger.info("*** path == " + path);
 
     try {
       try {
@@ -1315,13 +1315,13 @@ ServerHandler.prototype =
         response.recycle();
 
         if (!(e instanceof HttpError)) {
-          logger.error("Unexpected error: e == " + e);
+          // logger.error("Unexpected error: e == " + e);
           throw HTTP_500;
         }
         if (e.code != 404)
           throw e;
 
-        logger.debug("Default: " + (path in this._defaultPaths));
+        // logger.debug("Default: " + (path in this._defaultPaths));
 
         if (path in this._defaultPaths)
           this._defaultPaths[path](metadata, response);
@@ -1336,14 +1336,14 @@ ServerHandler.prototype =
           throw e;
 
         errorCode = e.code;
-        logger.error("ErrorCode == " + errorCode);
+        // logger.error("ErrorCode == " + errorCode);
 
         response.recycle();
 
         this._handleError(errorCode, metadata, response);
       } catch (e2) {
-        logger.error("Error handling " + errorCode + " error: " +
-              "e2 == " + e2 + ", shutting down server");
+        // logger.error("Error handling " + errorCode + " error: " +
+        //       "e2 == " + e2 + ", shutting down server");
 
         response.destroy();
         connection.close();
@@ -1357,12 +1357,12 @@ ServerHandler.prototype =
 
   registerFile: function(path, file) {
     if (!file) {
-      logger.debug("Unregistering '" + path + "' mapping");
+      // logger.debug("Unregistering '" + path + "' mapping");
       delete this._overridePaths[path];
       return;
     }
 
-    logger.debug("Registering '" + path + "' as mapping to " + file.path);
+    // logger.debug("Registering '" + path + "' as mapping to " + file.path);
     file = file.clone();
 
     var self = this;
@@ -1399,18 +1399,18 @@ ServerHandler.prototype =
     key = toInternalPath(key, false);
 
     if (directory) {
-      logger.debug("Mapping '" + path + "' to the location " + directory.path);
+      // logger.debug("Mapping '" + path + "' to the location " + directory.path);
       this._pathDirectoryMap.put(key, directory);
     } else {
-      logger.debug("Removing mapping for '" + path + "'");
+      // logger.debug("Removing mapping for '" + path + "'");
       this._pathDirectoryMap.put(key, null);
     }
   },
 
   registerErrorHandler: function(err, handler) {
     if (!(err in HTTP_ERROR_CODES))
-      logger.info("WARNING: registering non-HTTP/1.1 error code " +
-            "(" + err + ") handler -- was this intentional?");
+      // logger.info("WARNING: registering non-HTTP/1.1 error code " +
+      //       "(" + err + ") handler -- was this intentional?");
 
     this._handlerToField(handler, this._overrideErrors, err);
   },
@@ -1502,7 +1502,7 @@ ServerHandler.prototype =
       throw HTTP_404;
 
     // finally...
-    logger.debug("Handling '" + path + "' as mapping to " + file.path);
+    // logger.debug("Handling '" + path + "' as mapping to " + file.path);
     this._writeFileResponse(metadata, file, response);
   },
 
@@ -1529,7 +1529,7 @@ ServerHandler.prototype =
         Cu.evalInSandbox(sis.read(file.fileSize), s);
         s.handleRequest(metadata, response);
       } catch (e) {
-        logger.error("Error running SJS: " + e);
+        // logger.error("Error running SJS: " + e);
         throw HTTP_500;
       }
     } else {
@@ -1670,7 +1670,7 @@ ServerHandler.prototype =
   handleError: function(errorCode, connection) {
     var response = new Response();
 
-    logger.error("Error in request: " + errorCode);
+    // logger.error("Error in request: " + errorCode);
 
     try {
       this._handleError(errorCode, new Request(connection.port), response);
@@ -1705,7 +1705,7 @@ ServerHandler.prototype =
 
     try {
       if (!(errorCode in HTTP_ERROR_CODES))
-        logger.error("WARNING: requested invalid error: " + errorCode);
+        // logger.error("WARNING: requested invalid error: " + errorCode);
 
       // RFC 2616 says that we should try to handle an error by its class if we
       // can't otherwise handle it -- if that fails, we revert to handling it as
@@ -1723,8 +1723,8 @@ ServerHandler.prototype =
         if (errorX00 == errorCode)
           throw HTTP_500;
 
-        logger.error("Error in handling for error code " + errorCode + ", " +
-              "falling back to " + errorX00 + "...");
+        // logger.error("Error in handling for error code " + errorCode + ", " +
+        //       "falling back to " + errorX00 + "...");
         if (errorX00 in this._overrideErrors)
           this._overrideErrors[errorX00](metadata, response);
         else if (errorX00 in this._defaultErrors)
@@ -1736,8 +1736,8 @@ ServerHandler.prototype =
       response.recycle();
 
       // we've tried everything possible for a meaningful error -- now try 500
-      logger.error("Error in handling for error code " + errorX00 + ", falling " +
-                   "back to 500...");
+      // logger.error("Error in handling for error code " + errorX00 + ", falling " +
+      //              "back to 500...");
 
       try {
         if (500 in this._overrideErrors)
@@ -1745,8 +1745,8 @@ ServerHandler.prototype =
         else
           this._defaultErrors[500](metadata, response);
       } catch (e2) {
-        logger.error("Multiple errors in default error handlers!");
-        logger.error("e == " + e + ", e2 == " + e2);
+        // logger.error("Multiple errors in default error handlers!");
+        // logger.error("e == " + e + ", e2 == " + e2);
         throw e2;
       }
     }
@@ -1880,8 +1880,8 @@ ServerHandler.prototype =
             // test execution, but it's not exactly a surefire way to reproduce
             // the problem.
             if (!Components.isSuccessCode(statusCode)) {
-              logger.info("WARNING: non-success statusCode in onStopRequest: " +
-                    statusCode);
+              // logger.info("WARNING: non-success statusCode in onStopRequest: " +
+              //       statusCode);
             }
 
             // we're completely finished with this response
@@ -2360,7 +2360,7 @@ const headerUtils = {
 
     for (var i = 0, sz = fieldName.length; i < sz; i++) {
       if (!IS_TOKEN_ARRAY[fieldName.charCodeAt(i)]) {
-        logger.debug(fieldName + " is not a valid header field name!");
+        // logger.debug(fieldName + " is not a valid header field name!");
         throw Cr.NS_ERROR_INVALID_ARG;
       }
     }

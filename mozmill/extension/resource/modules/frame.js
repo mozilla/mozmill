@@ -38,21 +38,24 @@
 var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','events', 
                         'jsbridge', 'runTestDirectory', 'runTestFile', 'log'];
 
+var httpd = {};   Components.utils.import('resource://mozmill/stdlib/httpd.js', httpd);
 var os = {};      Components.utils.import('resource://mozmill/stdlib/os.js', os);
 var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js', strings);
 var arrays = {};  Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
-var withs = {}; Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
+var withs = {};   Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
 
 var ios = Components.classes["@mozilla.org/network/io-service;1"]
                     .getService(Components.interfaces.nsIIOService);
 var loader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
                     .getService(Components.interfaces.mozIJSSubScriptLoader);
+var uuidgen = Components.classes["@mozilla.org/uuid-generator;1"]
+                    .getService(Components.interfaces.nsIUUIDGenerator);  
 
 var backstage = this;
 
 var registeredFunctions = {};
 
-var loadFile = function(path) {
+var loadFile = function(path, collector) {
   var file = Components.classes["@mozilla.org/file/local;1"]
                        .createInstance(Components.interfaces.nsILocalFile);
   file.initWithPath(path);
@@ -60,6 +63,11 @@ var loadFile = function(path) {
 
   var module = {};  
   module.registeredFunctions = registeredFunctions;
+  module.collector = collector
+  if (collector != undefined) {
+    collector.current_file = file;
+    collector.current_path = path;
+  }
   loader.loadSubScript(uri, module);
   module.__file__ = path;
   module.__uri__ = uri;
@@ -170,6 +178,8 @@ if (jsbridge) {
   events.addListener('', function (name, obj) {jsbridge.fireEvent('mozmill.'+name, obj)} );
 }
 
+var http_server = httpd.getServer(43336);
+
 function Collector () {
   this.test_modules_by_filename = {};
   this.test_modules_by_name = {};
@@ -177,14 +187,39 @@ function Collector () {
   this.all_requirements = [];
   this.loaded_directories = [];
   this.testing = [];
+  this.httpd_started = false;
+  this.starting_http_port = 43336;
   var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
   this.logger = new logging.Logger('Collector');
 }
 Collector.prototype.getModule = function (name) {
   return this.test_modules_by_name[name];
 }
+Collector.prototype.startHttpd = function () {
+  if (http_server._socket == null) {
+    http_server.start();
+  }
+  this.httpd = http_server;
+}
+Collector.prototype.stopHttpd = function () {
+  this.httpd.stop()
+  this.httpd = null;
+}
+Collector.prototype.addHttpResource = function (directory, ns) {
+  if (!this.httpd) {
+    this.startHttpd();
+  }
+  if (ns == undefined) {
+    var ns = uuidgen.generateUUID().toString().replace('-', '').replace('{', '').replace('}','')
+  }
+  var lp = Components.classes["@mozilla.org/file/local;1"]
+             .createInstance(Components.interfaces.nsILocalFile);
+  lp.initWithPath(os.abspath(directory, this.current_file));
+  this.httpd.registerDirectory('/'+ns+'/', lp);
+  return 'http://localhost:'+this.httpd._port+'/'+ns+'/'
+}
 Collector.prototype.initTestModule = function (filename) {
-  var test_module = loadFile(filename);
+  var test_module = loadFile(filename, this);
   test_module.__tests__ = [];
   for (i in test_module) {
     if (typeof(test_module[i]) == "function") {
