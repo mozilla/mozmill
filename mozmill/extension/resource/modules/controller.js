@@ -400,7 +400,7 @@ MozMillController.radio = function(el){
 //Double click for Mozilla
 MozMillController.prototype.doubleClick = function(el) {
    //this.window.focus();
-   var element = element.getNode();
+   var element = el.getNode();
    if (!element){ 
     throw new Error("could not find element " + el.getInfo());     
     return false; 

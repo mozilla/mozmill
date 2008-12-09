@@ -74,7 +74,7 @@ var recorderMethodCases = {
             + ','+ x['evt'].altKey + ',' + x['evt'].shiftKey + ',' + x['evt'].metaKey + ')';
             },
   'change': function (x) {return 'type('+x['inspected'].elementText+',"'+x['evt'].target.value+'")';},
-  'dblclick': function (x) {return 'dblclick('+x['inspected'].elementText+')';},
+  'dblclick': function (x) {return 'doubleClick('+x['inspected'].elementText+')';},
 }
 
 var cleanupEventsArray = function (recorder_array) {

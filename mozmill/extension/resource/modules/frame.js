@@ -210,7 +210,7 @@ Collector.prototype.addHttpResource = function (directory, ns) {
     this.startHttpd();
   }
   if (ns == undefined) {
-    var ns = uuidgen.generateUUID().toString().replace('-', '').replace('{', '').replace('}','')
+    var ns = uuidgen.generateUUID().toString().replace('-', '').replace('{', '').replace('}','');
   }
   var lp = Components.classes["@mozilla.org/file/local;1"]
              .createInstance(Components.interfaces.nsILocalFile);
