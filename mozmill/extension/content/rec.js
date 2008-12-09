@@ -42,6 +42,7 @@ var objects = {}; Components.utils.import('resource://mozmill/stdlib/objects.js'
 var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
 var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
+var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 
 var recorderLogger = logging.getLogger('recorderLogger');
 
@@ -260,6 +261,12 @@ RecorderConnector.prototype.unbindListeners = function(frame) {
 //When a new win dom window gets opened
 RecorderConnector.prototype.observer = {
   observe: function(subject,topic,data){
+    controller.waitForEval("subject.document.documentElement.getAttribute('windowtype') != null", 10000, 10, subject)
+    var wtype = subject.document.documentElement.getAttribute('windowtype');
+    
+    if (wtype == "navigator:browser"){
+      controller.waitForEval("subject.document.body != null", 10000, 10, subject)
+    }
     //Attach listener to new window here
     MozMillrec.bindListeners(subject);
   }

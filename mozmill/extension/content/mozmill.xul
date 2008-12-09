@@ -77,7 +77,6 @@ function switchFocus(elem)
         <menuitem key="run-editor" label="Run Editor" oncommand="runEditor();"/>
         <menuseparator/>
         <menuitem label="New Boilerplate" oncommand="genBoiler();"/>
-        <menuseparator/>
       </menupopup>
     </button>
       <button type="menu" id="optionsMenu" label="Options">
