@@ -74,7 +74,7 @@ var recorderMethodCases = {
             + ','+ x['evt'].altKey + ',' + x['evt'].shiftKey + ',' + x['evt'].metaKey + ')';
             },
   'change': function (x) {return 'type('+x['inspected'].elementText+',"'+x['evt'].target.value+'")';},
-  'dblclick': function (x) {return 'doubleClick('+x['inspected'].elementText+')';},
+  'dblclick': function (x) { return 'doubleClick('+x['inspected'].elementText+')';},
 }
 
 var cleanupEventsArray = function (recorder_array) {
@@ -108,6 +108,16 @@ var cleanupEventsArray = function (recorder_array) {
     }
   }
   
+  // Remove change events with '' as value
+  for (i in recorder_array) {
+    var x = recorder_array[i];
+    if (x['evt'].type ==  "change") {
+      if (x['evt'].target.value == '') {
+        indexesForRemoval.push(i);
+      }
+    }
+  }
+  
   // Cleanup trailing cmd+~
   var i = 1;
   while (recorder_array[recorder_array.length - i]['inspected'].controllerText == 'new mozmill.controller.MozMillController(mozmill.utils.getWindowByTitle("MozMill IDE"))') {
@@ -128,7 +138,7 @@ var cleanupEventsArray = function (recorder_array) {
   var narray = [];
   for (i in recorder_array) {
     if (!arrays.inArray(indexesForRemoval, i)) {
-      narray.push(recorder_array[i])
+      narray.push(recorder_array[i]);
     }
   }
   
