@@ -70,9 +70,15 @@ var getEventSet = function (eArray) {
 var recorderMethodCases = {
   'click': function (x) {return 'click('+x['inspected'].elementText+')';},
   'keypress': function (x) {
-    return 'keypress(' + x['inspected'].elementText + ',' + x['evt'].charCode + ',' +x['evt'].ctrlKey 
-            + ','+ x['evt'].altKey + ',' + x['evt'].shiftKey + ',' + x['evt'].metaKey + ')';
-            },
+    if (x['evt'].charCode == 0){
+      return 'keypress(' + x['inspected'].elementText + ',' + x['evt'].keyCode + ',' +x['evt'].ctrlKey 
+              + ','+ x['evt'].altKey + ',' + x['evt'].shiftKey + ',' + x['evt'].metaKey + ')';
+    }
+    else {
+      return 'keypress(' + x['inspected'].elementText + ',' + x['evt'].charCode + ',' +x['evt'].ctrlKey 
+              + ','+ x['evt'].altKey + ',' + x['evt'].shiftKey + ',' + x['evt'].metaKey + ')'; 
+    }
+   },
   'change': function (x) {return 'type('+x['inspected'].elementText+',"'+x['evt'].target.value+'")';},
   'dblclick': function (x) { return 'doubleClick('+x['inspected'].elementText+')';},
 }
