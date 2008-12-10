@@ -170,11 +170,21 @@ function genBoiler(){
   $('editorMessage').innerHTML = "You must save this as a file before you run it..";
 }
 
+function swapTabs(tab){
+  $('editorTab').style.display = 'none';
+  $('outputTab').style.display = 'none';
+  $('eventsTab').style.display = 'none';
+  
+  $('editorHead').style.background = '#aaa';
+  $('outputHead').style.background = '#aaa';
+  $('eventsHead').style.background = '#aaa';
+  
+  $(tab+'Tab').style.display = 'block';
+  $(tab+'Head').style.background = 'white';
+}
+
 function logicalClear(){
-  var idx = $('mmtabs').selectedIndex;
-  if (idx == 0){ $('editorInput').value = ''; }
-  else if (idx == 1){ $('resOut').textContent = ''; }
-  else if (idx == 2){ $('perfOut').textContent = ''; }
+  $('resOut').textContent = '';
 }
 
 function accessOutput(){

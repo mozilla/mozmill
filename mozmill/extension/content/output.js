@@ -46,45 +46,43 @@ var $ = function(id) {
 var createCell = function (t, obj, message) {
 
   var r = window.document.getElementById("resOut");
-  var msg = window.document.createElement('hbox');
+  var msg = window.document.createElement('html:div');
   msg.setAttribute("class", t);
   //msg.style.background = color;
   //var serialized = json2.JSON.stringify(message);
-  msg.setAttribute("orient", "vertical");
-  msg.setAttribute("style", "font-weight:bold;display:block");
+  msg.setAttribute("style", "font-weight:bold;display:block;height:15px;overflow:hidden;");
   
   //Adding each of the message attributes dynamically
-  var count = 0; //height
   //if message isn't an object
   if (typeof(message) == "string"){
-    count = "15";
     msg.textContent = t+' :: '+message;
   }
   else {
     //add each piece in its own hbox
-    msg.textContent = t+' :: '+message['function'] + ' ( Toggle.. )';
+    msg.textContent = t+' :: '+message['function'] + ' +';
+    
     //For each attribute
     for (i in message){
       //if the value isn't undefined
       if (message[i] != undefined){
-        var stuff = window.document.createElement('hbox');
+        var stuff = window.document.createElement('html:div');
         stuff.setAttribute("style", "font-weight:normal;display:block");
         stuff.textContent = i +": " +message[i];
         stuff.style.width = "100%";
         msg.appendChild(stuff);
-        count += 20;
       }
-      else { count += 20; }
     }
   }
   
   //Add the event listener for clicking on the box to see more info
-  msg.addEventListener('mousedown', function(e){ 
+  msg.addEventListener('click', function(e){
     if (e.target.style.height == "15px"){
-      e.target.style.height = (count*2)+"px";
+      e.target.style.overflow = "";
+      e.target.style.height = "";
     }
     else { 
       e.target.style.height = "15px";
+      e.target.style.overflow = "hidden";
     }
   }, true);
     
