@@ -50,7 +50,7 @@ var createCell = function (t, obj, message) {
   msg.setAttribute("class", t);
   //msg.style.background = color;
   //var serialized = json2.JSON.stringify(message);
-  msg.setAttribute("style", "font-weight:bold;display:block;height:15px;overflow:hidden;");
+  msg.setAttribute("style", "font-weight:bold;display:block;height:15px;overflow:hidden;width:100%;");
   
   //Adding each of the message attributes dynamically
   //if message isn't an object
