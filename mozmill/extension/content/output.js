@@ -96,7 +96,7 @@ var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', f
 // Set UI Listeners in frame
 function stateListener (state) {
   if (state != 'test') {  
-    $('runningStatus').textContent = 'Status: '+state;
+    $('runningStatus').textContent = state;
     // results.write(state)
   }
 }

@@ -89,7 +89,7 @@ function closeFile() {
 }
 
 function runFile(){
-  $('runningStatus').textContent = 'Status: Running File...';
+  $('runningStatus').textContent = 'Running File...';
   var nsIFilePicker = Components.interfaces.nsIFilePicker;
   var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
   fp.init(window, "Select a File", nsIFilePicker.modeOpen);
@@ -98,11 +98,11 @@ function runFile(){
   if (res == nsIFilePicker.returnOK){
     frame.runTestFile(fp.file.path);
   }
-  $('runningStatus').textContent = 'Status: See Output Tab...';
+  $('runningStatus').textContent = 'Test Finished, See Output Tab...';
 }
 
 function runDirectory(){
-  $('runningStatus').textContent = 'Status: Running File...';
+  $('runningStatus').textContent = 'Running File...';
   var nsIFilePicker = Components.interfaces.nsIFilePicker;
   var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
   fp.init(window, "Select a Directory", nsIFilePicker.modeGetFolder);
@@ -110,7 +110,7 @@ function runDirectory(){
   if (res == nsIFilePicker.returnOK){
     frame.runTestDirectory(fp.file.path);
   }
-  $('runningStatus').textContent = 'Status: See Output Tab...';
+  $('runningStatus').textContent = 'Test Finished, See Output Tab...';
 }
 
 // function reloadFile(){
@@ -121,10 +121,10 @@ function runDirectory(){
 function runEditor(){
   
   var doRun = function(){
-    $('runningStatus').textContent = 'Status: Running Test...';
+    $('runningStatus').textContent = 'Running Test...';
     //utils.runEditor(window);
     frame.runTestFile(window.openFn);
-    $('runningStatus').textContent = 'Status: See Output Tab...';
+    $('runningStatus').textContent = 'Test Finished, See Output Tab...';
   }
   
   // //If there isn't a file system pointer to a test open

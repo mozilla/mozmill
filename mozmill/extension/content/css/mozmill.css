@@ -26,6 +26,8 @@
   padding:5px;
   border:1px solid #aaa;
   background:lightgrey;
+  position:relative;
+  overflow:hidden;
 }
 
 .tabHead {
@@ -46,7 +48,7 @@
   display:block;
 }
 
-#runningStatus {
+#statusMessage {
  position:absolute;
  width:300px;
  height:18px;
@@ -55,6 +57,7 @@
  font-size:14px;
  color:#456068; 
 }
+
 .log,
 .logger,
 .pass,
