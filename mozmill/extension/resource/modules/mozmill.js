@@ -20,6 +20,7 @@
 // 
 // Contributor(s):
 //  Mikeal Rogers <mikeal.rogers@gmail.com>
+// Gary Kwong <nth10sd@gmail.com>
 // 
 // Alternatively, the contents of this file may be used under the terms of
 // either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,7 +38,9 @@
 
 var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib",
                         "getBrowserController", "newBrowserController", "getAddonsController",
-                        "getPreferencesController", "wm"];
+                        "getPreferencesController", 
+                        "newMail3PaneController", "getMail3PaneController",
+                        "wm"];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 var events = {};      Components.utils.import('resource://mozmill/modules/events.js', events);
@@ -80,4 +83,18 @@ function getPreferencesController() {
   return new controller.MozMillController(wm.getMostRecentWindow(''));
 }
 
+// Thunderbird functions
+function newMail3PaneController () {
+  return new controller.MozMillController(hwindow.LoadPostAccountWizard());
+}
+ 
+function getMail3PaneController () {
+  var mail3PaneWindow = wm.getMostRecentWindow("mail:3pane");
+  if (mail3PaneWindow == null) {
+    return newMail3PaneController();
+  }
+  else {
+    return new controller.MozMillController(mail3PaneWindow);
+  }
+}
 
