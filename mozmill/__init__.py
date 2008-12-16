@@ -81,6 +81,20 @@ class LoggerListener(object):
             self.cases[eName] = self.default(eName)
             self.cases[eName](obj)
 
+def run_tests(moz, test):
+    events.add_listener(endTest_listener, event='mozmill.endTest')
+    events.add_listener(endRunner_listener, event='mozmill.endRunner')
+    
+    frame = JSObject(network.bridge, "Components.utils.import('resource://mozmill/modules/frame.js')")
+    
+    if os.path.isdir(test):
+        frame.runTestDirectory(test)
+    else:
+        frame.runTestFile(test)
+    moz.stop()
+    if len(fails) > 0:
+        sys.exit(1)
+
 def main():
     parser = jsbridge.parser
     parser.remove_option('-l')
@@ -116,26 +130,13 @@ def main():
         logging.basicConfig(level=logging.CRITICAL)
     
     if options.test:
-        
         if options.showall:
             logging.basicConfig(level=logging.DEBUG)
             options.showall = False
-        
+
         moz = jsbridge.cli(shell=False, options=options, block=False)
+        run_tests(moz, os.path.abspath(os.path.expanduser(options.test)))
         
-        events.add_listener(endTest_listener, event='mozmill.endTest')
-        events.add_listener(endRunner_listener, event='mozmill.endRunner')
-        
-        frame = JSObject(network.bridge, "Components.utils.import('resource://mozmill/modules/frame.js')")
-        
-        test = os.path.abspath(os.path.expanduser(options.test))
-        if os.path.isdir(test):
-            frame.runTestDirectory(test)
-        else:
-            frame.runTestFile(test)
-        moz.stop()
-        if len(fails) > 0:
-            sys.exit(1)
     else:    
         jsbridge.cli(shell=options.shell, options=options)
 

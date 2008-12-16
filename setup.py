@@ -46,14 +46,14 @@ PACKAGE_VERSION = "1.0rc3"
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
       description=desc,
-      summary=summ,
+      long_description=summ,
       author='Mozilla, Mikeal Rogers',
       author_email='mikeal.rogers@gmail.com',
       url='http://code.google.com/p/mozmill',
       license='http://www.apache.org/licenses/LICENSE-2.0',
       packages=find_packages(exclude=['test']),
       include_package_data=True,
-      package_data = {'': ['*.js', '*.css', '*.html', '*.txt', '*.xpi', '*.rdf', '*.xul', '*.jsm', '*.xml', 'extension'],},
+      package_data = {'': ['*.js', '*.css', '*.html', '*.txt', '*.xpi', '*.rdf', '*.xul', '*.jsm', '*.xml'],},
       entry_points="""
           [console_scripts]
           mozmill = mozmill:main

@@ -6,7 +6,7 @@ Home-page: http://code.google.com/p/mozmill
 Author: Mozilla, Mikeal Rogers
 Author-email: mikeal.rogers@gmail.com
 License: http://www.apache.org/licenses/LICENSE-2.0
-Description: UNKNOWN
+Description: A tool for full UI automation of Mozilla applications.
 Platform: Any
 Classifier: Development Status :: 4 - Beta
 Classifier: Environment :: Console
