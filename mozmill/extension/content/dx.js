@@ -41,6 +41,7 @@ var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', u
 
 var DomInspectorConnector = function() {
   this.lastEvent = null;
+  this.lastTime = null;
 }
 DomInspectorConnector.prototype.grab = function(){
   var disp = $('dxDisplay').textContent;
@@ -48,6 +49,21 @@ DomInspectorConnector.prototype.grab = function(){
   $('editorInput').value += 'new elementslib.'+dispArr[0].toUpperCase()+"('"+dispArr[1]+"')\n";
 }  
 DomInspectorConnector.prototype.evtDispatch = function(e) {
+  //if this function was called less than a second ago, exit
+  //this should solve the flickering problem
+  var currentTime = new Date();
+  var newTime = currentTime.getTime();
+  
+  if (this.lastTime != null){
+    var timeDiff = newTime - this.lastTime;
+    this.lastTime = newTime;
+        
+    if (timeDiff < 2){
+      this.lastEvent = e;
+      return;
+    }
+  } else { this.lastTime = newTime; }
+  
   var i = inspection.inspectElement(e);
   var dxC = i.controllerText;
   var dxE = i.elementText;
