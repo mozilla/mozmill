@@ -37,8 +37,6 @@
 
 var EXPORTED_SYMBOLS = ['listDirectory', 'getFileForPath', 'abspath', 'getPlatform'];
 
-
-
 function listDirectory (file) {
   // file is the given directory (nsIFile)
   var entries = file.directoryEntries;
@@ -82,6 +80,7 @@ function getPlatform () {
   var xulRuntime = Components.classes["@mozilla.org/xre/app-info;1"]
                    .getService(Components.interfaces.nsIXULRuntime);
   mPlatform = xulRuntime.OS.toLowerCase();
+  return mPlatform;
 }
 
 

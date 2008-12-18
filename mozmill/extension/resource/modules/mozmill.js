@@ -40,12 +40,16 @@ var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib",
                         "getBrowserController", "newBrowserController", "getAddonsController",
                         "getPreferencesController", 
                         "newMail3PaneController", "getMail3PaneController",
-                        "wm"];
+                        "wm", "platform"];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 var events = {};      Components.utils.import('resource://mozmill/modules/events.js', events);
 var utils = {};       Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
+
+var os = {}; Components.utils.import('resource://mozmill/stdlib/os.js', os);
+
+var platform = os.getPlatform();
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
                 .getService(Components.interfaces.nsIAppShellService)
@@ -53,6 +57,8 @@ var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
 
 var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
            .getService(Components.interfaces.nsIWindowMediator);
+
+
 
 function addHttpResource (directory, namespace) {
   return 'http://localhost:4545/'+namespace;
