@@ -149,13 +149,13 @@ function switchFocus(elem)
   </html:div>
   <html:div id="tabHeads">
     <html:span id="editorHead" class="tabHead" style="background:white">
-      <html:a href="#" onclick="swapTabs('editor')">Editor</html:a>
+      <html:span onclick="swapTabs('editor')">Editor</html:span>
     </html:span>
     <html:span id="outputHead" class="tabHead">
-      <html:a href="#" onclick="swapTabs('output')">Output</html:a>
+      <html:span onclick="swapTabs('output')">Output</html:span>
     </html:span>
     <html:span id="eventsHead" class="tabHead">
-      <html:a href="#" onclick="swapTabs('events')">Events</html:a>
+      <html:span onclick="swapTabs('events')">Events</html:span>
     </html:span>
   </html:div>
   

@@ -38,9 +38,9 @@
 
 var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib",
                         "getBrowserController", "newBrowserController", "getAddonsController",
-                        "getPreferencesController", 
-                        "newMail3PaneController", "getMail3PaneController",
-                        "wm", "platform"];
+                        "getPreferencesController", "newMail3PaneController", 
+                        "getMail3PaneController", "wm", "platform", "getAddrbkController", 
+                        "getMsgComposeController", "getAcctSettingsController"];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 var events = {};      Components.utils.import('resource://mozmill/modules/events.js', events);
@@ -57,8 +57,6 @@ var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
 
 var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
            .getService(Components.interfaces.nsIWindowMediator);
-
-
 
 function addHttpResource (directory, namespace) {
   return 'http://localhost:4545/'+namespace;
@@ -104,3 +102,51 @@ function getMail3PaneController () {
   }
 }
 
+// Thunderbird - Address book window
+function newAddrbkController () {
+  hwindow.toAddressBook()
+  //This is just taking too long to return
+  //temporary fix because waitForEval isn't working
+  controller.sleep(2000);
+  var addyWin = wm.getMostRecentWindow("mail:addressbook");
+  return new controller.MozMillController(addyWin);
+}
+
+function getAddrbkController () {
+  var addrbkWindow = wm.getMostRecentWindow("mail:addressbook");
+  if (addrbkWindow == null) {
+    return newAddrbkController();
+  }
+  else {
+    return new controller.MozMillController(addrbkWindow);
+  }
+}
+
+// Thunderbird - Message Compose window
+function newMsgComposeController () {
+  return new controller.MozMillController(hwindow.MsgNewMessage(null));
+}
+
+function getMsgComposeController () {
+  var msgComposeWindow = wm.getMostRecentWindow("msgcompose");
+  if (msgComposeWindow == null) {
+    return newMsgComposeController();
+  }
+  else {
+    return new controller.MozMillController(msgComposeWindow);
+  }
+}
+// Thunderbird - Account Settings dialog
+function newAcctSettingsController () {
+  return new controller.MozMillController(hwindow.MsgAccountManager(null));
+}
+
+function getAcctSettingsController () {
+  var acctSettingsWindow = wm.getMostRecentWindow("Mail:Preferences");
+  if (acctSettingsWindow == null) {
+    return newAcctSettingsController();
+  }
+  else {
+    return new controller.MozMillController(acctSettingsWindow);
+  }
+}
