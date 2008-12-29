@@ -40,7 +40,7 @@ var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib",
                         "getBrowserController", "newBrowserController", "getAddonsController",
                         "getPreferencesController", "newMail3PaneController", 
                         "getMail3PaneController", "wm", "platform", "getAddrbkController", 
-                        "getMsgComposeController"];
+                        "getMsgComposeController", "getDownloadsController"];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 var events = {};      Components.utils.import('resource://mozmill/modules/events.js', events);
@@ -78,6 +78,11 @@ function getBrowserController () {
 
 function getAddonsController () {
   hwindow.BrowserOpenAddonsMgr();
+  return new controller.MozMillController(wm.getMostRecentWindow(''));
+}
+
+function getDownloadsController() {
+  hwindow.BrowserDownloadsUI();
   return new controller.MozMillController(wm.getMostRecentWindow(''));
 }
 
