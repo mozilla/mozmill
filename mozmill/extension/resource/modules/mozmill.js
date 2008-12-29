@@ -107,6 +107,7 @@ function newAddrbkController () {
   hwindow.toAddressBook()
   //This is just taking too long to return
   //temporary fix because waitForEval isn't working
+  // Note: This is the same issue as we have with the FF prefs window.
   controller.sleep(2000);
   var addyWin = wm.getMostRecentWindow("mail:addressbook");
   return new controller.MozMillController(addyWin);
