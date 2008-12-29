@@ -121,18 +121,3 @@ function getAddrbkController () {
     return new controller.MozMillController(addrbkWindow);
   }
 }
-
-// Thunderbird - Message Compose window
-function newMsgComposeController () {
-  return new controller.MozMillController(hwindow.MsgNewMessage(null));
-}
-
-function getMsgComposeController () {
-  var msgComposeWindow = wm.getMostRecentWindow("msgcompose");
-  if (msgComposeWindow == null) {
-    return newMsgComposeController();
-  }
-  else {
-    return new controller.MozMillController(msgComposeWindow);
-  }
-}
