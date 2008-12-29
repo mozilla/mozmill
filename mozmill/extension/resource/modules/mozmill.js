@@ -20,7 +20,7 @@
 // 
 // Contributor(s):
 //  Mikeal Rogers <mikeal.rogers@gmail.com>
-// Gary Kwong <nth10sd@gmail.com>
+//  Gary Kwong <nth10sd@gmail.com>
 // 
 // Alternatively, the contents of this file may be used under the terms of
 // either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -40,7 +40,7 @@ var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib",
                         "getBrowserController", "newBrowserController", "getAddonsController",
                         "getPreferencesController", "newMail3PaneController", 
                         "getMail3PaneController", "wm", "platform", "getAddrbkController", 
-                        "getMsgComposeController", "getAcctSettingsController"];
+                        "getMsgComposeController"];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 var events = {};      Components.utils.import('resource://mozmill/modules/events.js', events);
@@ -89,7 +89,7 @@ function getPreferencesController() {
 
 // Thunderbird functions
 function newMail3PaneController () {
-  return new controller.MozMillController(hwindow.LoadPostAccountWizard());
+  return new controller.MozMillController(hwindow.toMessengerWindow());
 }
  
 function getMail3PaneController () {
@@ -134,19 +134,5 @@ function getMsgComposeController () {
   }
   else {
     return new controller.MozMillController(msgComposeWindow);
-  }
-}
-// Thunderbird - Account Settings dialog
-function newAcctSettingsController () {
-  return new controller.MozMillController(hwindow.MsgAccountManager(null));
-}
-
-function getAcctSettingsController () {
-  var acctSettingsWindow = wm.getMostRecentWindow("Mail:Preferences");
-  if (acctSettingsWindow == null) {
-    return newAcctSettingsController();
-  }
-  else {
-    return new controller.MozMillController(acctSettingsWindow);
   }
 }
