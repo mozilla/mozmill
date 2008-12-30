@@ -237,10 +237,13 @@ RecorderConnector.prototype.bindListeners = function(frame) {
 
 //Recursively bind to all the iframes and frames within
 RecorderConnector.prototype.unbindListeners = function(frame) {
-  frame.removeEventListener('click', this.dispatch, false);
-  frame.removeEventListener('dblclick', this.dispatch, false);
-  frame.removeEventListener('change', this.dispatch, false);
-  frame.removeEventListener('keypress', this.dispatch, false);
+  try {
+    frame.removeEventListener('click', this.dispatch, false);
+    frame.removeEventListener('dblclick', this.dispatch, false);
+    frame.removeEventListener('change', this.dispatch, false);
+    frame.removeEventListener('keypress', this.dispatch, false);
+  }
+  catch(error) {}
   
   var iframeCount = frame.window.frames.length;
   var iframeArray = frame.window.frames;

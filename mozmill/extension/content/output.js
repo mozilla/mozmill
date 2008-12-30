@@ -76,6 +76,13 @@ var createCell = function (t, obj, message) {
   
   //Add the event listener for clicking on the box to see more info
   msg.addEventListener('click', function(e){
+
+    if (e.which == 3){
+      copyToClipboard(e.target.parentNode.textContent);
+      alert('Copied to clipboard...')
+      return;
+    }
+    
     if (e.target.style.height == "15px"){
       e.target.style.overflow = "";
       e.target.style.height = "";

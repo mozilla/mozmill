@@ -105,7 +105,7 @@ DomInspectorConnector.prototype.dxOn = function() {
     //if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
     if (win.title != 'MozMill IDE'){
       this.dxRecursiveBind(win, clickMethod);
-      win.focus();
+      //win.focus();
     }
   }
 
