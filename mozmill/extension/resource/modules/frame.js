@@ -394,10 +394,11 @@ var runTestDirectory = function (dir) {
   var runner = new Runner(new Collector());
   runner.runTestDirectory(dir);
   runner.end();
+  return true;
 }
 var runTestFile = function (filename) {
   var runner = new Runner(new Collector());
   runner.runTestFile(filename);
   runner.end();
-  // return true;
+  return true;
 }
