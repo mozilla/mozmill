@@ -40,7 +40,8 @@ var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib",
                         "getBrowserController", "newBrowserController", "getAddonsController",
                         "getPreferencesController", "newMail3PaneController", 
                         "getMail3PaneController", "wm", "platform", "getAddrbkController", 
-                        "getMsgComposeController", "getDownloadsController"];
+                        "getMsgComposeController", "getDownloadsController",
+                        "Application"];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 var events = {};      Components.utils.import('resource://mozmill/modules/events.js', events);
@@ -60,19 +61,21 @@ var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
            
 var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
                .getService(Components.interfaces.nsIXULAppInfo);
-const FIREFOX_ID = "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}";
-const THUNDERBIRD_ID = "{3550f703-e582-4d05-9a08-453d09bdfdc6}";
-var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
-                       .getService(Components.interfaces.nsIXULAppInfo);
-if(appInfo.ID == FIREFOX_ID) {
-  var application = 'Firefox';
-} else if(appInfo.ID == THUNDERBIRD_ID) {
-  var application = 'Thunderbird';
-} else {
-  // Default behavior to FF
-  var application = 'Firefox';
-}
 
+                       
+applicationDictionary = {
+  "{718e30fb-e89b-41dd-9da7-e25a45638b28}": "Sunbird",    
+  "{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}": "SeaMonkey",
+  "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}": "Firefox",
+  "{3550f703-e582-4d05-9a08-453d09bdfdc6}": 'Thunderbird',
+}                 
+                       
+var Application = applicationDictionary[appInfo.ID];
+
+if (Application == undefined) {
+  // Default to Firefox
+  var Application = 'Firefox';
+} 
 
 function addHttpResource (directory, namespace) {
   return 'http://localhost:4545/'+namespace;
