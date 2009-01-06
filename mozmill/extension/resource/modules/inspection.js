@@ -320,19 +320,17 @@ var inspectElement = function(e){
     target = e.target;
   }
   
-  //Element hilighting
-  if (e.type == "mouseover"){
-    try {
+  //Element highlighting
+  try {
       if (this.lastEvent){
-        this.lastEvent.target.style.border = "";
+        this.lastEvent.target.style.outline = "";
       }
       this.lastEvent = e;
-      e.target.style.border = "1px solid darkblue";
-    } catch(err){}
-  }
-  else { e.target.style.border = ""; }
-  
+      e.target.style.outline = "1px solid darkblue";
+  } catch(err){}
+
   var _document = getDocument(target);
+
   
   if (isMagicAnonymousDiv(_document, target)) {
     target = target.parentNode;

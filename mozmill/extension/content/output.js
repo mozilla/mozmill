@@ -78,7 +78,13 @@ var createCell = function (t, obj, message) {
   msg.addEventListener('click', function(e){
 
     if (e.which == 3){
-      copyToClipboard(e.target.parentNode.textContent);
+      var rout = $('resOut');
+      if (e.target.parentNode != rout){
+        copyToClipboard(e.target.parentNode.textContent);
+      }
+      else {
+        copyToClipboard(e.target.textContent);
+      }
       alert('Copied to clipboard...')
       return;
     }
