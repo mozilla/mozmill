@@ -172,6 +172,7 @@ try {
   var jsbridge = {}; Components.utils.import('resource://jsbridge/modules/events.js', jsbridge);
 } catch(err) {
   var jsbridge = null;
+  Components.utils.reportError(err);
 }
 
 if (jsbridge) {
@@ -330,6 +331,7 @@ Runner.prototype.wrapper = function (func, arg) {
     }
   } catch (e) {
     events.fail({'exception':e, 'test':func})
+    Components.utils.reportError(e);
   }
 }
 
