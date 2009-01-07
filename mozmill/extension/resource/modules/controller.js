@@ -129,19 +129,25 @@ var Menu = function (elements) {
 var MozMillController = function (window) {
   // TODO: Check if window is loaded and block until it has if it hasn't.
   this.window = window;
+  
+  this.window.addEventListener("load", function(event) {
+    window.documentLoaded = true;
+  }, false);
+  
   this.mozmillModule = {}; 
   Components.utils.import('resource://mozmill/modules/mozmill.js', this.mozmillModule);
-  if ( window.document.documentElement != undefined ) {
+  // if ( window.document.documentElement != undefined ) {
     // waitForEval("typeof(subject.document.documentElement.getAttribute) == 'function'", 10000, 100, window)
-    waitForEval("subject.document.documentElement.getAttribute('windowtype') != null", 10000, 100, window)
-    if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined ) {
-      this.prototype = new utils.Copy(this.prototype);
-      controllerAdditions[window.document.documentElement.getAttribute('windowtype')](this);
-      this.windowtype = window.document.documentElement.getAttribute('windowtype');
-    }
+  waitForEval("try { subject.documentLoaded == true; } catch(err){}", 10000, 100, window)
+  if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined ) {
+    this.prototype = new utils.Copy(this.prototype);
+    controllerAdditions[window.document.documentElement.getAttribute('windowtype')](this);
+    this.windowtype = window.document.documentElement.getAttribute('windowtype');
   }
+  // }
   this.menus = new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes);
 }
+
 MozMillController.prototype.open = function(url){
   if (this.mozmillModule.Application == 'Firefox') {
     this.window.openLocation();

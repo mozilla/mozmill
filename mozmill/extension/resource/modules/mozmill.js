@@ -111,7 +111,7 @@ function getDownloadsController() {
 
 function getPreferencesController() {
   hwindow.openPreferences();
-  controller.sleep(1000)
+  //controller.sleep(1000)
   return new controller.MozMillController(wm.getMostRecentWindow(''));
 }
 
