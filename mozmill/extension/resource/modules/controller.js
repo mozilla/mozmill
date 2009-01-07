@@ -129,6 +129,8 @@ var Menu = function (elements) {
 var MozMillController = function (window) {
   // TODO: Check if window is loaded and block until it has if it hasn't.
   this.window = window;
+  this.mozmillModule = {}; 
+  Components.utils.import('resource://mozmill/modules/mozmill.js', this.mozmillModule);
   if ( window.document.documentElement != undefined ) {
     // waitForEval("typeof(subject.document.documentElement.getAttribute) == 'function'", 10000, 100, window)
     waitForEval("subject.document.documentElement.getAttribute('windowtype') != null", 10000, 100, window)
@@ -141,7 +143,12 @@ var MozMillController = function (window) {
   this.menus = new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes);
 }
 MozMillController.prototype.open = function(url){
-  this.window.openLocation(url);
+  if (this.mozmillModule.platform == 'Firefox') {
+    this.window.openLocation();
+  } else if (this.mozmillModule.platform == 'SeaMonkey') {
+    this.window.ShowAndSelectContentsOfURLBar();
+  }
+  
   var el = new elementslib.ID(this.window.document, 'urlbar').getNode();
   this.type(new elementslib.ID(this.window.document, 'urlbar'), url);
   events.triggerKeyEvent(el, 'keypress', '13', true, false, false, false,false); 

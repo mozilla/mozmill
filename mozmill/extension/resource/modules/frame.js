@@ -68,7 +68,12 @@ var loadFile = function(path, collector) {
     collector.current_file = file;
     collector.current_path = path;
   }
-  loader.loadSubScript(uri, module);
+  try {
+    loader.loadSubScript(uri, module);
+  } catch(e) {
+    Components.utils.reportError(e);
+  }
+  
   module.__file__ = path;
   module.__uri__ = uri;
   return module;
