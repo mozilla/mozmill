@@ -39,3 +39,29 @@
 var EXPORTED_SYMBOLS = ["mozmill"];
 
 var mozmill = Components.utils.import('resource://mozmill/modules/mozmill.js');
+
+var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+                   .getService(Components.interfaces.nsIWindowMediator)
+                   .getEnumerator("");
+while(enumerator.hasMoreElements()) {
+  var win = enumerator.getNext();
+  win.documentLoaded = true;
+}
+
+//when a new dom window gets opened
+var observer = {
+  observe: function(subject,topic,data){
+    
+    subject.addEventListener("load", function(event) {
+      subject.documentLoaded = true;
+    }, false);
+    
+  }
+};
+
+var observerService =
+  Components.classes["@mozilla.org/observer-service;1"]
+    .getService(Components.interfaces.nsIObserverService);
+
+observerService.addObserver(observer, "toplevel-window-ready", false);
+

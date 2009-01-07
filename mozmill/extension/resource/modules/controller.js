@@ -126,13 +126,9 @@ var Menu = function (elements) {
 };
 
 
-var MozMillController = function (window) {
+var MozMillController = function (window) {  
   // TODO: Check if window is loaded and block until it has if it hasn't.
   this.window = window;
-  
-  this.window.addEventListener("load", function(event) {
-    window.documentLoaded = true;
-  }, false);
   
   this.mozmillModule = {}; 
   Components.utils.import('resource://mozmill/modules/mozmill.js', this.mozmillModule);
