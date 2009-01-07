@@ -1,4 +1,5 @@
 #!/bin/bash
+
 # build.sh -- builds JAR and XPI files for mozilla extensions
 #   by Nickolay Ponomarev <asqueella@gmail.com>
 #   (original version based on Nathan Yergler's build script)
@@ -24,19 +25,19 @@
 # ./$APP_NAME.jar  (only if $KEEP_JAR=1)
 # ./files -- the list of packaged files
 #
-# Note: It modifies chrome.manifest when packaging so that it points to 
+# Note: It modifies chrome.manifest when packaging so that it points to
 #       chrome/$APP_NAME.jar!/*
 
 #
-# default configuration file is ./config_build.sh, unless another file is 
+# default configuration file is ./config_build.sh, unless another file is
 # specified in command-line. Available config variables:
-APP_NAME=mozmill          # short-name, jar and xpi files name. Must be lowercase with no spaces
+APP_NAME=mozmill                        # short-name, jar and xpi files name. Must be lowercase with no spaces
 CHROME_PROVIDERS="content locale skin"  # which chrome providers we have (space-separated list)
-set CLEAN_UP=1          # delete the jar / "files" when done?       (1/0)
-ROOT_FILES="readme.txt"        # put these files in root of xpi (space separated list of leaf filenames)
-ROOT_DIRS=         # ...and these directories       (space separated list)
-BEFORE_BUILD=      # run this before building       (bash command)
-AFTER_BUILD=       # ...and this after the build    (bash command)
+CLEAN_UP=1                              # delete the jar / "files" when done?       (1/0)
+ROOT_FILES="readme.txt"                 # put these files in root of xpi (space separated list of leaf filenames)
+ROOT_DIRS=                              # ...and these directories       (space separated list)
+BEFORE_BUILD=                           # run this before building       (bash command)
+AFTER_BUILD=                            # ...and this after the build    (bash command)
 
 if [ -z $1 ]; then
   . ./config_build.sh
@@ -64,7 +65,7 @@ rm -rf $TMP_DIR
 
 $BEFORE_BUILD
 
-mkdir --parents --verbose $TMP_DIR/chrome
+mkdir -pv $TMP_DIR/chrome
 
 # generate the JAR file, excluding CVS and temporary files
 JAR_FILE=$TMP_DIR/chrome/$APP_NAME.jar
@@ -73,7 +74,7 @@ for CHROME_SUBDIR in $CHROME_PROVIDERS; do
   find $CHROME_SUBDIR -path '*CVS*' -prune -o -type f -print | grep -v \~ >> files
 done
 
-zip -0 -r $JAR_FILE `cat files`
+zip -0 -r $JAR_FILE `cat files` -x@zipexclude.lst
 # The following statement should be used instead if you don't wish to use the JAR file
 #cp --verbose --parents `cat files` $TMP_DIR/chrome
 
@@ -83,12 +84,12 @@ for DIR in $ROOT_DIRS; do
   mkdir $TMP_DIR/$DIR
   FILES="`find $DIR -path '*CVS*' -prune -o -type f -print | grep -v \~`"
   echo $FILES >> files
-  cp --verbose --parents $FILES $TMP_DIR
+  cp -pv $FILES $TMP_DIR
 done
 
 # Copy other files to the root of future XPI.
 for ROOT_FILE in $ROOT_FILES install.rdf chrome.manifest; do
-  cp --verbose $ROOT_FILE $TMP_DIR
+  cp -v $ROOT_FILE $TMP_DIR
   if [ -f $ROOT_FILE ]; then
     echo $ROOT_FILE >> files
   fi
@@ -115,9 +116,9 @@ zip -r ../$APP_NAME.xpi *
 
 cd $ROOT_DIR
 
-echo "Cleanup..."
-if [ $CLEAN_UP = 0 ]; then
+if [ "$CLEAN_UP" = 0 ]; then
   # save the jar file
+  echo "Cleanup..."
   mv $TMP_DIR/chrome/$APP_NAME.jar .
 else
   rm ./files
