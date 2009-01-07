@@ -36,7 +36,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib",
+var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
                         "getBrowserController", "newBrowserController", "getAddonsController",
                         "getPreferencesController", "newMail3PaneController", 
                         "getMail3PaneController", "wm", "platform", "getAddrbkController", 
