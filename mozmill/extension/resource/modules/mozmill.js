@@ -96,8 +96,11 @@ function getBrowserController () {
 }
 
 function getAddonsController () {
-  
-  hwindow.BrowserOpenAddonsMgr();
+  if (Application == 'SeaMonkey') {
+    hwindow.toEM();
+  } else {
+    hwindow.BrowserOpenAddonsMgr();
+  }
   return new controller.MozMillController(wm.getMostRecentWindow(''));
 }
 

@@ -143,9 +143,9 @@ var MozMillController = function (window) {
   this.menus = new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes);
 }
 MozMillController.prototype.open = function(url){
-  if (this.mozmillModule.platform == 'Firefox') {
+  if (this.mozmillModule.Application == 'Firefox') {
     this.window.openLocation();
-  } else if (this.mozmillModule.platform == 'SeaMonkey') {
+  } else if (this.mozmillModule.Application == 'SeaMonkey') {
     this.window.ShowAndSelectContentsOfURLBar();
   }
   
