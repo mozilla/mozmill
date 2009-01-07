@@ -126,21 +126,24 @@ var Menu = function (elements) {
 };
 
 
-var MozMillController = function (window) {  
+var MozMillController = function (window) {    
   // TODO: Check if window is loaded and block until it has if it hasn't.
   this.window = window;
   
   this.mozmillModule = {}; 
   Components.utils.import('resource://mozmill/modules/mozmill.js', this.mozmillModule);
-  // if ( window.document.documentElement != undefined ) {
+  
+  waitForEval("try { subject != null; } catch(err){}", undefined, undefined, window)
+  waitForEval("try { subject.documentLoaded == true; } catch(err){}", undefined, undefined, window)
+
+   //if ( window.document.documentElement != undefined ) {
     // waitForEval("typeof(subject.document.documentElement.getAttribute) == 'function'", 10000, 100, window)
-  waitForEval("try { subject.documentLoaded == true; } catch(err){}", 10000, 100, window)
   if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined ) {
     this.prototype = new utils.Copy(this.prototype);
     controllerAdditions[window.document.documentElement.getAttribute('windowtype')](this);
     this.windowtype = window.document.documentElement.getAttribute('windowtype');
   }
-  // }
+  //}
   this.menus = new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes);
 }
 

@@ -133,6 +133,7 @@ function getMail3PaneController () {
 // Thunderbird - Address book window
 function newAddrbkController () {
   hwindow.toAddressBook()
+  controller.sleep(2000)
   var addyWin = wm.getMostRecentWindow("mail:addressbook");
   return new controller.MozMillController(addyWin);
 }
