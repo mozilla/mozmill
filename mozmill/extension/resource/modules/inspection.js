@@ -294,7 +294,7 @@ var getControllerAndDocument = function (_document, windowtype) {
       var windowtype = '';
     }
     w = wm.getMostRecentWindow(windowtype);
-    controllerString = 'new mozmill.controller.MozMillController(mozmill.utils.getWindowByTitle("'+w.title+'"))';
+    controllerString = 'new mozmill.controller.MozMillController(mozmill.utils.getWindowByTitle("'+w.document.title+'"))';
   }
   
   if (w.document == _document) {

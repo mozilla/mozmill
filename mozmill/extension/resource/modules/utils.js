@@ -67,7 +67,7 @@ function getWindows(type) {
 
 function getWindowByTitle(title) {
   for each(w in getWindows()) {
-    if (w.title && w.title == title) {
+    if (w.document.title && w.document.title == title) {
       return w;
     }
   }
