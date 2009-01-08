@@ -98,6 +98,10 @@ function getBrowserController () {
 function getAddonsController () {
   if (Application == 'SeaMonkey') {
     hwindow.toEM();
+  } else if (Application == 'Thunderbird') {
+    hwindow.openAddonsMgr();
+  } else if (Application == 'Sunbird') {
+    hwindow.goOpenAddons();
   } else {
     hwindow.BrowserOpenAddonsMgr();
   }
