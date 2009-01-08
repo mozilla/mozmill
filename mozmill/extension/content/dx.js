@@ -103,7 +103,7 @@ DomInspectorConnector.prototype.dxOn = function() {
   while(enumerator.hasMoreElements()) {
     var win = enumerator.getNext();
     //if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
-    if (win.title != 'MozMill IDE'){
+    if (win.document.documentElement.getAttribute('windowtype') != 'Extension:Mozmill'){
       this.dxRecursiveBind(win, clickMethod);
       //win.focus();
     }
