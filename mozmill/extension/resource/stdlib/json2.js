@@ -157,8 +157,6 @@
 
 var EXPORTED_SYMBOLS = ["JSON"];
 
-if (!this.JSON) {
-
 // Create a JSON object only if one does not already exist. We create the
 // object in a closure to avoid creating global variables.
 
@@ -468,4 +466,4 @@ replace(/(?:^|:|,)(?:\s*\[)+/g, ''))) {
             }
         };
     }();
-}
+
