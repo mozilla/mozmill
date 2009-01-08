@@ -264,14 +264,11 @@ RecorderConnector.prototype.unbindListeners = function(frame) {
 //When a new win dom window gets opened
 RecorderConnector.prototype.observer = {
   observe: function(subject,topic,data){
-    controller.waitForEval("subject.document.documentElement.getAttribute('windowtype') != null", 10000, 10, subject)
-    var wtype = subject.document.documentElement.getAttribute('windowtype');
-    
-    if (wtype == "navigator:browser"){
-      controller.waitForEval("subject.document.body != null", 10000, 10, subject)
+    var defer = function(){
+      controller.waitForEval("subject.documentLoaded == true", 10000, 100, subject)
+      MozMillrec.bindListeners(subject);
     }
-    //Attach listener to new window here
-    MozMillrec.bindListeners(subject);
+    window.setTimeout(defer, 500);
   }
 };
 
