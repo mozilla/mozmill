@@ -188,18 +188,8 @@ function logicalClear(){
 }
 
 function accessOutput(){
-  var copyOutputBox = $('copyout');
-  var dx = $('dxContainer')
-  var dxDisp = $('dxDisplay');
   
-  // //if copyable output is shown
-  //  if (!copyOutputBox.getAttribute("checked")){
-  //   dx.style.display = 'none';
-  //   dxDisp.textContent = '';
-  //   return;
-  //  }
-  
-  var n = $('outputtab');
+  var n = $('resOut');
   var txt = '';
   for (var c = 0; c < n.childNodes.length; c++){
     if (n.childNodes[c].textContent){
@@ -210,9 +200,7 @@ function accessOutput(){
     }
   }
   if (txt == undefined){ return; }
-  
-  dx.style.display = 'block';
-  dxDisp.textContent = txt;
+  copyToClipboard(txt);
 }
 
 var copyToClipboard = function(str){

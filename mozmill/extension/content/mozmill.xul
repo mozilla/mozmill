@@ -106,7 +106,8 @@ function switchFocus(elem)
                 <menuitem id="outTest" label="Test" type="checkbox" checked="true" oncommand="updateOutput();"/>            
               </menupopup>
             </menu>
-            <menuitem id="copyout" label="Show Copyable Output" oncommand="accessOutput();"/>
+            <menuseparator/>
+            <menuitem id="copyout" label="Copy Output to Clipboard" oncommand="accessOutput();"/>
         </menupopup>
       </button>
 	<toolbarseparator/>
