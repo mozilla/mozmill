@@ -177,7 +177,10 @@ try {
   var jsbridge = {}; Components.utils.import('resource://jsbridge/modules/events.js', jsbridge);
 } catch(err) {
   var jsbridge = null;
-  Components.utils.reportError(err);
+  var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
+       getService(Components.interfaces.nsIConsoleService);
+
+  aConsoleService.logStringMessage("jsbridge not available.");
 }
 
 if (jsbridge) {
