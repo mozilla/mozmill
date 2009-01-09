@@ -19,7 +19,7 @@ build.xml adapted from Shawn Wilsher's rtse
       <zipfileset dir="" includes="chrome/mozmill-skin.jar"/>
       <zipfileset dir="" includes="install.rdf"/>
       <zipfileset dir="" includes="readme.txt"/>
-      <zipfileset dir="" includes="jar-chrome.manifest" fullpath="chrome.manifest"/>
+      <zipfileset dir="" includes="chrome-jar.manifest" fullpath="chrome.manifest"/>
       <zipfileset dir="" includes="defaults/**" excludes="**SVN"/>
       <zipfileset dir="" includes="resource/**" excludes="**SVN"/>
     </zip>
