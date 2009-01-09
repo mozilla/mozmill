@@ -6,17 +6,12 @@ mozmill.egg-info/dependency_links.txt
 mozmill.egg-info/entry_points.txt
 mozmill.egg-info/requires.txt
 mozmill.egg-info/top_level.txt
-mozmill/extension/build.sh
+mozmill/extension/build.xml
+mozmill/extension/chrome-jar.manifest
 mozmill/extension/chrome.manifest
-mozmill/extension/config_build.sh
 mozmill/extension/install.rdf
-mozmill/extension/mozmill@mozilla.doslash.org
 mozmill/extension/readme.txt
 mozmill/extension/zipexclude.lst
-mozmill/extension/build/chrome.manifest
-mozmill/extension/build/install.rdf
-mozmill/extension/build/mozmill.xpi
-mozmill/extension/build/readme.txt
 mozmill/extension/content/dx.js
 mozmill/extension/content/dxwindow.xul
 mozmill/extension/content/menus.js
@@ -63,6 +58,5 @@ test/test_focus.js
 test/test_googleIterator.js
 test/test_jum.js
 test/test_prefs.js
-test/test_replpage.js
 test/test_something/test_parents.js
 test/test_something/test_sub/test_deps.js
