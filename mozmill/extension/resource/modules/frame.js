@@ -44,6 +44,8 @@ var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js'
 var arrays = {};  Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var withs = {};   Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
 
+var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
+     getService(Components.interfaces.nsIConsoleService);
 var ios = Components.classes["@mozilla.org/network/io-service;1"]
                     .getService(Components.interfaces.nsIIOService);
 var loader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
@@ -177,8 +179,6 @@ try {
   var jsbridge = {}; Components.utils.import('resource://jsbridge/modules/events.js', jsbridge);
 } catch(err) {
   var jsbridge = null;
-  var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
-       getService(Components.interfaces.nsIConsoleService);
 
   aConsoleService.logStringMessage("jsbridge not available.");
 }

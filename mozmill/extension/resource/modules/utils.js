@@ -38,7 +38,8 @@
 
 var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler", 
                         "getFile", "Copy", "getWindows", "runEditor", 
-                        "runFile", "getWindowByTitle", "tempfile"];
+                        "runFile", "getWindowByTitle", "tempfile", 
+                        "getMethodInWindows"];
 
 // var jstest = {}; 
 // Components.utils.import('resource://mozmill/modules/jstest.js', jstest);
@@ -63,6 +64,15 @@ function getWindows(type) {
     windows.push(enumerator.getNext());
   }
   return windows;
+}
+
+function getMethodInWindows (methodName) {
+  for each(w in getWindows()) {
+    if (w[methodName] != undefined) {
+      return w[methodName];
+    }
+  }
+  throw "Method with name: '"+methodName+"' is not in any open window.";
 }
 
 function getWindowByTitle(title) {

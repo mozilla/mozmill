@@ -37,9 +37,10 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
-                        "getBrowserController", "newBrowserController", "getAddonsController",
-                        "getPreferencesController", "newMail3PaneController", 
-                        "getMail3PaneController", "wm", "platform", "getAddrbkController", 
+                        "getBrowserController", "newBrowserController", 
+                        "getAddonsController", "getPreferencesController", 
+                        "newMail3PaneController", "getMail3PaneController", 
+                        "wm", "platform", "getAddrbkController", 
                         "getMsgComposeController", "getDownloadsController",
                         "Application"];
                         
@@ -51,10 +52,6 @@ var elementslib = {}; Components.utils.import('resource://mozmill/modules/elemen
 var os = {}; Components.utils.import('resource://mozmill/stdlib/os.js', os);
 
 var platform = os.getPlatform();
-
-var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
-                .getService(Components.interfaces.nsIAppShellService)
-                .hiddenDOMWindow;
 
 var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
            .getService(Components.interfaces.nsIWindowMediator);
@@ -82,7 +79,7 @@ function addHttpResource (directory, namespace) {
 }
 
 function newBrowserController () {
-  return new controller.MozMillController(hwindow.OpenBrowserWindow());
+  return new controller.MozMillController(utils.getMethodInWindows('OpenBrowserWindow')());
 }
 
 function getBrowserController () {
@@ -97,31 +94,31 @@ function getBrowserController () {
 
 function getAddonsController () {
   if (Application == 'SeaMonkey') {
-    hwindow.toEM();
+    utils.getMethodInWindows('toEM')();
   } else if (Application == 'Thunderbird') {
-    hwindow.openAddonsMgr();
+    utils.getMethodInWindows('openAddonsMgr')();
   } else if (Application == 'Sunbird') {
-    hwindow.goOpenAddons();
+    utils.getMethodInWindows('goOpenAddons')();
   } else {
-    hwindow.BrowserOpenAddonsMgr();
+    utils.getMethodInWindows('BrowserOpenAddonsMgr')();
   }
   return new controller.MozMillController(wm.getMostRecentWindow(''));
 }
 
 function getDownloadsController() {
-  hwindow.BrowserDownloadsUI();
+  utils.getMethodInWindows('BrowserDownloadsUI')();
   return new controller.MozMillController(wm.getMostRecentWindow(''));
 }
 
 function getPreferencesController() {
-  hwindow.openPreferences();
+  utils.getMethodInWindows('openPreferences')();
   //controller.sleep(1000)
   return new controller.MozMillController(wm.getMostRecentWindow(''));
 }
 
 // Thunderbird functions
 function newMail3PaneController () {
-  return new controller.MozMillController(hwindow.toMessengerWindow());
+  return new controller.MozMillController(utils.getMethodInWindows('toMessengerWindow')());
 }
  
 function getMail3PaneController () {
@@ -136,7 +133,7 @@ function getMail3PaneController () {
 
 // Thunderbird - Address book window
 function newAddrbkController () {
-  hwindow.toAddressBook()
+  utils.getMethodInWindows("toAddressBook")();
   controller.sleep(2000)
   var addyWin = wm.getMostRecentWindow("mail:addressbook");
   return new controller.MozMillController(addyWin);

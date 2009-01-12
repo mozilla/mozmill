@@ -98,8 +98,13 @@ var createCell = function (t, obj, message) {
       e.target.style.overflow = "hidden";
     }
   }, true);
-    
-  r.insertBefore(msg, r.childNodes[0]);
+  
+  if (r.childNodes.length == 0){
+   r.appendChild(msg);
+  }
+  else {
+   r.insertBefore(msg, r.childNodes[0]);
+  }
   updateOutput();
 }
 
