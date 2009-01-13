@@ -205,10 +205,7 @@ XPath.prototype.getNodeForDocument = function (s) {
   var xpe = null;
 
   if (this.document.defaultView == null) {
-    var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
-                    .getService(Components.interfaces.nsIAppShellService)
-                    .hiddenDOMWindow;
-    xpe = new hwindow.XPathEvaluator();
+    xpe = new getMethodInWindows('XPathEvaluator')();
   } else {
     xpe = new this.document.defaultView.XPathEvaluator();
   }
