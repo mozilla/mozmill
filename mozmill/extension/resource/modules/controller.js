@@ -702,7 +702,7 @@ function browserAdditions( controller ) {
     //if a user tries to do waitForPageLoad(2000), this will assign the interval the first arg
     //which is most likely what they were expecting
     if (typeof(_document) == "number"){
-      var interval = _document;
+      var timeout = _document;
     }
     //incase they pass null
     if (_document == null){
