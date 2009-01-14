@@ -48,7 +48,7 @@ var MozMill = {
   onMenuItemCommand: function() {
     var mmWindows = utils.getWindows('Extension:Mozmill');
     if (mmWindows.length == 0){
-      var w = window.open("chrome://mozmill/content/mozmill.xul", "", "chrome,centerscreen,resizable,height=740,width=600");
+      var w = window.open("chrome://mozmill/content/mozmill.xul", "", "chrome,centerscreen,resizable,height=740,width=635");
     } else { mmWindows[0].focus(); }
   }
 };

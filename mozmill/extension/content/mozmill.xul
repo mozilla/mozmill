@@ -144,7 +144,7 @@ function switchFocus(elem)
     onclick="this.parentNode.style.display = 'none';"/>
 </html:div>
 
-<hbox flex="1" style="overflow:auto;display:block;background:white;padding:2px;">
+<hbox flex="1" style="overflow:none;display:block;background:white;padding:2px;">
   <html:div id="editorMessage" style="font-weight:bold;padding:5px;">
     Use the 'File' menu to open a test, or write a new one..
   </html:div>
