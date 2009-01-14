@@ -136,15 +136,17 @@ var MozMillController = function (window) {
   waitForEval("try { subject != null; } catch(err){}", undefined, undefined, window)
   waitForEval("try { subject.documentLoaded == true; } catch(err){}", undefined, undefined, window)
 
-   //if ( window.document.documentElement != undefined ) {
-    // waitForEval("typeof(subject.document.documentElement.getAttribute) == 'function'", 10000, 100, window)
   if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined ) {
     this.prototype = new utils.Copy(this.prototype);
     controllerAdditions[window.document.documentElement.getAttribute('windowtype')](this);
     this.windowtype = window.document.documentElement.getAttribute('windowtype');
   }
-  //}
-  this.menus = new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes);
+
+  //this will break on windows for addons and downloads controller
+  try {
+    this.menus = new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes);  
+  } catch(err){}
+  
 }
 
 MozMillController.prototype.open = function(url){
