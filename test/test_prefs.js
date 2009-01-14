@@ -62,6 +62,7 @@ var test_ApplicationsTab = function() {
 
 var test_PrivacyTab = function() {
   controller.click(new elementslib.Elem( controller.tabs.Privacy.button ));
+  controller.sleep(500);
   controller.click(new elementslib.ID(controller.window.document, 'rememberHistoryDays'));
   controller.click(new elementslib.ID(controller.window.document, 'rememberForms'));
   controller.click(new elementslib.ID(controller.window.document, 'rememberDownloads'));
