@@ -21,7 +21,9 @@ title="&title.label;">
   <key id="open-key" modifiers="accel" key="o" oncommand="openFile();"/>
   <key id="run-editor" modifiers="accel" key="r" oncommand="runEditor();"/>
   <key id="save-as" modifiers="accel" key="a" oncommand="saveAsFile();"/>
+  <key id="save-file" modifiers="accel" key="s" oncommand="saveFile();"/>
 </keyset>
+
  <menubar id="windowlist-menubar">
   <menu label="Window" oncommand="switchFocus(event.target);">
    <menupopup id="window-menu" datasources="rdf:window-mediator" ref="NC:WindowMediatorRoot">
@@ -60,7 +62,7 @@ function switchFocus(elem)
       <menupopup id="action-popup">
         <menuitem id="open-key" key="open-key" label="Open" oncommand="openFile();"/>
         <menuseparator/>
-        <menuitem id="saveMenu"  label="Save" disabled="true" oncommand="saveFile();"/>
+        <menuitem id="saveMenu" key="save-file" label="Save" disabled="true" oncommand="saveFile();"/>
         <menuitem label="Save As" key="save-as" oncommand="saveAsFile();"/>
         <menuseparator/>
         <menuitem id="closeMenu"  label="Close" disabled="true" oncommand="closeFile();"/>
