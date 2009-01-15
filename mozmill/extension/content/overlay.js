@@ -58,3 +58,10 @@ window.addEventListener("load", function(e) { MozMill.onLoad(e); }, false);
 function mozMillTestWindow() {
   window.open("chrome://mozmill/content/testwindow.xul", "", "chrome, centerscreen, resizable");
 }
+
+//adding a mozmill keyboard shortcut
+window.addEventListener("keypress", function(e) { 
+  if ((e.charCode == 109) && (e.ctrlKey)) { 
+    MozMill.onMenuItemCommand(e); 
+  } 
+}, false);
