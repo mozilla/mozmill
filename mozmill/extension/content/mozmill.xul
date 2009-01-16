@@ -179,7 +179,7 @@ function switchFocus(elem)
   <toolbox>
     <toolbars>
       <!-- <toolbarbutton id="nav-users"  accesskey="U" label="Preferences" onclick="showPrefs();"/> -->
-      <toolbarbutton id="nav-groups" accesskey="p" label="Clear Tab" onclick="logicalClear();"/>
+      <button id="nav-groups" accesskey="p" label="Reset Output" onclick="logicalClear();"/>
     </toolbars>
   </toolbox>
 </hbox>
