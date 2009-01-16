@@ -60,8 +60,8 @@ function mozMillTestWindow() {
 }
 
 //adding a mozmill keyboard shortcut
-window.addEventListener("keypress", function(e) { 
-  if ((e.charCode == 109) && (e.ctrlKey)) { 
-    MozMill.onMenuItemCommand(e); 
-  } 
-}, false);
+// window.addEventListener("keypress", function(e) { 
+//   if ((e.charCode == 109) && (e.ctrlKey)) { 
+//     MozMill.onMenuItemCommand(e); 
+//   } 
+// }, false);
