@@ -114,14 +114,14 @@ var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', f
 // Set UI Listeners in frame
 function stateListener (state) {
   if (state != 'test') {  
-    document.getElementById('runningStatus').textContent = state;
+    window.document.getElementById('runningStatus').textContent = state;
     // results.write(state)
   }
 }
 frame.events.addListener('setState', stateListener);
 function testListener (test) {
   createCell('test', test, 'Started running test: '+test.name)
-  document.getElementById('runningStatus').textContent = 'Running test: '+test.name;
+  window.document.getElementById('runningStatus').textContent = 'Running test: '+test.name;
 }
 frame.events.addListener('setTest', testListener);
 function passListener (text) {

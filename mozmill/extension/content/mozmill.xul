@@ -4,12 +4,12 @@
 
 <!DOCTYPE window SYSTEM "chrome://mozmill/locale/mozmill.dtd">
 
-<window
-windowtype="Extension:Mozmill"
-id="main" 
-xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-xmlns:html="http://www.w3.org/1999/xhtml"
-title="&title.label;">
+<window id="main"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        xmlns:html="http://www.w3.org/1999/xhtml"
+        title="&title.label;"
+        windowtype="Extension:Mozmill"
+        persist="screenX screenY width height sizemode">
 
 <script src="mozmill.js"/>
 <script src="output.js"/>
@@ -33,14 +33,14 @@ title="&title.label;">
      </rule>
     </template>
    </menupopup>
-  </menu>    
+  </menu>
   <menu id="help-menu" label="Help">
      <menupopup id="help-popup">
        <menuitem label="About MozMill"/>
      </menupopup>
-   </menu>      
+   </menu>
  </menubar>
- 
+
 <script>
 function switchFocus(elem)
 {
@@ -89,23 +89,23 @@ function switchFocus(elem)
               <menuitem class="inspectorOption" id="lookupName" label="Name Enabled" type="checkbox" checked="true"/>
               <menuitem class="inspectorOption" id="lookupXPath" label="XPath Enabled" type="checkbox" checked="true"/>
               <menuitem class="inspectorOption" id="lookupLookup" label="Lookup Enabled" type="checkbox" checked="true"/>
-              
+
                 <menu label="Lookup Options" disabled="true">
                   <menupopup>
                     <menuitem class="lookupOption" id="lookupById" label="By Id" type="checkbox" checked="true"/>
-                    <menuitem class="lookupOption" id="lookupByAttributes" label="By Attributes" 
+                    <menuitem class="lookupOption" id="lookupByAttributes" label="By Attributes"
                       type="checkbox" checked="true"/>
-                    <menuitem class="lookupOption" id="lookupPositionally" label="Positionally" type="checkbox" 
+                    <menuitem class="lookupOption" id="lookupPositionally" label="Positionally" type="checkbox"
                       checked="true" />
                   </menupopup>
-                </menu>             
+                </menu>
             </menupopup>
          </menu>
            <menu label="Output">
               <menupopup>
                 <menuitem id="outPass" label="Pass" type="checkbox" checked="true" oncommand="updateOutput();"/>
                 <menuitem id="outFail" label="Fail" type="checkbox" checked="true" oncommand="updateOutput();"/>
-                <menuitem id="outTest" label="Test" type="checkbox" checked="true" oncommand="updateOutput();"/>            
+                <menuitem id="outTest" label="Test" type="checkbox" checked="true" oncommand="updateOutput();"/>
               </menupopup>
             </menu>
             <menuseparator/>
@@ -133,16 +133,16 @@ function switchFocus(elem)
   </html:div>
 </hbox>
 <html:div id="dxContainer" class="dx" style="padding:3px;">
-  <html:strong>Element</html:strong>:: 
+  <html:strong>Element</html:strong>::
   <description ondblclick="copyToClipboard(this.textContent);" id="dxElement" style="-moz-user-select: text;"></description>
   <html:br></html:br>
-  <html:strong>Controller</html:strong>:: 
+  <html:strong>Controller</html:strong>::
   <description ondblclick="copyToClipboard(this.textContent);" id="dxController" style="-moz-user-select: text;"></description>
   <html:br></html:br>
-  <html:strong>Validation</html:strong>:: 
+  <html:strong>Validation</html:strong>::
   <description ondblclick="copyToClipboard(this.textContent);" id="dxValidation" style="-moz-user-select: text;"></description>
   <html:br></html:br>
-  <html:input type="button" value="Close" style="position:relative;left:90%" 
+  <html:input type="button" value="Close" style="position:relative;left:90%"
     onclick="this.parentNode.style.display = 'none';"/>
 </html:div>
 
@@ -161,7 +161,7 @@ function switchFocus(elem)
       <html:span onclick="swapTabs('events')">Events</html:span>
     </html:span>
   </html:div>
-  
+
   <html:div id="tabContainer">
     <html:div id="editorTab" class="tabDiv" style="display:block">
       <html:textarea id="editorInput" value="" style="width:100%;height:100%" onkeypress="changeEditor()"/>
@@ -183,5 +183,5 @@ function switchFocus(elem)
     </toolbars>
   </toolbox>
 </hbox>
-   
+
 </window>
