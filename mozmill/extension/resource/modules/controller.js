@@ -117,9 +117,12 @@ var Menu = function (elements) {
     if (node.tagName){
       
       if (node.tagName == "menu") {
-        this[node.getAttribute("label")] = new Menu(node.getElementsByTagName("menupopup")[0].childNodes);
+        var label = node.getAttribute("label")
+        this[label] = new Menu(node.getElementsByTagName("menupopup")[0].childNodes);
+        this[node.id] = this[label];
       } else if (node.tagName == "menuitem") {
         this[node.getAttribute("label")] = node;
+        this[node.id] = node;
       } 
     }
   }
