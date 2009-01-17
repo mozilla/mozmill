@@ -128,7 +128,7 @@ events.setTest = function (test) {
 }
 events.endTest = function (test) {
   test.status = 'done';
-  events.currentTest = null;
+  events.currentTest = null; 
   var obj = {'filename':events.currentModule.__file__, 
          'passed':test.__passes__.length,
          'failed':test.__fails__.length,
@@ -136,6 +136,10 @@ events.endTest = function (test) {
          'fails' :test.__fails__,
          'name'  :test.__name__,
          }
+  if (test.skipped) {
+    obj['skipped'] = true;
+    obj.skipped_reason = test.skipped_reason;
+  }
   events.fireEvent('endTest', obj);
 }
 events.setModule = function (v) {
@@ -149,6 +153,11 @@ events.pass = function (obj) {
 events.fail = function (obj) {
   events.currentTest.__fails__.push(obj);
   events.fireEvent('fail', obj);
+}
+events.skip = function (reason) {
+  events.currentTest.skipped = true;
+  events.currentTest.skipped_reason = reason;
+  events.fireEvent('skip', reason);
 }
 events.fireEvent = function (name, obj) {
   if (this.listeners[name]) {
@@ -293,6 +302,8 @@ function Runner (collector) {
   events.fireEvent('startRunner', true);
   var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
   this.logger = new logging.Logger('Runner');
+  var m = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', m);
+  this.platform = m.platform;
 }
 Runner.prototype.runTestDirectory = function (directory) {
   this.collector.initTestDirectory(directory);
@@ -331,6 +342,12 @@ Runner.prototype.getDependencies = function (module) {
   return alldeps;
 }
 Runner.prototype.wrapper = function (func, arg) {
+  if (func.EXCLUDED_PLATFORMS != undefined) {
+    if (arrays.inArray(func.EXCLUDED_PLATFORMS, this.platform)) {
+      events.skip("Platform exclusion");
+      return;
+    }
+  }
   try {
     if (arg) {
       func(arg);
@@ -354,27 +371,45 @@ Runner.prototype._runTestModule = function (module) {
     events.setState('setupModule');
     events.setTest(module.__setupModule__);
     this.wrapper(module.__setupModule__, module); 
+    var setupModulePassed = (events.currentTest.__fails__.length == 0 && !events.currentTest.skipped);
     events.endTest(module.__setupModule__);
-    }
-  for (i in module.__tests__) {
-    var test = module.__tests__[i];
-    test.registeredFunctions = registeredFunctions;
-    if (module.__setupTest__) { 
-      events.setState('setupTest');
-      events.setTest(module.__setupTest__);
-      this.wrapper(module.__setupTest__, test); 
-      events.endTest(module.__setupTest__);
+  } else {
+    var setupModulePassed = true;
+  }
+  if (setupModulePassed) {
+    for (i in module.__tests__) {
+      var test = module.__tests__[i];
+      test.registeredFunctions = registeredFunctions;
+      if (module.__setupTest__) { 
+        events.setState('setupTest');
+        events.setTest(module.__setupTest__);
+        this.wrapper(module.__setupTest__, test); 
+        var setupTestPassed = (events.currentTest.__fails__.length == 0 && !events.currentTest.skipped);
+        events.endTest(module.__setupTest__);
+      } else {
+        var setupTestPassed = true;
       }  
-    events.setState('test'); 
-    events.setTest(test);
-    this.wrapper(test);
-    if (module.__teardownTest___) {
-      events.setState('teardownTest'); 
-      events.setTest(module.__teardownTest__);
-      this.wrapper(module.__teardownTest__, test); 
-      events.endTest(module.__teardownTest__);
+      events.setState('test'); 
+      events.setTest(test);
+      if (setupTestPassed) {
+        this.wrapper(test);
+      } else {
+        events.skip("setupTest failed.");
       }
-    events.endTest(test)
+      if (module.__teardownTest___) {
+        events.setState('teardownTest'); 
+        events.setTest(module.__teardownTest__);
+        this.wrapper(module.__teardownTest__, test); 
+        events.endTest(module.__teardownTest__);
+        }
+      events.endTest(test)
+    }
+  } else {
+    for each(test in module.__tests__) {
+      events.setTest(test);
+      events.skip("setupModule failed.");
+      events.endTest(test);
+    }
   }
   if (module.__teardownModule__) {
     events.setState('teardownModule');
@@ -382,7 +417,7 @@ Runner.prototype._runTestModule = function (module) {
     this.wrapper(module.__teardownModule__, module);
     events.endTest(module.__teardownModule__);
   }
-  module.__status__ = 'done'
+  module.__status__ = 'done';
 }
 Runner.prototype.runTestModule = function (module) {
   if (module.__requirements__ != undefined) {

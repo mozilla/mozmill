@@ -65,3 +65,5 @@ var test_mozillaorg = function () {
   controller.sleep(3000);
   controller.open('http://www.mozilla.org');
 }
+
+test_mozillaorg.EXCLUDED_PLATFORMS = ['darwin'];

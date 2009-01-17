@@ -53,21 +53,26 @@ global_settings.MOZILLA_PLUGINS.append(os.path.join(basedir, 'extension'))
 
 passes = []
 fails = []
+skipped = []
 
 def endTest_listener(test):
-    if test['failed'] > 0:
+    if test.get('skipped', False):
+        print 'Test Skipped : '+test['name']+' | '+test.get('skipped_reason', '')
+        skipped.append(test)
+    elif test['failed'] > 0:
         print 'Test Failed : '+test['name']+' in '+test['filename']
         fails.append(test)
     else:
         passes.append(test)
 
 def endRunner_listener(obj):
-    print 'Passed '+str(len(passes))+' :: Failed '+str(len(fails))
+    print 'Passed '+str(len(passes))+' :: Failed '+str(len(fails))+' :: Skipped '+str(len(skipped))
 
 class LoggerListener(object):
     cases = {
         'mozmill.pass':   lambda obj: logger.debug('Test Pass: '+repr(obj)),
         'mozmill.fail':   lambda obj: logger.error('Test Failure: '+repr(obj)),
+        'mozmill.skip':   lambda obj: logger.info('Test Skipped: ' +repr(obj))
     }
     
     class default(object):
