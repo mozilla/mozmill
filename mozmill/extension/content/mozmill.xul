@@ -22,6 +22,9 @@
   <key id="run-editor" modifiers="accel" key="r" oncommand="runEditor();"/>
   <key id="save-as" modifiers="accel" key="a" oncommand="saveAsFile();"/>
   <key id="save-file" modifiers="accel" key="s" oncommand="saveFile();"/>
+  <key id="copy-inspector" modifiers="alt shift" key="c" oncommand="MozMilldx.clipCopy(true);"/>
+  <key id="copy-output" modifiers="alt shift" key="o" oncommand="accessOutput();"/>
+  <key id="reset-output" modifiers="alt shift" key="r" oncommand="logicalClear();"/>
 </keyset>
 
  <menubar id="windowlist-menubar">
@@ -78,38 +81,51 @@ function switchFocus(elem)
         <menuseparator/>
         <menuitem key="run-editor" label="Run Editor" oncommand="runEditor();"/>
         <menuseparator/>
-        <menuitem label="New Boilerplate" oncommand="genBoiler();"/>
+        <menuitem label="New Test Template" oncommand="genBoiler();"/>
       </menupopup>
     </button>
       <button type="menu" id="optionsMenu" label="Options">
         <menupopup id="options-popup">
-        <menu label="Inspector" disabled="true">
-            <menupopup>
-              <menuitem class="inspectorOption" id="lookupId" label="ID Enabled" type="checkbox" checked="true"/>
-              <menuitem class="inspectorOption" id="lookupName" label="Name Enabled" type="checkbox" checked="true"/>
-              <menuitem class="inspectorOption" id="lookupXPath" label="XPath Enabled" type="checkbox" checked="true"/>
-              <menuitem class="inspectorOption" id="lookupLookup" label="Lookup Enabled" type="checkbox" checked="true"/>
+        <menu label="Inspector">
+          <menupopup>
+            <menuitem key="copy-inspector" label="Copy to Clipboard" oncommand="MozMilldx.clipCopy(true);"/>
+            <menu label="Tools" disabled="true">
+              <menupopup>
+                <menuitem class="inspectorOption" id="lookupId" label="ID Enabled" type="checkbox" checked="true"/>
+                <menuitem class="inspectorOption" id="lookupName" label="Name Enabled" type="checkbox" checked="true"/>
+                <menuitem class="inspectorOption" id="lookupXPath" label="XPath Enabled" type="checkbox" checked="true"/>
+                <menuitem class="inspectorOption" id="lookupLookup" label="Lookup Enabled" type="checkbox" checked="true"/>
 
-                <menu label="Lookup Options" disabled="true">
-                  <menupopup>
-                    <menuitem class="lookupOption" id="lookupById" label="By Id" type="checkbox" checked="true"/>
-                    <menuitem class="lookupOption" id="lookupByAttributes" label="By Attributes"
-                      type="checkbox" checked="true"/>
-                    <menuitem class="lookupOption" id="lookupPositionally" label="Positionally" type="checkbox"
-                      checked="true" />
-                  </menupopup>
-                </menu>
-            </menupopup>
+                  <menu label="Lookup Options" disabled="true">
+                    <menupopup>
+                      <menuitem class="lookupOption" id="lookupById" label="By Id" type="checkbox" checked="true"/>
+                      <menuitem class="lookupOption" id="lookupByAttributes" label="By Attributes"
+                        type="checkbox" checked="true"/>
+                      <menuitem class="lookupOption" id="lookupPositionally" label="Positionally" type="checkbox"
+                        checked="true" />
+                    </menupopup>
+                  </menu>
+              </menupopup>
+            </menu>
+          </menupopup>
          </menu>
            <menu label="Output">
               <menupopup>
-                <menuitem id="outPass" label="Pass" type="checkbox" checked="true" oncommand="updateOutput();"/>
-                <menuitem id="outFail" label="Fail" type="checkbox" checked="true" oncommand="updateOutput();"/>
-                <menuitem id="outTest" label="Test" type="checkbox" checked="true" oncommand="updateOutput();"/>
+                <menu label="Display">
+                   <menupopup>
+                     <menuitem id="outPass" label="Pass" type="checkbox" checked="true" oncommand="updateOutput();"/>
+                     <menuitem id="outFail" label="Fail" type="checkbox" checked="true" oncommand="updateOutput();"/>
+                     <menuitem id="outTest" label="Test" type="checkbox" checked="true" oncommand="updateOutput();"/>
+                   </menupopup>
+                </menu>
+                <menu label="Tools">
+                  <menupopup>
+                    <menuitem key="copy-output" id="copyout" label="Copy to Clipboard" oncommand="accessOutput();"/>
+                    <menuitem key="reset-output" id="resetOutput" label="Reset Tab Contents" oncommand="logicalClear();"/>
+                  </menupopup>
+                </menu>
               </menupopup>
-            </menu>
-            <menuseparator/>
-            <menuitem id="copyout" label="Copy Output to Clipboard" oncommand="accessOutput();"/>
+            </menu>       
         </menupopup>
       </button>
 	<toolbarseparator/>
@@ -176,12 +192,6 @@ function switchFocus(elem)
 </hbox>
 
 <hbox>
-  <toolbox>
-    <toolbars>
-      <!-- <toolbarbutton id="nav-users"  accesskey="U" label="Preferences" onclick="showPrefs();"/> -->
-      <button id="nav-groups" accesskey="p" label="Reset Output" onclick="logicalClear();"/>
-    </toolbars>
-  </toolbox>
 </hbox>
 
 </window>

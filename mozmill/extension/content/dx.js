@@ -168,7 +168,10 @@ DomInspectorConnector.prototype.getFoc = function(e){
 }
 //Copy inspector output to clipboard if alt,shift,c is pressed
 DomInspectorConnector.prototype.clipCopy = function(e){
-   if (e.altKey && e.shiftKey && (e.charCode == 199)){
+   if (e == true){
+     copyToClipboard($('dxElement').textContent + ' '+$('dxValidation').textContent + ' ' + $('dxController').textContent);
+   }
+   else if (e.altKey && e.shiftKey && (e.charCode == 199)){
        copyToClipboard($('dxElement').textContent + ' '+$('dxValidation').textContent + ' ' + $('dxController').textContent);
    }
    else {
