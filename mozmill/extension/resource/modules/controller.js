@@ -46,6 +46,9 @@ var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', f
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
                 .getService(Components.interfaces.nsIAppShellService)
                 .hiddenDOMWindow;
+var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
+     getService(Components.interfaces.nsIConsoleService);
+
 
 function sleep (milliseconds) {
   var self = {};
@@ -115,11 +118,11 @@ function waitForElement(elem, timeout, interval) {
 var Menu = function (elements) {
   for each(node in elements) {
     if (node.tagName){
-      
       if (node.tagName == "menu") {
-        var label = node.getAttribute("label")
+        var label = node.getAttribute("label");
+        var id = node.id;
         this[label] = new Menu(node.getElementsByTagName("menupopup")[0].childNodes);
-        this[node.id] = this[label];
+        this[id] = this[label];
       } else if (node.tagName == "menuitem") {
         this[node.getAttribute("label")] = node;
         this[node.id] = node;
