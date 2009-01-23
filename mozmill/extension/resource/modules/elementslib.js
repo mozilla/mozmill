@@ -113,7 +113,8 @@ var Elem = function(node) {
   return this;
 }
 Elem.prototype = new utils.Copy(ElemBase.prototype);
-Elem.prototype.getNode = function () { return this.node; }
+Elem.prototype.getNode = function () { return this.node; };
+Elem.prototype.getInfo = function () { return 'Elem instance.'; };
 
 var ID = function(_document, nodeID) {
   if (_document == undefined || nodeID == undefined) {
