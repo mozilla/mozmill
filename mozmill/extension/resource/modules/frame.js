@@ -396,7 +396,7 @@ Runner.prototype._runTestModule = function (module) {
       } else {
         events.skip("setupTest failed.");
       }
-      if (module.__teardownTest___) {
+      if (module.__teardownTest__) {
         events.setState('teardownTest'); 
         events.setTest(module.__teardownTest__);
         this.wrapper(module.__teardownTest__, test); 
