@@ -37,9 +37,11 @@
 // ***** END LICENSE BLOCK *****
 
 var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
+
 var $ = function(id) {
    return document.getElementById(id);
 };
+
 
 var updateOutput = function(){
   //get the checkboxes

@@ -176,6 +176,9 @@ function switchFocus(elem)
     <html:span id="eventsHead" class="tabHead">
       <html:span onclick="swapTabs('events')">Events</html:span>
     </html:span>
+    <html:span id="shellHead" class="tabHead">
+      <html:span onclick="swapTabs('shell');$('shellInput').focus();">Shell</html:span>
+    </html:span>
   </html:div>
 
   <html:div id="tabContainer">
@@ -188,10 +191,15 @@ function switchFocus(elem)
     <html:div id="eventsTab" class="tabDiv">
       <html:textarea id="eventsOut" value="" style="width:100%;height:100%"/>
     </html:div>
+    <html:div id="shellTab" class="tabDiv">
+      <html:textarea id="shellInput" value="" style="width:100%;height:50px">Type commands here...</html:textarea>
+      <html:div id="shellOutput" style="overflow:auto;height:500px;width:100%;border:1px solid #aaa"></html:div>
+    </html:div>
   </html:div>
 </hbox>
 
 <hbox>
 </hbox>
 
+<script src="shell.js"/>
 </window>

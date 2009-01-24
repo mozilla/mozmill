@@ -174,10 +174,12 @@ function swapTabs(tab){
   $('editorTab').style.display = 'none';
   $('outputTab').style.display = 'none';
   $('eventsTab').style.display = 'none';
+  $('shellTab').style.display = 'none';
   
   $('editorHead').style.background = '#aaa';
   $('outputHead').style.background = '#aaa';
   $('eventsHead').style.background = '#aaa';
+  $('shellHead').style.background = '#aaa';
   
   $(tab+'Tab').style.display = 'block';
   $(tab+'Head').style.background = 'white';
