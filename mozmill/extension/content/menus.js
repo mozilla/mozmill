@@ -170,6 +170,7 @@ function genBoiler(){
   if (really == true) {
     utils.genBoiler(window);
     $('editorMessage').innerHTML = "You must save this as a file before you run it..";
+    document.getElementById('editorInput').focus();
   }
 }
 
