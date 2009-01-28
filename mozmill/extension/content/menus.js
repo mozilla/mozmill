@@ -166,8 +166,11 @@ function runEditor(){
 }
 
 function genBoiler(){
-  utils.genBoiler(window);
-  $('editorMessage').innerHTML = "You must save this as a file before you run it..";
+  var really = confirm("Generating a new template will wipe out your currently open test, continue?");
+  if (really == true) {
+    utils.genBoiler(window);
+    $('editorMessage').innerHTML = "You must save this as a file before you run it..";
+  }
 }
 
 function swapTabs(tab){
