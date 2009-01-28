@@ -64,7 +64,10 @@ DomInspectorConnector.prototype.evtDispatch = function(e) {
     }
   } else { this.lastTime = newTime; }
   
-  var i = inspection.inspectElement(e);
+  //Fix the scroll bar exception Bug 472124
+  try { var i = inspection.inspectElement(e); }
+  catch(err){ return; }
+  
   var dxC = i.controllerText;
   var dxE = i.elementText;
   var dxV = String(i.validation);
