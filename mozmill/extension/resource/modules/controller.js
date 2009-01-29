@@ -261,6 +261,7 @@ MozMillController.prototype.click = function(el){
 MozMillController.prototype.sleep = sleep;
 MozMillController.prototype.waitForEval = waitForEval;
 MozMillController.prototype.waitForElement = waitForElement;
+MozMillController.prototype.waitForImage = waitForImage;
 
 MozMillController.prototype.type = function (el, text){
   //this.window.focus();
