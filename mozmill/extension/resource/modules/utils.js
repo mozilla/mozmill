@@ -216,6 +216,17 @@ var checkChrome = function() {
      //if we got a file
      if (res == nsIFilePicker.returnOK){
        var thefile = fp.file;
+              
+       //forcing the user to save as a .js file
+       if (thefile.path.indexOf(".js") == -1){
+         //define the file interface
+         var file = Components.classes["@mozilla.org/file/local;1"]
+                              .createInstance(Components.interfaces.nsILocalFile);
+         //point it at the file we want to get at
+         file.initWithPath(thefile.path+".js");
+         var thefile = file;
+       }
+       
        // file is nsIFile, data is a string
        var foStream = Components.classes["@mozilla.org/network/file-output-stream;1"]
                                .createInstance(Components.interfaces.nsIFileOutputStream);
