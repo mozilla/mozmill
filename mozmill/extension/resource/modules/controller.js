@@ -105,6 +105,16 @@ function waitForEval (expression, timeout, interval, subject) {
   return true;
 }
 
+function waitForImage(elem, timeout, interval) {
+  if (interval == undefined) {
+    interval = 100;
+  }
+  if (timeout == undefined) {
+    timeout = 30000;
+  }
+  waitForEval('subject.complete == true', timeout, interval, elem.getNode());
+}
+
 function waitForElement(elem, timeout, interval) {
   if (interval == undefined) {
     interval = 100;
