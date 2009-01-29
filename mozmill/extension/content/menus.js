@@ -41,6 +41,10 @@ var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js'
 
 var menusLogger = logging.getLogger('menusLogger');
 
+function openNewWindow(){
+  window.open('');
+}
+
 function openFile(){
   var openFn = utils.openFile(window);
   if (openFn){

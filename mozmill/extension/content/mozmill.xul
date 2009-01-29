@@ -25,9 +25,15 @@
   <key id="copy-inspector" modifiers="alt shift" key="c" oncommand="MozMilldx.clipCopy(true);"/>
   <key id="copy-output" modifiers="alt shift" key="o" oncommand="accessOutput();"/>
   <key id="reset-output" modifiers="alt shift" key="r" oncommand="logicalClear();"/>
+  <key id="new-window" modifiers="accel" key="n" oncommand="openNewWindow();"/>
 </keyset>
 
  <menubar id="windowlist-menubar">
+ <menu id="file-menu" label="File">
+    <menupopup id="file-popup">
+      <menuitem label="New Window" key="new-window"/>
+    </menupopup>
+  </menu>
   <menu label="Window" oncommand="switchFocus(event.target);">
    <menupopup id="window-menu" datasources="rdf:window-mediator" ref="NC:WindowMediatorRoot">
     <template>
