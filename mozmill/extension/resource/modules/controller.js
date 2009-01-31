@@ -397,19 +397,19 @@ MozMillController.prototype.mouseout = function (el){
 //Browser navigation functions
 MozMillController.prototype.goBack = function(){
   //this.window.focus();
-  this.window.history.back();
+  this.window.content.history.back();
   frame.events.pass({'function':'Controller.goBack()'});
   return true;
 }
 MozMillController.prototype.goForward = function(){
   //this.window.focus();
-  this.window.history.forward();
+  this.window.content.history.forward();
   frame.events.pass({'function':'Controller.goForward()'});
   return true;
 }
 MozMillController.prototype.refresh = function(){
   //this.window.focus();
-  this.window.location.reload(true);
+  this.window.content.location.reload(true);
   frame.events.pass({'function':'Controller.refresh()'});
   return true;
 }
