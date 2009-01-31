@@ -315,23 +315,29 @@ MozMillController.prototype.type = function (el, text){
 };
 
 /* Select the specified option and trigger the relevant events of the element.*/
-MozMillController.prototype.select = function (el) {
+MozMillController.prototype.select = function (el, indx, option, value) {
   //this.window.focus();
   element = el.getNode();
   if (!element){ 
     throw new Error("could not find element " + el.getInfo());     
     return false; 
   } 
+  
+  if (indx){
+   element.options.selectedIndex = indx;
+   frame.events.pass({'function':'Controller.select()'});
+   return true;
+  }
 
  try{ events.triggerEvent(element, 'focus', false);}
  catch(err){};
 
  var optionToSelect = null;
- for (opt in element.options){
+ for (var opt=0;opt<element.options.length;opt++){
    var el = element.options[opt]
 
-   if (param_object.option != undefined){
-     if(el.innerHTML.indexOf(param_object.option) != -1){
+   if (option != undefined){
+     if(el.innerHTML.indexOf(option) != -1){
        if (el.selected && el.options[opt] == optionToSelect){
          continue;
        }
@@ -342,7 +348,7 @@ MozMillController.prototype.select = function (el) {
      }
    }
    else{
-      if(el.value.indexOf(param_object.value) != -1){
+      if(el.value.indexOf(value) != -1){
          if (el.selected && el.options[opt] == optionToSelect){
            continue;
          }

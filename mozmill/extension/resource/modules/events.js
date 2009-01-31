@@ -56,7 +56,7 @@ var createEventObject = function(element, controlKeyDown, altKeyDown, shiftKeyDo
     /* Fire an event in a browser-compatible manner */
 var triggerEvent = function(element, eventType, canBubble, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
   canBubble = (typeof(canBubble) == undefined) ? true: canBubble;
-  var evt = document.createEvent('HTMLEvents');
+  var evt = element.ownerDocument.createEvent('HTMLEvents');
 
   evt.shiftKey = shiftKeyDown;
   evt.metaKey = metaKeyDown;
