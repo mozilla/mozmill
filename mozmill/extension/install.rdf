@@ -39,5 +39,13 @@
          <em:maxVersion>2.0a3pre</em:maxVersion>
        </Description>
      </em:targetApplication>
+	   <em:targetApplication>
+	      <!-- Songbird -->
+	      <Description>
+	        <em:id>songbird@songbirdnest.com</em:id>
+	        <em:minVersion>0.3pre</em:minVersion>
+	        <em:maxVersion>1.0.*</em:maxVersion>
+	      </Description>
+	   </em:targetApplication>
    </Description>
 </RDF>

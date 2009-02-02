@@ -23,6 +23,7 @@ mozmill/extension/content/overlay.xul
 mozmill/extension/content/overlay_tb.xul
 mozmill/extension/content/prefs.xul
 mozmill/extension/content/rec.js
+mozmill/extension/content/shell.js
 mozmill/extension/content/testwindow.xul
 mozmill/extension/content/css/mozmill.css
 mozmill/extension/content/img/wmIcon.png
