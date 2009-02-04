@@ -139,7 +139,7 @@ var checkChrome = function() {
  }*/
  
  var genBoiler = function(w){
-   w.document.getElementById('editorInput').value = '' +
+   var value = '' +
    "var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);\n" +
    "var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);\n" +
    "\n" +
@@ -150,6 +150,7 @@ var checkChrome = function() {
    "var testFoo = function(){\n" +
    "  controller.open('http://www.google.com');\n" +
    "}\n"
+   w.editAreaLoader.setValue('editorInput', value);
  }
  var runFile = function(w){
    //define the interface
@@ -199,7 +200,7 @@ var checkChrome = function() {
    // write, create, truncate
    // In a c file operation, we have no need to set file mode with or operation,
    // directly using "r" or "w" usually.
-   var data = w.document.getElementById('editorInput').value;
+   var data = w.editAreaLoader.getValue('editorInput');
    foStream.write(data, data.length);
    foStream.close();
  };
@@ -236,7 +237,7 @@ var checkChrome = function() {
        // write, create, truncate
        // In a c file operation, we have no need to set file mode with or operation,
        // directly using "r" or "w" usually.
-       var data = w.document.getElementById('editorInput').value;
+       var data = w.editAreaLoader.getValue('editorInput');
        foStream.write(data, data.length);
        foStream.close();
       
@@ -258,13 +259,14 @@ var checkChrome = function() {
       var thefile = fp.file;
       //create the paramObj with a files array attrib
       var data = getFile(thefile.path);
-      w.document.getElementById('editorInput').value = data;
+      //w.document.getElementById('editorInput').value = data;
+      
       //Move focus to output tab
       //$('mmtabs').setAttribute("selectedIndex", 2);
       //send it into the JS test framework to run the file
       //mozmill.utils.jsTests(paramObj);
       //jsTest.runFromString(thefile.path);
-      return thefile.path;
+      return {path:thefile.path, data:data};
     }
   };
   

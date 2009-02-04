@@ -39,14 +39,14 @@
 var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var json2 = {}; Components.utils.import('resource://mozmill/stdlib/json2.js', json2);
 
-var $ = function(id) {
-   return document.getElementById(id);
-};
+// var $ = function(id) {
+//    return document.getElementById(id);
+// };
 
 var createCell = function (t, obj, message) {
 
-  var r = window.document.getElementById("resOut");
-  var msg = window.document.createElement('html:div');
+  var r = document.getElementById("resOut");
+  var msg = document.createElement('div');
   msg.setAttribute("class", t);
   //msg.style.background = color;
   //var serialized = json2.JSON.stringify(message);
@@ -55,19 +55,19 @@ var createCell = function (t, obj, message) {
   //Adding each of the message attributes dynamically
   //if message isn't an object
   if (typeof(message) == "string"){
-    msg.textContent = t+' :: '+message;
+    msg.innerHTML = t+' :: '+message;
   }
   else {
     //add each piece in its own hbox
-    msg.textContent = t+' :: '+message['function'] + ' +';
+    msg.innerHTML = t+' :: '+message['function'] + ' +';
     
     //For each attribute
     for (i in message){
       //if the value isn't undefined
       if (message[i] != undefined){
-        var stuff = window.document.createElement('html:div');
+        var stuff = window.document.createElement('div');
         stuff.setAttribute("style", "font-weight:normal;display:block");
-        stuff.textContent = i +": " +message[i];
+        stuff.innerHTML = i +": " +message[i];
         stuff.style.width = "100%";
         msg.appendChild(stuff);
       }
@@ -114,14 +114,14 @@ var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', f
 // Set UI Listeners in frame
 function stateListener (state) {
   if (state != 'test') {  
-    window.document.getElementById('runningStatus').textContent = state;
+    document.getElementById('runningStatus').textContent = state;
     // results.write(state)
   }
 }
 frame.events.addListener('setState', stateListener);
 function testListener (test) {
   createCell('test', test, 'Started running test: '+test.name)
-  window.document.getElementById('runningStatus').textContent = 'Running test: '+test.name;
+  document.getElementById('runningStatus').textContent = 'Running test: '+test.name;
 }
 frame.events.addListener('setTest', testListener);
 function passListener (text) {

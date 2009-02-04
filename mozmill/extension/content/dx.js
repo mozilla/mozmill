@@ -72,9 +72,9 @@ DomInspectorConnector.prototype.evtDispatch = function(e) {
   var dxE = i.elementText;
   var dxV = String(i.validation);
 
-  $('dxController').textContent = dxC;
-  $('dxValidation').textContent = dxV;
-  $('dxElement').textContent = dxE;
+  document.getElementById('dxController').innerHTML = dxC;
+  document.getElementById('dxValidation').innerHTML = dxV;
+  document.getElementById('dxElement').innerHTML = dxE;
 
   return dxE;
 }
@@ -90,15 +90,15 @@ DomInspectorConnector.prototype.dxToggle = function(){
 //Since the click event does things like firing twice when a double click goes also
 //and can be obnoxious im enabling it to be turned off and on with a toggle check box
 DomInspectorConnector.prototype.dxOn = function() {
-  $('eventsOut').value = "";
-  $('inspectClickSelection').disabled = true;
-  $('domExplorer').setAttribute('label', 'Disable Inspector');
+  document.getElementById('eventsOut').value = "";
+  //document.getElementById('inspectClickSelection').disabled = true;
+  //$('domExplorer').setAttribute('label', 'Disable Inspector');
   //defined the click method, default to dblclick
   var clickMethod = "dblclick";
-  if ($('inspectSingle').selected){
+  if (document.getElementById('inspectSingle').checked){
     clickMethod = 'click';
   }
-  $('dxContainer').style.display = "block";
+  //document.getElementById('dxContainer').style.display = "block";
   //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
   var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                      .getService(Components.interfaces.nsIWindowMediator)
@@ -106,7 +106,7 @@ DomInspectorConnector.prototype.dxOn = function() {
   while(enumerator.hasMoreElements()) {
     var win = enumerator.getNext();
     //if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
-    if (win.document.documentElement.getAttribute('windowtype') != 'Extension:Mozmill'){
+    if (win.document.title != 'MozMill IDE'){
       this.dxRecursiveBind(win, clickMethod);
       //win.focus();
     }
@@ -132,7 +132,7 @@ DomInspectorConnector.prototype.observer = {
 };
 
 DomInspectorConnector.prototype.dxOff = function() {
-  $('inspectClickSelection').disabled = false;
+  //document.getElementById('inspectClickSelection').disabled = false;
 
   //try to cleanup left over outlines
   if (this.lastEvent){
@@ -141,13 +141,13 @@ DomInspectorConnector.prototype.dxOff = function() {
   
   //defined the click method, default to dblclick
   var clickMethod = "dblclick";
-  if ($('inspectSingle').selected){
+  if (document.getElementById('inspectSingle').checked){
     clickMethod = 'click';
   }
   
   //because they share this box
   var copyOutputBox = $('copyout');
-  $('domExplorer').setAttribute('label', 'Enable Inspector');
+  //$('domExplorer').setAttribute('label', 'Enable Inspector');
   //$('dxContainer').style.display = "none";
   //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
   for each(win in utils.getWindows()) {
@@ -178,11 +178,11 @@ DomInspectorConnector.prototype.clipCopy = function(e){
        copyToClipboard($('dxElement').textContent + ' '+$('dxValidation').textContent + ' ' + $('dxController').textContent);
    }
    else {
-     $('eventsOut').value += "-----\n";
-     $('eventsOut').value += "Shift Key: "+ e.shiftKey + "\n";
-     $('eventsOut').value += "Control Key: "+ e.ctrlKey + "\n";
-     $('eventsOut').value += "Alt Key: "+ e.altKey + "\n";
-     $('eventsOut').value += "Meta Key: "+ e.metaKey + "\n\n";
+     window.document.getElementById('eventsOut').value += "-----\n";
+     window.document.getElementById('eventsOut').value += "Shift Key: "+ e.shiftKey + "\n";
+     window.document.getElementById('eventsOut').value += "Control Key: "+ e.ctrlKey + "\n";
+     window.document.getElementById('eventsOut').value += "Alt Key: "+ e.altKey + "\n";
+     window.document.getElementById('eventsOut').value += "Meta Key: "+ e.metaKey + "\n\n";
      
      var ctrlString = "";
      ctrlString += MozMilldx.evtDispatch(e);
@@ -193,7 +193,7 @@ DomInspectorConnector.prototype.clipCopy = function(e){
      ctrlString += e.metaKey.toString()+");\n";
      
      ctrlString = ctrlString.replace(/undefined/g, "false");         
-     $('eventsOut').value += ctrlString;
+     document.getElementById('eventsOut').value += ctrlString;
    }
 }
 //Recursively bind to all the iframes and frames within

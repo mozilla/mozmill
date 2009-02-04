@@ -1,0 +1,254 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
+   "http://www.w3.org/TR/html4/strict.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>MozMill IDE</title>
+	<meta name="generator" content="TextMate http://macromates.com/">
+	<meta name="author" content="adam">
+	<!-- Date: 2009-02-03 -->
+	<link type="text/css" href="jquery/theme/ui.all.css" rel="Stylesheet" />
+  <link type="text/css" href="css/mozmill.css" rel="Stylesheet" />
+	
+  <script src="mozmill.js"></script>
+  <script src="output.js"></script>
+  <script src="dx.js"></script>
+  <script src="rec.js"></script>
+  <script src="menus.js"></script>
+    
+	<script src="jquery/jquery-1.3.1.js"></script>
+	<script src="jquery/jquery.ui.all.js"></script>
+	<script src="ui.js"></script>
+  <script src="editarea/edit_area/edit_area_full.js"></script>
+	
+	<style type="text/css">
+		body{ font: 10px Verdana, sans-serif;}
+		/*demo page css*/
+		#dialog_link {padding: .4em 1em .4em 20px;text-decoration: none;position: relative;}
+		#dialog_link span.ui-icon {margin: 0 5px 0 0;position: absolute;left: .2em;top: 50%;margin-top: -8px;}
+		ul#icons {margin: 0; padding: 0;}
+		ul#icons li {margin: 2px; position: relative; padding: 4px 0; cursor: pointer; float: left;  list-style: none;}
+		ul#icons span.ui-icon {float: left; margin: 0 4px;}
+	</style>
+</head>
+<body style="background:white;">
+  <script type="text/javascript">
+  	$(function() {
+  		$("#tabs").tabs();
+  		
+  		$("#inspectDialog").dialog({
+  		  autoOpen: false,
+        height: 450,
+        width: 400,
+        modal:true,
+        overlay: { 
+            opacity: 0.5, 
+            background: "black" 
+        },
+        buttons: { 
+          "Close": function() { 
+            jQuery(this).dialog("close"); 
+          },   
+          "Stop": function() { 
+            MozMilldx.dxOff(); 
+          },
+          "Start": function() { 
+             MozMilldx.dxOn();  
+          }
+        }
+      });
+  	
+		$("#fileDialog").dialog({
+		  autoOpen: false,
+      height: 170,
+      width: 400,
+      modal:true,
+      resizable:false,
+      overlay: { 
+          opacity: 0.5, 
+          background: "black" 
+      },
+      buttons: { 
+       "Close": function() { 
+           jQuery(this).dialog("close"); 
+       } 
+      }
+    });
+    
+    $("#testDialog").dialog({
+		  autoOpen: false,
+      height: 170,
+      width: 400,
+      modal:true,
+      resizable:false,
+      overlay: { 
+          opacity: 0.5, 
+          background: "black" 
+      },
+      buttons: { 
+       "Close": function() { 
+           jQuery(this).dialog("close"); 
+       } 
+      }
+    });
+    
+    $("#optionDialog").dialog({
+		  autoOpen: false,
+      height: 250,
+      width: 400,
+      modal:true,
+      resizable:false,
+      overlay: { 
+          opacity: 0.5, 
+          background: "black" 
+      },
+      buttons: { 
+       "Close": function() { 
+           jQuery(this).dialog("close"); 
+       } 
+      }
+    });
+    
+    $("#recordDialog").dialog({
+		  autoOpen: false,
+      height: 160,
+      width: 400,
+      modal:true,
+      overlay: { 
+          opacity: 0.5, 
+          background: "black" 
+      },
+      buttons: { 
+        "Close": function() { 
+          jQuery(this).dialog("close"); 
+        },   
+        "Stop": function() { 
+          MozMillrec.off();
+        },
+        "Start": function() { 
+          MozMillrec.on();
+        }
+      }
+    });
+
+	});
+  </script>
+
+    <div style="position:absolute;width:97%;height:98%;overflow:hidden;">
+      
+      <image src="img/wmIcon.png" style="float:right"/>
+      <div id="statusMessage" style="height:40px;">
+        <span><strong>Status:</strong></span>
+        <span id="runningStatus">Ready...</span>
+      </div>
+      <div style="width:100%;text-align:right;font-size:12px;">
+        <a href="javascript:showFileDialog();">File</a> | 
+        <a href="javascript:showTestDialog();">Test</a> | 
+        <a href="javascript:showOptionDialog();">Options</a> | 
+        <a href="javascript:showInspectDialog();">Inspector</a> | 
+        <a href="javascript:showRecordDialog();">Recorder</a>
+      </div>
+      <div id="tabs" style="position:relative;width:100%;height:90%">
+      	<ul>
+      		<li><a href="#tabs-1">Editor</a></li>
+      		<li><a href="#tabs-2">Output</a></li>
+      		<li><a href="#tabs-3">Events</a></li>
+      		<li><a href="#tabs-4">Shell</a></li>
+      	</ul>
+      	<div id="tabs-1">
+      		<p>
+      		  <textarea id="editorInput" value="" rows="35" style="width:99%;"></textarea>
+      		</p>
+      	</div>
+      	<div id="tabs-2">
+      		<p>
+      		  <div id="resOut" style="overflow:auto;position:absolute;height:90%;width:95%"></div>
+      		</p>
+      	</div>
+      	<div id="tabs-3">
+      		<p>
+      		  <textarea id="eventsOut" value=""  rows="35" style="width:99%;"></textarea>
+      		</p>
+      	</div>
+      	<div id="tabs-4">
+      		<p>
+            <textarea id="shellInput" style="width:100%;height:50px">Type commands here...</textarea>
+            <div id="shellOutput" style="overflow:auto;height:500px;width:100%;border:1px solid #aaa">
+              
+            </div>
+      		</p>
+      	</div>
+      </div>
+    
+      <div id="inspectDialog" title="Inspector">
+      	<p>
+      	  <div style="float:right;">
+      	      Double: <input id="inspectDouble" type="radio" name="inspectClickSelection" value="double" checked>
+              Single: <input id="inspectSingle" type="radio" name="inspectClickSelection" value="single" >
+      	  </div><br>
+      	  <div id="dxContainer" style="padding:3px;">
+            <strong>Element</strong>::
+            <span ondblclick="copyToClipboard(this.textContent);" id="dxElement"></span>
+            <br>
+            <strong>Controller</strong>::
+            <span ondblclick="copyToClipboard(this.textContent);" id="dxController"></span>
+            <br>
+            <strong>Validation</strong>::
+            <span ondblclick="copyToClipboard(this.textContent);" id="dxValidation"></span>
+          </div>
+      	</p>
+      </div>
+      
+      <div id="fileDialog" title="File Options">
+      	<p>
+      	  <ul>
+      	    <li><a href="javascript:openFile();">Open File</a>
+            <li><a href="javascript:saveFile();">Save Current File</a>
+            <li><a href="javascript:saveAsFile();">Save Current File As</a>
+            <li><a href="javascript:closeFile();">Close Current File</a>
+          </ul>
+      	</p>
+      </div>
+      
+      <div id="testDialog" title="Test Options">
+      	<p>
+      	  <ul>
+            <li><a href="javascript:runEditor();">Run Editor</a>
+      	    <li><a href="javascript:runFile();">Run Test File</a>
+            <li><a href="javascript:runDirectory();">Run Test Directory</a>
+            <li><a href="javascript:genBoiler();">Generate New Test Template</a>
+          </ul>
+      	</p>
+      </div>
+      
+      <div id="optionDialog" title="Options">
+      	<p>
+      	  <h3>Display</h3>
+              Pass:<input id="outPass" label="Pass" type=checkbox checked onchange="updateOutput();"/>
+              Fail:<input id="outFail" label="Fail" type=checkbox checked onchange="updateOutput();"/>
+              Test:<input id="outTest" label="Test" type=checkbox checked onchange="updateOutput();"/>
+      	</p>
+      </div>
+      
+      <div id="recordDialog" title="Recorder">
+      	<p>
+      	  <h3>Use the buttons below to start and stop recording!</h3>
+      	</p>
+      </div>
+    </div>
+    
+    <script language="Javascript" type="text/javascript">    
+  		// initialisation
+  		editAreaLoader.init({
+  			id: "editorInput"	// id of the textarea to transform		
+  			,start_highlight: true	// if start with highlight
+  			,allow_resize: false
+  			,allow_toggle: true
+  			,language: "en"
+  			,syntax: "js"	
+  		});
+  	</script>
+  	<script src="shell.js"></script>
+</body>
+</html>

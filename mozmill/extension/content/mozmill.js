@@ -38,16 +38,16 @@
 
 var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
 
-var $ = function(id) {
-   return document.getElementById(id);
-};
+// var $ = function(id) {
+//    return document.getElementById(id);
+// };
 
 
 var updateOutput = function(){
   //get the checkboxes
-  var pass = $('outPass');
-  var fail = $('outFail');
-  var info = $('outTest');
+  var pass = document.getElementById('outPass');
+  var fail = document.getElementById('outFail');
+  var info = document.getElementById('outTest');
 
   //get the collections
   var passCollect = window.document.getElementsByClassName('pass');
@@ -57,7 +57,7 @@ var updateOutput = function(){
   //set the htmlcollection display property in accordance item.checked
   var setDisplay = function(item, collection){
     for (var i = 0; i < collection.length; i++){
-      if (item.getAttribute('checked') == "true"){
+      if (item.checked == true){
         collection[i].style.display = "block";
       } else {
         collection[i].style.display = "none";

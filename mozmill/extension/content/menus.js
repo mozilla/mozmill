@@ -46,29 +46,39 @@ function openNewWindow(){
 }
 
 function openFile(){
-  var openFn = utils.openFile(window);
-  if (openFn){
-    window.openFn = openFn;
+  var openObj = utils.openFile(window);
+  if (openObj.path){
+    window.openFn = openObj.path;
     //$('saveMenu').removeAttribute("disabled");
-    $('closeMenu').removeAttribute("disabled");
-    $('editorMessage').innerHTML = "Loaded File: " + window.openFn;
+    //$('closeMenu').removeAttribute("disabled");
+    //document.getElementById('editorInput').value = openObj.data;
+		
+    editAreaLoader.openFile('editorInput', {text:openObj.data,title:openObj.path,id:openObj.path});
+    //document.getElementById('editorMessage').innerHTML = "Loaded File: " + window.openFn;
   }
 }
 
 function saveAsFile() {
+  try {
+    window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
+  } catch(err){ delete window.openFn; return; }
+  
   var openFn = utils.saveAsFile(window);
   if (openFn){
     window.openFn = openFn;
-    $('saveMenu').removeAttribute("disabled");
-    $('closeMenu').removeAttribute("disabled");
-    $('editorMessage').innerHTML = "Loaded File: " + window.openFn;
+    var data = utils.getFile(window.openFn);
+    editAreaLoader.openFile('editorInput', {text:data,title:window.openFn,id:window.openFn})
   }
 }
 
 function saveFile() {
-  //if ($('saveMenu').getAttribute("disabled")){ return; }
+  try {
+    window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
+  } catch(err){ delete window.openFn; return; }
+  
+    //if ($('saveMenu').getAttribute("disabled")){ return; }
   utils.saveFile(window);
-  $('saveMenu').setAttribute("disabled", "true");
+  //$('saveMenu').setAttribute("disabled", "true");
 }
 
 function changeEditor() {
@@ -81,14 +91,19 @@ function changeEditor() {
 }
 
 function closeFile() {
- if ($('closeMenu').getAttribute("disabled")){ return; }
+  try {
+    window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
+  } catch(err){ delete window.openFn; return; }
+  
  var really = confirm("Are you sure you want to close this file?");
  if (really == true) {
-   $('editorInput').value = '';
-   delete window.openFn;
-   $('saveMenu').setAttribute("disabled","true");
-   $('closeMenu').setAttribute("disabled","true");
-   $('editorMessage').innerHTML = "Use the 'File' menu to open a test, or generate and save a new one..";
+   editAreaLoader.closeFile('editorInput', window.openFn)
+   try {
+     window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
+   } catch(err){ delete window.openFn; }
+//   $('saveMenu').setAttribute("disabled","true");
+//   $('closeMenu').setAttribute("disabled","true");
+//   $('editorMessage').innerHTML = "Use the 'File' menu to open a test, or generate and save a new one..";
  }
 }
 
@@ -100,9 +115,11 @@ function runFile(){
   fp.appendFilter("JavaScript Files","*.js");
   var res = fp.show();
   if (res == nsIFilePicker.returnOK){
+    $("#testDialog").dialog("close");
+    $("#tabs").tabs("select", 1);
     frame.runTestFile(fp.file.path);
   }
-  $('runningStatus').textContent = 'Test Finished, See Output Tab...';
+  document.getElementById('runningStatus').textContent = 'Test Finished, See Output Tab...';
 }
 
 function runDirectory(){
@@ -112,9 +129,11 @@ function runDirectory(){
   fp.init(window, "Select a Directory", nsIFilePicker.modeGetFolder);
   var res = fp.show();
   if (res == nsIFilePicker.returnOK){
+    $("#testDialog").dialog("close");
+    $("#tabs").tabs("select", 1);
     frame.runTestDirectory(fp.file.path);
   }
-  $('runningStatus').textContent = 'Test Finished, See Output Tab...';
+  document.getElementById('runningStatus').textContent = 'Test Finished, See Output Tab...';
 }
 
 // function reloadFile(){
@@ -123,12 +142,17 @@ function runDirectory(){
 // }
 
 function runEditor(){
+  try {
+    window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
+  } catch(err){ delete window.openFn; return; }
   
   var doRun = function(){
-    $('runningStatus').textContent = 'Running Test...';
+    document.getElementById('runningStatus').textContent = 'Running Test...';
     //utils.runEditor(window);
+    $("#testDialog").dialog("close");
+    $("#tabs").tabs("select", 1);
     frame.runTestFile(window.openFn);
-    $('runningStatus').textContent = 'Test Finished, See Output Tab...';
+    document.getElementById('runningStatus').textContent = 'Test Finished, See Output Tab...';
   }
   
   // //If there isn't a file system pointer to a test open
@@ -141,41 +165,18 @@ function runEditor(){
   // }
   //if the test is open but hasn't been modified
   
-  if (!window.openFn || $('saveMenu').getAttribute("disabled") != "true") {
-    var oldFn = window.openFn;
     if (!window.openFn) {
       window.openFn = utils.tempfile().path;
+      utils.saveFile(window);
     }
-    utils.saveFile(window);
     doRun();
-    window.openFn = oldFn;
-    if (oldFn == null) {
-      $('saveMenu').setAttribute("disabled", "true"); 
-    }
-  } else if ($('saveMenu').getAttribute("disabled") == "true"){
-    doRun();
-  }
-  
-  // if (!window.openFn){
-  //   
-  // }
-  // //if the test was modified
-  // else {
-  //   really = confirm("To run this file you must save it, shall I do this for you?");
-  //   if (really){
-  //     saveFile();
-  //     doRun();
-  //   } else { return; }
-  // }
+
 }
 
 function genBoiler(){
-  var really = confirm("Generating a new template will wipe out your currently open test, continue?");
-  if (really == true) {
+    window.openFn = utils.tempfile().path;
+    editAreaLoader.openFile('editorInput', {text:'',title:window.openFn,id:window.openFn});
     utils.genBoiler(window);
-    $('editorMessage').innerHTML = "You must save this as a file before you run it..";
-    document.getElementById('editorInput').focus();
-  }
 }
 
 function swapTabs(tab){

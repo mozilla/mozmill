@@ -26,12 +26,12 @@ var shell = new function(){
   
   //generate a new output entry node
   this.entry = function(val){
-    var nd = document.createElement('html:div');
+    var nd = document.createElement('div');
     nd.style.textAlign = "left";
     nd.style.paddingLeft = "5px";
     nd.style.paddingBottom = "1px";
     nd.style.font = "12px arial";
-    nd.textContent = val;
+    nd.innerHTML = val;
     nd.style.display = "block";
     nd.style.width = "99%";
 
@@ -53,7 +53,7 @@ var shell = new function(){
   };
   
   this.sendCmd = function(s){
-    shell.sout().insertBefore(shell.cmdEntry('mmsh% '+s), shell.sout().childNodes[0]);
+    shell.sout().insertBefore(shell.cmdEntry('<font color="blue">mmsh%</font> <font color="tan">'+s+'</font>'), shell.sout().childNodes[0]);
   };
 
   //send output to console
@@ -142,7 +142,7 @@ var shell = new function(){
          shell.send(res);
        }
        catch(err){
-         shell.send('Error:'+err);
+         shell.send('<font color="red">Error:'+err+"</font>");
        }
        shell.sendCmd(cmd);
     }
@@ -158,8 +158,36 @@ var shell = new function(){
   };
   
   this.init = function(){
-    $('shellInput').addEventListener("keypress", shell.okp, false);
-    $('shellInput').addEventListener("mousedown", shell.omc, false);
+    document.getElementById('shellInput').addEventListener("keypress", shell.okp, false);
+    document.getElementById('shellInput').addEventListener("mousedown", shell.omc, false);
+    
+    document.getElementById('shellInput').addEventListener("keydown", function(event){
+      if (event.target.value == "Type commands here..."){
+        event.target.value = "";
+      }
+      //if there is a command history
+      if (shell.hist.length != 0){
+        //uparrow
+        if ((event.keyCode == 38) && (event.charCode == 0) && (event.shiftKey == true)){
+          if (shell.histPos == shell.hist.length -1){
+            shell.histPos = 0;
+          } else {
+            shell.histPos++;
+          }
+          shell.sin().value = shell.hist[shell.histPos];
+        }
+        //downarrow
+        if ((event.keyCode == 40) && (event.charCode == 0) && (event.shiftKey == true)){
+          if (shell.histPos == 0){
+            shell.histPos = shell.hist.length -1;
+          } else {
+           shell.histPos--; 
+          }
+          shell.sin().value = shell.hist[shell.histPos];
+        }
+      }
+    }, false);
+    
   };
   
   this.enter = function(event){
