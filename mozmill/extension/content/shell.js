@@ -139,7 +139,12 @@ var shell = new function(){
     default:
        try {
          var res = eval.call(that,cmd);
-         shell.send(res);
+         if ((cmd.indexOf('=') == -1) && (res == null)){
+           shell.send(cmd + ' is null.')
+         }
+         else {
+           shell.send(res);
+         }
        }
        catch(err){
          shell.send('<font color="red">Error:'+err+"</font>");
@@ -198,14 +203,14 @@ var shell = new function(){
     //       return;
     //     }
     //if we have less than histLength
-    if (shell.hist.length < shell.histLength){
+    //if (shell.hist.length < shell.histLength){
       shell.hist.unshift(inp.value);
       shell.histPos = shell.hist.length -1;
-    }
-    else {
-      shell.hist.pop();
-      shell.hist.unshift(inp.value);
-    }
+    // }
+    // else {
+    //   shell.hist.pop();
+    //   shell.hist.unshift(inp.value);
+    // }
     //pass input commands to the handler
     shell.handle(inp.value);
   };
