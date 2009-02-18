@@ -197,7 +197,7 @@ function swapTabs(tab){
 }
 
 function logicalClear(){
-  $('resOut').textContent = '';
+  $('#resOut')[0].innerHTML = '';
 }
 
 function accessOutput(){
