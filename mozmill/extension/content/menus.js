@@ -142,6 +142,8 @@ function runDirectory(){
 // }
 
 function runEditor(){
+  saveFile();
+  
   try {
     window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
   } catch(err){ delete window.openFn; return; }
