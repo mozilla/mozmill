@@ -80,10 +80,10 @@ var createCell = function (t, obj, message) {
     if (e.which == 3){
       var rout = document.getElementById('resOut');
       if (e.target.parentNode != rout){
-        copyToClipboard(e.target.parentNode.textContent);
+        copyToClipboard(e.target.parentNode.innerHTML);
       }
       else {
-        copyToClipboard(e.target.textContent);
+        copyToClipboard(e.target.innerHTML);
       }
       alert('Copied to clipboard...')
       return;
@@ -114,14 +114,14 @@ var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', f
 // Set UI Listeners in frame
 function stateListener (state) {
   if (state != 'test') {  
-    document.getElementById('runningStatus').textContent = state;
+    window.document.getElementById('runningStatus').innerHTML = state;
     // results.write(state)
   }
 }
 frame.events.addListener('setState', stateListener);
 function testListener (test) {
   createCell('test', test, 'Started running test: '+test.name)
-  document.getElementById('runningStatus').textContent = 'Running test: '+test.name;
+  window.document.getElementById('runningStatus').innerHTML = 'Running test: '+test.name;
 }
 frame.events.addListener('setTest', testListener);
 function passListener (text) {
