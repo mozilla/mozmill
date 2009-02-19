@@ -203,10 +203,10 @@
       <div id="fileDialog" title="File Options">
       	<p>
       	  <ul>
-      	    <li><a href="javascript:openFile();">Open File</a>
-            <li><a href="javascript:saveFile();">Save Current File</a>
-            <li><a href="javascript:saveAsFile();">Save Current File As</a>
-            <li><a href="javascript:closeFile();">Close Current File</a>
+      	    <li><a href="javascript:return false;" onclick="openFile();">Open File</a>
+            <li><a href="javascript:return false;" onclick="saveFile();">Save Current File</a>
+            <li><a href="javascript:return false;" onclick="saveAsFile();">Save Current File As</a>
+            <li><a href="javascript:return false;" onclick="closeFile();">Close Current File</a>
           </ul>
       	</p>
       </div>
@@ -214,10 +214,10 @@
       <div id="testDialog" title="Test Options">
       	<p>
       	  <ul>
-            <li><a href="javascript:runEditor();">Run Editor</a>
-      	    <li><a href="javascript:runFile();">Run Test File</a>
-            <li><a href="javascript:runDirectory();">Run Test Directory</a>
-            <li><a href="javascript:genBoiler();">Generate New Test Template</a>
+            <li><a href="javascript:return false;" onclick="runEditor();">Run Editor</a>
+      	    <li><a href="javascript:return false;" onclick="runFile();">Run Test File</a>
+            <li><a href="javascript:return false;" onclick="runDirectory();">Run Test Directory</a>
+            <li><a href="javascript:return false;" onclick="genBoiler();">Generate New Test Template</a>
           </ul>
       	</p>
       </div>
