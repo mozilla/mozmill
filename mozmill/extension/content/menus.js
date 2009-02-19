@@ -47,7 +47,7 @@ function openNewWindow(){
 
 function openFile(){
   var openObj = utils.openFile(window);
-  if (openObj.path){
+  if (openObj){
     window.openFn = openObj.path;
     //$('saveMenu').removeAttribute("disabled");
     //$('closeMenu').removeAttribute("disabled");
@@ -61,7 +61,7 @@ function openFile(){
 function saveAsFile() {
   try {
     window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
-  } catch(err){ delete window.openFn; return; }
+  } catch(err){ delete window.openFn; }
   
   var openFn = utils.saveAsFile(window);
   if (openFn){
@@ -146,7 +146,7 @@ function runEditor(){
   
   try {
     window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
-  } catch(err){ delete window.openFn; return; }
+  } catch(err){ delete window.openFn; }
   
   var doRun = function(){
     document.getElementById('runningStatus').textContent = 'Running Test...';
