@@ -139,7 +139,7 @@ function EditAreaLoader(){
 	if(this.nav['isIE']>=6 || this.nav['isOpera']>=9 || this.nav['isFirefox'] || this.nav['isChrome'] || this.nav['isCamino'] || this.nav['isSafari']>=3)
 		this.nav['isValidBrowser']=true;
 	else
-		this.nav['isValidBrowser']=false;
+		this.nav['isValidBrowser']=true;
 
 	this.set_base_url();		
 	
@@ -213,9 +213,9 @@ EditAreaLoader.prototype ={
 				settings[i]=this.default_settings[i];
 		}
 		
-		if(settings["browsers"]=="known" && this.nav['isValidBrowser']==false){
+		/*if(settings["browsers"]=="known" && this.nav['isValidBrowser']==false){
 			return;
-		}
+		}*/
 		
 		if(settings["begin_toolbar"].length>0)
 			settings["toolbar"]= settings["begin_toolbar"] +","+ settings["toolbar"];
