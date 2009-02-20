@@ -180,7 +180,14 @@ function runEditor(){
 
 }
 
+function newFile(){
+  $("#tabs").tabs().tabs("select", 0);
+  window.openFn = utils.tempfile().path;
+  editAreaLoader.openFile('editorInput', {text:'',title:window.openFn,id:window.openFn});
+}
+
 function genBoiler(){
+    $("#tabs").tabs().tabs("select", 0);
     window.openFn = utils.tempfile().path;
     editAreaLoader.openFile('editorInput', {text:'',title:window.openFn,id:window.openFn});
     utils.genBoiler(window);

@@ -159,7 +159,7 @@
       	</ul>
       	<div id="tabs-1">
       		<p>
-      		  <textarea id="editorInput" value="" rows="35" style="width:99%;"></textarea>
+      		  <textarea id="editorInput" value="" rows="43" style="font-family:monospace;font-size:12px;width:99%;"></textarea>
       		</p>
       	</div>
       	<div id="tabs-2">
@@ -203,19 +203,38 @@
       
       <div id="fileDialog" title="File Options">
       	<p>
-      	  <button class="ui-state-default ui-corner-all" onclick="openFile();"><u>O</u>pen</button>
-          <button class="ui-state-default ui-corner-all" onclick="saveFile();"><u>S</u>ave</button>
-      	  <button class="ui-state-default ui-corner-all" onclick="saveAsFile();">Sav<u>e</u> As</button>
-      	  <button class="ui-state-default ui-corner-all" onclick="closeFile();">Close</button>
+      	  <button class="ui-state-default ui-corner-all" onclick="newFile();$('#fileDialog').dialog('close');">
+      	    New <u>B</u>lank
+      	  </button>
+      	  <button class="ui-state-default ui-corner-all" onclick="openFile();$('#fileDialog').dialog('close');">
+      	    <u>O</u>pen
+      	  </button>
+          <button class="ui-state-default ui-corner-all" onclick="saveFile();$('#fileDialog').dialog('close');">
+            <u>S</u>ave
+          </button>
+      	  <button class="ui-state-default ui-corner-all" onclick="saveAsFile();$('#fileDialog').dialog('close');">
+      	    Sav<u>e</u> As
+      	  </button>
+      	  <button class="ui-state-default ui-corner-all" onclick="closeFile();$('#fileDialog').dialog('close');">
+      	    Close
+      	  </button>
       	</p>
       </div>
       
       <div id="testDialog" title="Test Options">
       	<p>
-      	  <button class="ui-state-default ui-corner-all" onclick="runEditor();"><u>R</u>un Editor</button>
-      	  <button class="ui-state-default ui-corner-all" onclick="runFile();">Run File</button>
-      	  <button class="ui-state-default ui-corner-all" onclick="runDirectory();">Run Directory</button>
-      	  <button class="ui-state-default ui-corner-all" onclick="genBoiler();">New from Te<u>m</u>plate</button>
+      	  <button class="ui-state-default ui-corner-all" onclick="runEditor();$('#testDialog').dialog('close');">
+      	    <u>R</u>un Editor
+      	  </button>
+      	  <button class="ui-state-default ui-corner-all" onclick="runFile();$('#testDialog').dialog('close');">
+      	    Run File
+      	  </button>
+      	  <button class="ui-state-default ui-corner-all" onclick="runDirectory();$('#testDialog').dialog('close');">
+      	    Run Directory
+      	  </button>
+      	  <button class="ui-state-default ui-corner-all" onclick="genBoiler();$('#testDialog').dialog('close');">
+      	    New from Te<u>m</u>plate
+      	  </button>
       	</p>
       </div>
       
@@ -241,14 +260,29 @@
     </div>
     
     <script language="Javascript" type="text/javascript">    
+  		var eaInit = function(){
+  		   window.openFn = utils.tempfile().path;
+          editAreaLoader.openFile('editorInput', {text:'',title:window.openFn,id:window.openFn});
+  		};
+  		
+  		var eaFileClosed = function(arr){
+        try {
+          var id = editAreaLoader.getCurrentFile('editorInput').id;
+        } catch(err){
+          newFile();
+        }
+  		}
   		// initialisation
   		editAreaLoader.init({
   			id: "editorInput"	// id of the textarea to transform		
-  			,start_highlight: true	// if start with highlight
+  			,start_highlight: false	// if start with highlight
   			,allow_resize: false
   			,allow_toggle: true
   			,language: "en"
-  			,syntax: "js"	
+  			,syntax: "js"
+  			,is_multi_files: true
+  			,EA_load_callback : "eaInit"
+  			,EA_file_close_callback: "eaFileClosed"
   		});
   	</script>
   	<script src="shell.js"></script>

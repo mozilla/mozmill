@@ -44,6 +44,10 @@ window.onkeypress = function(e){
         e.preventDefault();
         openFile();
       break;
+      case 'b':
+        e.preventDefault();
+        newFile();
+      break;
       case 'r':
         e.preventDefault();
         runEditor();
