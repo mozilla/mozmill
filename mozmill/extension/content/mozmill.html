@@ -33,6 +33,7 @@
 	</style>
 </head>
 <body style="background:white;">
+  <script src="shortcuts.js"></script>
   <script type="text/javascript">
   	$(function() {
   		$("#tabs").tabs();
@@ -203,7 +204,7 @@
       <div id="fileDialog" title="File Options">
       	<p>
       	  <ul>
-      	    <li><a style="cursor:pointer" onclick="openFile();">Open File</a>
+      	    <li><a id="open-key" style="cursor:pointer" onclick="openFile();">Open File</a>
             <li><a style="cursor:pointer" onclick="saveFile();">Save Current File</a>
             <li><a style="cursor:pointer" onclick="saveAsFile();">Save Current File As</a>
             <li><a style="cursor:pointer" onclick="closeFile();">Close Current File</a>
