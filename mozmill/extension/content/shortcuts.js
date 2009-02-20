@@ -36,7 +36,7 @@ window.onkeypress = function(e){
         e.preventDefault();
         showInspectDialog();
       break;
-      case 'e':
+      case 'd':
         e.preventDefault();
         showRecordDialog();
       break;
@@ -48,7 +48,7 @@ window.onkeypress = function(e){
         e.preventDefault();
         runEditor();
       break;
-      case 'v':
+      case 'e':
         e.preventDefault();
         saveAsFile();
       break;

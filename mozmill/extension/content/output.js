@@ -116,9 +116,10 @@ function stateListener (state) {
   if (state != 'test') {  
     try { 
       window.document.getElementById('runningStatus').innerHTML = state; 
-    } catch(err){
-      document.getElementById('runningStatus').innerHTML = state;
-    }
+    } catch(err){}
+    try { 
+      document.getElementById('runningStatus').innerHTML = state; 
+    } catch(err){}
     // results.write(state)
   }
 }
@@ -127,9 +128,10 @@ function testListener (test) {
   createCell('test', test, 'Started running test: '+test.name);
   try {
     window.document.getElementById('runningStatus').innerHTML = 'Running test: '+test.name;
-  } catch(err){
+  } catch(err){}
+  try {
     document.getElementById('runningStatus').innerHTML = 'Running test: '+test.name;
-  }
+  } catch(err){}
 }
 frame.events.addListener('setTest', testListener);
 function passListener (text) {
