@@ -76,6 +76,11 @@ function saveFile() {
     window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
   } catch(err){ delete window.openFn; return; }
   
+  if (window.openFn.indexOf("tempfile") != -1){
+    saveAsFile();
+    return;
+  }
+  
     //if ($('saveMenu').getAttribute("disabled")){ return; }
   utils.saveFile(window);
   //$('saveMenu').setAttribute("disabled", "true");

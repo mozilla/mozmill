@@ -203,23 +203,19 @@
       
       <div id="fileDialog" title="File Options">
       	<p>
-      	  <ul>
-      	    <li><a id="open-key" style="cursor:pointer" onclick="openFile();">Open File</a>
-            <li><a style="cursor:pointer" onclick="saveFile();">Save Current File</a>
-            <li><a style="cursor:pointer" onclick="saveAsFile();">Save Current File As</a>
-            <li><a style="cursor:pointer" onclick="closeFile();">Close Current File</a>
-          </ul>
+      	  <button class="ui-state-default ui-corner-all" onclick="openFile();">Open</button>
+          <button class="ui-state-default ui-corner-all" onclick="saveFile();">Save</button>
+      	  <button class="ui-state-default ui-corner-all" onclick="saveAsFile();">Save As</button>
+      	  <button class="ui-state-default ui-corner-all" onclick="closeFile();">Close</button>
       	</p>
       </div>
       
       <div id="testDialog" title="Test Options">
       	<p>
-      	  <ul>
-            <li><a style="cursor:pointer" onclick="runEditor();">Run Editor</a>
-      	    <li><a style="cursor:pointer" onclick="runFile();">Run Test File</a>
-            <li><a style="cursor:pointer" onclick="runDirectory();">Run Test Directory</a>
-            <li><a style="cursor:pointer" onclick="genBoiler();">Generate New Test Template</a>
-          </ul>
+      	  <button class="ui-state-default ui-corner-all" onclick="runEditor();">Run Editor</button>
+      	  <button class="ui-state-default ui-corner-all" onclick="runFile();">Run File</button>
+      	  <button class="ui-state-default ui-corner-all" onclick="runDirectory();">Run Directory</button>
+      	  <button class="ui-state-default ui-corner-all" onclick="genBoiler();">New from Template</button>
       	</p>
       </div>
       
@@ -233,9 +229,7 @@
       	
       	<p>
       	  <h3>Functions</h3>
-      	    <ul>
-      	      <li><a style="cursor:pointer" onclick="logicalClear();">Clear Output</a>
-      	    </ul>
+      	    <button class="ui-state-default ui-corner-all" onclick="logicalClear();">Clear Output</button>
       	</p>
       </div>
       
