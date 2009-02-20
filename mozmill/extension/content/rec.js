@@ -300,7 +300,9 @@ RecorderConnector.prototype.on = function() {
   window.openFn = null;
   
   for each(win in utils.getWindows()) {
-    this.bindListeners(win);
+    if (win.document.title != "MozMill IDE"){
+      this.bindListeners(win);
+    }
   }
   //Update UI
   //$('recorder').setAttribute('label', 'Stop');

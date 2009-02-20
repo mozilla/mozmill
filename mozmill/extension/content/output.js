@@ -38,6 +38,7 @@
 
 var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var json2 = {}; Components.utils.import('resource://mozmill/stdlib/json2.js', json2);
+var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 
 // var $ = function(id) {
 //    return document.getElementById(id);
@@ -114,24 +115,13 @@ var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', f
 // Set UI Listeners in frame
 function stateListener (state) {
   if (state != 'test') {  
-    try { 
-      window.document.getElementById('runningStatus').innerHTML = state; 
-    } catch(err){}
-    try { 
-      document.getElementById('runningStatus').innerHTML = state; 
-    } catch(err){}
-    // results.write(state)
+    utils.getWindowByTitle('MozMill IDE').document.getElementById('runningStatus').innerHTML = state;
   }
 }
 frame.events.addListener('setState', stateListener);
 function testListener (test) {
   createCell('test', test, 'Started running test: '+test.name);
-  try {
-    window.document.getElementById('runningStatus').innerHTML = 'Running test: '+test.name;
-  } catch(err){}
-  try {
-    document.getElementById('runningStatus').innerHTML = 'Running test: '+test.name;
-  } catch(err){}
+  utils.getWindowByTitle('MozMill IDE').document.getElementById('runningStatus').innerHTML = 'Running test: '+test.name;
 }
 frame.events.addListener('setTest', testListener);
 function passListener (text) {
