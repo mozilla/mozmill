@@ -49,13 +49,16 @@
         buttons: { 
           "Close": function() { 
             jQuery(this).dialog("close"); 
-          },   
-          "Stop": function() { 
-            MozMilldx.dxOff(); 
           },
-          "Start": function() { 
-             MozMilldx.dxOn();  
-          }
+          "Send to Clipboard": function() {
+            MozMilldx.inspectorToClipboard();
+            $("#inspectDialog").dialog('close');
+            $("#tabs").tabs().tabs("select", 0);
+            $('#textarea')[0].focus();
+          },
+          "Stop": function() {
+            MozMilldx.dxToggle(); 
+          },
         }
       });
   	
@@ -124,11 +127,8 @@
           jQuery(this).dialog("close"); 
         },   
         "Stop": function() { 
-          MozMillrec.off();
+          MozMillrec.toggle();
         },
-        "Start": function() { 
-          MozMillrec.on();
-        }
       }
     });
 
@@ -233,7 +233,7 @@
       	<p>
       	  <h3>Functions</h3>
       	    <ul>
-      	      <li><a style="cursor:pointer" onclick="logicalClear();"><u>Clear Output</u></a>
+      	      <li><a style="cursor:pointer" onclick="logicalClear();">Clear Output</a>
       	    </ul>
       	</p>
       </div>

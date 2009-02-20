@@ -42,6 +42,7 @@ var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', u
 var DomInspectorConnector = function() {
   this.lastEvent = null;
   this.lastTime = null;
+  this.on = false;
 }
 DomInspectorConnector.prototype.grab = function(){
   var disp = $('dxDisplay').textContent;
@@ -79,17 +80,20 @@ DomInspectorConnector.prototype.evtDispatch = function(e) {
   return dxE;
 }
 DomInspectorConnector.prototype.dxToggle = function(){
-  if ($('domExplorer').getAttribute('label') ==  'Disable Inspector'){
+  if (this.on){
     this.dxOff();
+    $("#inspectDialog").dialog().parents(".ui-dialog:first").find(".ui-dialog-buttonpane button")[2].innerHTML = "Start";
   }
   else{
     this.dxOn();
+    $("#inspectDialog").dialog().parents(".ui-dialog:first").find(".ui-dialog-buttonpane button")[2].innerHTML = "Stop";
   }
 }
 //Turn on the recorder
 //Since the click event does things like firing twice when a double click goes also
 //and can be obnoxious im enabling it to be turned off and on with a toggle check box
 DomInspectorConnector.prototype.dxOn = function() {
+  this.on = true;
   document.getElementById('eventsOut').value = "";
   //document.getElementById('inspectClickSelection').disabled = true;
   //$('domExplorer').setAttribute('label', 'Disable Inspector');
@@ -132,6 +136,7 @@ DomInspectorConnector.prototype.observer = {
 };
 
 DomInspectorConnector.prototype.dxOff = function() {
+  this.on = false;
   //document.getElementById('inspectClickSelection').disabled = false;
 
   //try to cleanup left over outlines
@@ -169,13 +174,18 @@ DomInspectorConnector.prototype.getFoc = function(e){
   e.preventDefault();
   window.focus();
 }
+
+DomInspectorConnector.prototype.inspectorToClipboard = function(){
+  copyToClipboard($('#dxController')[0].innerHTML +'\n'+$('#dxElement')[0].innerHTML);
+};
+
 //Copy inspector output to clipboard if alt,shift,c is pressed
 DomInspectorConnector.prototype.clipCopy = function(e){
    if (e == true){
-     copyToClipboard($('dxElement').textContent + ' '+$('dxValidation').textContent + ' ' + $('dxController').textContent);
+     copyToClipboard($('#dxElement')[0].innerHTML + ' '+$('#dxValidation')[0].innerHTML + ' ' + $('#dxController')[0].innerHTML);
    }
    else if (e.altKey && e.shiftKey && (e.charCode == 199)){
-       copyToClipboard($('dxElement').textContent + ' '+$('dxValidation').textContent + ' ' + $('dxController').textContent);
+     copyToClipboard($('#dxElement')[0].innerHTML + ' '+$('#dxValidation')[0].innerHTML + ' ' + $('#dxController')[0].innerHTML);
    }
    else {
      window.document.getElementById('eventsOut').value += "-----\n";

@@ -195,12 +195,17 @@ var getRecordedScript = function (recorder_array) {
 
 var RecorderConnector = function() {
   this.lastEvent = null;
+  this.ison = false;
 }
 
 RecorderConnector.prototype.toggle = function(){
-  /*if ($('recorder').getAttribute('label') ==  'Stop'){
+  if (this.on){
     this.off();
-  } else{ this.on(); }*/
+    $("#recordDialog").dialog().parents(".ui-dialog:first").find(".ui-dialog-buttonpane button")[1].innerHTML = "Start";
+  } else { 
+    this.on(); 
+    $("#recordDialog").dialog().parents(".ui-dialog:first").find(".ui-dialog-buttonpane button")[1].innerHTML = "Stop";
+  }
 };
 
 RecorderConnector.prototype.dispatch = function(evt){
@@ -276,6 +281,7 @@ RecorderConnector.prototype.observer = {
 };
 
 RecorderConnector.prototype.on = function() {
+  this.ison = true;
   //Bind
   // if (($('saveMenu').getAttribute("disabled") != "true" && 
   //       window.document.getElementById('editorInput').value != '') || (
@@ -316,6 +322,7 @@ RecorderConnector.prototype.on = function() {
 };
 
 RecorderConnector.prototype.off = function() {
+  this.ison = false;
   //Bind
   for each(win in utils.getWindows()) {
     this.unbindListeners(win);
