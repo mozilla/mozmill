@@ -21,7 +21,7 @@
 	<script src="jquery/jquery.ui.all.js"></script>
 	<script src="ui.js"></script>
   <script src="editarea/edit_area/edit_area_full.js"></script>
-	
+  
 	<style type="text/css">
 		body{ font: 10px Verdana, sans-serif;}
 		/*demo page css*/
@@ -144,11 +144,11 @@
         <span id="runningStatus">Ready...</span>
       </div>
       <div style="width:100%;text-align:right;font-size:12px;">
-        <span style="cursor:pointer" onclick="showFileDialog();">File</span> | 
-        <span style="cursor:pointer" onclick="showTestDialog();">Test</span> | 
+        <span style="cursor:pointer" onclick="showFileDialog();"><u>F</u>ile</span> | 
+        <span style="cursor:pointer" onclick="showTestDialog();"><u>T</u>est</span> | 
         <span style="cursor:pointer" onclick="showOptionDialog();">Options</span> | 
-        <span style="cursor:pointer" onclick="showInspectDialog();">Inspector</span> | 
-        <span style="cursor:pointer" onclick="showRecordDialog();">Recorder</span>
+        <span style="cursor:pointer" onclick="showInspectDialog();"><u>I</u>nspector</span> | 
+        <span style="cursor:pointer" onclick="showRecordDialog();">R<u>e</u>corder</span>
       </div>
       <div id="tabs" style="position:relative;width:100%;height:90%">
       	<ul>
@@ -203,19 +203,19 @@
       
       <div id="fileDialog" title="File Options">
       	<p>
-      	  <button class="ui-state-default ui-corner-all" onclick="openFile();">Open</button>
-          <button class="ui-state-default ui-corner-all" onclick="saveFile();">Save</button>
-      	  <button class="ui-state-default ui-corner-all" onclick="saveAsFile();">Save As</button>
+      	  <button class="ui-state-default ui-corner-all" onclick="openFile();"><u>O</u>pen</button>
+          <button class="ui-state-default ui-corner-all" onclick="saveFile();"><u>S</u>ave</button>
+      	  <button class="ui-state-default ui-corner-all" onclick="saveAsFile();">Sa<u>v</u>e As</button>
       	  <button class="ui-state-default ui-corner-all" onclick="closeFile();">Close</button>
       	</p>
       </div>
       
       <div id="testDialog" title="Test Options">
       	<p>
-      	  <button class="ui-state-default ui-corner-all" onclick="runEditor();">Run Editor</button>
+      	  <button class="ui-state-default ui-corner-all" onclick="runEditor();"><u>R</u>un Editor</button>
       	  <button class="ui-state-default ui-corner-all" onclick="runFile();">Run File</button>
       	  <button class="ui-state-default ui-corner-all" onclick="runDirectory();">Run Directory</button>
-      	  <button class="ui-state-default ui-corner-all" onclick="genBoiler();">New from Template</button>
+      	  <button class="ui-state-default ui-corner-all" onclick="genBoiler();">New from Te<u>m</u>plate</button>
       	</p>
       </div>
       
