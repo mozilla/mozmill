@@ -28,7 +28,7 @@ window.onkeypress = function(e){
         e.preventDefault();
         showTestDialog();
       break;
-      case 'k':
+      case 'p':
         e.preventDefault();
         showOptionDialog();
       break;
