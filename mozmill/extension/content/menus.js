@@ -191,6 +191,10 @@ function genBoiler(){
     window.openFn = utils.tempfile().path;
     editAreaLoader.openFile('editorInput', {text:'',title:window.openFn,id:window.openFn});
     utils.genBoiler(window);
+    
+    try {
+       window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
+     } catch(err){ delete window.openFn; return; }
 }
 
 function swapTabs(tab){

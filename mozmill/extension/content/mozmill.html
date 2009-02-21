@@ -50,6 +50,7 @@
         buttons: { 
           "Close": function() { 
             jQuery(this).dialog("close"); 
+            
           },
           "Send to Clipboard": function() {
             MozMilldx.inspectorToClipboard();
@@ -58,7 +59,8 @@
             $('#textarea')[0].focus();
           },
           "Stop": function() {
-            MozMilldx.dxToggle(); 
+            MozMilldx.dxToggle();
+            MozMilldx.dxOff();
           },
         }
       });
@@ -125,7 +127,8 @@
       },
       buttons: { 
         "Close": function() { 
-          jQuery(this).dialog("close"); 
+          jQuery(this).dialog("close");
+          MozMillrec.off();
         },   
         "Stop": function() { 
           MozMillrec.toggle();
@@ -203,21 +206,23 @@
       
       <div id="fileDialog" title="File Options">
       	<p>
-      	  <button class="ui-state-default ui-corner-all" onclick="newFile();$('#fileDialog').dialog('close');">
-      	    New <u>B</u>lank
-      	  </button>
-      	  <button class="ui-state-default ui-corner-all" onclick="openFile();$('#fileDialog').dialog('close');">
-      	    <u>O</u>pen
-      	  </button>
-          <button class="ui-state-default ui-corner-all" onclick="saveFile();$('#fileDialog').dialog('close');">
-            <u>S</u>ave
-          </button>
-      	  <button class="ui-state-default ui-corner-all" onclick="saveAsFile();$('#fileDialog').dialog('close');">
-      	    Sav<u>e</u> As
-      	  </button>
-      	  <button class="ui-state-default ui-corner-all" onclick="closeFile();$('#fileDialog').dialog('close');">
-      	    Close
-      	  </button>
+      	  <center>
+      	    <button class="ui-state-default ui-corner-all" onclick="newFile();$('#fileDialog').dialog('close');">
+        	    New <u>B</u>lank
+        	  </button>
+        	  <button class="ui-state-default ui-corner-all" onclick="openFile();$('#fileDialog').dialog('close');">
+        	    <u>O</u>pen
+        	  </button>
+            <button class="ui-state-default ui-corner-all" onclick="saveFile();$('#fileDialog').dialog('close');">
+              <u>S</u>ave
+            </button>
+        	  <button class="ui-state-default ui-corner-all" onclick="saveAsFile();$('#fileDialog').dialog('close');">
+        	    Sav<u>e</u> As
+        	  </button>
+        	  <button class="ui-state-default ui-corner-all" onclick="closeFile();$('#fileDialog').dialog('close');">
+        	    Close
+        	  </button>
+        	</center>
       	</p>
       </div>
       
@@ -275,7 +280,7 @@
   		// initialisation
   		editAreaLoader.init({
   			id: "editorInput"	// id of the textarea to transform		
-  			,start_highlight: false	// if start with highlight
+  			,start_highlight: true	// if start with highlight
   			,allow_resize: false
   			,allow_toggle: true
   			,language: "en"
