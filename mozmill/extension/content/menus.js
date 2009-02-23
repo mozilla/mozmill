@@ -46,6 +46,7 @@ function openNewWindow(){
 }
 
 function openFile(){
+  $("#tabs").tabs().tabs("select", 0);
   var openObj = utils.openFile(window);
   if (openObj){
     window.openFn = openObj.path;
@@ -67,8 +68,10 @@ function saveAsFile() {
   if (openFn){
     window.openFn = openFn;
     var data = utils.getFile(window.openFn);
-    editAreaLoader.openFile('editorInput', {text:data,title:window.openFn,id:window.openFn})
+    editAreaLoader.openFile('editorInput', {text:data,title:window.openFn,id:window.openFn});
+    return true;
   }
+  return false;
 }
 
 function saveFile() {
@@ -77,13 +80,13 @@ function saveFile() {
   } catch(err){ delete window.openFn; return; }
   
   if (window.openFn.indexOf("tempfile") != -1){
-    saveAsFile();
-    return;
-  }
-  
-    //if ($('saveMenu').getAttribute("disabled")){ return; }
+    if (!saveAsFile()){
+      return false;
+    }
+    return true;
+  }  
   utils.saveFile(window);
-  //$('saveMenu').setAttribute("disabled", "true");
+  
 }
 
 function changeEditor() {
@@ -147,7 +150,9 @@ function runDirectory(){
 // }
 
 function runEditor(){
-  saveFile();
+  if (!saveFile()){
+    return;
+  }
   
   try {
     window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
@@ -161,21 +166,6 @@ function runEditor(){
     frame.runTestFile(window.openFn);
     document.getElementById('runningStatus').textContent = 'Test Finished, See Output Tab...';
   }
-  
-  // //If there isn't a file system pointer to a test open
-  // if (!window.openFn){
-  //   var saveAs = confirm('You must save this test to the file system before it can be run, do this now?');
-  //   if (saveAs){
-  //    saveAsFile(); 
-  //   }
-  //   return;
-  // }
-  //if the test is open but hasn't been modified
-  
-    if (!window.openFn) {
-      window.openFn = utils.tempfile().path;
-      utils.saveFile(window);
-    }
     doRun();
 
 }
