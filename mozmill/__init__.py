@@ -39,8 +39,11 @@ import os
 import sys
 import urllib
 from time import sleep
+from datetime import datetime
 import logging
 logger = logging.getLogger('mozmill')
+
+import simplejson
 
 import jsbridge
 from jsbridge import global_settings
@@ -53,9 +56,11 @@ global_settings.MOZILLA_PLUGINS.append(os.path.join(basedir, 'extension'))
 
 passes = []
 fails = []
+alltests = []
 skipped = []
 
 def endTest_listener(test):
+    alltests.append(test)
     if test.get('skipped', False):
         print 'Test Skipped : '+test['name']+' | '+test.get('skipped_reason', '')
         skipped.append(test)
@@ -86,16 +91,41 @@ class LoggerListener(object):
             self.cases[eName] = self.default(eName)
             self.cases[eName](obj)
 
-def run_tests(moz, test):
+def run_tests(moz, test, report=False):
     events.add_listener(endTest_listener, event='mozmill.endTest')
     events.add_listener(endRunner_listener, event='mozmill.endRunner')
     
     frame = JSObject(network.bridge, "Components.utils.import('resource://mozmill/modules/frame.js')")
     
+    starttime = datetime.utcnow().isoformat()
+    
     if os.path.isdir(test):
         frame.runTestDirectory(test)
     else:
         frame.runTestFile(test)
+    
+    endtime = datetime.utcnow().isoformat()
+    
+    if report:
+        appInfoJs = "Components.classes['@mozilla.org/xre/app-info;1'].getService(Components.interfaces.nsIXULAppInfo)"
+        appInfo = JSObject(network.bridge, appInfoJs)
+        
+        results = {'testType':'mozmill', 'starttime':starttime, 
+                   'endtime':endtime, 'tests':alltests}
+        results['appInfo.id'] = str(appInfo.ID)
+        results['buildid'] = str(appInfo.appBuildID)
+        results['appInfo.platformVersion'] = appInfo.platformVersion
+        results['appInfo.platformBuildID'] = appInfo.platformBuildID       
+        sysname, nodename, release, version, machine = os.uname()
+        sysinfo = {'os.name':sysname, 'hostname':nodename, 'os.version.number':release,
+                   'os.version.string':version, 'arch':machine}
+        results['sysinfo'] = sysinfo
+        results['testPath'] = test
+        import httplib2
+        http = httplib2.Http()
+        response, content = http.request(report, 'POST', body=simplejson.dumps(results))
+        
+    
     moz.stop()
     if len(fails) > 0:
         sys.exit(1)
@@ -116,6 +146,8 @@ def main():
     parser.add_option("--shell",
                       dest="shell", default=False, action="store_true",
                       help="Bring up the jsbridge shell. For debugging only, incompatible with (-t, --test)")
+    parser.add_option("--report", dest="report", default=False,
+                      help="Report the results. Requires url to results server.")
     
     (options, args) = parser.parse_args()
     
@@ -140,7 +172,7 @@ def main():
             options.showall = False
 
         moz = jsbridge.cli(shell=False, options=options, block=False)
-        run_tests(moz, os.path.abspath(os.path.expanduser(options.test)))
+        run_tests(moz, os.path.abspath(os.path.expanduser(options.test)), options.report)
         
     else:    
         jsbridge.cli(shell=options.shell, options=options)
