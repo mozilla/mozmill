@@ -83,10 +83,9 @@ function saveFile() {
     if (!saveAsFile()){
       return false;
     }
-    return true;
   }  
   utils.saveFile(window);
-  
+  return true;
 }
 
 function changeEditor() {

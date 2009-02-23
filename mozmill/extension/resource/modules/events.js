@@ -69,6 +69,7 @@ var triggerEvent = function(element, eventType, canBubble, controlKeyDown, altKe
 };
 
 var getKeyCodeFromKeySequence = function(keySequence) {
+  
   var match = /^\\(\d{1,3})$/.exec(keySequence);
   if (match != null) {
       return match[1];

@@ -277,18 +277,24 @@
           newFile();
         }
   		}
-  		// initialisation
-  		editAreaLoader.init({
-  			id: "editorInput"	// id of the textarea to transform		
-  			,start_highlight: true	// if start with highlight
-  			,allow_resize: false
-  			,allow_toggle: true
-  			,language: "en"
-  			,syntax: "js"
-  			,is_multi_files: true
-  			,EA_load_callback : "eaInit"
-  			,EA_file_close_callback: "eaFileClosed"
-  		});
+  		try {
+  		  
+  		  // initialisation
+    		editAreaLoader.init({
+    			id: "editorInput"	// id of the textarea to transform		
+    			,start_highlight: true	// if start with highlight
+    			,allow_resize: false
+    			,allow_toggle: true
+    			,language: "en"
+    			,syntax: "js"
+    			,is_multi_files: true
+    			,EA_load_callback : "eaInit"
+    			,EA_file_close_callback: "eaFileClosed"
+    		});
+  		}
+  		catch(err){
+  		  alert(err);
+  		}
   	</script>
   	<script src="shell.js"></script>
 </body>
