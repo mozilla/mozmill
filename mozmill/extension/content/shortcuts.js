@@ -60,6 +60,10 @@ window.onkeypress = function(e){
         e.preventDefault();
         saveFile();
       break;
+      case 'w':
+        e.preventDefault();
+        closeFile();
+      break;
       case 'n':
         e.preventDefault();
         openNewWindow();
