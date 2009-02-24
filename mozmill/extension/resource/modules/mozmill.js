@@ -111,7 +111,11 @@ function getDownloadsController() {
 }
 
 function getPreferencesController() {
-  utils.getMethodInWindows('openPreferences')();
+  if (Application == 'Thunderbird') {
+    utils.getMethodInWindows('openOptionsDialog')();
+  } else {
+    utils.getMethodInWindows('openPreferences')();
+  }
   //controller.sleep(1000)
   return new controller.MozMillController(wm.getMostRecentWindow(''));
 }
