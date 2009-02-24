@@ -48,7 +48,8 @@
             background: "black" 
         },
         buttons: { 
-          "Close": function() { 
+          "Close": function() {
+            MozMilldx.dxOff();
             jQuery(this).dialog("close"); 
             
           },
@@ -60,7 +61,6 @@
           },
           "Stop": function() {
             MozMilldx.dxToggle();
-            MozMilldx.dxOff();
           },
         }
       });

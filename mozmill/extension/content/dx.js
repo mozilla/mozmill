@@ -163,12 +163,14 @@ DomInspectorConnector.prototype.dxOff = function() {
     Components.classes["@mozilla.org/observer-service;1"]
       .getService(Components.interfaces.nsIObserverService);
 
-  observerService.removeObserver(this.observer, "toplevel-window-ready");
+  try { 
+    observerService.removeObserver(this.observer, "toplevel-window-ready");
+  } catch(err){}
 
 };
 
 DomInspectorConnector.prototype.getFoc = function(e){
-  dxToggle();
+  MozMilldx.dxToggle();
   e.target.style.border = "";
   e.stopPropagation();
   e.preventDefault();
