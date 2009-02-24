@@ -297,7 +297,7 @@ MozMillController.prototype.type = function (el, text){
   for (var c = 0; c < s.length; c++){
       try { events.triggerKeyEvent(element, 'keydown', s.charAt(c), true, false,false, false, false);}
       catch(err){}
-      events.triggerKeyEvent(element, 'keypress', '0', true, false,false, false, false);
+      events.triggerKeyEvent(element, 'keypress', null, true, false,false, false, false);
       element.value += s.charAt(c);   
       try { events.triggerKeyEvent(element, 'keyup', s.charAt(c), true, false,false, false, false); }
       catch(err){}
