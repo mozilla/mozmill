@@ -10,6 +10,7 @@ function isAccel(e){
     return true;
   }
   else if ((!isMac) && (!modifiers) && (e.ctrlKey) && (e.shiftKey) && (!e.metaKey)){
+    
     return true;
   }
   return false;
@@ -19,7 +20,7 @@ function isAccel(e){
 //shortcuts
 window.onkeypress = function(e){
   if (isAccel(e)){ 
-    switch(String.fromCharCode(e.charCode)){
+    switch(String.fromCharCode(e.charCode).toLowerCase()){
       case 'f':
         e.preventDefault();
         showFileDialog();
@@ -97,10 +98,3 @@ window.onkeypress = function(e){
     }
   }
 };
-
-    <span style="cursor:pointer" onclick="showFileDialog();">File</span> | 
-    <span style="cursor:pointer" onclick="showTestDialog();">Test</span> | 
-    <span style="cursor:pointer" onclick="showOptionDialog();">Options</span> | 
-    <span style="cursor:pointer" onclick="showInspectDialog();">Inspector</span> | 
-    <span style="cursor:pointer" onclick="showRecordDialog();">Recorder</span>
-    
