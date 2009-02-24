@@ -114,7 +114,7 @@ function waitForImage(elem, timeout, interval) {
   if (timeout == undefined) {
     timeout = 30000;
   }
-  waitForEval('subject.complete == true', timeout, interval, elem.getNode());
+  return waitForEval('subject.complete == true', timeout, interval, elem.getNode());
 }
 
 function waitForElement(elem, timeout, interval) {
@@ -124,7 +124,7 @@ function waitForElement(elem, timeout, interval) {
   if (timeout == undefined) {
     timeout = 30000;
   }
-  waitForEval('subject.exists()', timeout, interval, elem);
+  return waitForEval('subject.exists()', timeout, interval, elem);
 }
 
 var Menu = function (elements) {
@@ -261,9 +261,24 @@ MozMillController.prototype.click = function(el){
 };
 
 MozMillController.prototype.sleep = sleep;
-MozMillController.prototype.waitForEval = waitForEval;
-MozMillController.prototype.waitForElement = waitForElement;
-MozMillController.prototype.waitForImage = waitForImage;
+MozMillController.prototype.waitForEval = function (expression, timeout, interval, subject) {
+  var r = waitForEval(expression, timeout, interval, subject);
+  if (!r) {
+    throw new Error("timeout exceeded for waitForEval('"+expression+"')");
+  }
+}
+MozMillController.prototype.waitForElement = function (elem, timeout, interval) {
+  var r = waitForElement(elem, timeout, interval);
+  if (!r) {
+    throw new Error("timeout exceeded for waitForElement "+elem.getInfo());
+  }
+}
+MozMillController.prototype.waitForImage = function (elem, timeout, interval) {
+  var r = waitForImage(elem, timeout, interval);
+  if (!r) {
+    throw new Error("timeout exceeded for waitForImage "+elem.getInfo());
+  }
+}
 
 MozMillController.prototype.type = function (el, text){
   //this.window.focus();
@@ -758,9 +773,6 @@ controllerAdditions = {
   'Browser:Preferences':preferencesAdditions,
   'navigator:browser'  :browserAdditions,
 }
-
-
-
 
 var withs = {}; Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
 
