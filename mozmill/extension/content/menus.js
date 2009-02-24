@@ -45,17 +45,21 @@ function openNewWindow(){
   window.open('');
 }
 
+function getFileName(path){
+  var splt = "/"
+  if (navigator.platform.indexOf("Win") != -1){
+    splt = "\\";
+  }
+  var pathArr = path.split(splt);
+  return pathArr[pathArr.length-1]
+}
+
 function openFile(){
   $("#tabs").tabs().tabs("select", 0);
   var openObj = utils.openFile(window);
   if (openObj){
     window.openFn = openObj.path;
-    //$('saveMenu').removeAttribute("disabled");
-    //$('closeMenu').removeAttribute("disabled");
-    //document.getElementById('editorInput').value = openObj.data;
-		
-    editAreaLoader.openFile('editorInput', {text:openObj.data,title:openObj.path,id:openObj.path});
-    //document.getElementById('editorMessage').innerHTML = "Loaded File: " + window.openFn;
+    editAreaLoader.openFile('editorInput', {text:openObj.data,title:getFileName(openObj.path),id:openObj.path});
   }
 }
 
@@ -68,7 +72,7 @@ function saveAsFile() {
   if (openFn){
     window.openFn = openFn;
     var data = utils.getFile(window.openFn);
-    editAreaLoader.openFile('editorInput', {text:data,title:window.openFn,id:window.openFn});
+    editAreaLoader.openFile('editorInput', {text:data,title:getFileName(window.openFn),id:window.openFn});
     return true;
   }
   return false;
@@ -173,13 +177,13 @@ function runEditor(){
 function newFile(){
   $("#tabs").tabs().tabs("select", 0);
   window.openFn = utils.tempfile().path;
-  editAreaLoader.openFile('editorInput', {text:'',title:window.openFn,id:window.openFn});
+  editAreaLoader.openFile('editorInput', {text:'',title:getFileName(window.openFn),id:window.openFn});
 }
 
 function genBoiler(){
     $("#tabs").tabs().tabs("select", 0);
     window.openFn = utils.tempfile().path;
-    editAreaLoader.openFile('editorInput', {text:'',title:window.openFn,id:window.openFn});
+    editAreaLoader.openFile('editorInput', {text:'',title:getFileName(window.openFn),id:window.openFn});
     utils.genBoiler(window);
     
     try {

@@ -168,7 +168,7 @@ DomInspectorConnector.prototype.dxOff = function() {
 };
 
 DomInspectorConnector.prototype.getFoc = function(e){
-  disableDX();
+  dxToggle();
   e.target.style.border = "";
   e.stopPropagation();
   e.preventDefault();
