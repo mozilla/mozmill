@@ -21,6 +21,10 @@ function isAccel(e){
 window.onkeypress = function(e){
   if (isAccel(e)){ 
     switch(String.fromCharCode(e.charCode).toLowerCase()){
+      case 'g':
+        e.preventDefault();
+        align();
+      break;
       case 'f':
         e.preventDefault();
         showFileDialog();

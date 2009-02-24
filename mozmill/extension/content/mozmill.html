@@ -21,7 +21,13 @@
 	<script src="jquery/jquery.ui.all.js"></script>
 	<script src="ui.js"></script>
   <script src="editarea/edit_area/edit_area_full.js"></script>
-  
+  <script>
+  // $(document.body).ready(function(){
+  //     window.screenX = opener.innerWidth;
+  //     window.screenY = 0;
+  //   });
+
+  </script>
 	<style type="text/css">
 		body{ font: 10px Verdana, sans-serif;}
 		/*demo page css*/
@@ -253,7 +259,8 @@
       	
       	<p>
       	  <h3>Functions</h3>
-      	    <button class="ui-state-default ui-corner-all" onclick="logicalClear();">Clear Output</button>
+      	    <button class="ui-state-default ui-corner-all" onclick="logicalClear();">Clear Output (<b>l</b>)</button>
+      	    <button class="ui-state-default ui-corner-all" onclick="align();">Ali<b>g</b>n Windows</button>
       	</p>
       </div>
       
@@ -300,6 +307,7 @@
     			,EA_load_callback : "eaInit"
     			,EA_file_close_callback: "eaFileClosed"
     		});
+    
   	</script>
   	<script src="shell.js"></script>
 </body>

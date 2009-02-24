@@ -22,3 +22,12 @@ var showRecordDialog = function(){
   $("#tabs").tabs().tabs("select", 0);
   $("#recordDialog").dialog().parents(".ui-dialog:first").find(".ui-dialog-buttonpane button")[1].innerHTML = "Stop";
 }
+
+var align = function(){
+  opener.window.resizeTo(window.screen.availWidth/1.8, window.screen.availHeight/1);
+  opener.window.screenY = 0;
+  opener.window.screenX = 0;
+  window.screenX = opener.innerWidth;
+  window.screenY = 0;
+  return true;
+}

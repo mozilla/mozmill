@@ -46,15 +46,17 @@ var MozMill = {
   },
 
   onMenuItemCommand: function() {
+      
     var mmWindows = utils.getWindowByTitle('MozMill IDE');
     if (!mmWindows){
-      var w = window.open("chrome://mozmill/content/mozmill.html", "", "chrome,centerscreen,resizable,height=740,width=635");
+      var w = window.open("chrome://mozmill/content/mozmill.html", "", "chrome,centerscreen,resizable,height=740,width=635,left=0,top=0");
     } else { mmWindows[0].focus(); }
   }
 };
 
 window.addEventListener("load", function(e) { MozMill.onLoad(e); }, false);
 
+ 
 function mozMillTestWindow() {
   window.open("chrome://mozmill/content/testwindow.html", "", "chrome, centerscreen, resizable");
 }
