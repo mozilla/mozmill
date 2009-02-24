@@ -160,10 +160,11 @@ function runEditor(){
   var doRun = function(){
     document.getElementById('runningStatus').textContent = 'Running Test...';
     //utils.runEditor(window);
+    //setTimeout('$("#tabs").tabs("select", 1)', 4000);
     $("#testDialog").dialog("close");
-    $("#tabs").tabs("select", 1);
     frame.runTestFile(window.openFn);
     document.getElementById('runningStatus').textContent = 'Test Finished, See Output Tab...';
+    
   }
     doRun();
 

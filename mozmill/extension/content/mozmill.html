@@ -153,12 +153,12 @@
         <span style="cursor:pointer" onclick="showInspectDialog();"><u>I</u>nspector</span> | 
         <span style="cursor:pointer" onclick="showRecordDialog();">Recor<u>d</u>er</span>
       </div>
-      <div id="tabs" style="position:relative;width:100%;height:90%">
+      <div id="tabs" style="position:relative;width:99%;height:90%">
       	<ul>
-      		<li><a href="#tabs-1">Editor</a></li>
-      		<li><a href="#tabs-2">Output</a></li>
-      		<li><a href="#tabs-3">Events</a></li>
-      		<li><a href="#tabs-4">Shell</a></li>
+      		<li><a id="editorTab" href="#tabs-1">Editor</a></li>
+      		<li><a id="outputTab" href="#tabs-2">Output</a></li>
+      		<li><a id="eventsTab" href="#tabs-3">Events</a></li>
+      		<li><a id="shellTab" href="#tabs-4">Shell</a></li>
       	</ul>
       	<div id="tabs-1">
       		<p>
@@ -271,14 +271,18 @@
   		};
   		
   		var eaFileClosed = function(arr){
-        try {
-          var id = editAreaLoader.getCurrentFile('editorInput').id;
-        } catch(err){
-          newFile();
-        }
-  		}
-  		try {
-  		  
+          var all = editAreaLoader.getAllFiles('editorInput');
+          var count = 0;
+          //open a new temp if the last window
+          //gets closed, since there is no array
+          //we have to loop the object properties
+          for (x in all){
+            count++;
+          }
+          if (count == 1){
+            newFile();
+          }
+  		} 
   		  // initialisation
     		editAreaLoader.init({
     			id: "editorInput"	// id of the textarea to transform		
@@ -291,10 +295,6 @@
     			,EA_load_callback : "eaInit"
     			,EA_file_close_callback: "eaFileClosed"
     		});
-  		}
-  		catch(err){
-  		  alert(err);
-  		}
   	</script>
   	<script src="shell.js"></script>
 </body>
