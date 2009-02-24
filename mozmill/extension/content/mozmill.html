@@ -265,6 +265,11 @@
     </div>
     
     <script language="Javascript" type="text/javascript">    
+      //make the editor fill the space on mac
+      if (navigator.platform.indexOf('Mac') != -1){
+        document.getElementById('editorInput').rows = 43;
+      }
+  		
   		var eaInit = function(){
   		   window.openFn = utils.tempfile().path;
          editAreaLoader.openFile('editorInput', {text:'',title:getFileName(window.openFn),id:window.openFn});
@@ -282,7 +287,7 @@
           if (count == 1){
             newFile();
           }
-  		} 
+  		}
   		  // initialisation
     		editAreaLoader.init({
     			id: "editorInput"	// id of the textarea to transform		

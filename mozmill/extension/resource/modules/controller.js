@@ -174,7 +174,7 @@ MozMillController.prototype.open = function(url){
   
   var el = new elementslib.ID(this.window.document, 'urlbar').getNode();
   this.type(new elementslib.ID(this.window.document, 'urlbar'), url);
-  events.triggerKeyEvent(el, 'keypress', '13', true, false, false, false,false); 
+  events.triggerKeyEvent(el, 'keypress', "13", true, false, false, false,false); 
   frame.events.pass({'function':'Controller.open()'});
 };
 MozMillController.prototype.keypress = function(el, keycode, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown){
@@ -295,16 +295,12 @@ MozMillController.prototype.type = function (el, text){
 
   var s = actualValue;
   for (var c = 0; c < s.length; c++){
-      events.triggerKeyEvent(element, 'keydown', s.charAt(c), true, false,false, false, false);
-      if (s.charAt(c) == "."){
-        element.value += s.charAt(c);
-      }
-      events.triggerKeyEvent(element, 'keypress', s.charAt(c), true, false,false, false, false);
-      events.triggerKeyEvent(element, 'keyup', s.charAt(c), true, false,false, false, false);
-  }
-  
-  if (element.value != s){
-    element.value = s;
+      try { events.triggerKeyEvent(element, 'keydown', s.charAt(c), true, false,false, false, false);}
+      catch(err){}
+      events.triggerKeyEvent(element, 'keypress', '0', true, false,false, false, false);
+      element.value += s.charAt(c);   
+      try { events.triggerKeyEvent(element, 'keyup', s.charAt(c), true, false,false, false, false); }
+      catch(err){}
   }
   
   // DGF this used to be skipped in chrome URLs, but no longer.  Is xpcnativewrappers to blame?

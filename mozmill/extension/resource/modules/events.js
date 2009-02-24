@@ -93,9 +93,8 @@ var getKeyCodeFromKeySequence = function(keySequence) {
 }
 
 var triggerKeyEvent = function(element, eventType, keySequence, canBubble, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
-
-  var keycode = getKeyCodeFromKeySequence(keySequence);
-  canBubble = (typeof(canBubble) == undefined) ? true: canBubble;
+    var keycode = getKeyCodeFromKeySequence(keySequence);
+    canBubble = (typeof(canBubble) == undefined) ? true: canBubble;
   
   var evt;
   if (element.ownerDocument.defaultView.KeyEvent) {
