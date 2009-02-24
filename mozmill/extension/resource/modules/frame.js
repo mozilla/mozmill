@@ -257,6 +257,10 @@ Collector.prototype.initTestModule = function (filename) {
         test_module[i].__name__ = i;
         test_module.__tests__.push(test_module[i]);
       }
+    } else if (typeof(test_module[i]) == 'object' && 
+               test_module[i]._mozmillasynctest == true) {
+        test_module[i].__name__ = i;
+        test_module.__tests__.push(test_module[i]);
     }
     if (i == "RELATIVE_ROOT") {
       test_module.__root_path__ = os.abspath(test_module[i], os.getFileForPath(filename));
@@ -352,9 +356,18 @@ Runner.prototype.wrapper = function (func, arg) {
     if (arg) {
       func(arg);
     } else {
-      func();
+      if (func._mozmillasynctest == true) {
+        func.run();
+      } else {
+        func();
+      }
     }
   } catch (e) {
+    if (func._mozmillasynctest == true) {
+      func = {'filename':events.currentModule.__file__,
+                 'name':func.__name__,
+                }
+    }
     events.fail({'exception':e, 'test':func})
     Components.utils.reportError(e);
   }

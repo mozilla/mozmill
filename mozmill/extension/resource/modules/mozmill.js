@@ -42,7 +42,7 @@ var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
                         "newMail3PaneController", "getMail3PaneController", 
                         "wm", "platform", "getAddrbkController", 
                         "getMsgComposeController", "getDownloadsController",
-                        "Application"];
+                        "Application", "MozMillAsyncTest"];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 var events = {};      Components.utils.import('resource://mozmill/modules/events.js', events);
@@ -50,6 +50,7 @@ var utils = {};       Components.utils.import('resource://mozmill/modules/utils.
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 
 var os = {}; Components.utils.import('resource://mozmill/stdlib/os.js', os);
+var withs = {}; Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
 
 var platform = os.getPlatform();
 
@@ -152,3 +153,12 @@ function getAddrbkController () {
     return new controller.MozMillController(addrbkWindow);
   }
 }
+
+
+
+
+MozMillAsyncTest = controller.MozMillAsyncTest;
+
+
+
+

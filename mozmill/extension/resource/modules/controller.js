@@ -36,7 +36,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["MozMillController", "sleep", "waitForEval"];
+var EXPORTED_SYMBOLS = ["MozMillController", "sleep", "waitForEval", "MozMillAsyncTest"];
 
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
@@ -48,7 +48,6 @@ var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
                 .hiddenDOMWindow;
 var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
      getService(Components.interfaces.nsIConsoleService);
-
 
 function sleep (milliseconds) {
   var self = {};
@@ -100,9 +99,12 @@ function waitForEval (expression, timeout, interval, subject) {
   while((self.result != true) && (self.counter < timeout))  {
     thread.processNextEvent(true);
   }  
+  if (self.counter < timeout) { var r = true; } 
+  else { var r = false; }
+  
   hwindow.clearInterval(timeoutInterval);
   
-  return true;
+  return r;
 }
 
 function waitForImage(elem, timeout, interval) {
@@ -756,3 +758,38 @@ controllerAdditions = {
   'Browser:Preferences':preferencesAdditions,
   'navigator:browser'  :browserAdditions,
 }
+
+
+
+
+var withs = {}; Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
+
+MozMillAsyncTest = function (timeout) { 
+  if (timeout == undefined) {
+    this.timeout = 6000;
+  } else {
+    this.timeout = timeout;
+  }
+  this._done = false;
+  this._mozmillasynctest = true;
+}
+
+MozMillAsyncTest.prototype.run = function () {
+  for (i in this) {
+    if (withs.startsWith(i, 'test') && typeof(this[i]) == 'function') {
+      this[i]();
+    }
+  }
+  
+  var r = waitForEval("subject._done == true", this.timeout, undefined, this);
+  if (r == true) {
+    return true;
+  } else {
+    throw "MozMillAsyncTest did not finish properly: timed out."
+  }
+}
+MozMillAsyncTest.prototype.finish = function () {
+  this._done = true;
+}
+
+
