@@ -16,6 +16,10 @@ var showOptionDialog = function(){
   $("#optionDialog").dialog("open");
 }
 
+var showHelpDialog = function(){
+  $("#helpDialog").dialog("open");
+}
+
 var showRecordDialog = function(){
   $("#recordDialog").dialog("open");
   MozMillrec.on();
