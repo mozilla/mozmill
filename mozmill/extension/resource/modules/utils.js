@@ -39,7 +39,7 @@
 var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler", 
                         "getFile", "Copy", "getWindows", "runEditor", 
                         "runFile", "getWindowByTitle", "tempfile", 
-                        "getMethodInWindows"];
+                        "getMethodInWindows", "getPreference", "setPreference"];
 
 // var jstest = {}; 
 // Components.utils.import('resource://mozmill/modules/jstest.js', jstest);
@@ -297,7 +297,76 @@ var checkChrome = function() {
 
    //data = data.replace(/\r|\n|\r\n/g, "");
    return data;
- }
+ };
+ 
+/**
+ * Called to get the state of an individual preference.
+ *
+ * @param aPrefName     string The preference to get the state of.
+ * @param aDefaultValue any    The default value if preference was not found.
+ *
+ * @returns any The value of the requested preference
+ *
+ * @see setPref
+ * Code by Henrik Skupin: <hskupin@gmail.com>
+ */
+function getPreference(aPrefName, aDefaultValue) {
+  try {
+    var branch = Components.classes["@mozilla.org/preferences-service;1"].
+                 getService(Components.interfaces.nsIPrefBranch);
+    switch (typeof aDefaultValue) {
+      case ('boolean'):
+        return branch.getBoolPref(aPrefName);
+      case ('string'):
+        return branch.getCharPref(aPrefName);
+      case ('number'):
+        return branch.getIntPref(aPrefName);
+      default:
+        return branch.getComplexValue(aPrefName);
+    }
+  } catch(e) {
+    dump("Could not get preference, threw exception: " + e + "\n");
+    return aDefaultValue;
+  }
+}
+
+/**
+ * Called to set the state of an individual preference.
+ *
+ * @param aPrefName string The preference to set the state of.
+ * @param aValue    any    The value to set the preference to.
+ *
+ * @returns boolean Returns true if value was successfully set.
+ *
+ * @see getPref
+ * Code by Henrik Skupin: <hskupin@gmail.com>
+ */
+function setPreference(aName, aValue) {
+  try {
+    dump("typeof value: " + typeof aValue);
+    var branch = Components.classes["@mozilla.org/preferences-service;1"].
+                 getService(Components.interfaces.nsIPrefBranch);
+    switch (typeof aValue) {
+      case ('boolean'):
+        branch.setBoolPref(aName, aValue);
+        break;
+      case ('string'):
+        branch.setCharPref(aName, aValue);
+        break;
+      case ('number'):
+        branch.setIntPref(aName, aValue);
+        break;
+      default:
+        branch.setComplexValue(aName, aValue);
+    }
+  } catch(e) {
+    dump("Could not set preference threw exception: " + e + "\n");
+    return false;
+  }
+
+  return true;
+}
+
  // 
  // //Function to start the running of jsTests
  // var jsTests = function (paramObj) {

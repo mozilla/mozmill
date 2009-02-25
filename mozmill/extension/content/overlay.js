@@ -46,10 +46,13 @@ var MozMill = {
   },
 
   onMenuItemCommand: function() {
-      
     var mmWindows = utils.getWindowByTitle('MozMill IDE');
     if (!mmWindows){
-      var w = window.open("chrome://mozmill/content/mozmill.html", "", "chrome,centerscreen,resizable,height=740,width=635,left=0,top=0");
+      var height = utils.getPreference("mozmill.height", 740);
+      var width = utils.getPreference("mozmill.width", 635);
+      var paramString = "chrome,centerscreen,resizable,height=" + height +
+                        ",width=" + width + ",left=0,top=0";
+      var w = window.open("chrome://mozmill/content/mozmill.html", "", paramString);
     } else { mmWindows[0].focus(); }
   }
 };

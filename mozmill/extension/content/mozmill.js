@@ -37,6 +37,7 @@
 // ***** END LICENSE BLOCK *****
 
 var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
+var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 
 // var $ = function(id) {
 //    return document.getElementById(id);
@@ -69,3 +70,9 @@ var updateOutput = function(){
   setDisplay(fail, failCollect);
   setDisplay(info, infoCollect);
 };
+
+function saveDisplayParams(){
+  // Just store width and height
+  utils.setPreference("mozmill.width", window.document.documentElement.clientWidth);
+  utils.setPreference("mozmill.height", window.document.documentElement.clientHeight);
+}
