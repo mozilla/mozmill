@@ -349,7 +349,7 @@ Runner.prototype.wrapper = function (func, arg) {
   thread = Components.classes["@mozilla.org/thread-manager;1"]
                      .getService(Components.interfaces.nsIThreadManager)
                      .currentThread;
-  
+
   if (func.EXCLUDED_PLATFORMS != undefined) {
     if (arrays.inArray(func.EXCLUDED_PLATFORMS, this.platform)) {
       events.skip("Platform exclusion");
