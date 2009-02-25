@@ -48,10 +48,21 @@ var MozMill = {
   onMenuItemCommand: function() {
     var mmWindows = utils.getWindowByTitle('MozMill IDE');
     if (!mmWindows){
-      var height = utils.getPreference("mozmill.height", 740);
-      var width = utils.getPreference("mozmill.width", 635);
-      var paramString = "chrome,centerscreen,resizable,height=" + height +
-                        ",width=" + width + ",left=0,top=0";
+      // var height = utils.getPreference("mozmill.height", 740);
+      //    var width = utils.getPreference("mozmill.width", 635);
+      //move to top left corner
+      window.screenY = 0;
+      window.screenX = 0;
+
+      //make only browser windows big
+      window.resizeTo(window.screen.availWidth/1.8, window.screen.availHeight/1);
+      
+      var height = 740;
+      var width = 635;
+      var h = window.innerHeight;
+      var l = window.innerWidth;
+      var paramString = "chrome,resizable,height=" + h +
+                               ",width=" + width + ",left="+l+",top=0";
       var w = window.open("chrome://mozmill/content/mozmill.html", "", paramString);
     } else { mmWindows[0].focus(); }
   }
@@ -61,7 +72,7 @@ window.addEventListener("load", function(e) { MozMill.onLoad(e); }, false);
 
  
 function mozMillTestWindow() {
-  window.open("chrome://mozmill/content/testwindow.html", "", "chrome, centerscreen, resizable");
+  window.open("chrome://mozmill/content/testwindow.html", "", "chrome, resizable");
 }
 
 //adding a mozmill keyboard shortcut
