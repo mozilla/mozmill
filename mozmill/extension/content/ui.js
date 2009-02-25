@@ -44,7 +44,7 @@ var align = function(){
 
       //make only browser windows big
       if (wintype == "navigator:browser"){
-        var width = window.screen.availWidth/2.5;
+        var width = 635;
         var height = window.screen.availHeight;
         win.resizeTo((window.screen.availWidth - width), window.screen.availHeight);        
       }
