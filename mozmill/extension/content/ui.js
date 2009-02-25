@@ -44,7 +44,9 @@ var align = function(){
 
       //make only browser windows big
       if (wintype == "navigator:browser"){
-        win.resizeTo(window.screen.availWidth/1.8, window.screen.availHeight/1);
+        var width = window.screen.availWidth/2.5;
+        var height = window.screen.availHeight;
+        win.resizeTo((window.screen.availWidth - width), window.screen.availHeight);        
       }
     }
     else {

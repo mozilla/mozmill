@@ -55,10 +55,10 @@ var MozMill = {
       window.screenX = 0;
 
       //make only browser windows big
-      window.resizeTo(window.screen.availWidth/1.8, window.screen.availHeight/1);
+      var width = window.screen.availWidth/2.5;
+      var height = window.screen.availHeight;
+      window.resizeTo((window.screen.availWidth - width), window.screen.availHeight);
       
-      var height = 740;
-      var width = 635;
       var h = window.innerHeight;
       var l = window.innerWidth;
       var paramString = "chrome,resizable,height=" + h +
