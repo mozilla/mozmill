@@ -36,7 +36,7 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','events', 
-                        'jsbridge', 'runTestDirectory', 'runTestFile', 'log', 'thread'];
+                        'jsbridge', 'runTestDirectory', 'runTestFile', 'log', 'getThread'];
 
 var httpd = {};   Components.utils.import('resource://mozmill/stdlib/httpd.js', httpd);
 var os = {};      Components.utils.import('resource://mozmill/stdlib/os.js', os);
@@ -463,4 +463,8 @@ var runTestFile = function (filename) {
   runner.runTestFile(filename);
   runner.end();
   return true;
+}
+
+var getThread = function () {
+  return thread;
 }
