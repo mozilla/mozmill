@@ -215,7 +215,7 @@ var checkChrome = function() {
      //show the window
      var res = fp.show();
      //if we got a file
-     if (res == nsIFilePicker.returnOK){
+     if ((res == nsIFilePicker.returnOK) || (res == nsIFilePicker.returnReplace)){
        var thefile = fp.file;
               
        //forcing the user to save as a .js file
