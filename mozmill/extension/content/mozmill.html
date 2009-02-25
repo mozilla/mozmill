@@ -273,10 +273,29 @@
       if (navigator.platform.indexOf('Mac') != -1){
         document.getElementById('editorInput').rows = 43;
       }
-  		
   		var eaInit = function(){
   		   window.openFn = utils.tempfile().path;
          editAreaLoader.openFile('editorInput', {text:'',title:getFileName(window.openFn),id:window.openFn});
+         
+         function alpha(e) {
+           if ((e.charCode > 96) && (e.charCode < 123)){
+             return true;
+           }
+           else if ((e.charCode > 64) && (e.charCode < 91)){
+             return true;
+           }
+           else if ((e.charCode > 44) && (e.charCode < 58)){
+             return true;
+           }
+           return false;
+         };
+         
+         window.frames['frame_editorInput'].onkeypress = function(e){
+           if (alpha(e)){
+             var node = window.frames['frame_editorInput'].document.getElementById('tab_file_'+encodeURIComponent(window.openFn));
+             node.getElementsByTagName("strong")[0].style.display = "inline";
+           }
+         }
   		};
   		
   		var eaFileClosed = function(obj){
@@ -305,6 +324,7 @@
   			,allow_toggle: true
   			,language: "en"
   			,syntax: "js"
+  			,toolbar: "save"
   			,is_multi_files: true
   			,EA_load_callback : "eaInit"
   			,EA_file_close_callback: "eaFileClosed"

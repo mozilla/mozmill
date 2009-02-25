@@ -55,7 +55,7 @@ var MozMill = {
       window.screenX = 0;
 
       //make only browser windows big
-      var width = 635;
+      var width = window.screen.availWidth/2.5;
       var height = window.screen.availHeight;
       window.resizeTo((window.screen.availWidth - width), window.screen.availHeight);
       

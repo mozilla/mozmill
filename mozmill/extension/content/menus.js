@@ -74,6 +74,8 @@ function saveAsFile() {
 }
 
 function saveFile() {
+  var node = window.frames['frame_editorInput'].document.getElementById('tab_file_'+encodeURIComponent(window.openFn));
+  node.getElementsByTagName("strong")[0].style.display = "none";
   return utils.saveFile(window);
 }
 
