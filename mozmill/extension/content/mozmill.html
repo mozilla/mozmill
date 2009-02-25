@@ -317,7 +317,7 @@
          editAreaLoader.openFile('editorInput', {text:'',title:getFileName(window.openFn),id:window.openFn});
   		};
   		
-  		var eaFileClosed = function(arr){
+  		var eaFileClosed = function(obj){
           var all = editAreaLoader.getAllFiles('editorInput');
           var count = 0;
           //open a new temp if the last window
@@ -329,19 +329,25 @@
           if (count == 1){
             newFile();
           }
+  		};
+  		
+  		var eaTabOn = function(obj){
+  		  window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
   		}
-  		  // initialisation
-    		editAreaLoader.init({
-    			id: "editorInput"	// id of the textarea to transform		
-    			,start_highlight: true	// if start with highlight
-    			,allow_resize: false
-    			,allow_toggle: true
-    			,language: "en"
-    			,syntax: "js"
-    			,is_multi_files: true
-    			,EA_load_callback : "eaInit"
-    			,EA_file_close_callback: "eaFileClosed"
-    		});
+  		
+  		// initialisation
+  		editAreaLoader.init({
+  			id: "editorInput"	// id of the textarea to transform		
+  			,start_highlight: true	// if start with highlight
+  			,allow_resize: false
+  			,allow_toggle: true
+  			,language: "en"
+  			,syntax: "js"
+  			,is_multi_files: true
+  			,EA_load_callback : "eaInit"
+  			,EA_file_close_callback: "eaFileClosed"
+  			,EA_file_switch_on_callback: "eaTabOn"
+  		});
     
   	</script>
   	<script src="shell.js"></script>

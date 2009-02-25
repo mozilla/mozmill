@@ -201,6 +201,7 @@ var checkChrome = function() {
    // In a c file operation, we have no need to set file mode with or operation,
    // directly using "r" or "w" usually.
    var data = w.editAreaLoader.getValue('editorInput');
+   
    foStream.write(data, data.length);
    foStream.close();
  };

@@ -58,16 +58,11 @@ function openFile(){
   $("#tabs").tabs().tabs("select", 0);
   var openObj = utils.openFile(window);
   if (openObj){
-    window.openFn = openObj.path;
     editAreaLoader.openFile('editorInput', {text:openObj.data,title:getFileName(openObj.path),id:openObj.path});
   }
 }
 
 function saveAsFile() {
-  try {
-    window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
-  } catch(err){ delete window.openFn; }
-  
   var openFn = utils.saveAsFile(window);
   if (openFn){
     window.openFn = openFn;
@@ -79,17 +74,7 @@ function saveAsFile() {
 }
 
 function saveFile() {
-  try {
-    window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
-  } catch(err){ delete window.openFn; return; }
-  
-  if (window.openFn.indexOf("tempfile") != -1){
-    if (!saveAsFile()){
-      return false;
-    }
-  }  
-  utils.saveFile(window);
-  return true;
+  return utils.saveFile(window);
 }
 
 function changeEditor() {
@@ -102,19 +87,9 @@ function changeEditor() {
 }
 
 function closeFile() {
-  try {
-    window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
-  } catch(err){ delete window.openFn; return; }
-  
  var really = confirm("Are you sure you want to close this file?");
  if (really == true) {
-   editAreaLoader.closeFile('editorInput', window.openFn)
-   try {
-     window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
-   } catch(err){ delete window.openFn; }
-//   $('saveMenu').setAttribute("disabled","true");
-//   $('closeMenu').setAttribute("disabled","true");
-//   $('editorMessage').innerHTML = "Use the 'File' menu to open a test, or generate and save a new one..";
+   editAreaLoader.closeFile('editorInput', window.openFn);
  }
 }
 
@@ -153,13 +128,7 @@ function runDirectory(){
 // }
 
 function runEditor(){
-  if (!saveFile()){
-    return;
-  }
-  
-  try {
-    window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
-  } catch(err){ delete window.openFn; }
+  saveFile();
   
   var doRun = function(){
     document.getElementById('runningStatus').textContent = 'Running Test...';
@@ -185,10 +154,6 @@ function genBoiler(){
     window.openFn = utils.tempfile().path;
     editAreaLoader.openFile('editorInput', {text:'',title:getFileName(window.openFn),id:window.openFn});
     utils.genBoiler(window);
-    
-    try {
-       window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
-     } catch(err){ delete window.openFn; return; }
 }
 
 function swapTabs(tab){
