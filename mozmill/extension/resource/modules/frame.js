@@ -36,7 +36,7 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','events', 
-                        'jsbridge', 'runTestDirectory', 'runTestFile', 'log'];
+                        'jsbridge', 'runTestDirectory', 'runTestFile', 'log', 'thread'];
 
 var httpd = {};   Components.utils.import('resource://mozmill/stdlib/httpd.js', httpd);
 var os = {};      Components.utils.import('resource://mozmill/stdlib/os.js', os);
@@ -346,6 +346,10 @@ Runner.prototype.getDependencies = function (module) {
   return alldeps;
 }
 Runner.prototype.wrapper = function (func, arg) {
+  thread = Components.classes["@mozilla.org/thread-manager;1"]
+                     .getService(Components.interfaces.nsIThreadManager)
+                     .currentThread;
+  
   if (func.EXCLUDED_PLATFORMS != undefined) {
     if (arrays.inArray(func.EXCLUDED_PLATFORMS, this.platform)) {
       events.skip("Platform exclusion");
