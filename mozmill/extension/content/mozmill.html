@@ -130,7 +130,9 @@
       });
       
       $("#recordDialog").bind('dialogclose', function(event, ui) {
-        MozMillrec.off();
+        if (MozMillrec.ison){
+          MozMillrec.off();
+        }
       });
     
       $("#helpDialog").dialog({
@@ -225,9 +227,13 @@
       	    <button class="ui-state-default ui-corner-all" onclick="newFile();$('#fileDialog').dialog('close');">
         	    New <u>B</u>lank
         	  </button>
+        	  <button class="ui-state-default ui-corner-all" onclick="genBoiler();$('#testDialog').dialog('close');">
+        	    New from Te<u>m</u>plate
+        	  </button>
         	  <button class="ui-state-default ui-corner-all" onclick="openFile();$('#fileDialog').dialog('close');">
         	    <u>O</u>pen
         	  </button>
+        	  <br><br>
             <button class="ui-state-default ui-corner-all" onclick="saveFile();$('#fileDialog').dialog('close');">
               <u>S</u>ave
             </button>
@@ -243,6 +249,7 @@
       
       <div id="testDialog" title="Test Options">
       	<p>
+      	  <center>
       	  <button class="ui-state-default ui-corner-all" onclick="runEditor();$('#testDialog').dialog('close');">
       	    <u>R</u>un Editor
       	  </button>
@@ -252,9 +259,7 @@
       	  <button class="ui-state-default ui-corner-all" onclick="runDirectory();$('#testDialog').dialog('close');">
       	    Run Directory
       	  </button>
-      	  <button class="ui-state-default ui-corner-all" onclick="genBoiler();$('#testDialog').dialog('close');">
-      	    New from Te<u>m</u>plate
-      	  </button>
+          </center>
       	</p>
       </div>
       

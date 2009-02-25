@@ -126,13 +126,15 @@ var cleanupEventsArray = function (recorder_array) {
   }
   
   // Cleanup trailing cmd+~
-  var i = 1;
-  while (recorder_array[recorder_array.length - i]['inspected'].controllerText == 'new mozmill.controller.MozMillController(mozmill.utils.getWindowByTitle("MozMill IDE"))') {
-    i++;
-    if (recorder_array[recorder_array.length - i]['evt'].charCode == 96) {
-      indexesForRemoval.push(recorder_array.length - i);
-    }   
-  }
+  try {
+    var i = 1;
+    while (recorder_array[recorder_array.length - i]['inspected'].controllerText == 'new mozmill.controller.MozMillController(mozmill.utils.getWindowByTitle("MozMill IDE"))') {
+      i++;
+      if (recorder_array[recorder_array.length - i]['evt'].charCode == 96) {
+        indexesForRemoval.push(recorder_array.length - i);
+      }   
+    }
+  } catch(err){}
   
   // Remove any actions in the mozmill window
   for (i in recorder_array) {
@@ -199,7 +201,7 @@ var RecorderConnector = function() {
 }
 
 RecorderConnector.prototype.toggle = function(){
-  if (this.on){
+  if (this.ison){
     this.off();
     $("#recordDialog").dialog().parents(".ui-dialog:first").find(".ui-dialog-buttonpane button")[1].innerHTML = "Start";
   } else { 
@@ -296,7 +298,7 @@ RecorderConnector.prototype.on = function() {
   //$('saveMenu').setAttribute("disabled", "true"); 
 //  $('editorMessage').innerHTML = "Use the 'File' menu to open a test, or generate and save a new one..";
   window.openFn = utils.tempfile().path;
-  editAreaLoader.openFile('editorInput', {text:'',title:window.openFn,id:window.openFn});
+  editAreaLoader.openFile('editorInput', {text:'',title:getFileName(window.openFn),id:window.openFn});
   window.openFn = null;
   
   for each(win in utils.getWindows()) {
@@ -338,7 +340,8 @@ RecorderConnector.prototype.off = function() {
   var observerService =
     Components.classes["@mozilla.org/observer-service;1"]
       .getService(Components.interfaces.nsIObserverService);
-  observerService.removeObserver(this.observer, "toplevel-window-ready");
+  try { observerService.removeObserver(this.observer, "toplevel-window-ready"); }
+  catch(err){}
 };
 
 var MozMillrec = new RecorderConnector();
