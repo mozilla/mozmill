@@ -134,24 +134,6 @@
           MozMillrec.off();
         }
       });
-    
-      $("#helpDialog").dialog({
-  		  autoOpen: false,
-        height: 170,
-        width: 400,
-        modal:true,
-        resizable:false,
-        overlay: { 
-            opacity: 0.5, 
-            background: "black" 
-        },
-        buttons: { 
-         "Close": function() { 
-             jQuery(this).dialog("close"); 
-         } 
-        }
-      });
-    
 	});
   </script>
 
@@ -168,7 +150,7 @@
         <span style="cursor:pointer" onclick="showOptionDialog();">O<u>p</u>tions</span> | 
         <span style="cursor:pointer" onclick="showInspectDialog();"><u>I</u>nspector</span> | 
         <span style="cursor:pointer" onclick="showRecordDialog();">Recor<u>d</u>er</span> |
-        <span style="cursor:pointer" onclick="showHelpDialog();">Help</span>
+        <span style="cursor:pointer" onclick="javascript:window.open('http://quality.mozilla.org/mozmill-docs')">Help</span>
       </div>
       <div id="tabs" style="position:relative;width:99%;height:90%">
       	<ul>
@@ -284,15 +266,6 @@
       	</p>
       </div>
       
-       <div id="helpDialog" title="Help">
-        	<p>
-        	  <ul>
-        	    <li><a target="_blank" style="text-decoration:underline" href="https://wiki.mozilla.org/QA/TDAI/Gristmill">Tutorials</a>
-        	    <li><a target="_blank" style="text-decoration:underline" href="https://wiki.mozilla.org/QA/TDAI/Gristmill/Gristmill_API">API</a>
-        	    <li><a target="_blank" style="text-decoration:underline" href="http://code.google.com/p/mozmill/w/list">Google Code</a>
-        	  </ul>
-        	</p>
-        </div>
     </div>
     
     <script language="Javascript" type="text/javascript">    
