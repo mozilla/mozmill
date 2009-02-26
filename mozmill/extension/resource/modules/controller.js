@@ -279,6 +279,10 @@ MozMillController.prototype.waitForImage = function (elem, timeout, interval) {
     throw new Error("timeout exceeded for waitForImage "+elem.getInfo());
   }
 }
+MozMillController.prototype.waitThenClick = function (elem, timeout, interval) {
+  this.waitForElement(elem, timeout, interval);
+  this.click(elem);
+}
 
 MozMillController.prototype.type = function (el, text){
   //this.window.focus();
