@@ -156,6 +156,8 @@ function genBoiler(){
     window.openFn = utils.tempfile().path;
     editAreaLoader.openFile('editorInput', {text:'',title:getFileName(window.openFn),id:window.openFn});
     utils.genBoiler(window);
+    var node = window.frames['frame_editorInput'].document.getElementById('tab_file_'+encodeURIComponent(window.openFn));
+    node.getElementsByTagName("strong")[0].style.display = "inline";
 }
 
 function swapTabs(tab){
