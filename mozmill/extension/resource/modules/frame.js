@@ -274,6 +274,13 @@ Collector.prototype.initTestModule = function (filename) {
       this.test_modules_by_name[test_module[i]] = test_module;
     }
   }
+  
+  if (test_module.MODULE_REQUIRES != undefined && test_module.RELATIVE_ROOT == undefined) {
+    for each(t in test_module.__tests__) {
+      t.__force_skip__ = "RELATIVE ROOT is not defined and test requires another module.";
+    }
+  }
+  
   test_module.collector = this;
   test_module.status = 'loaded';
   this.test_modules_by_filename[filename] = test_module;
@@ -355,6 +362,10 @@ Runner.prototype.wrapper = function (func, arg) {
       events.skip("Platform exclusion");
       return;
     }
+  }
+  if (func.__force_skip__ != undefined) {
+    events.skip(func.__force_skip__);
+    return;
   }
   try {
     if (arg) {
