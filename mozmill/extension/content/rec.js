@@ -334,6 +334,8 @@ RecorderConnector.prototype.off = function() {
   //$('recorder').setAttribute('label', 'Record');
   var r = getRecordedScript(currentRecorderArray);
   //window.document.getElementById('editorInput').value = r;
+  editAreaLoader.closeFile('editorInput',  editAreaLoader.getCurrentFile('editorInput').id);
+  newFile();
   editAreaLoader.setValue('editorInput', r);
   currentRecorderArray = [];
   //remove new window listener
