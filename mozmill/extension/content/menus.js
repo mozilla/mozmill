@@ -58,7 +58,8 @@ function openFile(){
   $("#tabs").tabs().tabs("select", 0);
   var openObj = utils.openFile(window);
   if (openObj){
-    editAreaLoader.openFile('editorInput', {text:openObj.data,title:getFileName(openObj.path),id:openObj.path});
+    editAreaLoader.openFile('editorInput', {text:'',title:getFileName(openObj.path),id:openObj.path});
+    editAreaLoader.setValue('editorInput', openObj.data);    
   }
 }
 
