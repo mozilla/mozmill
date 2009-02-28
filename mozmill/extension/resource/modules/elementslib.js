@@ -368,7 +368,12 @@ var _anonByAttrib = function (_document, parent, value) {
 }
 var _anonByIndex = function (_document, parent, i) {
   return _document.getAnonymousNodes(parent)[i];
-} 
+}
+
+Lookup.prototype.getInfo = function () {
+  return "Lookup: "+ this.expression; 
+}
+
 Lookup.prototype.getNode = function () {
   var expSplit = [e for each (e in smartSplit(this.expression) ) if (e != '')];
   expSplit.unshift(this._document)
