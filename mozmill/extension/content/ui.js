@@ -23,9 +23,9 @@ var showHelpDialog = function(){
 }
 
 var showRecordDialog = function(){
+  $("#tabs").tabs().tabs("select", 0); 
   $("#recordDialog").dialog("open");
   MozMillrec.on();
-  $("#tabs").tabs().tabs("select", 0);
   $("#recordDialog").dialog().parents(".ui-dialog:first").find(".ui-dialog-buttonpane button")[1].innerHTML = "Stop";
 }
 
