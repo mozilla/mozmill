@@ -241,7 +241,7 @@ var checkChrome = function() {
        var data = w.editAreaLoader.getValue('editorInput');
        foStream.write(data, data.length);
        foStream.close();
-      
+       w.editAreaLoader.closeFile('editorInput', w.openFn);
        return thefile.path;
      }
   };
