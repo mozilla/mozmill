@@ -87,7 +87,9 @@ var getKeyCodeFromKeySequence = function(keySequence) {
       return match[0];
 
   }
-  eventsLogger.error("invalid keySequence "+String(keySequence))
+  if (keySequence != null){
+    eventsLogger.error("invalid keySequence "+String(keySequence));
+  }
   // mozmill.results.writeResult("invalid keySequence");
   
 }
