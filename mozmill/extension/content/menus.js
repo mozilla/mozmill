@@ -113,6 +113,7 @@ function runFile(){
     frame.runTestFile(fp.file.path);
   }
   document.getElementById('runningStatus').textContent = 'Test Finished, See Output Tab...';
+  $("#tabs").tabs().tabs("select", 1); 
 }
 
 function runDirectory(){
@@ -127,6 +128,7 @@ function runDirectory(){
     frame.runTestDirectory(fp.file.path);
   }
   document.getElementById('runningStatus').textContent = 'Test Finished, See Output Tab...';
+  $("#tabs").tabs().tabs("select", 1); 
 }
 
 // function reloadFile(){
@@ -144,7 +146,7 @@ function runEditor(){
     $("#testDialog").dialog("close");
     frame.runTestFile(window.openFn);
     document.getElementById('runningStatus').textContent = 'Test Finished, See Output Tab...';
-    
+    $("#tabs").tabs().tabs("select", 1); 
   }
     doRun();
 
