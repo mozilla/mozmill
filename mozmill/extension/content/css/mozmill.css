@@ -18,6 +18,13 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
   border-bottom-style:solid;
   border-bottom-color:black;
 }
+.log:hover,
+.logger:hover,
+.pass:hover,
+.fail:hover,
+.test:hover {
+  cursor: pointer;
+}
 .pass {
   background:lightgreen;
 }
