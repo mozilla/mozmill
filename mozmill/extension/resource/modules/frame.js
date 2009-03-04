@@ -186,16 +186,17 @@ events.addListener = function (name, listener) {
   }
 }
 events.removeListener = function(listener) {
-  for each(e in this.listeners) {
+  for (listenerIndex in this.listeners) {
+    var e = this.listeners[listenerIndex];
     for (i in e){
       if (e[i] == listener) {
-        arrayRemove(e, i);
+        this.listeners[listenerIndex] = arrayRemove(e, i);
       }
     }
   }
   for (i in this.globalListeners) {
     if (this.globalListeners[i] == listener) {
-      arrayRemove(this.globalListeners, i);
+      this.globalListeners = arrayRemove(this.globalListeners, i);
     }
   }
 }
