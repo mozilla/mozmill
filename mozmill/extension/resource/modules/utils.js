@@ -326,7 +326,6 @@ function getPreference(aPrefName, aDefaultValue) {
         return branch.getComplexValue(aPrefName);
     }
   } catch(e) {
-    dump("Could not get preference, threw exception: " + e + "\n");
     return aDefaultValue;
   }
 }
@@ -344,7 +343,6 @@ function getPreference(aPrefName, aDefaultValue) {
  */
 function setPreference(aName, aValue) {
   try {
-    dump("typeof value: " + typeof aValue);
     var branch = Components.classes["@mozilla.org/preferences-service;1"].
                  getService(Components.interfaces.nsIPrefBranch);
     switch (typeof aValue) {
@@ -361,7 +359,6 @@ function setPreference(aName, aValue) {
         branch.setComplexValue(aName, aValue);
     }
   } catch(e) {
-    dump("Could not set preference threw exception: " + e + "\n");
     return false;
   }
 

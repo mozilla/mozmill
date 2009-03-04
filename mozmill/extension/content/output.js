@@ -40,6 +40,9 @@ var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', 
 var json2 = {}; Components.utils.import('resource://mozmill/stdlib/json2.js', json2);
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 
+var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
+     getService(Components.interfaces.nsIConsoleService);
+
 // var $ = function(id) {
 //    return document.getElementById(id);
 // };
@@ -163,6 +166,8 @@ function stateListener (state) {
   }
 }
 frame.events.addListener('setState', stateListener);
+aConsoleService.logStringMessage('+++++++++++++++++++++++')
+aConsoleService.logStringMessage("Current setStateListener size: "+String(frame.events.listeners.setState.length) );
 function testListener (test) {
   createCell('test', test, 'Started running test: '+test.name);
   utils.getWindowByTitle('MozMill IDE').document.getElementById('runningStatus').innerHTML = 'Running test: '+test.name;
@@ -186,10 +191,10 @@ function loggerListener (obj) {
 frame.events.addListener('logger', loggerListener);
 
 function removeStateListeners(){
-    frame.events.removeListener('setState', stateListener);
-    frame.events.removeListener('setTest', testListener);
-    frame.events.removeListener('pass', passListener);
-    frame.events.removeListener('fail', failListener);
-    frame.events.removeListener('log', logListener);
-    frame.events.removeListener('logger', loggerListener);
+    frame.events.removeListener(stateListener);
+    frame.events.removeListener(testListener);
+    frame.events.removeListener(passListener);
+    frame.events.removeListener(failListener);
+    frame.events.removeListener(logListener);
+    frame.events.removeListener(loggerListener);
 }
