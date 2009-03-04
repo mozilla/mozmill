@@ -57,6 +57,12 @@ var backstage = this;
 
 var registeredFunctions = {};
 
+Array.prototype.remove = function(from, to) {
+  var rest = this.slice((to || from) + 1 || this.length);
+  this.length = from < 0 ? this.length + from : from;
+  return this.push.apply(this, rest);
+};
+
 var loadFile = function(path, collector) {
   var file = Components.classes["@mozilla.org/file/local;1"]
                        .createInstance(Components.interfaces.nsILocalFile);
@@ -177,6 +183,18 @@ events.addListener = function (name, listener) {
     this.globalListeners.push(listener)
   } else {
     this.listeners[name] = [listener];
+  }
+}
+events.removeListener = function(listener) {
+  for (i in this.listeners) {
+    if (this.listeners[i] == listener) {
+      this.listeners.remove(i);
+    }
+  }
+  for (i in this.globalListeners) {
+    if (this.globalListeners[i] == listener) {
+      this.globalListeners.remove(i);
+    }
   }
 }
 
