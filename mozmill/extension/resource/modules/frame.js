@@ -186,9 +186,11 @@ events.addListener = function (name, listener) {
   }
 }
 events.removeListener = function(listener) {
-  for (i in this.listeners) {
-    if (this.listeners[i] == listener) {
-      arrayRemove(this.listeners, i);
+  for each(e in this.listeners) {
+    for (i in e){
+      if (e[i] == listener) {
+        arrayRemove(e, i);
+      }
     }
   }
   for (i in this.globalListeners) {
