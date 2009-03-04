@@ -57,10 +57,10 @@ var backstage = this;
 
 var registeredFunctions = {};
 
-Array.prototype.remove = function(from, to) {
-  var rest = this.slice((to || from) + 1 || this.length);
-  this.length = from < 0 ? this.length + from : from;
-  return this.push.apply(this, rest);
+arrayRemove = function(array, from, to) {
+  var rest = array.slice((to || from) + 1 || array.length);
+  array.length = from < 0 ? array.length + from : from;
+  return array.push.apply(array, rest);
 };
 
 var loadFile = function(path, collector) {
@@ -188,12 +188,12 @@ events.addListener = function (name, listener) {
 events.removeListener = function(listener) {
   for (i in this.listeners) {
     if (this.listeners[i] == listener) {
-      this.listeners.remove(i);
+      arrayRemove(this.listeners, i);
     }
   }
   for (i in this.globalListeners) {
     if (this.globalListeners[i] == listener) {
-      this.globalListeners.remove(i);
+      arrayRemove(this.globalListeners, i);
     }
   }
 }
