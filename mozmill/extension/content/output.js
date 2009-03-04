@@ -185,3 +185,11 @@ function loggerListener (obj) {
 }
 frame.events.addListener('logger', loggerListener);
 
+function removeStateListeners(){
+    frame.events.removeListener('setState', stateListener);
+    frame.events.removeListener('setTest', testListener);
+    frame.events.removeListener('pass', passListener);
+    frame.events.removeListener('fail', failListener);
+    frame.events.removeListener('log', logListener);
+    frame.events.removeListener('logger', loggerListener);
+}

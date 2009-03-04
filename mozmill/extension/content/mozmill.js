@@ -71,7 +71,9 @@ var updateOutput = function(){
   setDisplay(info, infoCollect);
 };
 
-function saveDisplayParams(){
+function cleanUp(){
+  //cleanup frame event listeners for output
+  removeStateListeners();
   // Just store width and height
   utils.setPreference("mozmill.width", window.document.documentElement.clientWidth);
   utils.setPreference("mozmill.height", window.document.documentElement.clientHeight);
