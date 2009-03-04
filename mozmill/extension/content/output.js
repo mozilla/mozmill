@@ -45,59 +45,103 @@ var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', u
 // };
 
 var createCell = function (t, obj, message) {
-
+  // try {
+  //    alert(json2.JSON.stringify(message.exception.message));
+  //  } catch(err){}
+  //  //alert(msgObj.exception.message);
+  //  
   var r = document.getElementById("resOut");
   var msg = document.createElement('div');
   msg.setAttribute("class", t);
-  //msg.style.background = color;
-  //var serialized = json2.JSON.stringify(message);
-  msg.setAttribute("style", "font-weight:bold;display:block;height:15px;overflow:hidden;width:100%;");
-  
-  //Adding each of the message attributes dynamically
-  //if message isn't an object
-  if (typeof(message) == "string"){
-    msg.innerHTML = t+' :: '+message;
+  if (t == "fail"){
+    $(msg).addClass("ui-state-error ui-corner-all");
+  }
+  if (t == "pass"){
+    $(msg).addClass("ui-state-highlight ui-corner-all");
+    msg.style.background = "lightgreen";
+    msg.style.border = "1px solid darkgreen";
   }
   else {
-    //add each piece in its own hbox
-    msg.innerHTML = t+' :: '+message['function'] + ' +';
-    
-    //For each attribute
-    for (i in message){
-      //if the value isn't undefined
-      if (message[i] != undefined){
-        var stuff = window.document.createElement('div');
-        stuff.setAttribute("style", "font-weight:normal;display:block");
-        stuff.innerHTML = i +": " +message[i];
-        stuff.style.width = "100%";
-        msg.appendChild(stuff);
-      }
+    $(msg).addClass("ui-state-highlight ui-corner-all");
+  }
+  msg.style.height = "15px";
+  msg.style.overflow = "hidden";
+  
+  //if message isn't an object
+  if (typeof(message) == "string"){
+    msg.innerHTML = "<strong>"+t+"</strong>"+' :: '+message;
+  }
+  else {
+    try {
+      var display = message.exception.message;
+    } catch(err){ 
+      var display = message['function'];
     }
+    //add each piece in its own hbox
+    msg.innerHTML = '<span style="float:right;top:0px;cursor: pointer;" class="ui-icon ui-icon-triangle-1-s"/>';
+    msg.innerHTML += "<strong>"+t+"</strong>"+' :: '+display;
+    
+    var createTree = function(obj){
+      var mainDiv = document.createElement('div');
+      for (prop in obj){
+        var newDiv = document.createElement('div');
+        newDiv.style.position = "relative";
+        newDiv.style.height = "15px";
+        newDiv.style.overflow = "hidden";
+        newDiv.style.width = "95%";
+        newDiv.style.left = "10px";
+        if (obj[prop].length > 50){
+          newDiv.innerHTML = '<span style="float:right;top:0px;cursor: pointer;" class="ui-icon ui-icon-triangle-1-s"/>';
+        }
+        newDiv.innerHTML += "<strong>"+prop+"</strong>: "+obj[prop];
+        mainDiv.appendChild(newDiv);
+      }
+      return mainDiv;
+    }
+    //iterate the properties creating output entries for them
+    for (prop in message){
+      if (typeof message[prop] == "object"){
+        var newDiv = createTree(message[prop]);
+      }
+      else {
+        var newDiv = document.createElement('div');
+        newDiv.innerHTML = "<strong>"+prop+"</strong>: "+message[prop];
+      }
+      newDiv.style.position = "relative";
+      newDiv.style.left = "10px";
+      newDiv.style.overflow = "hidden";
+      
+      msg.appendChild(newDiv);
+    }
+   
   }
   
   //Add the event listener for clicking on the box to see more info
   msg.addEventListener('click', function(e){
+    // if (e.which == 3){
+    //    var rout = document.getElementById('resOut');
+    //    if (e.target.parentNode != rout){
+    //      copyToClipboard(e.target.parentNode.innerHTML);
+    //    }
+    //    else {
+    //      copyToClipboard(e.target.innerHTML);
+    //    }
+    //    alert('Copied to clipboard...')
+    //    return;
+    //  }
+    if (e.target.tagName == "SPAN"){
+      if (e.target.parentNode.style.height == "15px"){
+        e.target.parentNode.style.overflow = "";
+        e.target.parentNode.style.height = "";
+        e.target.className = "ui-icon ui-icon-triangle-1-n";
+      }
+      else { 
+        e.target.parentNode.style.height = "15px";
+        e.target.parentNode.style.overflow = "hidden";
+        e.target.className = "ui-icon ui-icon-triangle-1-s";
+      }
+    }
 
-    if (e.which == 3){
-      var rout = document.getElementById('resOut');
-      if (e.target.parentNode != rout){
-        copyToClipboard(e.target.parentNode.innerHTML);
-      }
-      else {
-        copyToClipboard(e.target.innerHTML);
-      }
-      alert('Copied to clipboard...')
-      return;
-    }
-    
-    if (e.target.style.height == "15px"){
-      e.target.style.overflow = "";
-      e.target.style.height = "";
-    }
-    else { 
-      e.target.style.height = "15px";
-      e.target.style.overflow = "hidden";
-    }
   }, true);
   
   if (r.childNodes.length == 0){
