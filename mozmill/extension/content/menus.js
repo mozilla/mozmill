@@ -94,10 +94,26 @@ function changeEditor() {
 }
 
 function closeFile() {
- var really = confirm("Are you sure you want to close this file?");
- if (really == true) {
-   editAreaLoader.closeFile('editorInput', window.openFn);
- }
+  //implementing the behavior where the mozmill window closes
+  //when cmd w is pressed if there is only an empty tmp file open
+  var all = editAreaLoader.getAllFiles('editorInput');
+  var count = 0;
+
+  for (x in all){
+    count++;
+  }
+  if (count == 1){
+    var data = editAreaLoader.getValue('editorInput');
+    if (data == ""){
+      window.close();
+      return;
+    }
+  }
+  //if we aren't doing a close, default behavior to ask if we wanna close it
+  var really = confirm("Are you sure you want to close this file?");
+  if (really == true) {
+    editAreaLoader.closeFile('editorInput', window.openFn);
+  }
 }
 
 function runFile(){
