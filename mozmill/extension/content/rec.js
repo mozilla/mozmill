@@ -102,7 +102,7 @@ var cleanupEventsArray = function (recorder_array) {
           while (i < eIndex) {
             indexesForRemoval.push(i); i++;            
           }
-        } else if (arrays.compare(e['evt'].target.value, 
+        } else if (e['evt'].target.value != undefined && arrays.compare(e['evt'].target.value, 
         [String.fromCharCode(x['evt'].charCode) for 
         each(x in recorder_array.slice(eIndex - (e['evt'].target.value.length) ,eIndex - 1))
         ])) {
