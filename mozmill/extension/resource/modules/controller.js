@@ -152,7 +152,7 @@ var MozMillController = function (window) {
   Components.utils.import('resource://mozmill/modules/mozmill.js', this.mozmillModule);
   
   waitForEval("try { subject != null; } catch(err){}", undefined, undefined, window)
-  waitForEval("try { subject.documentLoaded == true; } catch(err){}", undefined, undefined, window)
+  waitForEval("try { subject.documentLoaded != undefined; } catch(err){}", undefined, undefined, window)
 
   if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined ) {
     this.prototype = new utils.Copy(this.prototype);
