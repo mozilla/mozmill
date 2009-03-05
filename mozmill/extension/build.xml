@@ -9,7 +9,7 @@ build.xml adapted from Shawn Wilsher's rtse
   <tstamp>
     <format property="build.number" pattern="yyyyMMdd" offset="-1" unit="hour"/>
   </tstamp>
-  <property name="build.version" value="1.0.${build.number}"/>
+  <property name="build.version" value="1.1.${build.number}"/>
 
   <target name="createxpi" depends="createjar">
     <delete file="mozmill.xpi"/>
