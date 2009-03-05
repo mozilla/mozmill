@@ -469,7 +469,7 @@ Runner.prototype._runTestModule = function (module) {
   module.__status__ = 'done';
 }
 Runner.prototype.runTestModule = function (module) {
-  if (module.__requirements__ != undefined) {
+  if (module.__requirements__ != undefined && module.__force_skip__ == undefined) {
     if (!arrays.inArray(this.collector.loaded_directories, module.__root_path__)) {
       if (module.__root_path__ != undefined) {
         this.collector.initTestDirectory(module.__root_path__);
