@@ -41,7 +41,7 @@ desc = """UI Automation tool for Mozilla applications."""
 summ = """A tool for full UI automation of Mozilla applications."""
 
 PACKAGE_NAME = "mozmill"
-PACKAGE_VERSION = "1.1"
+PACKAGE_VERSION = "1.1.1a1"
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
@@ -56,10 +56,10 @@ setup(name=PACKAGE_NAME,
       package_data = {'': ['*.js', '*.css', '*.html', '*.txt', '*.xpi', '*.rdf', '*.xul', '*.jsm', '*.xml'],},
       entry_points="""
           [console_scripts]
-          mozmill = mozmill:main
+          mozmill = mozmill:cli
         """,
       platforms =['Any'],
-      install_requires = ['mozrunner <= 1.9', 'jsbridge <= 1.9',],
+      install_requires = ['jsbridge >= 2.0a1',],
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Console',
                    'Intended Audience :: Developers',

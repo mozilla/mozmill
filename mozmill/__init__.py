@@ -37,41 +37,19 @@
 
 import os
 import sys
-import urllib
-from time import sleep
+import copy
 from datetime import datetime
+
 import logging
 logger = logging.getLogger('mozmill')
 
 import simplejson
-
 import jsbridge
-from jsbridge import global_settings
-from jsbridge import network, events
-from jsbridge.jsobjects import JSObject
+import mozrunner
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 
-global_settings.MOZILLA_PLUGINS.append(os.path.join(basedir, 'extension'))
-
-passes = []
-fails = []
-alltests = []
-skipped = []
-
-def endTest_listener(test):
-    alltests.append(test)
-    if test.get('skipped', False):
-        print 'Test Skipped : '+test['name']+' | '+test.get('skipped_reason', '')
-        skipped.append(test)
-    elif test['failed'] > 0:
-        print 'Test Failed : '+test['name']+' in '+test['filename']
-        fails.append(test)
-    else:
-        passes.append(test)
-
-def endRunner_listener(obj):
-    print 'Passed '+str(len(passes))+' :: Failed '+str(len(fails))+' :: Skipped '+str(len(skipped))
+extension_path = os.path.join(basedir, 'extension')
 
 class LoggerListener(object):
     cases = {
@@ -91,90 +69,164 @@ class LoggerListener(object):
             self.cases[eName] = self.default(eName)
             self.cases[eName](obj)
 
-def run_tests(moz, test, report=False):
-    events.add_listener(endTest_listener, event='mozmill.endTest')
-    events.add_listener(endRunner_listener, event='mozmill.endRunner')
+class MozMill(object):
     
-    frame = JSObject(network.bridge, "Components.utils.import('resource://mozmill/modules/frame.js')")
-    
-    starttime = datetime.utcnow().isoformat()
-    
-    if os.path.isdir(test):
-        frame.runTestDirectory(test)
-    else:
-        frame.runTestFile(test)
-    
-    endtime = datetime.utcnow().isoformat()
-    
-    if report:
-        appInfoJs = "Components.classes['@mozilla.org/xre/app-info;1'].getService(Components.interfaces.nsIXULAppInfo)"
-        appInfo = JSObject(network.bridge, appInfoJs)
-        
-        results = {'testType':'mozmill', 'starttime':starttime, 
-                   'endtime':endtime, 'tests':alltests}
-        results['appInfo.id'] = str(appInfo.ID)
-        results['buildid'] = str(appInfo.appBuildID)
-        results['appInfo.platformVersion'] = appInfo.platformVersion
-        results['appInfo.platformBuildID'] = appInfo.platformBuildID       
-        sysname, nodename, release, version, machine = os.uname()
-        sysinfo = {'os.name':sysname, 'hostname':nodename, 'os.version.number':release,
-                   'os.version.string':version, 'arch':machine}
-        results['sysinfo'] = sysinfo
-        results['testPath'] = test
-        import httplib2
-        http = httplib2.Http()
-        response, content = http.request(report, 'POST', body=simplejson.dumps(results))
+    def __init__(self, runner_class=mozrunner.FirefoxRunner, 
+                 profile_class=mozrunner.FirefoxProfile, jsbridge_port=24242):
+        self.runner_class = runner_class
+        self.profile_class = profile_class
+        self.jsbridge_port = jsbridge_port
+        self.passes = [] ; self.fails = [] ; self.skipped = []
+        self.alltests = []
         
     
-    moz.stop()
-    if len(fails) > 0:
-        sys.exit(1)
-
-def main():
-    parser = jsbridge.parser
-    parser.remove_option('-l')
-    parser.set_default('launch', True)
-    parser.add_option("-t", "--test", 
-                      dest="test", default=False,
-                      help="Run test file or directory.")
-    parser.add_option("-l", "--logfile",
-                      dest="logfile", default=None,
-                      help="Log all events to file.")
-    parser.add_option("--show-errors",
-                      dest="showerrors", default=False, action="store_true",
-                      help="Print logger errors to the console.")
-    parser.add_option("--shell",
-                      dest="shell", default=False, action="store_true",
-                      help="Bring up the jsbridge shell. For debugging only, incompatible with (-t, --test)")
-    parser.add_option("--report", dest="report", default=False,
-                      help="Report the results. Requires url to results server.")
-    
-    (options, args) = parser.parse_args()
-    
-    events.add_global_listener(LoggerListener())
-    
-    if options.showerrors:
-        outs = logging.StreamHandler()
-        outs.setLevel(logging.ERROR)
-        formatter = logging.Formatter("%(levelname)s - %(message)s")
-        outs.setFormatter(formatter)
-        logger.addHandler(outs)
-    
-    if options.logfile:
-        logging.basicConfig(filename=options.logfile, filemode='w', level=logging.DEBUG)
+    def start(self, profile=None, runner=None):
+        if not profile:
+            profile = self.profile_class(plugins=[jsbridge.extension_path, extension_path])
+        if not runner:
+            runner = mozrunner.FirefoxRunner(profile=self.profile, 
+                                             cmdargs=["-jsbridge", str(self.jsbridge_port)])
         
-    if (not options.showall) and (not options.showerrors) and (not options.logfile):
-        logging.basicConfig(level=logging.CRITICAL)
+        self.profile = profile; self.runner = runner
+        self.runner.start()
+        self.back_channel, self.bridge = jsbridge.wait_and_create_network("127.0.0.1", self.jsbridge_port)
     
-    if options.test:
-        if options.showall:
-            logging.basicConfig(level=logging.DEBUG)
-            options.showall = False
-
-        moz = jsbridge.cli(shell=False, options=options, block=False)
-        run_tests(moz, os.path.abspath(os.path.expanduser(options.test)), options.report)
+    def run_tests(self, test, report=False):
         
-    else:    
-        jsbridge.cli(shell=options.shell, options=options)
+        self.back_channel.add_listener(self.endTest_listener, eventType='mozmill.endTest')
+        self.back_channel.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
 
+        frame = jsbridge.JSObject(self.bridge, "Components.utils.import('resource://mozmill/modules/frame.js')")
 
+        starttime = datetime.utcnow().isoformat()
+
+        if os.path.isdir(test):
+            frame.runTestDirectory(test)
+        else:
+            frame.runTestFile(test)
+
+        endtime = datetime.utcnow().isoformat()
+
+        if report:
+            appInfoJs = "Components.classes['@mozilla.org/xre/app-info;1'].getService(Components.interfaces.nsIXULAppInfo)"
+            appInfo = jsbridge.JSObject(self.bridge, appInfoJs)
+
+            results = {'testType':'mozmill', 'starttime':starttime, 
+                       'endtime':endtime, 'tests':self.alltests}
+            results['appInfo.id'] = str(appInfo.ID)
+            results['buildid'] = str(appInfo.appBuildID)
+            results['appInfo.platformVersion'] = appInfo.platformVersion
+            results['appInfo.platformBuildID'] = appInfo.platformBuildID       
+            sysname, nodename, release, version, machine = os.uname()
+            sysinfo = {'os.name':sysname, 'hostname':nodename, 'os.version.number':release,
+                       'os.version.string':version, 'arch':machine}
+            results['sysinfo'] = sysinfo
+            results['testPath'] = test
+            import httplib2
+            http = httplib2.Http()
+            response, content = http.request(report, 'POST', body=simplejson.dumps(results))
+        
+    def endTest_listener(self, test):
+        self.alltests.append(test)
+        if test.get('skipped', False):
+            print 'Test Skipped : '+test['name']+' | '+test.get('skipped_reason', '')
+            self.skipped.append(test)
+        elif test['failed'] > 0:
+            print 'Test Failed : '+test['name']+' in '+test['filename']
+            self.fails.append(test)
+        else:
+            self.passes.append(test)
+
+    def endRunner_listener(self, obj):
+        print 'Passed '+str(len(self.passes))+' :: Failed '+str(len(self.fails))+' :: Skipped '+str(len(self.skipped))
+    
+    
+class CLI(jsbridge.CLI):
+    parser_options = copy.copy(jsbridge.CLI.parser_options)
+    parser_options[("-t", "--test",)] = dict(dest="test", default=False, 
+                                             help="Run test file or directory.")
+    parser_options[("-l", "--logfile",)] = dict(dest="logfile", default=None,
+                                                help="Log all events to file.")
+    parser_options[("--show-errors",)] = dict(dest="showerrors", default=False, 
+                                              action="store_true",
+                                              help="Print logger errors to the console.")
+    parser_options[("--report",)] = dict(dest="report", default=False,
+                                         help="Report the results. Requires url to results server.")
+    parser_options[("--showall",)] = dict(dest="showall", default=False,
+                                         help="Show all test output.")
+    
+    
+    def get_profile(self, *args, **kwargs):
+        profile = super(CLI, self).get_profile(*args, **kwargs)
+        profile.install_plugin(extension_path)
+        return profile
+        
+    def run(self):
+        runner = self.parse_and_get_runner()
+        m = MozMill()
+        m.start(runner=runner, profile=runner.profile)
+        m.back_channel.add_global_listener(LoggerListener())
+        if self.options.showerrors:
+            outs = logging.StreamHandler()
+            outs.setLevel(logging.ERROR)
+            formatter = logging.Formatter("%(levelname)s - %(message)s")
+            outs.setFormatter(formatter)
+            logger.addHandler(outs)
+        if self.options.logfile:
+            logging.basicConfig(filename=self.options.logfile, 
+                                filemode='w', level=logging.DEBUG)
+        if ( not self.options.showall) and (
+             not self.options.showerrors) and (
+             not self.options.logfile):
+            logging.basicConfig(level=logging.CRITICAL)
+        
+        if self.options.test:
+            if self.options.showall:
+                logging.basicConfig(level=logging.DEBUG)
+                self.options.showall = False
+            m.run_tests(os.path.abspath(os.path.expanduser(self.options.test)), 
+                        self.options.report)
+            m.runner.stop()
+            if len(m.fails) > 0:
+                sys.exit(1)
+        else:
+            if self.options.shell:
+                self.start_shell(runner)
+            else:
+                try:
+                    runner.wait()
+                except KeyboardInterrupt:
+                    runner.stop()
+
+def cli():
+    CLI().run()
+
+# 
+# def main():
+#     events.add_global_listener(LoggerListener())
+#     
+#     if options.showerrors:
+#         outs = logging.StreamHandler()
+#         outs.setLevel(logging.ERROR)
+#         formatter = logging.Formatter("%(levelname)s - %(message)s")
+#         outs.setFormatter(formatter)
+#         logger.addHandler(outs)
+#     
+#     if options.logfile:
+#         logging.basicConfig(filename=options.logfile, filemode='w', level=logging.DEBUG)
+#         
+#     if (not options.showall) and (not options.showerrors) and (not options.logfile):
+#         logging.basicConfig(level=logging.CRITICAL)
+#     
+#     if options.test:
+#         if options.showall:
+#             logging.basicConfig(level=logging.DEBUG)
+#             options.showall = False
+# 
+#         moz = jsbridge.cli(shell=False, options=options, block=False)
+#         run_tests(moz, os.path.abspath(os.path.expanduser(options.test)), options.report)
+#         
+#     else:    
+#         jsbridge.cli(shell=options.shell, options=options)
+# 
+# 

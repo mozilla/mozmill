@@ -1,4 +1,4 @@
 
           [console_scripts]
-          mozmill = mozmill:main
+          mozmill = mozmill:cli
         
