@@ -111,7 +111,7 @@ Command Line Class
 Running MozMill from Python
 ---------------------------
 
-.. class:: MozMill ([runner_class[, profile_class[, jsbridge_port]]]):
+.. class:: MozMill([runner_class[, profile_class[, jsbridge_port]]]):
 
    Manages an instance of Firefox w/ jsbridge and provides facilities for running tests and
    keeping track of results with callback methods.
