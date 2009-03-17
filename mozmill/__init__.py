@@ -84,8 +84,8 @@ class MozMill(object):
         if not profile:
             profile = self.profile_class(plugins=[jsbridge.extension_path, extension_path])
         if not runner:
-            runner = mozrunner.FirefoxRunner(profile=self.profile, 
-                                             cmdargs=["-jsbridge", str(self.jsbridge_port)])
+            runner = self.runner_class(profile=self.profile, 
+                                       cmdargs=["-jsbridge", str(self.jsbridge_port)])
         
         self.profile = profile; self.runner = runner
         self.runner.start()
