@@ -97,11 +97,21 @@ var getKeyCodeFromKeySequence = function(keySequence) {
 var triggerKeyEvent = function(element, eventType, keySequence, canBubble, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
     var keycode = getKeyCodeFromKeySequence(keySequence);
     canBubble = (typeof(canBubble) == undefined) ? true: canBubble;
-  
+    
+    //charcode and keycode are mutually exclusive
+    //charcode is only set if shift is pressed
+    if (shiftKeyDown){
+      var charcode = keycode;
+      keycode = null;
+    } else {
+      var charcode = null;
+    }
+    
+    
   var evt;
   if (element.ownerDocument.defaultView.KeyEvent) {
       evt = element.ownerDocument.defaultView.document.createEvent('KeyEvents');
-      evt.initKeyEvent(eventType, true, true, element.ownerDocument.defaultView, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown, keycode, keycode);
+      evt.initKeyEvent(eventType, true, true, element.ownerDocument.defaultView, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown, keycode, charcode);
   } 
   else {
       evt = element.ownerDocument.defaultView.document.createEvent('UIEvents');
