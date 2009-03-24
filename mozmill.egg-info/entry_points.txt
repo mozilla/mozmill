@@ -1,4 +1,5 @@
 
           [console_scripts]
           mozmill = mozmill:cli
+          mozmill-thunderbird = mozmill:tbird_cli
         

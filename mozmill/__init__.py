@@ -198,8 +198,15 @@ class CLI(jsbridge.CLI):
                 except KeyboardInterrupt:
                     runner.stop()
 
+class ThunderbirdCLI(CLI):
+    profile_class = mozrunner.ThunderbirdProfile
+    runner_class = mozrunner.ThunderbirdRunner
+
 def cli():
     CLI().run()
+
+def tbird_cli():
+    ThunderbirdCLI().run()
 
 # 
 # def main():

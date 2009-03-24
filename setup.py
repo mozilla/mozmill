@@ -57,6 +57,7 @@ setup(name=PACKAGE_NAME,
       entry_points="""
           [console_scripts]
           mozmill = mozmill:cli
+          mozmill-thunderbird = mozmill:tbird_cli
         """,
       platforms =['Any'],
       install_requires = ['jsbridge >= 2.0a1',],
