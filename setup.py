@@ -41,7 +41,7 @@ desc = """UI Automation tool for Mozilla applications."""
 summ = """A tool for full UI automation of Mozilla applications."""
 
 PACKAGE_NAME = "mozmill"
-PACKAGE_VERSION = "1.1.1a1"
+PACKAGE_VERSION = "1.1.1a2"
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
@@ -60,7 +60,7 @@ setup(name=PACKAGE_NAME,
           mozmill-thunderbird = mozmill:tbird_cli
         """,
       platforms =['Any'],
-      install_requires = ['jsbridge >= 2.0a1',],
+      install_requires = ['jsbridge >= 2.0a2',],
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Console',
                    'Intended Audience :: Developers',
