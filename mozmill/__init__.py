@@ -197,6 +197,7 @@ class CLI(jsbridge.CLI):
                     runner.wait()
                 except KeyboardInterrupt:
                     runner.stop()
+        runner.profile.cleanup()
 
 class ThunderbirdCLI(CLI):
     profile_class = mozrunner.ThunderbirdProfile
