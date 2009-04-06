@@ -373,7 +373,17 @@ var _anonByIndex = function (_document, parent, i) {
 Lookup.prototype.getInfo = function () {
   return "Lookup: "+ this.expression; 
 }
-
+Lookup.prototype.exists = function () {
+  try {
+    var e = this.getNode();
+  } catch (ex) {
+    return false;
+  }
+  if (e) {
+    return true;
+  }
+  return false;
+}
 Lookup.prototype.getNode = function () {
   var expSplit = [e for each (e in smartSplit(this.expression) ) if (e != '')];
   expSplit.unshift(this._document)
