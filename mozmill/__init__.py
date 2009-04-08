@@ -269,7 +269,7 @@ class CLI(jsbridge.CLI):
         
     def run(self):
         runner = self.parse_and_get_runner()
-        m = self.mozmill_class()
+        m = self.mozmill_class(runner_class=mozrunner.FirefoxRunner, profile_class=mozrunner.FirefoxProfile, jsbridge_port=int(self.options.port))
         m.start(runner=runner, profile=runner.profile)
         m.add_global_listener(LoggerListener())
         if self.options.showerrors:
