@@ -452,7 +452,7 @@ MozMillController.prototype.check = function(el){
 }
 
 //Radio buttons are even WIERDER in safari, not breaking in FF
-MozMillController.radio = function(el){
+MozMillController.prototype.radio = function(el){
   //this.window.focus();
   var element = el.getNode();
   return MozMillController.click(element);      
