@@ -68,7 +68,7 @@ function getWindows(type) {
   while(enumerator.hasMoreElements()) {
     windows.push(enumerator.getNext());
   }
-  if (type == undefined) {
+  if (type == "") {
     windows.push(hwindow);
   }
   return windows;
