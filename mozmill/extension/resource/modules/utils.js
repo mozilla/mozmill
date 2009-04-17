@@ -41,6 +41,11 @@ var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler",
                         "runFile", "getWindowByTitle", "tempfile", 
                         "getMethodInWindows", "getPreference", "setPreference"];
 
+var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
+              .getService(Components.interfaces.nsIAppShellService)
+              .hiddenDOMWindow;
+
+
 // var jstest = {}; 
 // Components.utils.import('resource://mozmill/modules/jstest.js', jstest);
 var uuidgen = Components.classes["@mozilla.org/uuid-generator;1"]
@@ -62,6 +67,9 @@ function getWindows(type) {
                      .getEnumerator(type);
   while(enumerator.hasMoreElements()) {
     windows.push(enumerator.getNext());
+  }
+  if (type == undefined) {
+    windows.push(hwindow);
   }
   return windows;
 }
