@@ -242,22 +242,22 @@ MozMillController.prototype.click = function(el){
     // Perform the link action if preventDefault was set.
     // In chrome URL, the link action is already executed by triggerMouseEvent.
     if (!utils.checkChrome && savedEvent != null && !savedEvent.getPreventDefault()) {
-        if (element.href) {
-            this.open(element.href);
-        } 
-        else {
-            var itrElement = element;
-            while (itrElement != null) {
-              if (itrElement.href) {
-                this.open(itrElement.href);
-                break;
-              }
-              itrElement = itrElement.parentNode;
-            }
+        // if (element.href) {
+        //     this.open(element.href);
+        // } 
+        // else {
+        var itrElement = element;
+        while (itrElement != null) {
+          // if (itrElement.href) {
+          //   this.open(itrElement.href);
+          //   break;
+          // }
+          itrElement = itrElement.parentNode;
+          // }
         }
     }
     frame.events.pass({'function':'Controller.click()'});
-    return true;    
+    return true;
 };
 
 MozMillController.prototype.sleep = sleep;

@@ -102,15 +102,15 @@ class MozMill(object):
         
         self.back_channel, self.bridge = jsbridge.wait_and_create_network("127.0.0.1", self.jsbridge_port)
     
-    def run_tests(self, test, report=False):
+    def run_tests(self, test, report=False, sleeptime=4):
         
         self.add_listener(self.endTest_listener, eventType='mozmill.endTest')
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
 
         frame = jsbridge.JSObject(self.bridge, "Components.utils.import('resource://mozmill/modules/frame.js')")
-
+        sleep(sleeptime)
         starttime = datetime.utcnow().isoformat()
-
+        
         if os.path.isdir(test):
             frame.runTestDirectory(test)
         else:
