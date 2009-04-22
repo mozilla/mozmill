@@ -42,7 +42,7 @@ var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
                         "newMail3PaneController", "getMail3PaneController", 
                         "wm", "platform", "getAddrbkController", 
                         "getMsgComposeController", "getDownloadsController",
-                        "Application", "MozMillAsyncTest"];
+                        "Application", "MozMillAsyncTest", "cleanQuit"];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 var events = {};      Components.utils.import('resource://mozmill/modules/events.js', events);
@@ -60,6 +60,9 @@ var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
 var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
                .getService(Components.interfaces.nsIXULAppInfo);
 
+var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
+    getService(Components.interfaces.nsIConsoleService);
+
                        
 applicationDictionary = {
   "{718e30fb-e89b-41dd-9da7-e25a45638b28}": "Sunbird",    
@@ -74,6 +77,12 @@ if (Application == undefined) {
   // Default to Firefox
   var Application = 'Firefox';
 } 
+
+function cleanQuit () {
+  aConsoleService.logStringMessage("++++++++++++++++")
+  utils.getMethodInWindows('goQuitApplication')();
+  aConsoleService.logStringMessage("----------------")
+}
 
 function addHttpResource (directory, namespace) {
   return 'http://localhost:4545/'+namespace;

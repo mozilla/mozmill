@@ -150,6 +150,14 @@ class MozMill(object):
     def endRunner_listener(self, obj):
         print 'Passed '+str(len(self.passes))+' :: Failed '+str(len(self.fails))+' :: Skipped '+str(len(self.skipped))
 
+    def stop(self):
+        sleep(1)
+        mozmill = jsbridge.JSObject(self.bridge, "Components.utils.import('resource://mozmill/modules/mozmill.js')")
+        try:
+            mozmill.cleanQuit()
+        except socket.error:
+            pass
+        self.runner.wait()
 
 class MozMillRestart(MozMill):
     
@@ -187,9 +195,8 @@ class MozMillRestart(MozMill):
     def stop_runner(self):
         sleep(1)
         mozmill = jsbridge.JSObject(self.bridge, "Components.utils.import('resource://mozmill/modules/mozmill.js')")
-        controller = mozmill.getBrowserController()
         try:
-            controller.window.goQuitApplication()
+            mozmill.cleanQuit()
         except socket.error:
             pass
         self.runner.wait()
@@ -293,7 +300,7 @@ class CLI(jsbridge.CLI):
             m.run_tests(os.path.abspath(os.path.expanduser(self.options.test)), 
                         self.options.report)
             if m.runner:
-                m.runner.stop()
+                m.stop()
             if len(m.fails) > 0:
                 sys.exit(1)
         else:
