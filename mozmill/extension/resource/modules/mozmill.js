@@ -42,7 +42,8 @@ var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
                         "newMail3PaneController", "getMail3PaneController", 
                         "wm", "platform", "getAddrbkController", 
                         "getMsgComposeController", "getDownloadsController",
-                        "Application", "MozMillAsyncTest", "cleanQuit"];
+                        "Application", "MozMillAsyncTest", "cleanQuit",
+                        "getPlacesController"];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 var events = {};      Components.utils.import('resource://mozmill/modules/events.js', events);
@@ -98,6 +99,11 @@ function getBrowserController () {
   else {
     return new controller.MozMillController(browserWindow);
   }
+}
+
+function getPlacesController () {
+  utils.getMethodInWindows('PlacesCommandHook').showPlacesOrganizer('AllBookmarks');
+  return new controller.MozMillController(wm.getMostRecentWindow(''));
 }
 
 function getAddonsController () {
