@@ -79,9 +79,7 @@ if (Application == undefined) {
 } 
 
 function cleanQuit () {
-  aConsoleService.logStringMessage("++++++++++++++++")
   utils.getMethodInWindows('goQuitApplication')();
-  aConsoleService.logStringMessage("----------------")
 }
 
 function addHttpResource (directory, namespace) {

@@ -128,6 +128,7 @@ function waitForElement(elem, timeout, interval) {
 }
 
 var Menu = function (elements) {
+  this.nodes = elements;
   for each(node in elements) {
     if (node.tagName){
       if (node.tagName == "menu") {
@@ -142,6 +143,22 @@ var Menu = function (elements) {
     }
   }
 };
+Menu.prototype.reload = function () {
+  var elements = this.nodes;
+  for each(node in elements) {
+    if (node.tagName){
+      if (node.tagName == "menu") {
+        var label = node.getAttribute("label");
+        var id = node.id;
+        this[label] = new Menu(node.getElementsByTagName("menupopup")[0].childNodes);
+        this[id] = this[label];
+      } else if (node.tagName == "menuitem") {
+        this[node.getAttribute("label")] = node;
+        this[node.id] = node;
+      } 
+    }
+  }
+}
 
 
 var MozMillController = function (window) {    
