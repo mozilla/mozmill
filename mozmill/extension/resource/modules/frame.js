@@ -261,7 +261,10 @@ Collector.prototype.initTestModule = function (filename) {
   var test_module = loadFile(filename, this);
   test_module.__tests__ = [];
   for (i in test_module) {
-    if (typeof(test_module[i]) == "function") {
+    if (test_module[i] == null) {
+      // do nothing
+    }
+    else if (typeof(test_module[i]) == "function") {
       if (i == "setupTest") {
         test_module[i].__name__ = i;
         test_module.__setupTest__ = test_module[i];

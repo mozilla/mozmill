@@ -136,6 +136,9 @@ class MozMill(object):
             http = httplib2.Http()
             response, content = http.request(report, 'POST', body=simplejson.dumps(results))
         
+        # Give a second for any callbacks to finish.
+        sleep(1)
+        
     def endTest_listener(self, test):
         self.alltests.append(test)
         if test.get('skipped', False):
@@ -276,6 +279,12 @@ class CLI(jsbridge.CLI):
         
     def run(self):
         runner = self.parse_and_get_runner()
+        
+        if self.options.test:
+            t = os.path.abspath(os.path.expanduser(self.options.test))
+            if ( not os.path.isdir(t) ) and ( not os.path.isfile(t) ):
+                raise Exception("Not a valid test file/directory")
+        
         m = self.mozmill_class(runner_class=mozrunner.FirefoxRunner, profile_class=mozrunner.FirefoxProfile, jsbridge_port=int(self.options.port))
         m.start(runner=runner, profile=runner.profile)
         m.add_global_listener(LoggerListener())
