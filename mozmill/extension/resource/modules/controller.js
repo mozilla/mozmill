@@ -350,7 +350,6 @@ MozMillController.prototype.type = function (el, text){
   try {
     events.triggerEvent(element, 'change', true);
   }catch(err){ }
-   
   frame.events.pass({'function':'Controller.type()'});
   return true;
 };

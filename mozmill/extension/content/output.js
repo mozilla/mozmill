@@ -77,6 +77,9 @@ var createCell = function (t, obj, message) {
   else {
     try {
       var display = message.exception.message;
+      if (display == undefined) {
+        var display = message.exception;
+      }
     } catch(err){ 
       var display = message['function'];
     }
