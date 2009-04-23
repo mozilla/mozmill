@@ -757,6 +757,9 @@ Tabs.prototype.__defineGetter__("activeTab", function() {
 Tabs.prototype.selectTab = function(index) {
   // GO in to tab manager and grab the tab by index and call focus.
 }
+Tabs.prototype.__defineGetter__("length", function () {
+  return this.controller.window.gBrowser.browsers.length;
+})
 
 
 function browserAdditions( controller ) {
@@ -776,12 +779,12 @@ function browserAdditions( controller ) {
       var _document = controller.tabs.activeTab;
     }
     
-    if (interval == undefined) {
-      var interval = 100;
-    }
-    if (timeout == undefined) {
-      var timeout = 30000;
-    }
+    // if (interval == undefined) {
+    //   var interval = 100;
+    // }
+    // if (timeout == undefined) {
+    //   var timeout = 30000;
+    // }
     waitForEval("subject.body.style != undefined", timeout, interval, _document);
     //Once the object is available it's somewhere between 1 and 3 seconds before the DOM
     //Actually becomes available to us
