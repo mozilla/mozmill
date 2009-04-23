@@ -1,3 +1,5 @@
+/* -*- Mode: Java; tab-width: 2; indent-tabs-mode: nil; c-basic-offset: 2 -*- */
+/* vim:set ts=2 sw=2 sts=2 et: */
 /* ***** BEGIN LICENSE BLOCK *****
  * Version: MPL 1.1/GPL 2.0/LGPL 2.1
  *
@@ -11,7 +13,7 @@
  * for the specific language governing rights and limitations under the
  * License.
  *
- * The Original Code is the MozJSHTTP server.
+ * The Original Code is the httpd.js server.
  *
  * The Initial Developer of the Original Code is
  * Mozilla Corporation.
@@ -39,7 +41,13 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var EXPORTED_SYMBOLS = ['getServer']
+/*
+ * An implementation of an HTTP server both as a loadable script and as an XPCOM
+ * component.  See the accompanying README file for user documentation on
+ * httpd.js.
+ */
+ 
+var EXPORTED_SYMBOLS = ['getServer'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -47,37 +55,51 @@ const Cr = Components.results;
 const Cu = Components.utils;
 const CC = Components.Constructor;
 
-// var logging = {}; Cu.import('resource://mozmill/stdlib/logging.js', logging);
-// var logger = logging.getLogger('httpd.js');
+const PR_UINT32_MAX = Math.pow(2, 32) - 1;
 
 /** True if debugging output is enabled, false otherwise. */
 var DEBUG = false; // non-const *only* so tweakable in server tests
 
 var gGlobalObject = this;
 
-/* Asserts that the given condition holds.  If it doesn't, the given message is
+/**
+ * Asserts that the given condition holds.  If it doesn't, the given message is
  * dumped, a stack trace is printed, and an exception is thrown to attempt to
  * stop execution (which unfortunately must rely upon the exception not being
  * accidentally swallowed by the code that uses it).
  */
-function NS_ASSERT(cond, msg) {
-  if (!cond) {
-    // logger.exception(msg)
+function NS_ASSERT(cond, msg)
+{
+  if (DEBUG && !cond)
+  {
+    dumpn("###!!!");
+    dumpn("###!!! ASSERTION" + (msg ? ": " + msg : "!"));
+    dumpn("###!!! Stack follows:");
+
+    var stack = new Error().stack.split(/\n/);
+    dumpn(stack.map(function(val) { return "###!!!   " + val; }).join("\n"));
+    
+    throw Cr.NS_ERROR_ABORT;
   }
 }
 
-/** Constructs an HTTP error object. **/
-function HttpError(code, description) {
+/** Constructs an HTTP error object. */
+function HttpError(code, description)
+{
   this.code = code;
   this.description = description;
 }
-HttpError.prototype = {
-  toString: function() {
+HttpError.prototype =
+{
+  toString: function()
+  {
     return this.code + " " + this.description;
   }
 };
 
-/*** Errors thrown to trigger specific HTTP server responses. ***/
+/**
+ * Errors thrown to trigger specific HTTP server responses.
+ */
 const HTTP_400 = new HttpError(400, "Bad Request");
 const HTTP_401 = new HttpError(401, "Unauthorized");
 const HTTP_402 = new HttpError(402, "Payment Required");
@@ -105,7 +127,8 @@ const HTTP_504 = new HttpError(504, "Gateway Timeout");
 const HTTP_505 = new HttpError(505, "HTTP Version Not Supported");
 
 /** Creates a hash with fields corresponding to the values in arr. */
-function array2obj (arr) {
+function array2obj(arr)
+{
   var obj = {};
   for (var i = 0; i < arr.length; i++)
     obj[arr[i]] = arr[i];
@@ -113,7 +136,8 @@ function array2obj (arr) {
 }
 
 /** Returns an array of the integers x through y, inclusive. */
-function range(x, y) {
+function range(x, y)
+{
   var arr = [];
   for (var i = x; i <= y; i++)
     arr.push(i);
@@ -123,7 +147,9 @@ function range(x, y) {
 /** An object (hash) whose fields are the numbers of all HTTP error codes. */
 const HTTP_ERROR_CODES = array2obj(range(400, 417).concat(range(500, 505)));
 
-/* The character used to distinguish hidden files from non-hidden files, a la
+
+/**
+ * The character used to distinguish hidden files from non-hidden files, a la
  * the leading dot in Apache.  Since that mechanism also hides files from
  * easy display in LXR, ls output, etc. however, we choose instead to use a
  * suffix character.  If a requested file ends with it, we append another
@@ -133,7 +159,8 @@ const HTTP_ERROR_CODES = array2obj(range(400, 417).concat(range(500, 505)));
  */
 const HIDDEN_CHAR = "^";
 
-/* The file name suffix indicating the file containing overridden headers for
+/**
+ * The file name suffix indicating the file containing overridden headers for
  * a requested file.
  */
 const HEADERS_SUFFIX = HIDDEN_CHAR + "headers" + HIDDEN_CHAR;
@@ -141,37 +168,40 @@ const HEADERS_SUFFIX = HIDDEN_CHAR + "headers" + HIDDEN_CHAR;
 /** Type used to denote SJS scripts for CGI-like functionality. */
 const SJS_TYPE = "sjs";
 
+
 /** dump(str) with a trailing "\n" -- only outputs if DEBUG */
-// function   n (str) {
-//   if (DEBUG)
-//     dump(str + "\n");
-// }
+function dumpn(str) {
+  // if (DEBUG)
+  //   dump(str + "\n");
+}
 
 /** Dumps the current JS stack if DEBUG. */
-function dumpStack (loggerMethod) {
+function dumpStack()
+{
   // peel off the frames for dumpStack() and Error()
   var stack = new Error().stack.split(/\n/).slice(2);
-  if (!loggerMethod) {
-    // var loggerMethod = logger.info;
-  }
-  loggerMethod('STACK DUMP REQUESTED');
-  stack.forEach(loggerMethod); 
+  stack.forEach(dumpn);
 }
+
 
 /** The XPCOM thread manager. */
 var gThreadManager = null;
 
-/* JavaScript constructors for commonly-used classes; precreating these is a
+
+/**
+ * JavaScript constructors for commonly-used classes; precreating these is a
  * speedup over doing the same from base principles.  See the docs at
  * http://developer.mozilla.org/en/docs/Components.Constructor for details.
  */
-
 const ServerSocket = CC("@mozilla.org/network/server-socket;1",
                         "nsIServerSocket",
                         "init");
 const BinaryInputStream = CC("@mozilla.org/binaryinputstream;1",
                              "nsIBinaryInputStream",
                              "setInputStream");
+const BinaryOutputStream = CC("@mozilla.org/binaryoutputstream;1",
+                             "nsIBinaryOutputStream",
+                             "setOutputStream");
 const ScriptableInputStream = CC("@mozilla.org/scriptableinputstream;1",
                                  "nsIScriptableInputStream",
                                  "init");
@@ -181,12 +211,6 @@ const Pipe = CC("@mozilla.org/pipe;1",
 const FileInputStream = CC("@mozilla.org/network/file-input-stream;1",
                            "nsIFileInputStream",
                            "init");
-const StreamCopier = CC("@mozilla.org/network/async-stream-copier;1",
-                        "nsIAsyncStreamCopier",
-                        "init");
-const Pump = CC("@mozilla.org/network/input-stream-pump;1",
-                "nsIInputStreamPump",
-                "init");
 const ConverterInputStream = CC("@mozilla.org/intl/converter-input-stream;1",
                                 "nsIConverterInputStream",
                                 "init");
@@ -195,15 +219,18 @@ const WritablePropertyBag = CC("@mozilla.org/hash-property-bag;1",
 const SupportsString = CC("@mozilla.org/supports-string;1",
                           "nsISupportsString");
 
-/* Returns the RFC 822/1123 representation of a date.
+
+/**
+ * Returns the RFC 822/1123 representation of a date.
  *
  * @param date : Number
  *   the date, in milliseconds from midnight (00:00:00), January 1, 1970 GMT
  * @returns string
  *   the representation of the given date
  */
-
-function toDateString(date) {
+function toDateString(date)
+{
+  //
   // rfc1123-date = wkday "," SP date1 SP time SP "GMT"
   // date1        = 2DIGIT SP month SP 4DIGIT
   //                ; day month year (e.g., 02 Jun 1982)
@@ -220,7 +247,8 @@ function toDateString(date) {
   const monthStrings = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
                         "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
-  /* Processes a date and returns the encoded UTC time as a string according to
+  /**
+   * Processes a date and returns the encoded UTC time as a string according to
    * the format specified in RFC 2616.
    *
    * @param date : Date
@@ -228,7 +256,8 @@ function toDateString(date) {
    * @returns string
    *   a string of the form "HH:MM:SS", ranging from "00:00:00" to "23:59:59"
    */
-  function toTime(date) {
+  function toTime(date)
+  {
     var hrs = date.getUTCHours();
     var rv  = (hrs < 10) ? "0" + hrs : hrs;
     
@@ -243,7 +272,8 @@ function toDateString(date) {
     return rv;
   }
 
-  /* Processes a date and returns the encoded UTC date as a string according to
+  /**
+   * Processes a date and returns the encoded UTC date as a string according to
    * the date1 format specified in RFC 2616.
    *
    * @param date : Date
@@ -251,7 +281,8 @@ function toDateString(date) {
    * @returns string
    *   a string of the form "HH:MM:SS", ranging from "00:00:00" to "23:59:59"
    */
-  function toDate1(date) {
+  function toDate1(date)
+  {
     var day = date.getUTCDate();
     var month = date.getUTCMonth();
     var year = date.getUTCFullYear();
@@ -271,12 +302,13 @@ function toDateString(date) {
   return rv.replace("%date1%", toDate1(date));
 }
 
-/* Prints out a human-readable representation of the object o and its fields,
+/**
+ * Prints out a human-readable representation of the object o and its fields,
  * omitting those whose names begin with "_" if showMembers != true (to ignore
  * "private" properties exposed via getters/setters).
  */
- 
-function printObj(o, showMembers) {
+function printObj(o, showMembers)
+{
   var s = "******************************\n";
   s +=    "o = {\n";
   for (var i in o)
@@ -287,15 +319,19 @@ function printObj(o, showMembers) {
   }
   s +=    "    };\n";
   s +=    "******************************";
-  // logger.info(s);
+  dumpn(s);
 }
 
-function nsHttpServer(port) {
+/**
+ * Instantiates a new HTTP server.
+ */
+function nsHttpServer()
+{
   if (!gThreadManager)
     gThreadManager = Cc["@mozilla.org/thread-manager;1"].getService();
 
   /** The port on which this server listens. */
-  this._port = port;
+  this._port = undefined;
 
   /** The socket associated with this. */
   this._socket = null;
@@ -303,16 +339,39 @@ function nsHttpServer(port) {
   /** The handler used to process requests to this server. */
   this._handler = new ServerHandler(this);
 
-  /* Indicates when the server is to be shut down at the end of the request.*/
+  /** Naming information for this server. */
+  this._identity = new ServerIdentity();
+
+  /**
+   * Indicates when the server is to be shut down at the end of the request.
+   */
   this._doQuit = false;
 
-  /* True if the socket in this is closed (and closure notifications have been
+  /**
+   * True if the socket in this is closed (and closure notifications have been
    * sent and processed if the socket was ever opened), false otherwise.
    */
   this._socketClosed = true;
+
+  /**
+   * Used for tracking existing connections and ensuring that all connections
+   * are properly cleaned up before server shutdown; increases by 1 for every
+   * new incoming connection.
+   */
+  this._connectionGen = 0;
+
+  /**
+   * Hash of all open connections, indexed by connection number at time of
+   * creation.
+   */
+  this._connections = {};
 }
-nsHttpServer.prototype = {
-  /* Processes an incoming request coming in on the given socket and contained
+nsHttpServer.prototype =
+{
+  // NSISERVERSOCKETLISTENER
+
+  /**
+   * Processes an incoming request coming in on the given socket and contained
    * in the given transport.
    *
    * @param socket : nsIServerSocket
@@ -321,31 +380,58 @@ nsHttpServer.prototype = {
    *   the transport for the request/response
    * @see nsIServerSocketListener.onSocketAccepted
    */
-  onSocketAccepted: function (socket, trans) {
-    // logger.debug("onSocketAccepted(socket=" + socket + ", trans=" + trans + ") " +
-    //              "on thread " + gThreadManager.currentThread +
-    //              " (main is " + gThreadManager.mainThread + ")");
-    // 
-    // logger.debug("new connection on " + trans.host + ":" + trans.port);
+  onSocketAccepted: function(socket, trans)
+  {
+    dumpn("*** onSocketAccepted(socket=" + socket + ", trans=" + trans + ")");
+
+    dumpn(">>> new connection on " + trans.host + ":" + trans.port);
 
     const SEGMENT_SIZE = 8192;
     const SEGMENT_COUNT = 1024;
-    var input = trans.openInputStream(0, SEGMENT_SIZE, SEGMENT_COUNT)
-                     .QueryInterface(Ci.nsIAsyncInputStream);
-    var output = trans.openOutputStream(Ci.nsITransport.OPEN_BLOCKING, 0, 0);
+    try
+    {
+      var input = trans.openInputStream(0, SEGMENT_SIZE, SEGMENT_COUNT)
+                       .QueryInterface(Ci.nsIAsyncInputStream);
+      var output = trans.openOutputStream(Ci.nsITransport.OPEN_BLOCKING, 0, 0);
+    }
+    catch (e)
+    {
+      dumpn("*** error opening transport streams: " + e);
+      trans.close(Cr.NS_BINDING_ABORTED);
+      return;
+    }
 
-    var conn = new Connection(input, output, this, socket.port);
-    var reader = new RequestReader(conn);
+    var connectionNumber = ++this._connectionGen;
 
-    // XXX add request timeout functionality here!
+    try
+    {
+      var conn = new Connection(input, output, this, socket.port, trans.port,
+                                connectionNumber);
+      var reader = new RequestReader(conn);
 
-    // Note: must use main thread here, or we might get a GC that will cause
-    //       threadsafety assertions.  We really need to fix XPConnect so that
-    //       you can actually do things in multi-threaded JS.  :-(
-    input.asyncWait(reader, 0, 0, gThreadManager.mainThread);
+      // XXX add request timeout functionality here!
+
+      // Note: must use main thread here, or we might get a GC that will cause
+      //       threadsafety assertions.  We really need to fix XPConnect so that
+      //       you can actually do things in multi-threaded JS.  :-(
+      input.asyncWait(reader, 0, 0, gThreadManager.mainThread);
+    }
+    catch (e)
+    {
+      // Assume this connection can't be salvaged and bail on it completely;
+      // don't attempt to close it so that we can assert that any connection
+      // being closed is in this._connections.
+      dumpn("*** error in initial request-processing stages: " + e);
+      trans.close(Cr.NS_BINDING_ABORTED);
+      return;
+    }
+
+    this._connections[connectionNumber] = conn;
+    dumpn("*** starting connection " + connectionNumber);
   },
 
-  /* Called when the socket associated with this is closed.
+  /**
+   * Called when the socket associated with this is closed.
    *
    * @param socket : nsIServerSocket
    *   the socket being closed
@@ -354,49 +440,104 @@ nsHttpServer.prototype = {
    *   was stopped using nsIHttpServer.stop)
    * @see nsIServerSocketListener.onStopListening
    */
-  onStopListening: function(socket, status) {
-    // logger.info("Shutting down server");
+  onStopListening: function(socket, status)
+  {
+    dumpn(">>> shutting down server on port " + socket.port);
     this._socketClosed = true;
+    if (!this._hasOpenConnections())
+    {
+      dumpn("*** no open connections, notifying async from onStopListening");
+
+      // Notify asynchronously so that any pending teardown in stop() has a
+      // chance to run first.
+      var self = this;
+      var stopEvent =
+        {
+          run: function()
+          {
+            dumpn("*** _notifyStopped async callback");
+            self._notifyStopped();
+          }
+        };
+      gThreadManager.currentThread
+                    .dispatch(stopEvent, Ci.nsIThreadManager.DISPATCH_NORMAL);
+    }
   },
 
-  start: function () {
+  // NSIHTTPSERVER
+
+  //
+  // see nsIHttpServer.start
+  //
+  start: function(port)
+  {
     if (this._socket)
       throw Cr.NS_ERROR_ALREADY_INITIALIZED;
 
+    this._port = port;
     this._doQuit = this._socketClosed = false;
 
-    var socket = Cc['@mozilla.org/network/server-socket;1']
-                   .createInstance(Ci.nsIServerSocket);
-    socket.init(this._port, true, -1);
+    try
+    {
+      var socket = new ServerSocket(this._port,
+                                    true, // loopback only
+                                    -1);  // default number of pending connections
 
-    // logger.info("Listening on port " + socket.port);
-    socket.asyncListen(this);
-    this._socket = socket;
+      dumpn(">>> listening on port " + socket.port);
+      socket.asyncListen(this);
+      this._identity._initialize(port, true);
+      this._socket = socket;
+    }
+    catch (e)
+    {
+      dumpn("!!! could not start server on port " + port + ": " + e);
+      throw Cr.NS_ERROR_NOT_AVAILABLE;
+    }
   },
 
-  stop: function() {
+  //
+  // see nsIHttpServer.stop
+  //
+  stop: function(callback)
+  {
+    if (!callback)
+      throw Cr.NS_ERROR_NULL_POINTER;
     if (!this._socket)
-      return;
+      throw Cr.NS_ERROR_UNEXPECTED;
 
-    // logger.debug("Stopping listening on port " + this._socket.port);
+    this._stopCallback = typeof callback === "function"
+                       ? callback
+                       : function() { callback.onStopped(); };
+
+    dumpn(">>> stopping listening on port " + this._socket.port);
     this._socket.close();
     this._socket = null;
+
+    // We can't have this identity any more, and the port on which we're running
+    // this server now could be meaningless the next time around.
+    this._identity._teardown();
+
     this._doQuit = false;
 
-    // spin an event loop and wait for the socket-close notification
-    var thr = gThreadManager.currentThread;
-    while (!this._socketClosed || this._handler.hasPendingRequests())
-      thr.processNextEvent(true);
+    // socket-close notification and pending request completion happen async
   },
 
-  registerFile: function(path, file) {
+  //
+  // see nsIHttpServer.registerFile
+  //
+  registerFile: function(path, file)
+  {
     if (file && (!file.exists() || file.isDirectory()))
       throw Cr.NS_ERROR_INVALID_ARG;
 
     this._handler.registerFile(path, file);
   },
 
-  registerDirectory: function(path, directory) {
+  //
+  // see nsIHttpServer.registerDirectory
+  //
+  registerDirectory: function(path, directory)
+  {
     // XXX true path validation!
     if (path.charAt(0) != "/" ||
         path.charAt(path.length - 1) != "/" ||
@@ -410,23 +551,102 @@ nsHttpServer.prototype = {
     this._handler.registerDirectory(path, directory);
   },
 
-  registerPathHandler: function(path, handler) {
+  //
+  // see nsIHttpServer.registerPathHandler
+  //
+  registerPathHandler: function(path, handler)
+  {
     this._handler.registerPathHandler(path, handler);
   },
 
-  registerErrorHandler: function(code, handler) {
+  //
+  // see nsIHttpServer.registerErrorHandler
+  //
+  registerErrorHandler: function(code, handler)
+  {
     this._handler.registerErrorHandler(code, handler);
   },
 
-  setIndexHandler: function(handler) {
+  //
+  // see nsIHttpServer.setIndexHandler
+  //
+  setIndexHandler: function(handler)
+  {
     this._handler.setIndexHandler(handler);
   },
 
-  registerContentType: function(ext, type) {
+  //
+  // see nsIHttpServer.registerContentType
+  //
+  registerContentType: function(ext, type)
+  {
     this._handler.registerContentType(ext, type);
   },
 
-  QueryInterface: function(iid) {
+  //
+  // see nsIHttpServer.serverIdentity
+  //
+  get identity()
+  {
+    return this._identity;
+  },
+
+  //
+  // see nsIHttpServer.getState
+  //
+  getState: function(path, k)
+  {
+    return this._handler._getState(path, k);
+  },
+
+  //
+  // see nsIHttpServer.setState
+  //
+  setState: function(path, k, v)
+  {
+    return this._handler._setState(path, k, v);
+  },
+
+  //
+  // see nsIHttpServer.getSharedState
+  //
+  getSharedState: function(k)
+  {
+    return this._handler._getSharedState(k);
+  },
+
+  //
+  // see nsIHttpServer.setSharedState
+  //
+  setSharedState: function(k, v)
+  {
+    return this._handler._setSharedState(k, v);
+  },
+
+  //
+  // see nsIHttpServer.getObjectState
+  //
+  getObjectState: function(k)
+  {
+    return this._handler._getObjectState(k);
+  },
+
+  //
+  // see nsIHttpServer.setObjectState
+  //
+  setObjectState: function(k, v)
+  {
+    return this._handler._setObjectState(k, v);
+  },
+
+
+  // NSISUPPORTS
+
+  //
+  // see nsISupports.QueryInterface
+  //
+  QueryInterface: function(iid)
+  {
     if (iid.equals(Ci.nsIHttpServer) ||
         iid.equals(Ci.nsIServerSocketListener) ||
         iid.equals(Ci.nsISupports))
@@ -435,48 +655,355 @@ nsHttpServer.prototype = {
     throw Cr.NS_ERROR_NO_INTERFACE;
   },
 
+
   // NON-XPCOM PUBLIC API
-  /* Returns true iff this server is not running (and is not in the process of
+
+  /**
+   * Returns true iff this server is not running (and is not in the process of
    * serving any requests still to be processed when the server was last
    * stopped after being run).
    */
-  isStopped: function() {
-    return this._socketClosed && !this._handler.hasPendingRequests();
+  isStopped: function()
+  {
+    return this._socketClosed && !this._hasOpenConnections();
   },
 
-  
   // PRIVATE IMPLEMENTATION
-  /* Closes the passed-in connection.
+
+  /** True if this server has any open connections to it, false otherwise. */
+  _hasOpenConnections: function()
+  {
+    //
+    // If we have any open connections, they're tracked as numeric properties on
+    // |this._connections|.  The non-standard __count__ property could be used
+    // to check whether there are any properties, but standard-wise, even
+    // looking forward to ES5, there's no less ugly yet still O(1) way to do
+    // this.
+    //
+    for (var n in this._connections)
+      return true;
+    return false;
+  },
+
+  /** Calls the server-stopped callback provided when stop() was called. */
+  _notifyStopped: function()
+  {
+    NS_ASSERT(this._stopCallback !== null, "double-notifying?");
+    NS_ASSERT(!this._hasOpenConnections(), "should be done serving by now");
+
+    //
+    // NB: We have to grab this now, null out the member, *then* call the
+    //     callback here, or otherwise the callback could (indirectly) futz with
+    //     this._stopCallback by starting and immediately stopping this, at
+    //     which point we'd be nulling out a field we no longer have a right to
+    //     modify.
+    //
+    var callback = this._stopCallback;
+    this._stopCallback = null;
+    try
+    {
+      callback();
+    }
+    catch (e)
+    {
+      // not throwing because this is specified as being usually (but not
+      // always) asynchronous
+      // dump("!!! error running onStopped callback: " + e + "\n");
+    }
+  },
+
+  /**
+   * Notifies this server that the given connection has been closed.
    *
    * @param connection : Connection
-   *   the connection to close
+   *   the connection that was closed
    */
-  _endConnection: function(connection) {
-    // Order is important below: we must decrement handler._pendingRequests
-    // BEFORE calling this.stop(), if needed, in connection.destroy().
-    // this.stop() returns only when the server socket's closed AND all pending
-    // requests are complete, which clearly isn't (and never will be) the case
-    // if it were the other way around.
-    //
-    connection.close();
+  _connectionClosed: function(connection)
+  {
+    NS_ASSERT(connection.number in this._connections,
+              "closing a connection " + this + " that we never added to the " +
+              "set of open connections?");
+    NS_ASSERT(this._connections[connection.number] === connection,
+              "connection number mismatch?  " +
+              this._connections[connection.number]);
+    delete this._connections[connection.number];
 
-    NS_ASSERT(this == connection.server);
-
-    this._handler._pendingRequests--;
-
-    connection.destroy();
+    // Fire a pending server-stopped notification if it's our responsibility.
+    if (!this._hasOpenConnections() && this._socketClosed)
+      this._notifyStopped();
   },
 
-  /* Requests that the server be shut down when possible. */
-  _requestQuit: function() {
-    // logger.debug("Requesting a quit");
-    // dumpStack(logger.debug);
+  /**
+   * Requests that the server be shut down when possible.
+   */
+  _requestQuit: function()
+  {
+    dumpn(">>> requesting a quit");
+    dumpStack();
     this._doQuit = true;
   }
-
 };
 
-/* Represents a connection to the server (and possibly in the future the thread
+
+//
+// RFC 2396 section 3.2.2:
+//
+// host        = hostname | IPv4address
+// hostname    = *( domainlabel "." ) toplabel [ "." ]
+// domainlabel = alphanum | alphanum *( alphanum | "-" ) alphanum
+// toplabel    = alpha | alpha *( alphanum | "-" ) alphanum
+// IPv4address = 1*digit "." 1*digit "." 1*digit "." 1*digit
+//
+
+const HOST_REGEX =
+  new RegExp("^(?:" +
+               // *( domainlabel "." )
+               "(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)*" +
+               // toplabel
+               "[a-z](?:[a-z0-9-]*[a-z0-9])?" +
+             "|" +
+               // IPv4 address 
+               "\\d+\\.\\d+\\.\\d+\\.\\d+" +
+             ")$",
+             "i");
+
+
+/**
+ * Represents the identity of a server.  An identity consists of a set of
+ * (scheme, host, port) tuples denoted as locations (allowing a single server to
+ * serve multiple sites or to be used behind both HTTP and HTTPS proxies for any
+ * host/port).  Any incoming request must be to one of these locations, or it
+ * will be rejected with an HTTP 400 error.  One location, denoted as the
+ * primary location, is the location assigned in contexts where a location
+ * cannot otherwise be endogenously derived, such as for HTTP/1.0 requests.
+ *
+ * A single identity may contain at most one location per unique host/port pair;
+ * other than that, no restrictions are placed upon what locations may
+ * constitute an identity.
+ */
+function ServerIdentity()
+{
+  /** The scheme of the primary location. */
+  this._primaryScheme = "http";
+
+  /** The hostname of the primary location. */
+  this._primaryHost = "127.0.0.1"
+
+  /** The port number of the primary location. */
+  this._primaryPort = -1;
+
+  /**
+   * The current port number for the corresponding server, stored so that a new
+   * primary location can always be set if the current one is removed.
+   */
+  this._defaultPort = -1;
+
+  /**
+   * Maps hosts to maps of ports to schemes, e.g. the following would represent
+   * https://example.com:789/ and http://example.org/:
+   *
+   *   {
+   *     "xexample.com": { 789: "https" },
+   *     "xexample.org": { 80: "http" }
+   *   }
+   *
+   * Note the "x" prefix on hostnames, which prevents collisions with special
+   * JS names like "prototype".
+   */
+  this._locations = { "xlocalhost": {} };
+}
+ServerIdentity.prototype =
+{
+  /**
+   * Initializes the primary name for the corresponding server, based on the
+   * provided port number.
+   */
+  _initialize: function(port, addSecondaryDefault)
+  {
+    if (this._primaryPort !== -1)
+      this.add("http", "localhost", port);
+    else
+      this.setPrimary("http", "localhost", port);
+    this._defaultPort = port;
+
+    // Only add this if we're being called at server startup
+    if (addSecondaryDefault)
+      this.add("http", "127.0.0.1", port);
+  },
+
+  /**
+   * Called at server shutdown time, unsets the primary location only if it was
+   * the default-assigned location and removes the default location from the
+   * set of locations used.
+   */
+  _teardown: function()
+  {
+    // Not the default primary location, nothing special to do here
+    this.remove("http", "127.0.0.1", this._defaultPort);
+
+    // This is a *very* tricky bit of reasoning here; make absolutely sure the
+    // tests for this code pass before you commit changes to it.
+    if (this._primaryScheme == "http" &&
+        this._primaryHost == "localhost" &&
+        this._primaryPort == this._defaultPort)
+    {
+      // Make sure we don't trigger the readding logic in .remove(), then remove
+      // the default location.
+      var port = this._defaultPort;
+      this._defaultPort = -1;
+      this.remove("http", "localhost", port);
+
+      // Ensure a server start triggers the setPrimary() path in ._initialize()
+      this._primaryPort = -1;
+    }
+    else
+    {
+      // No reason not to remove directly as it's not our primary location
+      this.remove("http", "localhost", this._defaultPort);
+    }
+  },
+
+  //
+  // see nsIHttpServerIdentity.primaryScheme
+  //
+  get primaryScheme()
+  {
+    if (this._primaryPort === -1)
+      throw Cr.NS_ERROR_NOT_INITIALIZED;
+    return this._primaryScheme;
+  },
+
+  //
+  // see nsIHttpServerIdentity.primaryHost
+  //
+  get primaryHost()
+  {
+    if (this._primaryPort === -1)
+      throw Cr.NS_ERROR_NOT_INITIALIZED;
+    return this._primaryHost;
+  },
+
+  //
+  // see nsIHttpServerIdentity.primaryPort
+  //
+  get primaryPort()
+  {
+    if (this._primaryPort === -1)
+      throw Cr.NS_ERROR_NOT_INITIALIZED;
+    return this._primaryPort;
+  },
+
+  //
+  // see nsIHttpServerIdentity.add
+  //
+  add: function(scheme, host, port)
+  {
+    this._validate(scheme, host, port);
+    
+    var entry = this._locations["x" + host];
+    if (!entry)
+      this._locations["x" + host] = entry = {};
+
+    entry[port] = scheme;
+  },
+
+  //
+  // see nsIHttpServerIdentity.remove
+  //
+  remove: function(scheme, host, port)
+  {
+    this._validate(scheme, host, port);
+
+    var entry = this._locations["x" + host];
+    if (!entry)
+      return false;
+
+    var present = port in entry;
+    delete entry[port];
+
+    if (this._primaryScheme == scheme &&
+        this._primaryHost == host &&
+        this._primaryPort == port &&
+        this._defaultPort !== -1)
+    {
+      // Always keep at least one identity in existence at any time, unless
+      // we're in the process of shutting down (the last condition above).
+      this._primaryPort = -1;
+      this._initialize(this._defaultPort, false);
+    }
+
+    return present;
+  },
+
+  //
+  // see nsIHttpServerIdentity.has
+  //
+  has: function(scheme, host, port)
+  {
+    this._validate(scheme, host, port);
+
+    return "x" + host in this._locations &&
+           scheme === this._locations["x" + host][port];
+  },
+  
+  //
+  // see nsIHttpServerIdentity.has
+  //
+  getScheme: function(host, port)
+  {
+    this._validate("http", host, port);
+
+    var entry = this._locations["x" + host];
+    if (!entry)
+      return "";
+
+    return entry[port] || "";
+  },
+  
+  //
+  // see nsIHttpServerIdentity.setPrimary
+  //
+  setPrimary: function(scheme, host, port)
+  {
+    this._validate(scheme, host, port);
+
+    this.add(scheme, host, port);
+
+    this._primaryScheme = scheme;
+    this._primaryHost = host;
+    this._primaryPort = port;
+  },
+
+  /**
+   * Ensures scheme, host, and port are all valid with respect to RFC 2396.
+   *
+   * @throws NS_ERROR_ILLEGAL_VALUE
+   *   if any argument doesn't match the corresponding production
+   */
+  _validate: function(scheme, host, port)
+  {
+    if (scheme !== "http" && scheme !== "https")
+    {
+      dumpn("*** server only supports http/https schemes: '" + scheme + "'");
+      dumpStack();
+      throw Cr.NS_ERROR_ILLEGAL_VALUE;
+    }
+    if (!HOST_REGEX.test(host))
+    {
+      dumpn("*** unexpected host: '" + host + "'");
+      throw Cr.NS_ERROR_ILLEGAL_VALUE;
+    }
+    if (port < 0 || port > 65535)
+    {
+      dumpn("*** unexpected port: '" + port + "'");
+      throw Cr.NS_ERROR_ILLEGAL_VALUE;
+    }
+  }
+};
+
+
+/**
+ * Represents a connection to the server (and possibly in the future the thread
  * on which the connection is processed).
  *
  * @param input : nsIInputStream
@@ -487,8 +1014,15 @@ nsHttpServer.prototype = {
  *   the server handling the connection
  * @param port : int
  *   the port on which the server is running
+ * @param outgoingPort : int
+ *   the outgoing port used by this connection
+ * @param number : uint
+ *   a serial number used to uniquely identify this connection
  */
-function Connection(input, output, server, port) {
+function Connection(input, output, server, port, outgoingPort, number)
+{
+  dumpn("*** opening new connection " + number + " on port " + outgoingPort);
+
   /** Stream of incoming data. */
   this.input = input;
 
@@ -500,112 +1034,150 @@ function Connection(input, output, server, port) {
 
   /** The port on which the server is running. */
   this.port = port;
-  
+
+  /** The outgoing poort used by this connection. */
+  this._outgoingPort = outgoingPort;
+
+  /** The serial number of this connection. */
+  this.number = number;
+
+  /**
+   * The request for which a response is being generated, null if the
+   * incoming request has not been fully received or if it had errors.
+   */
+  this.request = null;
+
   /** State variables for debugging. */
   this._closed = this._processed = false;
 }
-Connection.prototype = {
+Connection.prototype =
+{
   /** Closes this connection's input/output streams. */
-  close: function() {
+  close: function()
+  {
+    dumpn("*** closing connection " + this.number +
+          " on port " + this._outgoingPort);
+
     this.input.close();
     this.output.close();
     this._closed = true;
+
+    var server = this.server;
+    server._connectionClosed(this);
+
+    // If an error triggered a server shutdown, act on it now
+    if (server._doQuit)
+      server.stop(function() { /* not like we can do anything better */ });
   },
 
-  /* Initiates processing of this connection, using the data in the given
+  /**
+   * Initiates processing of this connection, using the data in the given
    * request.
    *
    * @param request : Request
    *   the request which should be processed
    */
-  process: function(request) {
+  process: function(request)
+  {
     NS_ASSERT(!this._closed && !this._processed);
 
     this._processed = true;
 
-    this.server._handler.handleResponse(this, request);
+    this.request = request;
+    this.server._handler.handleResponse(this);
   },
 
-  /* Initiates processing of this connection, generating a response with the
+  /**
+   * Initiates processing of this connection, generating a response with the
    * given HTTP error code.
    *
    * @param code : uint
    *   an HTTP code, so in the range [0, 1000)
-   * @param metadata : Request
+   * @param request : Request
    *   incomplete data about the incoming request (since there were errors
    *   during its processing
    */
-  processError: function(code, metadata) {
+  processError: function(code, request)
+  {
     NS_ASSERT(!this._closed && !this._processed);
 
     this._processed = true;
-
-    this.server._handler.handleError(code, this, metadata);
+    this.request = request;
+    this.server._handler.handleError(code, this);
   },
 
-  /** Ends this connection, destroying the resources it uses. */
-  end: function() {
-    this.server._endConnection(this);
-  },
-
-  /** Destroys resources used by this. */
-  destroy: function() {
-    if (!this._closed)
-      this.close();
-
-    // If an error triggered a server shutdown, act on it now
-    var server = this.server;
-    if (server._doQuit)
-      server.stop();
+  /** Converts this to a string for debugging purposes. */
+  toString: function()
+  {
+    return "<Connection(" + this.number +
+           (this.request ? ", " + this.request.path : "") +"): " +
+           (this._closed ? "closed" : "open") + ">";
   }
 };
 
+
+
 /** Returns an array of count bytes from the given input stream. */
-function readBytes(inputStream, count) {
+function readBytes(inputStream, count)
+{
   return new BinaryInputStream(inputStream).readByteArray(count);
 }
 
-/** Request reader processing states; see RequestReader for details. */
-const READER_INITIAL    = 0;
-const READER_IN_HEADERS = 1;
-const READER_IN_BODY    = 2;
 
-/* Reads incoming request data asynchronously, does any necessary preprocessing,
+
+/** Request reader processing states; see RequestReader for details. */
+const READER_IN_REQUEST_LINE = 0;
+const READER_IN_HEADERS      = 1;
+const READER_IN_BODY         = 2;
+const READER_FINISHED        = 3;
+
+
+/**
+ * Reads incoming request data asynchronously, does any necessary preprocessing,
  * and forwards it to the request handler.  Processing occurs in three states:
  *
- *   READER_INITIAL             Haven't read the entire request line yet
+ *   READER_IN_REQUEST_LINE     Reading the request's status line
  *   READER_IN_HEADERS          Reading headers in the request
- *   READER_IN_BODY             Finished reading all request headers (when body
- *                              support's added, will be reading the body)
+ *   READER_IN_BODY             Reading the body of the request
+ *   READER_FINISHED            Entire request has been read and processed
  *
  * During the first two stages, initial metadata about the request is gathered
  * into a Request object.  Once the status line and headers have been processed,
- * we create a Response and hand it off to the ServerHandler to be given to the
- * appropriate request handler.
- *
- * XXX we should set up a stream to provide lazy access to the request body
+ * we start processing the body of the request into the Request.  Finally, when
+ * the entire body has been read, we create a Response and hand it off to the
+ * ServerHandler to be given to the appropriate request handler.
  *
  * @param connection : Connection
  *   the connection for the request being read
  */
-function RequestReader(connection) {
+function RequestReader(connection)
+{
   /** Connection metadata for this request. */
   this._connection = connection;
 
-  /* A container providing line-by-line access to the raw bytes that make up the
+  /**
+   * A container providing line-by-line access to the raw bytes that make up the
    * data which has been read from the connection but has not yet been acted
    * upon (by passing it to the request handler or by extracting request
    * metadata from it).
    */
   this._data = new LineData();
 
+  /**
+   * The amount of data remaining to be read from the body of this request.
+   * After all headers in the request have been read this is the value in the
+   * Content-Length header, but as the body is read its value decreases to zero.
+   */
+  this._contentLength = 0;
+
   /** The current state of parsing the incoming request. */
-  this._state = READER_INITIAL;
+  this._state = READER_IN_REQUEST_LINE;
 
   /** Metadata constructed from the incoming request for the request handler. */
   this._metadata = new Request(connection.port);
 
-  /* Used to preserve state if we run out of line data midway through a
+  /**
+   * Used to preserve state if we run out of line data midway through a
    * multi-line header.  _lastHeaderName stores the name of the header, while
    * _lastHeaderValue stores the value we've seen so far for the header.
    *
@@ -613,8 +1185,12 @@ function RequestReader(connection) {
    */
   this._lastHeaderName = this._lastHeaderValue = undefined;
 }
-RequestReader.prototype = {
-  /* Called when more data from the incoming request is available.  This method
+RequestReader.prototype =
+{
+  // NSIINPUTSTREAMCALLBACK
+
+  /**
+   * Called when more data from the incoming request is available.  This method
    * then reads the available data from input and deals with that data as
    * necessary, depending upon the syntax of already-downloaded data.
    *
@@ -623,42 +1199,68 @@ RequestReader.prototype = {
    */
   onInputStreamReady: function(input)
   {
-    // logger.debug("onInputStreamReady(input=" + input + ") on thread " +
-    //       gThreadManager.currentThread + " (main is " +
-    //       gThreadManager.mainThread + ")");
-    // logger.debug("this._state == " + this._state);
-
-    var count = input.available();
+    dumpn("*** onInputStreamReady(input=" + input + ") on thread " +
+          gThreadManager.currentThread + " (main is " +
+          gThreadManager.mainThread + ")");
+    dumpn("*** this._state == " + this._state);
 
     // Handle cases where we get more data after a request error has been
     // discovered but *before* we can close the connection.
-    if (!this._data)
+    var data = this._data;
+    if (!data)
       return;
 
-    var moreAvailable = false;
+    try
+    {
+      data.appendBytes(readBytes(input, input.available()));
+    }
+    catch (e)
+    {
+      if (e.result !== Cr.NS_BASE_STREAM_CLOSED)
+      {
+        dumpn("*** WARNING: unexpected error when reading from socket; will " +
+              "be treated as if the input stream had been closed");
+        dumpn("*** WARNING: actual error was: " + e);
+      }
 
-    switch (this._state) {
-      case READER_INITIAL:
-        moreAvailable = this._processRequestLine(input, count);
-        break;
-
-      case READER_IN_HEADERS:
-        moreAvailable = this._processHeaders(input, count);
-        break;
-
-      case READER_IN_BODY:
-        // XXX handle the request body!  until then, just stop reading
-        break;
-
-      default:
-        NS_ASSERT(false);
+      // We've lost a race -- input has been closed, but we're still expecting
+      // to read more data.  available() will throw in this case, and since
+      // we're dead in the water now, destroy the connection.
+      dumpn("*** onInputStreamReady called on a closed input, destroying " +
+            "connection");
+      this._connection.close();
+      return;
     }
 
-    if (moreAvailable)
+    switch (this._state)
+    {
+      default:
+        NS_ASSERT(false, "invalid state: " + this._state);
+        break;
+
+      case READER_IN_REQUEST_LINE:
+        if (!this._processRequestLine())
+          break;
+        /* fall through */
+
+      case READER_IN_HEADERS:
+        if (!this._processHeaders())
+          break;
+        /* fall through */
+
+      case READER_IN_BODY:
+        this._processBody();
+    }
+
+    if (this._state != READER_FINISHED)
       input.asyncWait(this, 0, 0, gThreadManager.currentThread);
   },
 
-  QueryInterface: function(aIID) {
+  //
+  // see nsISupports.QueryInterface
+  //
+  QueryInterface: function(aIID)
+  {
     if (aIID.equals(Ci.nsIInputStreamCallback) ||
         aIID.equals(Ci.nsISupports))
       return this;
@@ -666,106 +1268,222 @@ RequestReader.prototype = {
     throw Cr.NS_ERROR_NO_INTERFACE;
   },
 
-  /* Reads count bytes from input and processes unprocessed, downloaded data as
-   * a request line.
+
+  // PRIVATE API
+
+  /**
+   * Processes unprocessed, downloaded data as a request line.
    *
-   * @param input : nsIInputStream
-   *   stream from which count bytes of data must be read
-   * @param count : PRUint32
-   *   the number of bytes of data which must be read from input
    * @returns boolean
-   *   true if more data must be read from the request, false otherwise
+   *   true iff the request line has been fully processed
    */
-  _processRequestLine: function(input, count) {
-    NS_ASSERT(this._state == READER_INITIAL);
+  _processRequestLine: function()
+  {
+    NS_ASSERT(this._state == READER_IN_REQUEST_LINE);
 
+    // Servers SHOULD ignore any empty line(s) received where a Request-Line
+    // is expected (section 4.1).
     var data = this._data;
-    data.appendBytes(readBytes(input, count));
-
-    // servers SHOULD ignore any empty line(s) received where a Request-Line
-    // is expected (section 4.1)
     var line = {};
     var readSuccess;
     while ((readSuccess = data.readLine(line)) && line.value == "")
-      // logger.debug("Ignoring beginning blank line...");
+      dumpn("*** ignoring beginning blank line...");
 
     // if we don't have a full line, wait until we do
     if (!readSuccess)
-      return true;
+      return false;
 
     // we have the first non-blank line
-    try {
+    try
+    {
       this._parseRequestLine(line.value);
-
-      // do we have more header data to read?
-      if (!this._parseHeaders())
-        return true;
-
-      // headers complete, do a data check and then forward to the handler
-      this._validateRequest();
-      return this._handleResponse();
-    } catch (e) {
+      this._state = READER_IN_HEADERS;
+      return true;
+    }
+    catch (e)
+    {
       this._handleError(e);
       return false;
     }
   },
 
-  /* Reads data from input and processes it, assuming it is either at the
-   * beginning or in the middle of processing request headers.
+  /**
+   * Processes stored data, assuming it is either at the beginning or in
+   * the middle of processing request headers.
    *
-   * @param input : nsIInputStream
-   *   stream from which count bytes of data must be read
-   * @param count : PRUint32
-   *   the number of bytes of data which must be read from input
    * @returns boolean
-   *   true if more data must be read from the request, false otherwise
+   *   true iff header data in the request has been fully processed
    */
-  _processHeaders: function(input, count) {
+  _processHeaders: function()
+  {
     NS_ASSERT(this._state == READER_IN_HEADERS);
 
     // XXX things to fix here:
     //
     // - need to support RFC 2047-encoded non-US-ASCII characters
-    // - really support absolute URLs (requires telling the server all its
-    //   hostnames, beyond just localhost:port or 127.0.0.1:port)
 
-    this._data.appendBytes(readBytes(input, count));
+    try
+    {
+      var done = this._parseHeaders();
+      if (done)
+      {
+        var request = this._metadata;
 
-    try {
-      // do we have all the headers?
-      if (!this._parseHeaders())
-        return true;
+        // XXX this is wrong for requests with transfer-encodings applied to
+        //     them, particularly chunked (which by its nature can have no
+        //     meaningful Content-Length header)!
+        this._contentLength = request.hasHeader("Content-Length")
+                            ? parseInt(request.getHeader("Content-Length"), 10)
+                            : 0;
+        dumpn("_processHeaders, Content-length=" + this._contentLength);
 
-      // we have all the headers, continue with the body
-      this._validateRequest();
-      return this._handleResponse();
-    } catch (e) {
+        this._state = READER_IN_BODY;
+      }
+      return done;
+    }
+    catch (e)
+    {
       this._handleError(e);
       return false;
     }
   },
 
-  /* Does various post-header checks on the data in this request.
+  /**
+   * Processes stored data, assuming it is either at the beginning or in
+   * the middle of processing the request body.
+   *
+   * @returns boolean
+   *   true iff the request body has been fully processed
+   */
+  _processBody: function()
+  {
+    NS_ASSERT(this._state == READER_IN_BODY);
+
+    // XXX handle chunked transfer-coding request bodies!
+
+    try
+    {
+      if (this._contentLength > 0)
+      {
+        var data = this._data.purge();
+        var count = Math.min(data.length, this._contentLength);
+        dumpn("*** loading data=" + data + " len=" + data.length +
+              " excess=" + (data.length - count));
+
+        var bos = new BinaryOutputStream(this._metadata._bodyOutputStream);
+        bos.writeByteArray(data, count);
+        this._contentLength -= count;
+      }
+
+      dumpn("*** remaining body data len=" + this._contentLength);
+      if (this._contentLength == 0)
+      {
+        this._validateRequest();
+        this._state = READER_FINISHED;
+        this._handleResponse();
+        return true;
+      }
+      
+      return false;
+    }
+    catch (e)
+    {
+      this._handleError(e);
+      return false;
+    }
+  },
+
+  /**
+   * Does various post-header checks on the data in this request.
    *
    * @throws : HttpError
    *   if the request was malformed in some way
    */
-  _validateRequest: function() {
+  _validateRequest: function()
+  {
     NS_ASSERT(this._state == READER_IN_BODY);
 
-    // logger.debug("_validateRequest called.");
+    dumpn("*** _validateRequest");
 
     var metadata = this._metadata;
     var headers = metadata._headers;
 
-    var isHttp11 = metadata._httpVersion.equals(nsHttpVersion.HTTP_1_1);
-
     // 19.6.1.1 -- servers MUST report 400 to HTTP/1.1 requests w/o Host header
-    if (isHttp11 && !headers.hasHeader("Host"))
-      throw HTTP_400;
+    var identity = this._connection.server.identity;
+    if (metadata._httpVersion.atLeast(nsHttpVersion.HTTP_1_1))
+    {
+      if (!headers.hasHeader("Host"))
+      {
+        dumpn("*** malformed HTTP/1.1 or greater request with no Host header!");
+        throw HTTP_400;
+      }
+
+      // If the Request-URI wasn't absolute, then we need to determine our host.
+      // We have to determine what scheme was used to access us based on the
+      // server identity data at this point, because the request just doesn't
+      // contain enough data on its own to do this, sadly.
+      if (!metadata._host)
+      {
+        var host, port;
+        var hostPort = headers.getHeader("Host");
+        var colon = hostPort.indexOf(":");
+        if (colon < 0)
+        {
+          host = hostPort;
+          port = "";
+        }
+        else
+        {
+          host = hostPort.substring(0, colon);
+          port = hostPort.substring(colon + 1);
+        }
+
+        // NB: We allow an empty port here because, oddly, a colon may be
+        //     present even without a port number, e.g. "example.com:"; in this
+        //     case the default port applies.
+        if (!HOST_REGEX.test(host) || !/^\d*$/.test(port))
+        {
+          dumpn("*** malformed hostname (" + hostPort + ") in Host " +
+                "header, 400 time");
+          throw HTTP_400;
+        }
+
+        // If we're not given a port, we're stuck, because we don't know what
+        // scheme to use to look up the correct port here, in general.  Since
+        // the HTTPS case requires a tunnel/proxy and thus requires that the
+        // requested URI be absolute (and thus contain the necessary
+        // information), let's assume HTTP will prevail and use that.
+        port = +port || 80;
+
+        var scheme = identity.getScheme(host, port);
+        if (!scheme)
+        {
+          dumpn("*** unrecognized hostname (" + hostPort + ") in Host " +
+                "header, 400 time");
+          throw HTTP_400;
+        }
+
+        metadata._scheme = scheme;
+        metadata._host = host;
+        metadata._port = port;
+      }
+    }
+    else
+    {
+      NS_ASSERT(metadata._host === undefined,
+                "HTTP/1.0 doesn't allow absolute paths in the request line!");
+
+      metadata._scheme = identity.primaryScheme;
+      metadata._host = identity.primaryHost;
+      metadata._port = identity.primaryPort;
+    }
+
+    NS_ASSERT(identity.has(metadata._scheme, metadata._host, metadata._port),
+              "must have a location we recognize by now!");
   },
 
-  /* Handles responses in case of error, either in the server or in the request.
+  /**
+   * Handles responses in case of error, either in the server or in the request.
    *
    * @param e
    *   the specific error encountered, which is an HttpError in the case where
@@ -773,11 +1491,21 @@ RequestReader.prototype = {
    *   an HttpError we're going to be paranoid and shut down, because that
    *   shouldn't happen, ever
    */
-  _handleError: function(e) {
+  _handleError: function(e)
+  {
+    // Don't fall back into normal processing!
+    this._state = READER_FINISHED;
+
     var server = this._connection.server;
-    if (e instanceof HttpError) {
+    if (e instanceof HttpError)
+    {
       var code = e.code;
-    } else {
+    }
+    else
+    {
+      dumpn("!!! UNEXPECTED ERROR: " + e +
+            (e.lineNumber ? ", line " + e.lineNumber : ""));
+
       // no idea what happened -- be paranoid and shut down
       code = 500;
       server._requestQuit();
@@ -785,39 +1513,42 @@ RequestReader.prototype = {
 
     // make attempted reuse of data an error
     this._data = null;
+
     this._connection.processError(code, this._metadata);
   },
 
-  /* Now that we've read the request line and headers, we can actually hand off
+  /**
+   * Now that we've read the request line and headers, we can actually hand off
    * the request to be handled.
    *
    * This method is called once per request, after the request line and all
-   * headers have been received.
-   *
-   * @returns boolean
-   *   true if more data must be read, false otherwise
+   * headers and the body, if any, have been received.
    */
-  _handleResponse: function() {
-    NS_ASSERT(this._state == READER_IN_BODY);
+  _handleResponse: function()
+  {
+    NS_ASSERT(this._state == READER_FINISHED);
 
-    // XXX set up a stream for data in the request body here
     // We don't need the line-based data any more, so make attempted reuse an
     // error.
     this._data = null;
-    this._connection.process(this._metadata);
 
-    return false;
+    this._connection.process(this._metadata);
   },
 
-  /* Parses the request line for the HTTP request associated with this.
+
+  // PARSING
+
+  /**
+   * Parses the request line for the HTTP request associated with this.
    *
    * @param line : string
    *   the request line
    */
-  _parseRequestLine: function(line) {
-    NS_ASSERT(this._state == READER_INITIAL);
+  _parseRequestLine: function(line)
+  {
+    NS_ASSERT(this._state == READER_IN_REQUEST_LINE);
 
-    // logger.debug("_parseRequestLine('" + line + "')");
+    dumpn("*** _parseRequestLine('" + line + "')");
 
     var metadata = this._metadata;
 
@@ -836,48 +1567,80 @@ RequestReader.prototype = {
       throw HTTP_400;
 
     // determine HTTP version
-    try {
+    try
+    {
       metadata._httpVersion = new nsHttpVersion(match[1]);
-      if (!metadata._httpVersion.equals(nsHttpVersion.HTTP_1_0) &&
-          !metadata._httpVersion.equals(nsHttpVersion.HTTP_1_1))
+      if (!metadata._httpVersion.atLeast(nsHttpVersion.HTTP_1_0))
         throw "unsupported HTTP version";
-    } catch (e) {
+    }
+    catch (e)
+    {
       // we support HTTP/1.0 and HTTP/1.1 only
       throw HTTP_501;
     }
 
-    var fullPath = request[1];
 
-    if (fullPath.charAt(0) != "/") {
-      // XXX we don't really support absolute URIs yet -- a MUST for HTTP/1.1;
-      //     for now just get the path and use that, ignoring hostport
-      try {
+    var fullPath = request[1];
+    var serverIdentity = this._connection.server.identity;
+
+    var scheme, host, port;
+
+    if (fullPath.charAt(0) != "/")
+    {
+      // No absolute paths in the request line in HTTP prior to 1.1
+      if (!metadata._httpVersion.atLeast(nsHttpVersion.HTTP_1_1))
+        throw HTTP_400;
+
+      try
+      {
         var uri = Cc["@mozilla.org/network/io-service;1"]
                     .getService(Ci.nsIIOService)
                     .newURI(fullPath, null, null);
         fullPath = uri.path;
-      } catch (e) { /* invalid URI */ }
-      
-      if (fullPath.charAt(0) != "/") {
-        this.errorCode = 400;
-        return;
+        scheme = uri.scheme;
+        host = metadata._host = uri.asciiHost;
+        port = uri.port;
+        if (port === -1)
+        {
+          if (scheme === "http")
+            port = 80;
+          else if (scheme === "https")
+            port = 443;
+          else
+            throw HTTP_400;
+        }
       }
+      catch (e)
+      {
+        // If the host is not a valid host on the server, the response MUST be a
+        // 400 (Bad Request) error message (section 5.2).  Alternately, the URI
+        // is malformed.
+        throw HTTP_400;
+      }
+
+      if (!serverIdentity.has(scheme, host, port) || fullPath.charAt(0) != "/")
+        throw HTTP_400;
     }
 
     var splitter = fullPath.indexOf("?");
-    if (splitter < 0) {
+    if (splitter < 0)
+    {
       // _queryString already set in ctor
       metadata._path = fullPath;
-    } else {
+    }
+    else
+    {
       metadata._path = fullPath.substring(0, splitter);
       metadata._queryString = fullPath.substring(splitter + 1);
     }
 
-    // our work here is finished
-    this._state = READER_IN_HEADERS;
+    metadata._scheme = scheme;
+    metadata._host = host;
+    metadata._port = port;
   },
 
-  /* Parses all available HTTP headers in this until the header-ending CRLFCRLF,
+  /**
+   * Parses all available HTTP headers in this until the header-ending CRLFCRLF,
    * adding them to the store of headers in the request.
    *
    * @throws
@@ -885,24 +1648,28 @@ RequestReader.prototype = {
    * @returns boolean
    *   true if all headers have now been processed, false otherwise
    */
-  _parseHeaders: function() {
+  _parseHeaders: function()
+  {
     NS_ASSERT(this._state == READER_IN_HEADERS);
 
-    // logger.debug("_parseHeaders");
+    dumpn("*** _parseHeaders");
 
     var data = this._data;
+
     var headers = this._metadata._headers;
     var lastName = this._lastHeaderName;
     var lastVal = this._lastHeaderValue;
 
     var line = {};
-    while (true) {
+    while (true)
+    {
       NS_ASSERT(!((lastVal === undefined) ^ (lastName === undefined)),
                 lastName === undefined ?
                   "lastVal without lastName?  lastVal: '" + lastVal + "'" :
                   "lastName without lastVal?  lastName: '" + lastName + "'");
 
-      if (!data.readLine(line)) {
+      if (!data.readLine(line))
+      {
         // save any data we have from the header we might still be processing
         this._lastHeaderName = lastName;
         this._lastHeaderValue = lastVal;
@@ -913,25 +1680,35 @@ RequestReader.prototype = {
       var firstChar = lineText.charAt(0);
 
       // blank line means end of headers
-      if (lineText == "") {
+      if (lineText == "")
+      {
         // we're finished with the previous header
-        if (lastName) {
-          try {
+        if (lastName)
+        {
+          try
+          {
             headers.setHeader(lastName, lastVal, true);
-          } catch (e) {
-            // logger.debug("e == " + e);
+          }
+          catch (e)
+          {
+            dumpn("*** e == " + e);
             throw HTTP_400;
           }
-        } else {
+        }
+        else
+        {
           // no headers in request -- valid for HTTP/1.0 requests
         }
 
         // either way, we're done processing headers
         this._state = READER_IN_BODY;
         return true;
-      } else if (firstChar == " " || firstChar == "\t") {
+      }
+      else if (firstChar == " " || firstChar == "\t")
+      {
         // multi-line header if we've already seen a header line
-        if (!lastName) {
+        if (!lastName)
+        {
           // we don't have a header to continue!
           throw HTTP_400;
         }
@@ -939,19 +1716,26 @@ RequestReader.prototype = {
         // append this line's text to the value; starts with SP/HT, so no need
         // for separating whitespace
         lastVal += lineText;
-      } else {
+      }
+      else
+      {
         // we have a new header, so set the old one (if one existed)
-        if (lastName) {
-          try {
+        if (lastName)
+        {
+          try
+          {
             headers.setHeader(lastName, lastVal, true);
-          } catch (e) {
-            // logger.debug("e == " + e);
+          }
+          catch (e)
+          {
+            dumpn("*** e == " + e);
             throw HTTP_400;
           }
         }
 
         var colon = lineText.indexOf(":"); // first colon must be splitter
-        if (colon < 1) {
+        if (colon < 1)
+        {
           // no colon or missing header field-name
           throw HTTP_400;
         }
@@ -968,7 +1752,8 @@ RequestReader.prototype = {
 /** The character codes for CR and LF. */
 const CR = 0x0D, LF = 0x0A;
 
-/* Calculates the number of characters before the first CRLF pair in array, or
+/**
+ * Calculates the number of characters before the first CRLF pair in array, or
  * -1 if the array contains no CRLF pair.
  *
  * @param array : Array
@@ -979,8 +1764,10 @@ const CR = 0x0D, LF = 0x0A;
  * @returns int
  *   the index of the first CRLF if any were present, -1 otherwise
  */
-function findCRLF(array) {
-  for (var i = array.indexOf(CR); i >= 0; i = array.indexOf(CR, i + 1)) {
+function findCRLF(array)
+{
+  for (var i = array.indexOf(CR); i >= 0; i = array.indexOf(CR, i + 1))
+  {
     if (array[i + 1] == LF)
       return i;
   }
@@ -988,22 +1775,28 @@ function findCRLF(array) {
 }
 
 
-/* A container which provides line-by-line access to the arrays of bytes with
+/**
+ * A container which provides line-by-line access to the arrays of bytes with
  * which it is seeded.
  */
-function LineData() {
+function LineData()
+{
   /** An array of queued bytes from which to get line-based characters. */
   this._data = [];
 }
-LineData.prototype = {
-  /* Appends the bytes in the given array to the internal data cache maintained
+LineData.prototype =
+{
+  /**
+   * Appends the bytes in the given array to the internal data cache maintained
    * by this.
    */
-  appendBytes: function(bytes) {
+  appendBytes: function(bytes)
+  {
     Array.prototype.push.apply(this._data, bytes);
   },
 
-  /* Removes and returns a line of data, delimited by CRLF, from this.
+  /**
+   * Removes and returns a line of data, delimited by CRLF, from this.
    *
    * @param out
    *   an object whose "value" property will be set to the first line of text
@@ -1014,12 +1807,14 @@ LineData.prototype = {
    *   true if a full line of data could be read from the data in this, false
    *   otherwise
    */
-  readLine: function(out) {
+  readLine: function(out)
+  {
     var data = this._data;
     var length = findCRLF(data);
     if (length < 0)
       return false;
 
+    //
     // We have the index of the CR, so remove all the characters, including
     // CRLF, from the array with splice, and convert the removed array into the
     // corresponding string, from which we then strip the trailing CRLF.
@@ -1035,37 +1830,46 @@ LineData.prototype = {
     return true;
   },
 
-  /* Retrieve any bytes we may have overread from the request's postdata.  After
-   * this method is called, this must not be used in any way.
+  /**
+   * Removes the bytes currently within this and returns them in an array.
    *
    * @returns Array
-   *   the bytes read past the CRLFCRLF at the end of request headers
+   *   the bytes within this when this method is called
    */
-  purge: function() {
+  purge: function()
+  {
     var data = this._data;
-    this._data = null;
+    this._data = [];
     return data;
   }
 };
 
 
 
-/* Creates a request-handling function for an nsIHttpRequestHandler object.*/
-function createHandlerFunc(handler) {
+/**
+ * Creates a request-handling function for an nsIHttpRequestHandler object.
+ */
+function createHandlerFunc(handler)
+{
   return function(metadata, response) { handler.handle(metadata, response); };
 }
 
 
-/* The default handler for directories; writes an HTML response containing a
+/**
+ * The default handler for directories; writes an HTML response containing a
  * slightly-formatted directory listing.
  */
-function defaultIndexHandler(metadata, response) {
+function defaultIndexHandler(metadata, response)
+{
   response.setHeader("Content-Type", "text/html", false);
+
   var path = htmlEscape(decodeURI(metadata.path));
 
+  //
   // Just do a very basic bit of directory listings -- no need for too much
   // fanciness, especially since we don't have a style sheet in which we can
   // stick rules (don't want to pollute the default path-space).
+  //
 
   var body = '<html>\
                 <head>\
@@ -1080,7 +1884,8 @@ function defaultIndexHandler(metadata, response) {
 
   var fileList = [];
   var files = directory.directoryEntries;
-  while (files.hasMoreElements()) {
+  while (files.hasMoreElements())
+  {
     var f = files.getNext().QueryInterface(Ci.nsIFile);
     var name = f.leafName;
     if (!f.isHidden() &&
@@ -1091,9 +1896,11 @@ function defaultIndexHandler(metadata, response) {
 
   fileList.sort(fileSort);
 
-  for (var i = 0; i < fileList.length; i++) {
+  for (var i = 0; i < fileList.length; i++)
+  {
     var file = fileList[i];
-    try {
+    try
+    {
       var name = file.leafName;
       if (name.charAt(name.length - 1) == HIDDEN_CHAR)
         name = name.substring(0, name.length - 1);
@@ -1106,7 +1913,8 @@ function defaultIndexHandler(metadata, response) {
                  '</a></li>';
 
       body += item;
-    } catch (e) { /* some file system error, ignore the file */ }
+    }
+    catch (e) { /* some file system error, ignore the file */ }
   }
 
   body    += '    </ol>\
@@ -1116,8 +1924,11 @@ function defaultIndexHandler(metadata, response) {
   response.bodyOutputStream.write(body, body.length);
 }
 
-/* Sorts a and b (nsIFile objects) into an aesthetically pleasing order.*/
-function fileSort(a, b) {
+/**
+ * Sorts a and b (nsIFile objects) into an aesthetically pleasing order.
+ */
+function fileSort(a, b)
+{
   var dira = a.isDirectory(), dirb = b.isDirectory();
 
   if (dira && !dirb)
@@ -1130,7 +1941,8 @@ function fileSort(a, b) {
 }
 
 
-/* Converts an externally-provided path into an internal path for use in
+/**
+ * Converts an externally-provided path into an internal path for use in
  * determining file mappings.
  *
  * @param path
@@ -1141,12 +1953,14 @@ function fileSort(a, b) {
  * @throws URIError
  *   if path is incorrectly encoded
  */
-function toInternalPath(path, encoded) {
+function toInternalPath(path, encoded)
+{
   if (encoded)
     path = decodeURI(path);
 
   var comps = path.split("/");
-  for (var i = 0, sz = comps.length; i < sz; i++) {
+  for (var i = 0, sz = comps.length; i < sz; i++)
+  {
     var comp = comps[i];
     if (comp.charAt(comp.length - 1) == HIDDEN_CHAR)
       comps[i] = comp + HIDDEN_CHAR;
@@ -1155,7 +1969,8 @@ function toInternalPath(path, encoded) {
 }
 
 
-/* Adds custom-specified headers for the given file to the given response, if
+/**
+ * Adds custom-specified headers for the given file to the given response, if
  * any such headers are specified.
  *
  * @param file
@@ -1167,7 +1982,8 @@ function toInternalPath(path, encoded) {
  * @throws HTTP_500
  *   if an error occurred while processing custom-specified headers
  */
-function maybeAddHeaders(file, metadata, response) {
+function maybeAddHeaders(file, metadata, response)
+{
   var name = file.leafName;
   if (name.charAt(name.length - 1) == HIDDEN_CHAR)
     name = name.substring(0, name.length - 1);
@@ -1182,25 +1998,33 @@ function maybeAddHeaders(file, metadata, response) {
   var fis = new FileInputStream(headerFile, PR_RDONLY, 0444,
                                 Ci.nsIFileInputStream.CLOSE_ON_EOF);
 
-  var lis = new ConverterInputStream(fis, "UTF-8", 1024, 0x0);
-  lis.QueryInterface(Ci.nsIUnicharLineInputStream);
+  try
+  {
+    var lis = new ConverterInputStream(fis, "UTF-8", 1024, 0x0);
+    lis.QueryInterface(Ci.nsIUnicharLineInputStream);
 
-  try {
     var line = {value: ""};
     var more = lis.readLine(line);
 
     if (!more && line.value == "")
       return;
 
+
+    // request line
+
     var status = line.value;
-    if (status.indexOf("HTTP ") == 0) {
+    if (status.indexOf("HTTP ") == 0)
+    {
       status = status.substring(5);
       var space = status.indexOf(" ");
       var code, description;
-      if (space < 0) {
+      if (space < 0)
+      {
         code = status;
         description = "";
-      } else {
+      }
+      else
+      {
         code = status.substring(0, space);
         description = status.substring(space + 1, status.length);
       }
@@ -1212,7 +2036,8 @@ function maybeAddHeaders(file, metadata, response) {
     }
 
     // headers
-    while (more || line.value != "") {
+    while (more || line.value != "")
+    {
       var header = line.value;
       var colon = header.indexOf(":");
 
@@ -1223,14 +2048,21 @@ function maybeAddHeaders(file, metadata, response) {
       line.value = "";
       more = lis.readLine(line);
     }
-  } catch (e) {
-    // logger.error("WARNING: error in headers for " + metadata.path + ": " + e);
+  }
+  catch (e)
+  {
+    dumpn("WARNING: error in headers for " + metadata.path + ": " + e);
     throw HTTP_500;
+  }
+  finally
+  {
+    fis.close();
   }
 }
 
 
-/* An object which handles requests for a server, executing default and
+/**
+ * An object which handles requests for a server, executing default and
  * overridden behaviors as instructed by the code which uses and manipulates it.
  * Default behavior includes the paths / and /trace (diagnostics), with some
  * support for HTTP error pages for various codes and fallback to HTTP 500 if
@@ -1239,17 +2071,17 @@ function maybeAddHeaders(file, metadata, response) {
  * @param server : nsHttpServer
  *   the server in which this handler is being used
  */
-function ServerHandler(server) {
-  /* The nsHttpServer instance associated with this handler. */
+function ServerHandler(server)
+{
+  // FIELDS
+
+  /**
+   * The nsHttpServer instance associated with this handler.
+   */
   this._server = server;
 
-  /* A variable used to ensure that all requests are fully complete before the
-   * server shuts down, to avoid callbacks from compiled code calling back into
-   * empty contexts.  See also the comment before this field is next modified.
-   */
-  this._pendingRequests = 0;
-
-  /* A FileMap object containing the set of path->nsILocalFile mappings for
+  /**
+   * A FileMap object containing the set of path->nsILocalFile mappings for
    * all directory mappings set in the server (e.g., "/" for /var/www/html/,
    * "/foo/bar/" for /local/path/, and "/foo/bar/baz/" for /local/path2).
    *
@@ -1259,14 +2091,16 @@ function ServerHandler(server) {
    */
   this._pathDirectoryMap = new FileMap();
 
-  /* Custom request handlers for the server in which this resides.  Path-handler
+  /**
+   * Custom request handlers for the server in which this resides.  Path-handler
    * pairs are stored as property-value pairs in this property.
    *
    * @see ServerHandler.prototype._defaultPaths
    */
   this._overridePaths = {};
-
-  /* Custom request handlers for the error handlers in the server in which this
+  
+  /**
+   * Custom request handlers for the error handlers in the server in which this
    * resides.  Path-handler pairs are stored as property-value pairs in this
    * property.
    *
@@ -1274,109 +2108,157 @@ function ServerHandler(server) {
    */
   this._overrideErrors = {};
 
-  /* Maps file extensions to their MIME types in the server, overriding any
+  /**
+   * Maps file extensions to their MIME types in the server, overriding any
    * mapping that might or might not exist in the MIME service.
    */
   this._mimeMappings = {};
 
-  /* The default handler for requests for directories, used to serve directories
+  /**
+   * The default handler for requests for directories, used to serve directories
    * when no index file is present.
    */
   this._indexHandler = defaultIndexHandler;
+
+  /** Per-path state storage for the server. */
+  this._state = {};
+
+  /** Entire-server state storage. */
+  this._sharedState = {};
+
+  /** Entire-server state storage for nsISupports values. */
+  this._objectState = {};
 }
 ServerHandler.prototype =
 {
   // PUBLIC API
-  /* Handles a request to this server, responding to the request appropriately
+
+  /**
+   * Handles a request to this server, responding to the request appropriately
    * and initiating server shutdown if necessary.
    *
    * This method never throws an exception.
    *
    * @param connection : Connection
    *   the connection for this request
-   * @param metadata : Request
-   *   request metadata as generated from the initial request
    */
-  handleResponse: function(connection, metadata) {
-    var response = new Response();
+  handleResponse: function(connection)
+  {
+    var request = connection.request;
+    var response = new Response(connection);
 
-    var path = metadata.path;
-    // logger.info("*** path == " + path);
+    var path = request.path;
+    dumpn("*** path == " + path);
 
-    try {
-      try {
-        // explicit paths first, then files based on existing directory mappings,
-        // then (if the file doesn't exist) built-in server default paths
+    try
+    {
+      try
+      {
         if (path in this._overridePaths)
-          this._overridePaths[path](metadata, response);
+        {
+          // explicit paths first, then files based on existing directory mappings,
+          // then (if the file doesn't exist) built-in server default paths
+          dumpn("calling override for " + path);
+          this._overridePaths[path](request, response);
+        }
         else
-          this._handleDefault(metadata, response);
-      } catch (e) {
-        response.recycle();
+        {
+          this._handleDefault(request, response);
+        }
+      }
+      catch (e)
+      {
+        if (response.partiallySent())
+        {
+          response.abort(e);
+          return;
+        }
 
-        if (!(e instanceof HttpError)) {
-          // logger.error("Unexpected error: e == " + e);
+        if (!(e instanceof HttpError))
+        {
+          dumpn("*** unexpected error: e == " + e);
           throw HTTP_500;
         }
-        if (e.code != 404)
+        if (e.code !== 404)
           throw e;
 
-        // logger.debug("Default: " + (path in this._defaultPaths));
+        dumpn("*** default: " + (path in this._defaultPaths));
 
+        response = new Response(connection);
         if (path in this._defaultPaths)
-          this._defaultPaths[path](metadata, response);
+          this._defaultPaths[path](request, response);
         else
           throw HTTP_404;
       }
-    } catch (e) {
+    }
+    catch (e)
+    {
+      if (response.partiallySent())
+      {
+        response.abort(e);
+        return;
+      }
+
       var errorCode = "internal";
 
-      try {
+      try
+      {
         if (!(e instanceof HttpError))
           throw e;
 
         errorCode = e.code;
-        // logger.error("ErrorCode == " + errorCode);
+        dumpn("*** errorCode == " + errorCode);
 
-        response.recycle();
+        response = new Response(connection);
+        this._handleError(errorCode, request, response);
+        return;
+      }
+      catch (e2)
+      {
+        dumpn("*** error handling " + errorCode + " error: " +
+              "e2 == " + e2 + ", shutting down server");
 
-        this._handleError(errorCode, metadata, response);
-      } catch (e2) {
-        // logger.error("Error handling " + errorCode + " error: " +
-        //       "e2 == " + e2 + ", shutting down server");
-
-        response.destroy();
-        connection.close();
-        connection.server.stop();
+        connection.server._requestQuit();
+        response.abort(e2);
         return;
       }
     }
 
-    this._end(response, connection);
+    response.complete();
   },
 
-  registerFile: function(path, file) {
-    if (!file) {
-      // logger.debug("Unregistering '" + path + "' mapping");
+  //
+  // see nsIHttpServer.registerFile
+  //
+  registerFile: function(path, file)
+  {
+    if (!file)
+    {
+      dumpn("*** unregistering '" + path + "' mapping");
       delete this._overridePaths[path];
       return;
     }
 
-    // logger.debug("Registering '" + path + "' as mapping to " + file.path);
+    dumpn("*** registering '" + path + "' as mapping to " + file.path);
     file = file.clone();
 
     var self = this;
     this._overridePaths[path] =
-      function(metadata, response) {
+      function(request, response)
+      {
         if (!file.exists())
           throw HTTP_404;
 
-        response.setStatusLine(metadata.httpVersion, 200, "OK");
-        self._writeFileResponse(metadata, file, response);
+        response.setStatusLine(request.httpVersion, 200, "OK");
+        self._writeFileResponse(request, file, response, 0, file.fileSize);
       };
   },
 
-  registerPathHandler: function(path, handler) {
+  //
+  // see nsIHttpServer.registerPathHandler
+  //
+  registerPathHandler: function(path, handler)
+  {
     // XXX true path validation!
     if (path.charAt(0) != "/")
       throw Cr.NS_ERROR_INVALID_ARG;
@@ -1384,7 +2266,11 @@ ServerHandler.prototype =
     this._handlerToField(handler, this._overridePaths, path);
   },
 
-  registerDirectory: function(path, directory) {
+  //
+  // see nsIHttpServer.registerDirectory
+  //
+  registerDirectory: function(path, directory)
+  {
     // strip off leading and trailing '/' so that we can use lastIndexOf when
     // determining exactly how a path maps onto a mapped directory --
     // conditional is required here to deal with "/".substring(1, 0) being
@@ -1398,24 +2284,35 @@ ServerHandler.prototype =
 
     key = toInternalPath(key, false);
 
-    if (directory) {
-      // logger.debug("Mapping '" + path + "' to the location " + directory.path);
+    if (directory)
+    {
+      dumpn("*** mapping '" + path + "' to the location " + directory.path);
       this._pathDirectoryMap.put(key, directory);
-    } else {
-      // logger.debug("Removing mapping for '" + path + "'");
+    }
+    else
+    {
+      dumpn("*** removing mapping for '" + path + "'");
       this._pathDirectoryMap.put(key, null);
     }
   },
 
-  registerErrorHandler: function(err, handler) {
+  //
+  // see nsIHttpServer.registerErrorHandler
+  //
+  registerErrorHandler: function(err, handler)
+  {
     if (!(err in HTTP_ERROR_CODES))
-      // logger.info("WARNING: registering non-HTTP/1.1 error code " +
-      //       "(" + err + ") handler -- was this intentional?");
+      dumpn("*** WARNING: registering non-HTTP/1.1 error code " +
+            "(" + err + ") handler -- was this intentional?");
 
     this._handlerToField(handler, this._overrideErrors, err);
   },
 
-  setIndexHandler: function(handler) {
+  //
+  // see nsIHttpServer.setIndexHandler
+  //
+  setIndexHandler: function(handler)
+  {
     if (!handler)
       handler = defaultIndexHandler;
     else if (typeof(handler) != "function")
@@ -1424,24 +2321,21 @@ ServerHandler.prototype =
     this._indexHandler = handler;
   },
 
-  registerContentType: function(ext, type) {
+  //
+  // see nsIHttpServer.registerContentType
+  //
+  registerContentType: function(ext, type)
+  {
     if (!type)
       delete this._mimeMappings[ext];
     else
       this._mimeMappings[ext] = headerUtils.normalizeFieldValue(type);
   },
 
-  // NON-XPCOM PUBLIC API
-  /* Returns true if this handler is in the middle of handling any current
-   * requests; this must be false before the server in which this is used may be
-   * safely shut down.
-   */
-  hasPendingRequests: function() {
-    return this._pendingRequests > 0;
-  },
-
   // PRIVATE API
-  /* Sets or remove (if handler is null) a handler in an object with a key.
+
+  /**
+   * Sets or remove (if handler is null) a handler in an object with a key.
    *
    * @param handler
    *   a handler, either function or an nsIHttpRequestHandler
@@ -1450,7 +2344,8 @@ ServerHandler.prototype =
    * @param key
    *   The field name of the handler.
    */
-  _handlerToField: function(handler, dict, key) {
+  _handlerToField: function(handler, dict, key)
+  {
     // for convenience, handler can be a function if this is run from xpcshell
     if (typeof(handler) == "function")
       dict[key] = handler;
@@ -1460,7 +2355,8 @@ ServerHandler.prototype =
       delete dict[key];
   },
 
-  /* Handles a request which maps to a file in the local filesystem (if a base
+  /**
+   * Handles a request which maps to a file in the local filesystem (if a base
    * path has already been set; otherwise the 404 error is thrown).
    *
    * @param metadata : Request
@@ -1470,10 +2366,12 @@ ServerHandler.prototype =
    *   request handler
    * @throws HTTP_###
    *   if an HTTP error occurred (usually HTTP_404); note that in this case the
-   *   calling code must handle cleanup of the response by calling .destroy()
-   *   or .recycle()
+   *   calling code must handle post-processing of the response
    */
-  _handleDefault: function(metadata, response) {
+  _handleDefault: function(metadata, response)
+  {
+    dumpn("*** _handleDefault()");
+
     response.setStatusLine(metadata.httpVersion, 200, "OK");
 
     var path = metadata.path;
@@ -1501,12 +2399,65 @@ ServerHandler.prototype =
     if (!file.exists())
       throw HTTP_404;
 
+    var start, end;
+    if (metadata._httpVersion.atLeast(nsHttpVersion.HTTP_1_1) &&
+        metadata.hasHeader("Range"))
+    {
+      var rangeMatch = metadata.getHeader("Range").match(/^bytes=(\d+)?-(\d+)?$/);
+      if (!rangeMatch)
+        throw HTTP_400;
+
+      if (rangeMatch[1] !== undefined)
+        start = parseInt(rangeMatch[1], 10);
+
+      if (rangeMatch[2] !== undefined)
+        end = parseInt(rangeMatch[2], 10);
+
+      if (start === undefined && end === undefined)
+        throw HTTP_400;
+
+      // No start given, so the end is really the count of bytes from the
+      // end of the file.
+      if (start === undefined)
+      {
+        start = Math.max(0, file.fileSize - end);
+        end   = file.fileSize - 1;
+      }
+
+      // start and end are inclusive
+      if (end === undefined || end >= file.fileSize)
+        end = file.fileSize - 1;
+
+      if (start !== undefined && start >= file.fileSize)
+        throw HTTP_416;
+
+      if (end < start)
+      {
+        response.setStatusLine(metadata.httpVersion, 200, "OK");
+        start = 0;
+        end = file.fileSize - 1;
+      }
+      else
+      {
+        response.setStatusLine(metadata.httpVersion, 206, "Partial Content");
+        var contentRange = "bytes " + start + "-" + end + "/" + file.fileSize;
+        response.setHeader("Content-Range", contentRange);
+      }
+    }
+    else
+    {
+      start = 0;
+      end = file.fileSize - 1;
+    }
+
     // finally...
-    // logger.debug("Handling '" + path + "' as mapping to " + file.path);
-    this._writeFileResponse(metadata, file, response);
+    dumpn("*** handling '" + path + "' as mapping to " + file.path + " from " +
+          start + " to " + end + " inclusive");
+    this._writeFileResponse(metadata, file, response, start, end - start + 1);
   },
 
-  /* Writes an HTTP response for the given file, including setting headers for
+  /**
+   * Writes an HTTP response for the given file, including setting headers for
    * file metadata.
    *
    * @param metadata : Request
@@ -1515,42 +2466,302 @@ ServerHandler.prototype =
    *   the file which is to be sent in the response
    * @param response : Response
    *   the response to which the file should be written
+   * @param offset: uint
+   *   the byte offset to skip to when writing
+   * @param count: uint
+   *   the number of bytes to write
    */
-  _writeFileResponse: function(metadata, file, response) {
+  _writeFileResponse: function(metadata, file, response, offset, count)
+  {
     const PR_RDONLY = 0x01;
 
     var type = this._getTypeFromFile(file);
-    if (type == SJS_TYPE) {
-      try {
-        var fis = new FileInputStream(file, PR_RDONLY, 0444,
-                                      Ci.nsIFileInputStream.CLOSE_ON_EOF);
+    if (type === SJS_TYPE)
+    {
+      var fis = new FileInputStream(file, PR_RDONLY, 0444,
+                                    Ci.nsIFileInputStream.CLOSE_ON_EOF);
+
+      try
+      {
         var sis = new ScriptableInputStream(fis);
         var s = Cu.Sandbox(gGlobalObject);
-        Cu.evalInSandbox(sis.read(file.fileSize), s);
-        s.handleRequest(metadata, response);
-      } catch (e) {
-        // logger.error("Error running SJS: " + e);
-        throw HTTP_500;
+        s.importFunction(dump, "dump");
+
+        // Define a basic key-value state-preservation API across requests, with
+        // keys initially corresponding to the empty string.
+        var self = this;
+        var path = metadata.path;
+        s.importFunction(function getState(k)
+        {
+          return self._getState(path, k);
+        });
+        s.importFunction(function setState(k, v)
+        {
+          self._setState(path, k, v);
+        });
+        s.importFunction(function getSharedState(k)
+        {
+          return self._getSharedState(k);
+        });
+        s.importFunction(function setSharedState(k, v)
+        {
+          self._setSharedState(k, v);
+        });
+        s.importFunction(function getObjectState(k, callback)
+        {
+          callback(self._getObjectState(k));
+        });
+        s.importFunction(function setObjectState(k, v)
+        {
+          self._setObjectState(k, v);
+        });
+
+        try
+        {
+          // Alas, the line number in errors dumped to console when calling the
+          // request handler is simply an offset from where we load the SJS file.
+          // Work around this in a reasonably non-fragile way by dynamically
+          // getting the line number where we evaluate the SJS file.  Don't
+          // separate these two lines!
+          var line = new Error().lineNumber;
+          Cu.evalInSandbox(sis.read(file.fileSize), s);
+        }
+        catch (e)
+        {
+          dumpn("*** syntax error in SJS at " + file.path + ": " + e);
+          throw HTTP_500;
+        }
+
+        try
+        {
+          s.handleRequest(metadata, response);
+        }
+        catch (e)
+        {
+          dump("*** error running SJS at " + file.path + ": " +
+               e + " on line " +
+               (e instanceof Error
+               ? e.lineNumber + " in httpd.js"
+               : (e.lineNumber - line)) + "\n");
+          throw HTTP_500;
+        }
       }
-    } else {
-      try {
+      finally
+      {
+        fis.close();
+      }
+    }
+    else
+    {
+      try
+      {
         response.setHeader("Last-Modified",
                            toDateString(file.lastModifiedTime),
                            false);
-      } catch (e) { /* lastModifiedTime threw, ignore */ }
+      }
+      catch (e) { /* lastModifiedTime threw, ignore */ }
 
       response.setHeader("Content-Type", type, false);
+      maybeAddHeaders(file, metadata, response);
+      response.setHeader("Content-Length", "" + count, false);
 
       var fis = new FileInputStream(file, PR_RDONLY, 0444,
                                     Ci.nsIFileInputStream.CLOSE_ON_EOF);
-      response.bodyOutputStream.writeFrom(fis, file.fileSize);
-      fis.close();
-      
-      maybeAddHeaders(file, metadata, response);
+
+      offset = offset || 0;
+      count  = count || file.fileSize;
+      NS_ASSERT(offset === 0 || offset < file.fileSize, "bad offset");
+      NS_ASSERT(count >= 0, "bad count");
+      NS_ASSERT(offset + count <= file.fileSize, "bad total data size");
+
+      try
+      {
+        if (offset !== 0)
+        {
+          // Seek (or read, if seeking isn't supported) to the correct offset so
+          // the data sent to the client matches the requested range.
+          if (fis instanceof Ci.nsISeekableStream)
+            fis.seek(Ci.nsISeekableStream.SEEK_SET, offset);
+          else
+            new ScriptableInputStream(fis).read(offset);
+        }
+      }
+      catch (e)
+      {
+        fis.close();
+        throw e;
+      }
+
+      function writeMore()
+      {
+        gThreadManager.currentThread
+                      .dispatch(writeData, Ci.nsIThreadManager.DISPATCH_NORMAL);
+      }
+
+      var input = new BinaryInputStream(fis);
+      var output = new BinaryOutputStream(response.bodyOutputStream);
+      var writeData =
+        {
+          run: function()
+          {
+            var chunkSize = Math.min(65536, count);
+            count -= chunkSize;
+            NS_ASSERT(count >= 0, "underflow");
+
+            try
+            {
+              var data = input.readByteArray(chunkSize);
+              NS_ASSERT(data.length === chunkSize,
+                        "incorrect data returned?  got " + data.length +
+                        ", expected " + chunkSize);
+              output.writeByteArray(data, data.length);
+              if (count === 0)
+              {
+                fis.close();
+                response.finish();
+              }
+              else
+              {
+                writeMore();
+              }
+            }
+            catch (e)
+            {
+              try
+              {
+                fis.close();
+              }
+              finally
+              {
+                response.finish();
+              }
+              throw e;
+            }
+          }
+        };
+
+      writeMore();
+
+      // Now that we know copying will start, flag the response as async.
+      response.processAsync();
     }
   },
 
-  /* Gets a content-type for the given file, first by checking for any custom
+  /**
+   * Get the value corresponding to a given key for the given path for SJS state
+   * preservation across requests.
+   *
+   * @param path : string
+   *   the path from which the given state is to be retrieved
+   * @param k : string
+   *   the key whose corresponding value is to be returned
+   * @returns string
+   *   the corresponding value, which is initially the empty string
+   */
+  _getState: function(path, k)
+  {
+    var state = this._state;
+    if (path in state && k in state[path])
+      return state[path][k];
+    return "";
+  },
+
+  /**
+   * Set the value corresponding to a given key for the given path for SJS state
+   * preservation across requests.
+   *
+   * @param path : string
+   *   the path from which the given state is to be retrieved
+   * @param k : string
+   *   the key whose corresponding value is to be set
+   * @param v : string
+   *   the value to be set
+   */
+  _setState: function(path, k, v)
+  {
+    if (typeof v !== "string")
+      throw new Error("non-string value passed");
+    var state = this._state;
+    if (!(path in state))
+      state[path] = {};
+    state[path][k] = v;
+  },
+
+  /**
+   * Get the value corresponding to a given key for SJS state preservation
+   * across requests.
+   *
+   * @param k : string
+   *   the key whose corresponding value is to be returned
+   * @returns string
+   *   the corresponding value, which is initially the empty string
+   */
+  _getSharedState: function(k)
+  {
+    var state = this._sharedState;
+    if (k in state)
+      return state[k];
+    return "";
+  },
+
+  /**
+   * Set the value corresponding to a given key for SJS state preservation
+   * across requests.
+   *
+   * @param k : string
+   *   the key whose corresponding value is to be set
+   * @param v : string
+   *   the value to be set
+   */
+  _setSharedState: function(k, v)
+  {
+    if (typeof v !== "string")
+      throw new Error("non-string value passed");
+    this._sharedState[k] = v;
+  },
+
+  /**
+   * Returns the object associated with the given key in the server for SJS
+   * state preservation across requests.
+   *
+   * @param k : string
+   *  the key whose corresponding object is to be returned
+   * @returns nsISupports
+   *  the corresponding object, or null if none was present
+   */
+  _getObjectState: function(k)
+  {
+    if (typeof k !== "string")
+      throw new Error("non-string key passed");
+    return this._objectState[k] || null;
+  },
+
+  /**
+   * Sets the object associated with the given key in the server for SJS
+   * state preservation across requests.
+   *
+   * @param k : string
+   *  the key whose corresponding object is to be set
+   * @param v : nsISupports
+   *  the object to be associated with the given key; may be null
+   */
+  _setObjectState: function(k, v)
+  {
+    if (typeof k !== "string")
+      throw new Error("non-string key passed");
+    if (typeof v !== "object")
+      throw new Error("non-object value passed");
+    if (v && !("QueryInterface" in v))
+    {
+      throw new Error("must pass an nsISupports; use wrappedJSObject to ease " +
+                      "pain when using the server from JS");
+    }
+
+    this._objectState[k] = v;
+  },
+
+  /**
+   * Gets a content-type for the given file, first by checking for any custom
    * MIME-types registered with this handler for the file's extension, second by
    * asking the global MIME service for a content-type, and finally by failing
    * over to application/octet-stream.
@@ -1560,11 +2771,14 @@ ServerHandler.prototype =
    * @returns string
    *   the best content-type which can be determined for the file
    */
-  _getTypeFromFile: function(file) {
-    try {
+  _getTypeFromFile: function(file)
+  {
+    try
+    {
       var name = file.leafName;
       var dot = name.lastIndexOf(".");
-      if (dot > 0) {
+      if (dot > 0)
+      {
         var ext = name.slice(dot + 1);
         if (ext in this._mimeMappings)
           return this._mimeMappings[ext];
@@ -1572,12 +2786,15 @@ ServerHandler.prototype =
       return Cc["@mozilla.org/uriloader/external-helper-app-service;1"]
                .getService(Ci.nsIMIMEService)
                .getTypeFromFile(file);
-    } catch (e) {
+    }
+    catch (e)
+    {
       return "application/octet-stream";
     }
   },
 
-  /* Returns the nsILocalFile which corresponds to the path, as determined using
+  /**
+   * Returns the nsILocalFile which corresponds to the path, as determined using
    * all registered path->directory mappings and any paths which are explicitly
    * overridden.
    *
@@ -1590,11 +2807,15 @@ ServerHandler.prototype =
    * @returns nsILocalFile
    *   the file to be sent as the response to a request for the path
    */
-  _getFileForPath: function(path) {
+  _getFileForPath: function(path)
+  {
     // decode and add underscores as necessary
-    try {
+    try
+    {
       path = toInternalPath(path, true);
-    } catch (e) {
+    }
+    catch (e)
+    {
       throw HTTP_400; // malformed path
     }
 
@@ -1604,10 +2825,12 @@ ServerHandler.prototype =
     // An example progression of tmp for a path "/foo/bar/baz/" might be:
     // "foo/bar/baz/", "foo/bar/baz", "foo/bar", "foo", ""
     var tmp = path.substring(1);
-    while (true) {
+    while (true)
+    {
       // do we have a match for current head of the path?
       var file = pathMap.get(tmp);
-      if (file) {
+      if (file)
+      {
         // XXX hack; basically disable showing mapping for /foo/bar/ when the
         //     requested path was /foo/bar, because relative links on the page
         //     will all be incorrect -- we really need the ability to easily
@@ -1631,6 +2854,7 @@ ServerHandler.prototype =
     if (!file)
       throw HTTP_404;
 
+
     // last, get the file for the path within the determined directory
     var parentFolder = file.parent;
     var dirIsRoot = (parentFolder == null);
@@ -1642,7 +2866,8 @@ ServerHandler.prototype =
     // which don't use "/" as the directory separator, such as Windows
     var leafPath = path.substring(tmp.length + 1);
     var comps = leafPath.split("/");
-    for (var i = 0, sz = comps.length; i < sz; i++) {
+    for (var i = 0, sz = comps.length; i < sz; i++)
+    {
       var comp = comps[i];
 
       if (comp == "..")
@@ -1659,7 +2884,8 @@ ServerHandler.prototype =
     return file;
   },
 
-  /* Writes the error page for the given HTTP error code over the given
+  /**
+   * Writes the error page for the given HTTP error code over the given
    * connection.
    *
    * @param errorCode : uint
@@ -1667,21 +2893,17 @@ ServerHandler.prototype =
    * @param connection : Connection
    *   the connection on which the error occurred
    */
-  handleError: function(errorCode, connection) {
-    var response = new Response();
+  handleError: function(errorCode, connection)
+  {
+    var response = new Response(connection);
 
-    // logger.error("Error in request: " + errorCode);
+    dumpn("*** error in request: " + errorCode);
 
-    try {
-      this._handleError(errorCode, new Request(connection.port), response);
-      this._end(response, connection);
-    } catch (e) {
-      connection.close();
-      connection.server.stop();
-    }
+    this._handleError(errorCode, new Request(connection.port), response);
   }, 
 
-  /* Handles a request which generates the given error code, using the
+  /**
+   * Handles a request which generates the given error code, using the
    * user-defined error handler if one has been set, gracefully falling back to
    * the x00 status code if the code has no handler, and failing to status code
    * 500 if all else fails.
@@ -1697,15 +2919,17 @@ ServerHandler.prototype =
    *   ideal case or a fallback code in abnormal circumstances (i.e., 500 is a
    *   fallback for 505, per HTTP specs)
    */
-  _handleError: function(errorCode, metadata, response) {
+  _handleError: function(errorCode, metadata, response)
+  {
     if (!metadata)
       throw Cr.NS_ERROR_NULL_POINTER;
 
     var errorX00 = errorCode - (errorCode % 100);
 
-    try {
+    try
+    {
       if (!(errorCode in HTTP_ERROR_CODES))
-        // logger.error("WARNING: requested invalid error: " + errorCode);
+        dumpn("*** WARNING: requested invalid error: " + errorCode);
 
       // RFC 2616 says that we should try to handle an error by its class if we
       // can't otherwise handle it -- if that fails, we revert to handling it as
@@ -1713,18 +2937,28 @@ ServerHandler.prototype =
       // the server
 
       // actually handle the error
-      try {
+      try
+      {
         if (errorCode in this._overrideErrors)
           this._overrideErrors[errorCode](metadata, response);
-        else if (errorCode in this._defaultErrors)
+        else
           this._defaultErrors[errorCode](metadata, response);
-      } catch (e) {
+      }
+      catch (e)
+      {
+        if (response.partiallySent())
+        {
+          response.abort(e);
+          return;
+        }
+
         // don't retry the handler that threw
         if (errorX00 == errorCode)
           throw HTTP_500;
 
-        // logger.error("Error in handling for error code " + errorCode + ", " +
-        //       "falling back to " + errorX00 + "...");
+        dumpn("*** error in handling for error code " + errorCode + ", " +
+              "falling back to " + errorX00 + "...");
+        response = new Response(response._connection);
         if (errorX00 in this._overrideErrors)
           this._overrideErrors[errorX00](metadata, response);
         else if (errorX00 in this._defaultErrors)
@@ -1732,189 +2966,48 @@ ServerHandler.prototype =
         else
           throw HTTP_500;
       }
-    } catch (e) {
-      response.recycle();
+    }
+    catch (e)
+    {
+      if (response.partiallySent())
+      {
+        response.abort();
+        return;
+      }
 
       // we've tried everything possible for a meaningful error -- now try 500
-      // logger.error("Error in handling for error code " + errorX00 + ", falling " +
-      //              "back to 500...");
+      dumpn("*** error in handling for error code " + errorX00 + ", falling " +
+            "back to 500...");
 
-      try {
+      try
+      {
+        response = new Response(response._connection);
         if (500 in this._overrideErrors)
           this._overrideErrors[500](metadata, response);
         else
           this._defaultErrors[500](metadata, response);
-      } catch (e2) {
-        // logger.error("Multiple errors in default error handlers!");
-        // logger.error("e == " + e + ", e2 == " + e2);
-        throw e2;
+      }
+      catch (e2)
+      {
+        dumpn("*** multiple errors in default error handlers!");
+        dumpn("*** e == " + e + ", e2 == " + e2);
+        response.abort(e2);
+        return;
       }
     }
-  },
 
-  /* Called when all processing necessary for the current request has completed
-   * and response headers and data have been determined.  This method takes
-   * those headers and data, sends them to the HTTP client, and halts further
-   * processing.  It will also send a quit message to the server if necessary.
-   *
-   * This method never throws an exception.
-   *
-   * @param response : Response
-   *   the desired response
-   * @param connection : Connection
-   *   the connection associated with the given response
-   * @note
-   *   after completion, response must be considered "dead", and none of its
-   *   methods or properties may be accessed
-   */
-  _end:  function(response, connection) {
-    // post-processing
-    response.setHeader("Connection", "close", false);
-    response.setHeader("Server", "httpd.js", false);
-    response.setHeader("Date", toDateString(Date.now()), false);
-
-    var bodyStream = response.bodyInputStream;
-
-    // XXX suckage time!
-    //
-    // If the body of the response has had no data written to it (or has never
-    // been accessed -- same deal internally since we'll create one if we have
-    // to access bodyInputStream but have neither an input stream nor an
-    // output stream), the in-tree implementation of nsIPipe is such that
-    // when we try to close the pipe's output stream with no data in it, this
-    // is interpreted as an error and closing the output stream also closes
-    // the input stream.  .available then throws, so we catch and deal as best
-    // as we can.
-    //
-    // Unfortunately, the easy alternative (substitute a storage stream for a
-    // pipe) also doesn't work.  There's no problem writing zero bytes to the
-    // output end of the stream, but then attempting to get an input stream to
-    // read fails because the seek position must be strictly less than the
-    // buffer size.
-    //
-    // Much as I'd like the zero-byte body to be a mostly-unimportant problem,
-    // there are some HTTP responses such as 304 Not Modified which MUST have
-    // zero-byte bodies, so this *is* a necessary hack.
-    try {
-      var available = bodyStream.available();
-    } catch (e) {
-      available = 0;
-    }
-
-    response.setHeader("Content-Length", available.toString(), false);
-    // request-line
-    var preamble = "HTTP/" + response.httpVersion + " " +
-                   response.httpCode + " " +
-                   response.httpDescription + "\r\n";
-
-    // headers
-    var head = response.headers;
-    var headEnum = head.enumerator;
-    while (headEnum.hasMoreElements()) {
-      var fieldName = headEnum.getNext()
-                              .QueryInterface(Ci.nsISupportsString)
-                              .data;
-      preamble += fieldName + ": " + head.getHeader(fieldName) + "\r\n";
-    }
-
-    // end request-line/headers
-    preamble += "\r\n";
-
-    var outStream = connection.output;
-    try {
-      outStream.write(preamble, preamble.length);
-    } catch (e) {
-      // Connection closed already?  Even if not, failure to write the response
-      // means we probably will fail later anyway, so in the interests of
-      // avoiding exceptions we'll (possibly) close the connection and return.
-      response.destroy();
-      connection.close();
-      return;
-    }
-
-    // In certain situations, it's possible for us to have a race between
-    // the copy observer's onStopRequest and the listener for a channel
-    // opened to this server.  Since we include a Content-Length header with
-    // every response, if the channel snarfs up all the data we promise,
-    // calls onStopRequest on the listener (and the server is shut down
-    // by that listener, causing the script to finish executing), and then
-    // tries to call onStopRequest on the copyObserver, we'll call into a
-    // scope with no Components and cause assertions *and* fail to close the
-    // connection properly.  To combat this, during server shutdown we delay
-    // full shutdown until any pending requests are fully copied using this
-    // property on the server handler.  We increment before (possibly)
-    // starting the copy observer and decrement when the copy completes,
-    // ensuring that all copies complete before the server fully shuts down.
-    //
-    // We do this for every request primarily to simplify maintenance of this
-    // property (and also because it's less fragile when we can remove the
-    // zero-sized body hack used above).
-    this._pendingRequests++;
-
-    var server = this._server;
-
-    // If we have a body, send it -- if we don't, then don't bother with a
-    // heavyweight async copy which doesn't need to happen and just do
-    // response post-processing (usually handled by the copy observer)
-    // directly
-    if (available != 0) {
-      /* Observer of the copying of data from the body stream generated by a
-       * request handler to the output stream for the server socket.  It
-       * handles all post-request-writing cleanup details, such as closing
-       * open streams and shutting down the server in case of errors.
-       */
-      var copyObserver = {
-          onStartRequest: function(request, context) { /* don't care */ },
-
-          /* Called when the async stream copy completes.  This is place where
-           * final cleanup should occur, including stream closures and
-           * response destruction.  Note that errors which are detected here
-           * should still shut down the server, for safety.
-           */
-          onStopRequest: function(request, cx, statusCode) {
-            // statusCode can indicate user-triggered failures (e.g. if the user
-            // closes the connection during the copy, which would cause a status
-            // of NS_ERROR_NET_RESET), so don't treat its value being an error
-            // code as catastrophic.  I can create this situation when running
-            // Mochitests in a debug build by clicking the Stop button during
-            // test execution, but it's not exactly a surefire way to reproduce
-            // the problem.
-            if (!Components.isSuccessCode(statusCode)) {
-              // logger.info("WARNING: non-success statusCode in onStopRequest: " +
-              //       statusCode);
-            }
-
-            // we're completely finished with this response
-            response.destroy();
-            connection.end();
-          },
-
-          QueryInterface: function(aIID) {
-            if (aIID.equals(Ci.nsIRequestObserver) ||
-                aIID.equals(Ci.nsISupports))
-              return this;
-
-            throw Cr.NS_ERROR_NO_INTERFACE;
-          }
-        };
-
-      // Now write out the body, async since we might be serving this to
-      // ourselves on the same thread, and writing too much data would deadlock.
-      var copier = new StreamCopier(bodyStream, outStream,
-                                    null,
-                                    true, true, 8192);
-      copier.asyncCopy(copyObserver, null);
-    } else {
-      // finished with the response -- destroy
-      response.destroy();
-      this._server._endConnection(connection);
-    }
+    response.complete();
   },
 
   // FIELDS
-  /* This object contains the default handlers for the various HTTP error codes. */
-  _defaultErrors: {
-    400: function(metadata, response) {
+
+  /**
+   * This object contains the default handlers for the various HTTP error codes.
+   */
+  _defaultErrors:
+  {
+    400: function(metadata, response)
+    {
       // none of the data in metadata is reliable, so hard-code everything here
       response.setStatusLine("1.1", 400, "Bad Request");
       response.setHeader("Content-Type", "text/plain", false);
@@ -1922,7 +3015,8 @@ ServerHandler.prototype =
       var body = "Bad request\n";
       response.bodyOutputStream.write(body, body.length);
     },
-    403: function(metadata, response) {
+    403: function(metadata, response)
+    {
       response.setStatusLine(metadata.httpVersion, 403, "Forbidden");
       response.setHeader("Content-Type", "text/html", false);
 
@@ -1934,7 +3028,8 @@ ServerHandler.prototype =
                   </html>";
       response.bodyOutputStream.write(body, body.length);
     },
-    404: function(metadata, response) {
+    404: function(metadata, response)
+    {
       response.setStatusLine(metadata.httpVersion, 404, "Not Found");
       response.setHeader("Content-Type", "text/html", false);
 
@@ -1951,7 +3046,27 @@ ServerHandler.prototype =
                   </html>";
       response.bodyOutputStream.write(body, body.length);
     },
-    500: function(metadata, response) {
+    416: function(metadata, response)
+    {
+      response.setStatusLine(metadata.httpVersion,
+                            416,
+                            "Requested Range Not Satisfiable");
+      response.setHeader("Content-Type", "text/html", false);
+
+      var body = "<html>\
+                   <head>\
+                    <title>416 Requested Range Not Satisfiable</title></head>\
+                    <body>\
+                     <h1>416 Requested Range Not Satisfiable</h1>\
+                     <p>The byte range was not valid for the\
+                        requested resource.\
+                     </p>\
+                    </body>\
+                  </html>";
+      response.bodyOutputStream.write(body, body.length);
+    },
+    500: function(metadata, response)
+    {
       response.setStatusLine(metadata.httpVersion,
                              500,
                              "Internal Server Error");
@@ -1967,7 +3082,8 @@ ServerHandler.prototype =
                   </html>";
       response.bodyOutputStream.write(body, body.length);
     },
-    501: function(metadata, response) {
+    501: function(metadata, response)
+    {
       response.setStatusLine(metadata.httpVersion, 501, "Not Implemented");
       response.setHeader("Content-Type", "text/html", false);
 
@@ -1980,7 +3096,8 @@ ServerHandler.prototype =
                   </html>";
       response.bodyOutputStream.write(body, body.length);
     },
-    505: function(metadata, response) {
+    505: function(metadata, response)
+    {
       response.setStatusLine("1.1", 505, "HTTP Version Not Supported");
       response.setHeader("Content-Type", "text/html", false);
 
@@ -1996,17 +3113,21 @@ ServerHandler.prototype =
     }
   },
 
-  /* Contains handlers for the default set of URIs contained in this server. */
-  _defaultPaths: {
-    "/": function(metadata, response) {
+  /**
+   * Contains handlers for the default set of URIs contained in this server.
+   */
+  _defaultPaths:
+  {
+    "/": function(metadata, response)
+    {
       response.setStatusLine(metadata.httpVersion, 200, "OK");
       response.setHeader("Content-Type", "text/html", false);
 
       var body = "<html>\
-                    <head><title>MozJSHTTP</title></head>\
+                    <head><title>httpd.js</title></head>\
                     <body>\
-                      <h1>MozJSHTTP</h1>\
-                      <p>If you're seeing this page, MozJSHTTP is up and\
+                      <h1>httpd.js</h1>\
+                      <p>If you're seeing this page, httpd.js is up and\
                         serving requests!  Now set a base path and serve some\
                         files!</p>\
                     </body>\
@@ -2015,11 +3136,15 @@ ServerHandler.prototype =
       response.bodyOutputStream.write(body, body.length);
     },
 
-    "/trace": function(metadata, response) {
+    "/trace": function(metadata, response)
+    {
       response.setStatusLine(metadata.httpVersion, 200, "OK");
       response.setHeader("Content-Type", "text/plain", false);
 
-      var body = "Request (semantically equivalent, slightly reformatted):\n\n";
+      var body = "Request-URI: " +
+                 metadata.scheme + "://" + metadata.host + ":" + metadata.port +
+                 metadata.path + "\n\n";
+      body += "Request (semantically equivalent, slightly reformatted):\n\n";
       body += metadata.method + " " + metadata.path;
 
       if (metadata.queryString)
@@ -2041,14 +3166,21 @@ ServerHandler.prototype =
   }
 };
 
-/* Maps absolute paths to files on the local file system (as nsILocalFiles). */
-function FileMap() {
+
+/**
+ * Maps absolute paths to files on the local file system (as nsILocalFiles).
+ */
+function FileMap()
+{
   /** Hash which will map paths to nsILocalFiles. */
   this._map = {};
 }
-FileMap.prototype = {
+FileMap.prototype =
+{
   // PUBLIC API
-  /* Maps key to a clone of the nsILocalFile value if value is non-null;
+
+  /**
+   * Maps key to a clone of the nsILocalFile value if value is non-null;
    * otherwise, removes any extant mapping for key.
    *
    * @param key : string
@@ -2056,14 +3188,16 @@ FileMap.prototype = {
    * @param value : nsILocalFile
    *   the file to map to key, or null to remove a mapping
    */
-  put: function(key, value) {
+  put: function(key, value)
+  {
     if (value)
       this._map[key] = value.clone();
     else
       delete this._map[key];
   },
 
-  /* Returns a clone of the nsILocalFile mapped to key, or null if no such
+  /**
+   * Returns a clone of the nsILocalFile mapped to key, or null if no such
    * mapping exists.
    *
    * @param key : string
@@ -2071,7 +3205,8 @@ FileMap.prototype = {
    * @returns nsILocalFile
    *   a clone of the mapped file, or null if no mapping exists
    */
-  get: function(key) {
+  get: function(key)
+  {
     var val = this._map[key];
     return val ? val.clone() : null;
   }
@@ -2079,6 +3214,7 @@ FileMap.prototype = {
 
 
 // Response CONSTANTS
+
 // token       = *<any CHAR except CTLs or separators>
 // CHAR        = <any US-ASCII character (0-127)>
 // CTL         = <any US-ASCII control character (0-31) and DEL (127)>
@@ -2108,53 +3244,147 @@ const IS_TOKEN_ARRAY =
    1, 1, 1, 0, 1, 0, 1];   // 120
 
 
-/* Determines whether the given character code is a CTL.
+/**
+ * Determines whether the given character code is a CTL.
  *
  * @param code : uint
  *   the character code
  * @returns boolean
  *   true if code is a CTL, false otherwise
  */
-function isCTL(code) {
+function isCTL(code)
+{
   return (code >= 0 && code <= 31) || (code == 127);
 }
 
-/* Represents a response to an HTTP request, encapsulating all details of that
+/**
+ * Represents a response to an HTTP request, encapsulating all details of that
  * response.  This includes all headers, the HTTP version, status code and
  * explanation, and the entity itself.
+ *
+ * @param connection : Connection
+ *   the connection over which this response is to be written
  */
-function Response() {
-  // delegate initialization behavior to .recycle(), for code-sharing;
-  // see there for field descriptions as well
-  this.recycle();
+function Response(connection)
+{
+  /** The connection over which this response will be written. */
+  this._connection = connection;
+
+  /**
+   * The HTTP version of this response; defaults to 1.1 if not set by the
+   * handler.
+   */
+  this._httpVersion = nsHttpVersion.HTTP_1_1;
+
+  /**
+   * The HTTP code of this response; defaults to 200.
+   */
+  this._httpCode = 200;
+
+  /**
+   * The description of the HTTP code in this response; defaults to "OK".
+   */
+  this._httpDescription = "OK";
+
+  /**
+   * An nsIHttpHeaders object in which the headers in this response should be
+   * stored.  This property is null after the status line and headers have been
+   * written to the network, and it may be modified up until it is cleared,
+   * except if this._finished is set first (in which case headers are written
+   * asynchronously in response to a finish() call not preceded by
+   * flushHeaders()).
+   */
+  this._headers = new nsHttpHeaders();
+
+  /**
+   * Set to true when this response is ended (completely constructed if possible
+   * and the connection closed); further actions on this will then fail.
+   */
+  this._ended = false;
+
+  /**
+   * A stream used to hold data written to the body of this response.
+   */
+  this._bodyOutputStream = null;
+
+  /**
+   * A stream containing all data that has been written to the body of this
+   * response so far.  (Async handlers make the data contained in this
+   * unreliable as a way of determining content length in general, but auxiliary
+   * saved information can sometimes be used to guarantee reliability.)
+   */
+  this._bodyInputStream = null;
+
+  /**
+   * The stream copier which copies data written to the body by a request
+   * handler to the network.
+   */
+  this._asyncCopier = null;
+
+  /**
+   * True if this response has been designated as being processed
+   * asynchronously rather than for the duration of a single call to
+   * nsIHttpRequestHandler.handle.
+   */
+  this._processAsync = false;
+
+  /**
+   * True iff finish() has been called on this, signaling that no more changes
+   * to this may be made.
+   */
+  this._finished = false;
 }
-Response.prototype = {
+Response.prototype =
+{
   // PUBLIC CONSTRUCTION API
+
+  //
+  // see nsIHttpResponse.bodyOutputStream
+  //
   get bodyOutputStream()
   {
-    this._ensureAlive();
+    if (this._finished)
+      throw Cr.NS_ERROR_NOT_AVAILABLE;
 
-    if (!this._bodyOutputStream && !this._outputProcessed) {
-      const PR_UINT32_MAX = Math.pow(2, 32) - 1;
-      var pipe = new Pipe(false, false, 0, PR_UINT32_MAX, null);
+    if (!this._bodyOutputStream)
+    {
+      var pipe = new Pipe(false, false, Response.SEGMENT_SIZE, PR_UINT32_MAX,
+                          null);
       this._bodyOutputStream = pipe.outputStream;
       this._bodyInputStream = pipe.inputStream;
+      if (this._processAsync)
+        this._startAsyncProcessor();
     }
+
     return this._bodyOutputStream;
   },
 
-  write: function(data) {
+  //
+  // see nsIHttpResponse.write
+  //
+  write: function(data)
+  {
+    if (this._finished)
+      throw Cr.NS_ERROR_NOT_AVAILABLE;
+
     var dataAsString = String(data);
     this.bodyOutputStream.write(dataAsString, dataAsString.length);
   },
 
-  setStatusLine: function(httpVersion, code, description) {
+  //
+  // see nsIHttpResponse.setStatusLine
+  //
+  setStatusLine: function(httpVersion, code, description)
+  {
+    if (!this._headers || this._finished)
+      throw Cr.NS_ERROR_NOT_AVAILABLE;
     this._ensureAlive();
 
     if (!(code >= 0 && code < 1000))
       throw Cr.NS_ERROR_INVALID_ARG;
 
-    try {
+    try
+    {
       var httpVer;
       // avoid version construction for the most common cases
       if (!httpVersion || httpVersion == "1.1")
@@ -2163,7 +3393,9 @@ Response.prototype = {
         httpVer = nsHttpVersion.HTTP_1_0;
       else
         httpVer = new nsHttpVersion(httpVersion);
-    } catch (e) {
+    }
+    catch (e)
+    {
       throw Cr.NS_ERROR_INVALID_ARG;
     }
 
@@ -2184,13 +3416,69 @@ Response.prototype = {
     this._httpVersion = httpVer;
   },
 
-  setHeader: function(name, value, merge) {
+  //
+  // see nsIHttpResponse.setHeader
+  //
+  setHeader: function(name, value, merge)
+  {
+    if (!this._headers || this._finished)
+      throw Cr.NS_ERROR_NOT_AVAILABLE;
     this._ensureAlive();
+
     this._headers.setHeader(name, value, merge);
   },
 
+  //
+  // see nsIHttpResponse.processAsync
+  //
+  processAsync: function()
+  {
+    if (this._finished)
+      throw Cr.NS_ERROR_UNEXPECTED;
+    if (this._processAsync)
+      return;
+
+    dumpn("*** processing connection " + this._connection.number + " async");
+    this._processAsync = true;
+
+    /*
+     * Either the bodyOutputStream getter or this method is responsible for
+     * starting the asynchronous processor and catching writes of data to the
+     * response body of async responses as they happen, for the purpose of
+     * forwarding those writes to the actual connection's output stream.
+     * If bodyOutputStream is accessed first, calling this method will create
+     * the processor (when it first is clear that body data is to be written
+     * immediately, not buffered).  If this method is called first, accessing
+     * bodyOutputStream will create the processor.  If only this method is
+     * called, we'll write nothing, neither headers nor the non-existent body,
+     * until finish() is called.  Since that delay is easily avoided by simply
+     * getting bodyOutputStream or calling write(""), we don't worry about it.
+     */
+    if (this._bodyOutputStream && !this._asyncCopier)
+      this._startAsyncProcessor();
+  },
+
+  //
+  // see nsIHttpResponse.finish
+  //
+  finish: function()
+  {
+    if (!this._processAsync)
+      throw Cr.NS_ERROR_UNEXPECTED;
+    if (this._finished)
+      return;
+
+    dumpn("*** finishing async connection " + this._connection.number);
+    this._startAsyncProcessor(); // in case bodyOutputStream was never accessed
+    if (this._bodyOutputStream)
+      this._bodyOutputStream.close();
+    this._finished = true;
+  },
+
   // POST-CONSTRUCTION API (not exposed externally)
-  /* The HTTP version number of this, as a string (e.g. "1.1").
+
+  /**
+   * The HTTP version number of this, as a string (e.g. "1.1").
    */
   get httpVersion()
   {
@@ -2198,7 +3486,8 @@ Response.prototype = {
     return this._httpVersion.toString();
   },
 
-  /* The HTTP status code of this response, as a string of three characters per
+  /**
+   * The HTTP status code of this response, as a string of three characters per
    * RFC 2616.
    */
   get httpCode()
@@ -2211,7 +3500,8 @@ Response.prototype = {
     return codeString;
   },
 
-  /* The description of the HTTP status code of this response, or "" if none is
+  /**
+   * The description of the HTTP status code of this response, or "" if none is
    * set.
    */
   get httpDescription()
@@ -2221,7 +3511,8 @@ Response.prototype = {
     return this._httpDescription;
   },
 
-  /* The headers in this response, as an nsHttpHeaders object.
+  /**
+   * The headers in this response, as an nsHttpHeaders object.
    */
   get headers()
   {
@@ -2230,121 +3521,428 @@ Response.prototype = {
     return this._headers;
   },
 
-  getHeader: function(name) {
-    this._ensureAlive();
-    return this._headers.getHeader(name);
-  },
-
-  /* A stream containing the data stored in the body of this response, which is
-   * the data written to this.bodyOutputStream.  Accessing this property will
-   * prevent further writes to bodyOutputStream and will remove that property
-   * from this, so the only time this should be accessed should be after this
-   * Response has been fully processed by a request handler.
-   */
-  get bodyInputStream()
+  //
+  // see nsHttpHeaders.getHeader
+  //
+  getHeader: function(name)
   {
     this._ensureAlive();
 
-    if (!this._outputProcessed) {
-      // if nothing was ever written to bodyOutputStream, we never created a
-      // pipe -- do so now by writing the empty string to this.bodyOutputStream
-      if (!this._bodyOutputStream)
-        this.bodyOutputStream.write("", 0);
-
-      this._outputProcessed = true;
-    }
-    if (this._bodyOutputStream) {
-      this._bodyOutputStream.close(); // flushes buffered data
-      this._bodyOutputStream = null;  // don't try closing again
-    }
-    return this._bodyInputStream;
+    return this._headers.getHeader(name);
   },
 
   /**
-   * Resets this response to its original state, destroying any currently-held
-   * resources in the process.  Use this method to invalidate an existing
-   * response and reuse it later, such as when an arbitrary handler has
-   * failed and may have altered the visible state of this (such as by
-   * setting headers).
+   * Determines whether this response may be abandoned in favor of a newly
+   * constructed response, as determined by whether any of this response's data
+   * has been written to the network.
    *
-   * This method may be called on Responses which have been .destroy()ed.
+   * @returns boolean
+   *   true iff no data has been written to the network
    */
-  recycle: function() {
-    if (this._bodyOutputStream) {
-      this._bodyOutputStream.close();
-      this._bodyOutputStream = null;
-    }
-    if (this._bodyInputStream) {
-      this._bodyInputStream.close();
-      this._bodyInputStream = null;
-    }
-
-    /* The HTTP version of this response; defaults to 1.1 if not set by the
-     * handler.
-     */
-    this._httpVersion = nsHttpVersion.HTTP_1_1;
-
-    /* The HTTP code of this response; defaults to 200.
-     */
-    this._httpCode = 200;
-
-    /* The description of the HTTP code in this response; defaults to "OK".
-     */
-    this._httpDescription = "OK";
-
-    /* An nsIHttpHeaders object in which the headers in this response should be
-     * stored.
-     */
-    this._headers = new nsHttpHeaders();
-
-    /* Set to true when this has its .destroy() method called; further actions on
-     * this will then fail.
-     */
-    this._destroyed = false;
-
-    /* Flipped when this.bodyOutputStream is closed; prevents the body from being
-     * reopened after it has data written to it and has been closed.
-     */
-    this._outputProcessed = false;
+  partiallySent: function()
+  {
+    dumpn("*** partiallySent()");
+    return this._headers === null;
   },
 
-  /* Destroys all resources held by this.  After this method is called, no other
-   * method or property on this must be accessed (except .recycle, which may be
-   * used to reuse this Response).  Although in many situations resources may be
-   * automagically cleaned up, it is highly recommended that this method be
-   * called whenever a Response is no longer used, both as a precaution and
-   * because this implementation may not always do so.
-   *
-   * This method is idempotent.
+  /**
+   * If necessary, kicks off the remaining request processing needed to be done
+   * after a request handler performs its initial work upon this response.
    */
-  destroy: function() {
-    if (this._destroyed)
+  complete: function()
+  {
+    dumpn("*** complete()");
+    if (this._processAsync)
       return;
 
-    if (this._bodyOutputStream) {
-      this._bodyOutputStream.close();
-      this._bodyOutputStream = null;
-    }
-    if (this._bodyInputStream) {
-      this._bodyInputStream.close();
-      this._bodyInputStream = null;
-    }
+    NS_ASSERT(!this.partiallySent(), "completing a partially-sent response?");
 
-    this._destroyed = true;
+    this._startAsyncProcessor();
+
+    // Now make sure we finish processing this request!
+    if (this._bodyOutputStream)
+      this._bodyOutputStream.close();
+  },
+
+  /**
+   * Abruptly ends processing of this response, usually due to an error in an
+   * incoming request but potentially due to a bad error handler.  Since we
+   * cannot handle the error in the usual way (giving an HTTP error page in response)
+   * because data may already have been sent, we stop processing this response
+   * and abruptly close the connection.
+   *
+   * @param e : Error
+   *   the exception which precipitated this abort, or null if no such exception
+   *   was generated
+   */
+  abort: function(e)
+  {
+    dumpn("*** abort(<" + e + ">)");
+
+    // This response will be ended by the processor if one was created.
+    var processor = this._asyncCopier;
+    if (processor)
+      processor.cancel(Cr.NS_BINDING_ABORTED);
+    else
+      this.end();
+  },
+
+  /**
+   * Closes this response's network connection, marks the response as finished,
+   * and notifies the server handler that the request is done being processed.
+   */
+  end: function()
+  {
+    NS_ASSERT(!this._ended, "ending this response twice?!?!");
+
+    this._connection.close();
+    if (this._bodyOutputStream)
+      this._bodyOutputStream.close();
+
+    this._finished = true;
+    this._ended = true;
   },
 
   // PRIVATE IMPLEMENTATION
-  /** Ensures that this hasn't had its .destroy() method called. */
-  _ensureAlive: function() {
-    if (this._destroyed)
-      throw Cr.NS_ERROR_FAILURE;
+
+  /**
+   * Signals that all modifications to the response status line and headers are
+   * complete and then sends that data over the network to the client.  Once
+   * this method completes, a different response to the request that resulted
+   * in this response cannot be sent -- the only possible action in case of
+   * error is to abort the response and close the connection.
+   */
+  _sendHeaders: function()
+  {
+    dumpn("*** _sendHeaders()");
+
+    NS_ASSERT(this._headers);
+
+    // request-line
+    var statusLine = "HTTP/" + this.httpVersion + " " +
+                     this.httpCode + " " +
+                     this.httpDescription + "\r\n";
+
+    // header post-processing
+
+    var headers = this._headers;
+    headers.setHeader("Connection", "close", false);
+    headers.setHeader("Server", "httpd.js", false);
+    if (!headers.hasHeader("Date"))
+      headers.setHeader("Date", toDateString(Date.now()), false);
+
+    // Any response not being processed asynchronously must have an associated
+    // Content-Length header for reasons of backwards compatibility with the
+    // initial server, which fully buffered every response before sending it.
+    // Beyond that, however, it's good to do this anyway because otherwise it's
+    // impossible to test behaviors that depend on the presence or absence of a
+    // Content-Length header.
+    if (!this._processAsync)
+    {
+      dumpn("*** non-async response, set Content-Length");
+
+      var bodyStream = this._bodyInputStream;
+      var avail = bodyStream ? bodyStream.available() : 0;
+
+      // XXX assumes stream will always report the full amount of data available
+      headers.setHeader("Content-Length", "" + avail, false);
+    }
+
+
+    // construct and send response
+    dumpn("*** header post-processing completed, sending response head...");
+
+    // request-line
+    var preamble = statusLine;
+
+    // headers
+    var headEnum = headers.enumerator;
+    while (headEnum.hasMoreElements())
+    {
+      var fieldName = headEnum.getNext()
+                              .QueryInterface(Ci.nsISupportsString)
+                              .data;
+      var values = headers.getHeaderValues(fieldName);
+      for (var i = 0, sz = values.length; i < sz; i++)
+        preamble += fieldName + ": " + values[i] + "\r\n";
+    }
+
+    // end request-line/headers
+    preamble += "\r\n";
+
+    var connection = this._connection;
+    try
+    {
+      connection.output.write(preamble, preamble.length);
+    }
+    catch (e)
+    {
+      // Connection closed already?  Even if not, failure to write the response
+      // means we probably will fail later anyway, so in the interests of
+      // avoiding exceptions we'll (possibly) close the connection and return.
+      dumpn("*** error writing headers to socket: " + e);
+      response.end();
+      return;
+    }
+
+    // Forbid setting any more headers or modifying the request line.
+    this._headers = null;
+  },
+
+  /**
+   * Sends the status line and headers of this response if they haven't been
+   * sent and initiates the process of copying data written to this response's
+   * body to the network.
+   */
+  _startAsyncProcessor: function()
+  {
+    dumpn("*** _startAsyncProcessor()");
+
+    // Handle cases where we're being called a second time.  The former case
+    // happens when this is triggered both by complete() and by processAsync(),
+    // while the latter happens when processAsync() in conjunction with sent
+    // data causes abort() to be called.
+    if (this._asyncCopier || this._ended)
+    {
+      dumpn("*** ignoring second call to _startAsyncProcessor");
+      return;
+    }
+
+    // Send headers if they haven't been sent already.
+    if (this._headers)
+      this._sendHeaders();
+    NS_ASSERT(this._headers === null, "flushHeaders() failed?");
+
+    var response = this;
+    var connection = this._connection;
+
+    // If no body data was written, we're done
+    if (!this._bodyInputStream)
+    {
+      dumpn("*** empty body, response finished");
+      response.end();
+      return;
+    }
+
+    var copyObserver =
+      {
+        onStartRequest: function(request, context)
+        {
+          dumpn("*** onStartRequest");
+        },
+
+        onStopRequest: function(request, cx, statusCode)
+        {
+          dumpn("*** onStopRequest [status=" + statusCode.toString(16) + "]");
+
+          if (!Components.isSuccessCode(statusCode))
+          {
+            dumpn("*** WARNING: non-success statusCode in onStopRequest: " +
+                  statusCode);
+          }
+
+          response.end();
+        },
+
+        QueryInterface: function(aIID)
+        {
+          if (aIID.equals(Ci.nsIRequestObserver) ||
+              aIID.equals(Ci.nsISupports))
+            return this;
+
+          throw Cr.NS_ERROR_NO_INTERFACE;
+        }
+      };
+
+    dumpn("*** starting async copier of body data...");
+    var copier = this._asyncCopier =
+      new WriteThroughCopier(this._bodyInputStream, this._connection.output,
+                            copyObserver, null);
+  },
+
+  /** Ensures that this hasn't been ended. */
+  _ensureAlive: function()
+  {
+    NS_ASSERT(!this._ended, "not handling response lifetime correctly");
+  }
+};
+
+/**
+ * Size of the segments in the buffer used in storing response data and writing
+ * it to the socket.
+ */
+Response.SEGMENT_SIZE = 8192;
+
+/** Serves double duty in WriteThroughCopier implementation. */
+function notImplemented()
+{
+  throw Cr.NS_ERROR_NOT_IMPLEMENTED;
+}
+
+/**
+ * Copies data from input to output as it becomes available.
+ *
+ * @param input : nsIAsyncInputStream
+ *   the stream from which data is to be read
+ * @param output : nsIOutputStream
+ * @param observer : nsIRequestObserver
+ *   an observer which will be notified when
+ * @param context : nsISupports
+ *   context passed to observer when notified of start/stop
+ * @throws NS_ERROR_NULL_POINTER
+ *   if input, output, or observer are null
+ */
+function WriteThroughCopier(input, output, observer, context)
+{
+  if (!input || !output || !observer)
+    throw Cr.NS_ERROR_NULL_POINTER;
+
+  /** Stream from which data is being read. */
+  this._input = input;
+
+  /** Stream to which data is being written. */
+  this._output = new BinaryOutputStream(output);
+
+  /** Observer watching this copy. */
+  this._observer = observer;
+
+  /** Context for the observer watching this. */
+  this._context = context;
+
+  /** False until cancel() is called, when this copy is completed. */
+  this._completed = false;
+
+  /** Required by nsIRequest, meaningless. */
+  this.loadFlags = 0;
+  /** Required by nsIRequest, meaningless. */
+  this.loadGroup = null;
+  /** Required by nsIRequest, meaningless. */
+  this.name = "response-body-copy";
+
+  /** Status of this request. */
+  this.status = Cr.NS_OK;
+
+  // start copying
+  try
+  {
+    observer.onStartRequest(this, context);
+    this._waitForData();
+  }
+  catch (e)
+  {
+    dumpn("!!! error starting copy: " + e);
+    this.cancel(Cr.NS_ERROR_UNEXPECTED);
+  }
+}
+WriteThroughCopier.prototype =
+{
+  /**
+   * Cancels data copying and asynchronously notifies the observer with the
+   * given error code.
+   *
+   * @param status : nsresult
+   *   the status to pass to the observer when data copying has been canceled
+   */
+  cancel: function(status)
+  {
+    dumpn("*** cancel(" + status.toString(16) + ")");
+
+    if (this._completed)
+      return;
+
+    this._completed = true;
+    this.status = status;
+
+    var self = this;
+    var cancelEvent =
+      {
+        run: function()
+        {
+          dumpn("*** onStopRequest async callback");
+          try
+          {
+            self._observer.onStopRequest(self, self._context, self.status);
+          }
+          catch (e)
+          {
+            NS_ASSERT(false, "how are we throwing an exception here?  " + e);
+          }
+        }
+      };
+    gThreadManager.currentThread
+                  .dispatch(cancelEvent, Ci.nsIThreadManager.DISPATCH_NORMAL);
+  },
+
+  /**
+   * Returns true if the provided input hasn't been fully consumed and cancel()
+   * hasn't been called.
+   */
+  isPending: function()
+  {
+    return !this._completed;
+  },
+
+  /** Not implemented, don't use! */
+  suspend: notImplemented,
+  /** Not implemented, don't use! */
+  resume: notImplemented,
+
+  /**
+   * Receives a more-data-in-input notification and writes the corresponding
+   * data to the output.
+   */
+  onInputStreamReady: function()
+  {
+    dumpn("*** onInputStreamReady");
+    if (this._completed)
+      return;
+
+    var input = new BinaryInputStream(this._input);
+    try
+    {
+      var avail = input.available();
+      var data = input.readByteArray(avail);
+      this._output.writeByteArray(data, data.length);
+    }
+    catch (e)
+    {
+      if (e === Cr.NS_BASE_STREAM_CLOSED ||
+          e.result === Cr.NS_BASE_STREAM_CLOSED)
+      {
+        this.cancel(Cr.NS_OK);
+      }
+      else
+      {
+        dumpn("!!! error copying from input to output: " + e);
+        this.cancel(Cr.NS_ERROR_UNEXPECTED);
+      }
+      return;
+    }
+
+    if (avail === 0)
+      this.cancel(Cr.NS_OK);
+    else
+      this._waitForData();
+  },
+
+  /**
+   * Kicks off another wait for more data to be available from the input stream.
+   */
+  _waitForData: function()
+  {
+    dumpn("*** _waitForData");
+    this._input.asyncWait(this, 0, 1, gThreadManager.mainThread);
   }
 };
 
 
-/* A container for utility functions used with HTTP headers. */
-const headerUtils = {
-  /* Normalizes fieldName (by converting it to lowercase) and ensures it is a
+/**
+ * A container for utility functions used with HTTP headers.
+ */
+const headerUtils =
+{
+  /**
+   * Normalizes fieldName (by converting it to lowercase) and ensures it is a
    * valid header field name (although not necessarily one specified in RFC
    * 2616).
    *
@@ -2354,13 +3952,16 @@ const headerUtils = {
    *   fieldName converted to lowercase if it is a valid header, for characters
    *   where case conversion is possible
    */
-  normalizeFieldName: function(fieldName) {
+  normalizeFieldName: function(fieldName)
+  {
     if (fieldName == "")
       throw Cr.NS_ERROR_INVALID_ARG;
 
-    for (var i = 0, sz = fieldName.length; i < sz; i++) {
-      if (!IS_TOKEN_ARRAY[fieldName.charCodeAt(i)]) {
-        // logger.debug(fieldName + " is not a valid header field name!");
+    for (var i = 0, sz = fieldName.length; i < sz; i++)
+    {
+      if (!IS_TOKEN_ARRAY[fieldName.charCodeAt(i)])
+      {
+        dumpn(fieldName + " is not a valid header field name!");
         throw Cr.NS_ERROR_INVALID_ARG;
       }
     }
@@ -2368,7 +3969,8 @@ const headerUtils = {
     return fieldName.toLowerCase();
   },
 
-  /* Ensures that fieldValue is a valid header field value (although not
+  /**
+   * Ensures that fieldValue is a valid header field value (although not
    * necessarily as specified in RFC 2616 if the corresponding field name is
    * part of the HTTP protocol), normalizes the value if it is, and
    * returns the normalized value.
@@ -2380,7 +3982,8 @@ const headerUtils = {
    * @returns string
    *   fieldValue as a normalized HTTP header field value
    */
-  normalizeFieldValue: function(fieldValue) {
+  normalizeFieldValue: function(fieldValue)
+  {
     // field-value    = *( field-content | LWS )
     // field-content  = <the OCTETs making up the field-value
     //                  and consisting of either *TEXT or combinations
@@ -2416,7 +4019,8 @@ const headerUtils = {
 
 
 
-/* Converts the given string into a string which is safe for use in an HTML
+/**
+ * Converts the given string into a string which is safe for use in an HTML
  * context.
  *
  * @param str : string
@@ -2424,7 +4028,8 @@ const headerUtils = {
  * @returns string
  *   an HTML-safe version of str
  */
-function htmlEscape(str) {
+function htmlEscape(str)
+{
   // this is naive, but it'll work
   var s = "";
   for (var i = 0; i < str.length; i++)
@@ -2433,7 +4038,8 @@ function htmlEscape(str) {
 }
 
 
-/* Constructs an object representing an HTTP version (see section 3.1).
+/**
+ * Constructs an object representing an HTTP version (see section 3.1).
  *
  * @param versionString
  *   a string of the form "#.#", where # is an non-negative decimal integer with
@@ -2441,7 +4047,8 @@ function htmlEscape(str) {
  * @throws
  *   if versionString does not specify a valid HTTP version number
  */
-function nsHttpVersion(versionString) {
+function nsHttpVersion(versionString)
+{
   var matches = /^(\d+)\.(\d+)$/.exec(versionString);
   if (!matches)
     throw "Not a valid HTTP version!";
@@ -2456,23 +4063,36 @@ function nsHttpVersion(versionString) {
       this.major < 0    || this.minor < 0)
     throw "Not a valid HTTP version!";
 }
-nsHttpVersion.prototype = {
-  /* Returns the standard string representation of the HTTP version represented
+nsHttpVersion.prototype =
+{
+  /**
+   * Returns the standard string representation of the HTTP version represented
    * by this (e.g., "1.1").
    */
-  toString: function () {
+  toString: function ()
+  {
     return this.major + "." + this.minor;
   },
 
-  /* Returns true if this represents the same HTTP version as otherVersion,
+  /**
+   * Returns true if this represents the same HTTP version as otherVersion,
    * false otherwise.
    *
    * @param otherVersion : nsHttpVersion
    *   the version to compare against this
    */
-  equals: function (otherVersion) {
+  equals: function (otherVersion)
+  {
     return this.major == otherVersion.major &&
            this.minor == otherVersion.minor;
+  },
+
+  /** True if this >= otherVersion, false otherwise. */
+  atLeast: function(otherVersion)
+  {
+    return this.major > otherVersion.major ||
+           (this.major == otherVersion.major &&
+            this.minor >= otherVersion.minor);
   }
 };
 
@@ -2480,7 +4100,8 @@ nsHttpVersion.HTTP_1_0 = new nsHttpVersion("1.0");
 nsHttpVersion.HTTP_1_1 = new nsHttpVersion("1.1");
 
 
-/* An object which stores HTTP headers for a request or response.
+/**
+ * An object which stores HTTP headers for a request or response.
  *
  * Note that since headers are case-insensitive, this object converts headers to
  * lowercase before storing them.  This allows the getHeader and hasHeader
@@ -2488,8 +4109,10 @@ nsHttpVersion.HTTP_1_1 = new nsHttpVersion("1.1");
  * values returned by .enumerator may not be equal case-sensitively to the
  * values passed to setHeader when adding headers to this.
  */
-function nsHttpHeaders() {
-  /* A hash of headers, with header field names as the keys and header field
+function nsHttpHeaders()
+{
+  /**
+   * A hash of headers, with header field names as the keys and header field
    * values as the values.  Header field names are case-insensitive, but upon
    * insertion here they are converted to lowercase.  Header field values are
    * normalized upon insertion to contain no leading or trailing whitespace.
@@ -2502,8 +4125,10 @@ function nsHttpHeaders() {
    */
   this._headers = {};
 }
-nsHttpHeaders.prototype = {
-  /* Sets the header represented by name and value in this.
+nsHttpHeaders.prototype =
+{
+  /**
+   * Sets the header represented by name and value in this.
    *
    * @param name : string
    *   the header name
@@ -2512,17 +4137,37 @@ nsHttpHeaders.prototype = {
    * @throws NS_ERROR_INVALID_ARG
    *   if name or value is not a valid header component
    */
-  setHeader: function(fieldName, fieldValue, merge) {
+  setHeader: function(fieldName, fieldValue, merge)
+  {
     var name = headerUtils.normalizeFieldName(fieldName);
     var value = headerUtils.normalizeFieldValue(fieldValue);
 
+    // The following three headers are stored as arrays because their real-world
+    // syntax prevents joining individual headers into a single header using 
+    // ",".  See also <http://hg.mozilla.org/mozilla-central/diff/9b2a99adc05e/netwerk/protocol/http/src/nsHttpHeaderArray.cpp#l77>
     if (merge && name in this._headers)
-      this._headers[name] = this._headers[name] + "," + value;
+    {
+      if (name === "www-authenticate" ||
+          name === "proxy-authenticate" ||
+          name === "set-cookie") 
+      {
+        this._headers[name].push(value);
+      }
+      else 
+      {
+        this._headers[name][0] += "," + value;
+        NS_ASSERT(this._headers[name].length === 1,
+            "how'd a non-special header have multiple values?")
+      }
+    }
     else
-      this._headers[name] = value;
+    {
+      this._headers[name] = [value];
+    }
   },
 
-  /* Returns the value for the header specified by this.
+  /**
+   * Returns the value for the header specified by this.
    *
    * @throws NS_ERROR_INVALID_ARG
    *   if fieldName does not constitute a valid header field name
@@ -2531,9 +4176,34 @@ nsHttpHeaders.prototype = {
    * @returns string
    *   the field value for the given header, possibly with non-semantic changes
    *   (i.e., leading/trailing whitespace stripped, whitespace runs replaced
-   *   with spaces, etc.) at the option of the implementation
+   *   with spaces, etc.) at the option of the implementation; multiple 
+   *   instances of the header will be combined with a comma, except for 
+   *   the three headers noted in the description of getHeaderValues
    */
-  getHeader: function(fieldName) {
+  getHeader: function(fieldName)
+  {
+    return this.getHeaderValues(fieldName).join("\n");
+  },
+
+  /**
+   * Returns the value for the header specified by fieldName as an array.
+   *
+   * @throws NS_ERROR_INVALID_ARG
+   *   if fieldName does not constitute a valid header field name
+   * @throws NS_ERROR_NOT_AVAILABLE
+   *   if the given header does not exist in this
+   * @returns [string]
+   *   an array of all the header values in this for the given
+   *   header name.  Header values will generally be collapsed
+   *   into a single header by joining all header values together
+   *   with commas, but certain headers (Proxy-Authenticate,
+   *   WWW-Authenticate, and Set-Cookie) violate the HTTP spec
+   *   and cannot be collapsed in this manner.  For these headers
+   *   only, the returned array may contain multiple elements if
+   *   that header has been added more than once.
+   */
+  getHeaderValues: function(fieldName)
+  {
     var name = headerUtils.normalizeFieldName(fieldName);
 
     if (name in this._headers)
@@ -2542,7 +4212,8 @@ nsHttpHeaders.prototype = {
       throw Cr.NS_ERROR_NOT_AVAILABLE;
   },
 
-  /* Returns true if a header with the given field name exists in this, false
+  /**
+   * Returns true if a header with the given field name exists in this, false
    * otherwise.
    *
    * @param fieldName : string
@@ -2552,12 +4223,14 @@ nsHttpHeaders.prototype = {
    * @returns boolean
    *   true if the header's present, false otherwise
    */
-  hasHeader: function(fieldName) {
+  hasHeader: function(fieldName)
+  {
     var name = headerUtils.normalizeFieldName(fieldName);
     return (name in this._headers);
   },
 
-  /* Returns a new enumerator over the field names of the headers in this, as
+  /**
+   * Returns a new enumerator over the field names of the headers in this, as
    * nsISupportsStrings.  The names returned will be in lowercase, regardless of
    * how they were input using setHeader (header names are case-insensitive per
    * RFC 2616).
@@ -2577,26 +4250,32 @@ nsHttpHeaders.prototype = {
 };
 
 
-/* Constructs an nsISimpleEnumerator for the given array of items.
+/**
+ * Constructs an nsISimpleEnumerator for the given array of items.
  *
  * @param items : Array
  *   the items, which must all implement nsISupports
  */
-function nsSimpleEnumerator(items) {
+function nsSimpleEnumerator(items)
+{
   this._items = items;
   this._nextIndex = 0;
 }
-nsSimpleEnumerator.prototype = {
-  hasMoreElements: function() {
+nsSimpleEnumerator.prototype =
+{
+  hasMoreElements: function()
+  {
     return this._nextIndex < this._items.length;
   },
-  getNext: function() {
+  getNext: function()
+  {
     if (!this.hasMoreElements())
       throw Cr.NS_ERROR_NOT_AVAILABLE;
 
     return this._items[this._nextIndex++];
   },
-  QueryInterface: function(aIID) {
+  QueryInterface: function(aIID)
+  {
     if (Ci.nsISimpleEnumerator.equals(aIID) ||
         Ci.nsISupports.equals(aIID))
       return this;
@@ -2606,84 +4285,160 @@ nsSimpleEnumerator.prototype = {
 };
 
 
-/* A representation of the data in an HTTP request.
+/**
+ * A representation of the data in an HTTP request.
  *
  * @param port : uint
  *   the port on which the server receiving this request runs
  */
-function Request(port) {
+function Request(port)
+{
+  /** Method of this request, e.g. GET or POST. */
   this._method = "";
-  this._path = "";
-  this._queryString = "";
-  this._host = "";
-  this._port = port;
-  this._host = "localhost"; // XXX or from environment or server itself?
 
-  /* The headers in this request.
+  /** Path of the requested resource; empty paths are converted to '/'. */
+  this._path = "";
+
+  /** Query string, if any, associated with this request (not including '?'). */
+  this._queryString = "";
+
+  /** Scheme of requested resource, usually http, always lowercase. */
+  this._scheme = "http";
+
+  /** Hostname on which the requested resource resides. */
+  this._host = undefined;
+
+  /** Port number over which the request was received. */
+  this._port = port;
+
+  var bodyPipe = new Pipe(false, false, 0, PR_UINT32_MAX, null);
+
+  /** Stream from which data in this request's body may be read. */
+  this._bodyInputStream = bodyPipe.inputStream;
+
+  /** Stream to which data in this request's body is written. */
+  this._bodyOutputStream = bodyPipe.outputStream;
+
+  /**
+   * The headers in this request.
    */
   this._headers = new nsHttpHeaders();
 
-  /* For the addition of ad-hoc properties and new functionality without having
+  /**
+   * For the addition of ad-hoc properties and new functionality without having
    * to change nsIHttpRequestMetadata every time; currently lazily created,
    * as its only use is in directory listings.
    */
   this._bag = null;
 }
-Request.prototype = {
+Request.prototype =
+{
   // SERVER METADATA
+
+  //
+  // see nsIHttpRequestMetadata.scheme
+  //
+  get scheme()
+  {
+    return this._scheme;
+  },
+
+  //
+  // see nsIHttpRequestMetadata.host
+  //
   get host()
   {
     return this._host;
   },
 
+  //
+  // see nsIHttpRequestMetadata.port
+  //
   get port()
   {
     return this._port;
   },
 
   // REQUEST LINE
+
+  //
+  // see nsIHttpRequestMetadata.method
+  //
   get method()
   {
     return this._method;
   },
 
+  //
+  // see nsIHttpRequestMetadata.httpVersion
+  //
   get httpVersion()
   {
     return this._httpVersion.toString();
   },
 
+  //
+  // see nsIHttpRequestMetadata.path
+  //
   get path()
   {
     return this._path;
   },
 
+  //
+  // see nsIHttpRequestMetadata.queryString
+  //
   get queryString()
   {
     return this._queryString;
   },
 
   // HEADERS
+
+  //
+  // see nsIHttpRequestMetadata.getHeader
+  //
   getHeader: function(name)
   {
     return this._headers.getHeader(name);
   },
 
+  //
+  // see nsIHttpRequestMetadata.hasHeader
+  //
   hasHeader: function(name)
   {
     return this._headers.hasHeader(name);
   },
 
+  //
+  // see nsIHttpRequestMetadata.headers
+  //
   get headers()
   {
     return this._headers.enumerator;
   },
 
+  //
+  // see nsIPropertyBag.enumerator
+  //
   get enumerator()
   {
     this._ensurePropertyBag();
     return this._bag.enumerator;
   },
 
+  //
+  // see nsIHttpRequestMetadata.headers
+  //
+  get bodyInputStream()
+  {
+    return this._bodyInputStream;
+  },
+
+  //
+  // see nsIPropertyBag.getProperty
+  //
   getProperty: function(name) 
   {
     this._ensurePropertyBag();
@@ -2698,18 +4453,24 @@ Request.prototype = {
   }
 };
 
+
 // XPCOM trappings
-/* Creates a factory for instances of an object created using the passed-in
+
+/**
+ * Creates a factory for instances of an object created using the passed-in
  * constructor.
  */
-function makeFactory(ctor) {
-  function ci(outer, iid) {
+function makeFactory(ctor)
+{
+  function ci(outer, iid)
+  {
     if (outer != null)
       throw Components.results.NS_ERROR_NO_AGGREGATION;
     return (new ctor()).QueryInterface(iid);
   } 
 
-  return { createInstance: ci,
+  return {
+           createInstance: ci,
            lockFactory: function(lock) { },
            QueryInterface: function(aIID)
            {
@@ -2722,9 +4483,11 @@ function makeFactory(ctor) {
 }
 
 /** The XPCOM module containing the HTTP server. */
-const module = {
+const module =
+{
   // nsISupports
-  QueryInterface: function(aIID) {
+  QueryInterface: function(aIID)
+  {
     if (Ci.nsIModule.equals(aIID) ||
         Ci.nsISupports.equals(aIID))
       return this;
@@ -2732,24 +4495,29 @@ const module = {
   },
 
   // nsIModule
-  registerSelf: function(compMgr, fileSpec, location, type) {
+  registerSelf: function(compMgr, fileSpec, location, type)
+  {
     compMgr = compMgr.QueryInterface(Ci.nsIComponentRegistrar);
     
-    for (var key in this._objects) {
+    for (var key in this._objects)
+    {
       var obj = this._objects[key];
       compMgr.registerFactoryLocation(obj.CID, obj.className, obj.contractID,
                                                fileSpec, location, type);
     }
   },
-  unregisterSelf: function (compMgr, location, type) {
+  unregisterSelf: function (compMgr, location, type)
+  {
     compMgr = compMgr.QueryInterface(Ci.nsIComponentRegistrar);
 
-    for (var key in this._objects) {
+    for (var key in this._objects)
+    {
       var obj = this._objects[key];
       compMgr.unregisterFactoryLocation(obj.CID, location);
     }
   },
-  getClassObject: function(compMgr, cid, iid) {
+  getClassObject: function(compMgr, cid, iid)
+  {
     if (!iid.equals(Ci.nsIFactory))
       throw Cr.NS_ERROR_NOT_IMPLEMENTED;
 
@@ -2761,7 +4529,8 @@ const module = {
     
     throw Cr.NS_ERROR_NO_INTERFACE;
   },
-  canUnload: function(compMgr) {
+  canUnload: function(compMgr)
+  {
     return true;
   },
 
@@ -2772,7 +4541,7 @@ const module = {
     {
       CID:         Components.ID("{54ef6f81-30af-4b1d-ac55-8ba811293e41}"),
       contractID:  "@mozilla.org/server/jshttp;1",
-      className:   "MozJSHTTP server",
+      className:   "httpd.js server",
       factory:     makeFactory(nsHttpServer)
     }
   }
@@ -2780,7 +4549,8 @@ const module = {
 
 
 /** NSGetModule, so this code can be used as a JS component. */
-function NSGetModule (compMgr, fileSpec) {
+function NSGetModule(compMgr, fileSpec)
+{
   return module;
 }
 
@@ -2812,47 +4582,52 @@ function NSGetModule (compMgr, fileSpec) {
  *   /home/jwalden/index.html); if this is omitted, only the default URLs in
  *   this server implementation will be functional
  */
-// function server(port, basePath) {
-//   if (basePath) {
-//     var lp = Cc["@mozilla.org/file/local;1"]
-//                .createInstance(Ci.nsILocalFile);
-//     lp.initWithPath(basePath);
-//   }
-// 
-//   // if you're running this, you probably want to see debugging info
-//   DEBUG = true;
-// 
-//   var srv = new nsHttpServer();
-//   if (lp)
-//     srv.registerDirectory("/", lp);
-//   srv.registerContentType("sjs", SJS_TYPE);
-//   srv.start(port);
-// 
-//   var thread = gThreadManager.currentThread;
-//   while (!srv.isStopped())
-//     thread.processNextEvent(true);
-// 
-//   // get rid of any pending requests
-//   while (thread.hasPendingEvents())
-//     thread.processNextEvent(true);
-// 
-//   DEBUG = false;
-// }
-
-function getServer (port, basePath) {
-  if (basePath) {
+function server(port, basePath)
+{
+  if (basePath)
+  {
     var lp = Cc["@mozilla.org/file/local;1"]
                .createInstance(Ci.nsILocalFile);
     lp.initWithPath(basePath);
   }
-   DEBUG = true;
 
-   var srv = new nsHttpServer(port);
+  // if you're running this, you probably want to see debugging info
+  DEBUG = true;
+
+  var srv = new nsHttpServer();
+  if (lp)
+    srv.registerDirectory("/", lp);
+  srv.registerContentType("sjs", SJS_TYPE);
+  srv.identity.setPrimary("http", "localhost", port);
+  srv.start(port);
+
+  var thread = gThreadManager.currentThread;
+  while (!srv.isStopped())
+    thread.processNextEvent(true);
+
+  // get rid of any pending requests
+  while (thread.hasPendingEvents())
+    thread.processNextEvent(true);
+
+  DEBUG = false;
+}
+
+function getServer (port, basePath) {
+  
+  if (basePath) {
+    var lp = Cc["@mozilla.org/file/local;1"]
+               .createInstance(Ci.nsILocalFile);
+    lp.initWithPath(basePath);
+   }
+   
+   var srv = new nsHttpServer();
    if (lp)
      srv.registerDirectory("/", lp);
    srv.registerContentType("sjs", SJS_TYPE);
+   srv.identity.setPrimary("http", "localhost", port);
+   srv.start(port);
    
+   srv._port = port;
+
    return srv;
 }
-
-// var httpd = {}; Components.utils.import('resource://mozmill/stdlib/httpd.js', httpd);
