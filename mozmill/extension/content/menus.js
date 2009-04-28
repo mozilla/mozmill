@@ -64,11 +64,15 @@ function openFile(){
 }
 
 function saveAsFile() {
-  var openFn = utils.saveAsFile(window);
+  var openFn = utils.saveAsFile(window);  
   if (openFn){
+    //save the old tab
+    var oldFn = window.openFn;
     window.openFn = openFn;
     var data = utils.getFile(window.openFn);
     editAreaLoader.openFile('editorInput', {text:data,title:getFileName(window.openFn),id:window.openFn});
+    //close the old tab
+    editAreaLoader.closeFile('editorInput', oldFn);
     return true;
   }
   return false;
