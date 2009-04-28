@@ -21,6 +21,13 @@ function isAccel(e){
 window.onkeypress = function(e){
   if (isAccel(e)){ 
     switch(String.fromCharCode(e.charCode).toLowerCase()){
+      case 'z':
+         var node = window.frames['frame_editorInput'].document.getElementById('tab_file_'+encodeURIComponent(window.openFn));
+         var disp = node.getElementsByTagName("strong")[0].style.display;
+         if (disp != "inline"){
+           return false;
+         }
+      break;
       case 'g':
         e.preventDefault();
         align();

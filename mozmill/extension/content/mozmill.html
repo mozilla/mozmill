@@ -301,6 +301,9 @@
          editAreaLoader.openFile('editorInput', {text:'',title:getFileName(window.openFn),id:window.openFn});
          
          function alpha(e) {
+           if (e.ctrlKey || e.metaKey){
+             return false;
+           }
            if ((e.charCode > 96) && (e.charCode < 123)){
              return true;
            }
