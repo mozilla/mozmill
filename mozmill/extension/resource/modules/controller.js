@@ -128,7 +128,6 @@ function waitForElement(elem, timeout, interval) {
 }
 
 var Menu = function (elements) {
-  this.nodes = elements;
   for each(node in elements) {
     if (node.tagName){
       if (node.tagName == "menu") {
@@ -143,22 +142,6 @@ var Menu = function (elements) {
     }
   }
 };
-Menu.prototype.reload = function () {
-  var elements = this.nodes;
-  for each(node in elements) {
-    if (node.tagName){
-      if (node.tagName == "menu") {
-        var label = node.getAttribute("label");
-        var id = node.id;
-        this[label] = new Menu(node.getElementsByTagName("menupopup")[0].childNodes);
-        this[id] = this[label];
-      } else if (node.tagName == "menuitem") {
-        this[node.getAttribute("label")] = node;
-        this[node.id] = node;
-      } 
-    }
-  }
-}
 
 
 var MozMillController = function (window) {    
@@ -237,7 +220,7 @@ MozMillController.prototype.click = function(el){
     catch(err){ }
     
     //launch the click on firefox chrome
-    if (element.baseURI.indexOf('chrome://') != -1){
+    if ((element.click) || (element.baseURI.indexOf('chrome://') != -1)){
       element.click();
       frame.events.pass({'function':'Controller.click()'});
       return true;
@@ -350,6 +333,7 @@ MozMillController.prototype.type = function (el, text){
   try {
     events.triggerEvent(element, 'change', true);
   }catch(err){ }
+   
   frame.events.pass({'function':'Controller.type()'});
   return true;
 };
@@ -757,9 +741,6 @@ Tabs.prototype.__defineGetter__("activeTab", function() {
 Tabs.prototype.selectTab = function(index) {
   // GO in to tab manager and grab the tab by index and call focus.
 }
-Tabs.prototype.__defineGetter__("length", function () {
-  return this.controller.window.gBrowser.browsers.length;
-})
 
 
 function browserAdditions( controller ) {
@@ -779,12 +760,12 @@ function browserAdditions( controller ) {
       var _document = controller.tabs.activeTab;
     }
     
-    // if (interval == undefined) {
-    //   var interval = 100;
-    // }
-    // if (timeout == undefined) {
-    //   var timeout = 30000;
-    // }
+    if (interval == undefined) {
+      var interval = 100;
+    }
+    if (timeout == undefined) {
+      var timeout = 30000;
+    }
     waitForEval("subject.body.style != undefined", timeout, interval, _document);
     //Once the object is available it's somewhere between 1 and 3 seconds before the DOM
     //Actually becomes available to us
