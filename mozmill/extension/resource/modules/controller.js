@@ -144,7 +144,7 @@ var Menu = function (elements, doc) {
   }
 };
 Menu.prototype.reload = function () {
-  var elements = doc.getElementsByTagName('menubar')[0].childNodes;
+  var elements = this.doc.getElementsByTagName('menubar')[0].childNodes;
   for each(node in elements) {
     if (node.tagName){
       if (node.tagName == "menu") {
