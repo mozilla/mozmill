@@ -127,7 +127,8 @@ function waitForElement(elem, timeout, interval) {
   return waitForEval('subject.exists()', timeout, interval, elem);
 }
 
-var Menu = function (elements) {
+var Menu = function (elements, doc) {
+  this.doc = doc;
   for each(node in elements) {
     if (node.tagName){
       if (node.tagName == "menu") {
@@ -142,6 +143,23 @@ var Menu = function (elements) {
     }
   }
 };
+Menu.prototype.reload = function () {
+  var elements = doc.getElementsByTagName('menubar')[0].childNodes;
+  for each(node in elements) {
+    if (node.tagName){
+      if (node.tagName == "menu") {
+        var label = node.getAttribute("label");
+        var id = node.id;
+        this[label] = new Menu(node.getElementsByTagName("menupopup")[0].childNodes);
+        this[id] = this[label];
+      } else if (node.tagName == "menuitem") {
+        this[node.getAttribute("label")] = node;
+        this[node.id] = node;
+      } 
+    }
+  }
+}
+
 
 
 var MozMillController = function (window) {    
@@ -162,7 +180,7 @@ var MozMillController = function (window) {
 
   //this will break on windows for addons and downloads controller
   try {
-    this.menus = new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes);  
+    this.menus = new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes, this.window.document);  
   } catch(err){}
   
 }
