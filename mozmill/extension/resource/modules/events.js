@@ -39,6 +39,7 @@
 var EXPORTED_SYMBOLS = ["createEventObject", "triggerEvent", "getKeyCodeFromKeySequence",
                         "triggerKeyEvent", "triggerMouseEvent"];
                         
+var EventUtils = {}; Components.utils.import('resource://mozmill/modules/EventUtils.js', EventUtils); 
 var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
 
 var eventsLogger = logging.getLogger('eventsLogger');
@@ -95,6 +96,27 @@ var getKeyCodeFromKeySequence = function(keySequence) {
 }
 
 var triggerKeyEvent = function(element, eventType, keySequence, canBubble, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
+    //if the event is executed against the window instead of the node
+    //use event utils which does a sendKeys to the window
+    if ((element.defaultView != undefined) || (element.tagName == "window")){
+      var win = null;
+      if (element.defaultView){
+        win = element.defaultView;
+      } else{
+        win = element.ownerDocument.defaultView;
+      }
+      
+      var modifiers = {
+        metaKey: metaKeyDown,
+        altKey: altKeyDown,
+        shiftKey: shiftKeyDown,
+        ctrlKey: controlKeyDown
+      }
+      EventUtils.synthesizeKey(String.fromCharCode(keySequence), modifiers, win);
+      return;
+    }
+    
+    
     var keycode = getKeyCodeFromKeySequence(keySequence);
     canBubble = (typeof(canBubble) == undefined) ? true: canBubble;
     
