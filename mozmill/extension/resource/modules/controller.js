@@ -761,7 +761,9 @@ Tabs.prototype.__defineGetter__("activeTab", function() {
 Tabs.prototype.selectTab = function(index) {
   // GO in to tab manager and grab the tab by index and call focus.
 }
-
+Tabs.prototype.__defineGetter__("length", function () {		
+  return this.controller.window.gBrowser.browsers.length;		
+})
 
 function browserAdditions( controller ) {
   controller.tabs = new Tabs(controller);
