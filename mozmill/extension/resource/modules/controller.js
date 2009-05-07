@@ -39,6 +39,7 @@
 var EXPORTED_SYMBOLS = ["MozMillController", "sleep", "waitForEval", "MozMillAsyncTest"];
 
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
+var EventUtils = {}; Components.utils.import('resource://mozmill/modules/EventUtils.js', EventUtils); 
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
@@ -222,8 +223,9 @@ MozMillController.prototype.rightclick = function(el){
     return false; 
   }
   
-  var evt = element.ownerDocument.defaultView.document.createEvent('MouseEvents');
-  evt.initMouseEvent("click", true, true, element.ownerDocument.defaultView, 0, 0, 0, 0, 0, false, false, false, false, 2, null);
+  EventUtils.synthesizeMouse(element, 0, 0, { type : "contextmenu", button: 2 }, element.ownerDocument.defaultView);
+  //var evt = element.ownerDocument.defaultView.document.createEvent('MouseEvents');
+  //evt.initMouseEvent("click", true, true, element.ownerDocument.defaultView, 0, 0, 0, 0, 0, false, false, false, false, 2, null);
   return true;
 }
 
