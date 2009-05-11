@@ -753,7 +753,7 @@ function Tabs (controller) {
   this.controller = controller;
 }
 Tabs.prototype.getTab = function(index) {
-  return this.controller.window.gBrowser.browsers[index + 1].contentDocument;
+  return this.controller.window.gBrowser.browsers[index].contentDocument;
 }
 Tabs.prototype.__defineGetter__("activeTab", function() {
   return this.controller.window.gBrowser.selectedBrowser.contentDocument;
