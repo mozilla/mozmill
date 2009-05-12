@@ -96,9 +96,13 @@ var createCell = function (t, obj, message) {
         newDiv.style.overflow = "hidden";
         newDiv.style.width = "95%";
         newDiv.style.left = "10px";
-        if (obj[prop].length > 50){
-          newDiv.innerHTML = '<span style="float:right;top:0px;cursor: pointer;" class="ui-icon ui-icon-triangle-1-s"/>';
-        }
+        //some properties don't have a length attib
+        try {
+          if (obj[prop].length > 50){
+            newDiv.innerHTML = '<span style="float:right;top:0px;cursor: pointer;" class="ui-icon ui-icon-triangle-1-s"/>';
+          }
+        } catch(e){}
+        
         newDiv.innerHTML += "<strong>"+prop+"</strong>: "+obj[prop];
         mainDiv.appendChild(newDiv);
       }
