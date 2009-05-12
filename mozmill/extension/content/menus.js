@@ -187,6 +187,24 @@ function genBoiler(){
     node.getElementsByTagName("strong")[0].style.display = "inline";
 }
 
+function toggleHideEditor(){
+  //feature to turn off editor and simply run file from window.openFn
+  if ($('#frame_editorInput')[0].style.visibility != "hidden"){
+    $('#frame_editorInput')[0].style.visibility = "hidden";
+    $('#EditAreaArroundInfos_editorInput')[0].style.visibility = "hidden";
+
+    var of = document.createElement('div');
+    of.innerHTML = "<b>Open File</b>: " + window.openFn;
+    of.id = "ofdiv";
+    $('#tabs-1 > p')[0].insertBefore(of, $('#tabs-1 > p')[0].childNodes[0]);
+    
+  } else{
+    $('#ofdiv')[0].parentNode.removeChild($('#ofdiv')[0]);
+    $('#frame_editorInput')[0].style.visibility = "visible";
+    $('#EditAreaArroundInfos_editorInput')[0].style.visibility = "visible";
+  }
+}
+
 function swapTabs(tab){
   $('editorTab').style.display = 'none';
   $('outputTab').style.display = 'none';

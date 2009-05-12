@@ -88,6 +88,9 @@ window.onkeypress = function(e){
         e.preventDefault();
         genBoiler();
       break;
+      case 'k':
+        toggleHideEditor();
+      break;
       case '1':
         e.preventDefault();
         $("#tabs").tabs().tabs("select", 0);
