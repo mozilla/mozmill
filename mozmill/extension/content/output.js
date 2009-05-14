@@ -98,7 +98,7 @@ var createCell = function (t, obj, message) {
         newDiv.style.left = "10px";
         //some properties don't have a length attib
         try {
-          if (obj[prop].length > 50){
+          if (obj[prop] && obj[prop].length > 50){
             newDiv.innerHTML = '<span style="float:right;top:0px;cursor: pointer;" class="ui-icon ui-icon-triangle-1-s"/>';
           }
         } catch(e){}
