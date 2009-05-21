@@ -195,25 +195,12 @@ MozMillController.prototype.open = function(url){
   
   var el = new elementslib.ID(this.window.document, 'urlbar').getNode();
   this.type(new elementslib.ID(this.window.document, 'urlbar'), url);
-  events.triggerKeyEvent(el, 'keypress', "13", true, false, false, false,false); 
+  events.triggerKeyEvent(el, 'keypress', null, 13, {}); 
   frame.events.pass({'function':'Controller.open()'});
 };
-MozMillController.prototype.keypress = function(el, keycode, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown){
-  if (!controlKeyDown){
-    var controlKeyDown = false;
-  }
-  if (!altKeyDown){
-    var altKeyDown = false;
-  }
-  if (!shiftKeyDown){
-    var shiftKeyDown = false
-  }
-  if (!metaKeyDown){
-    var metaKeyDown = false;
-  }
-  
+MozMillController.prototype.keypress = function(el, charSeq, keyCode, modifiers){
   var element = el.getNode();
-  events.triggerKeyEvent(element, 'keypress', keycode, true, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown);  
+  events.triggerKeyEvent(element, 'keypress', charSeq, keyCode, modifiers);  
 };
 
 MozMillController.prototype.rightclick = function(el){
@@ -336,11 +323,11 @@ MozMillController.prototype.type = function (el, text){
 
   var s = actualValue;
   for (var c = 0; c < s.length; c++){
-      try { events.triggerKeyEvent(element, 'keydown', s.charAt(c), true, false,false, false, false);}
+      try { events.triggerKeyEvent(element, 'keydown', s.charAt(c), null, {});}
       catch(err){}
-      events.triggerKeyEvent(element, 'keypress', null, true, false,false, false, false);
+      events.triggerKeyEvent(element, 'keypress', null, null, {});
       element.value += s.charAt(c);   
-      try { events.triggerKeyEvent(element, 'keyup', s.charAt(c), true, false,false, false, false); }
+      try { events.triggerKeyEvent(element, 'keyup', s.charAt(c), null, {}); }
       catch(err){}
   }
   

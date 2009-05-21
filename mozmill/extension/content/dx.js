@@ -198,12 +198,21 @@ DomInspectorConnector.prototype.clipCopy = function(e){
      
      var ctrlString = "";
      ctrlString += MozMilldx.evtDispatch(e);
-     ctrlString += "\nController: controller.keypress(element,"+e.charCode+",";
-     ctrlString += e.ctrlKey.toString()+",";
-     ctrlString += e.altKey.toString()+",";
-     ctrlString += e.shiftKey.toString()+",";
-     ctrlString += e.metaKey.toString()+");\n";
-     
+     ctrlString += "\nController: controller.keypress(element,"+e.charCode+","+e.keyCode+",";
+     ctrlString += "{";
+     if (e.ctrlKey){
+       ctrlString += "ctrlKey:"+e.ctrlKey.toString()+",";
+     }
+     if (e.altKey){
+       ctrlString += "altKey:"+e.altKey.toString()+",";
+     }
+     if (e.shiftKey){
+       ctrlString += "shiftKey:"+e.shiftKey.toString()+",";
+     }
+     if (e.metaKey){
+       ctrlString += "metaKey:"+e.metaKey.toString();
+     }
+     ctrlString += "});\n";
      ctrlString = ctrlString.replace(/undefined/g, "false");         
      document.getElementById('eventsOut').value += ctrlString;
    }

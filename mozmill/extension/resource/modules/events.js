@@ -94,8 +94,11 @@ var getKeyCodeFromKeySequence = function(keySequence) {
   // mozmill.results.writeResult("invalid keySequence");
   
 }
-
-var triggerKeyEvent = function(element, eventType, keySequence, canBubble, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
+//events.triggerKeyEvent(element, 'keypress', charSeq, keyCode, modifiers);  
+var triggerKeyEvent = function(element, eventType, charSeq, keyCode, modifiers) {
+  
+    //normalize
+    var nChar = getKeyCodeFromKeySequence(charSeq);
     //if the event is executed against the window instead of the node
     //use event utils which does a sendKeys to the window
     if ((element.defaultView != undefined) || (element.tagName == "window")){
@@ -105,43 +108,24 @@ var triggerKeyEvent = function(element, eventType, keySequence, canBubble, contr
       } else{
         win = element.ownerDocument.defaultView;
       }
-      
-      var modifiers = {
-        metaKey: metaKeyDown,
-        altKey: altKeyDown,
-        shiftKey: shiftKeyDown,
-        ctrlKey: controlKeyDown
-      }
-      EventUtils.synthesizeKey(String.fromCharCode(keySequence), modifiers, win);
+      EventUtils.synthesizeKey(String.fromCharCode(nChar), modifiers, win);
       return;
     }
     
-    
-    var keycode = getKeyCodeFromKeySequence(keySequence);
-    canBubble = (typeof(canBubble) == undefined) ? true: canBubble;
-    
-    //charcode and keycode are mutually exclusive
-    //charcode is only set if shift is pressed
-    if (shiftKeyDown){
-      var charcode = keycode;
-      keycode = null;
-    } else {
-      var charcode = null;
-    }
-    
-    
+  
   var evt;
   if (element.ownerDocument.defaultView.KeyEvent) {
       evt = element.ownerDocument.defaultView.document.createEvent('KeyEvents');
-      evt.initKeyEvent(eventType, true, true, element.ownerDocument.defaultView, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown, keycode, charcode);
+      evt.initKeyEvent(eventType, true, true, element.ownerDocument.defaultView, 
+        modifiers.ctrlKey, modifiers.altKey, modifiers.shiftKey, modifiers.metaKey, keyCode, nChar);
   } 
   else {
       evt = element.ownerDocument.defaultView.document.createEvent('UIEvents');
 
-      evt.shiftKey = shiftKeyDown;
-      evt.metaKey = metaKeyDown;
-      evt.altKey = altKeyDown;
-      evt.ctrlKey = controlKeyDown;
+      evt.shiftKey = modifiers.shiftKey;
+      evt.metaKey = modifiers.metaKey;
+      evt.altKey = modifiers.altKey;
+      evt.ctrlKey = modifiers.ctrlKey;
 
       evt.initUIEvent(eventType, true, true, element.ownerDocument.defaultView, 1);
       evt.keyCode = keycode;
