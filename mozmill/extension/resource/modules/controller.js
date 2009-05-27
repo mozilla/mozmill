@@ -21,6 +21,7 @@
 // Contributor(s):
 //  Adam Christian <adam.christian@gmail.com>
 //  Mikeal Rogers <mikeal.rogers@gmail.com>
+//  Henrik Skupin <hskupin@mozilla.com>
 // 
 // Alternatively, the contents of this file may be used under the terms of
 // either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -144,6 +145,7 @@ var Menu = function (elements, doc) {
     }
   }
 };
+
 Menu.prototype.reload = function () {
   var elements = this.doc.getElementsByTagName('menubar')[0].childNodes;
   for each(node in elements) {
@@ -160,8 +162,6 @@ Menu.prototype.reload = function () {
     }
   }
 }
-
-
 
 var MozMillController = function (window) {    
   // TODO: Check if window is loaded and block until it has if it hasn't.
@@ -186,6 +186,33 @@ var MozMillController = function (window) {
   
 }
 
+MozMillController.prototype.keypress = function(el, aKey, modifiers) {
+  var element = (el == null) ? this.window : el.getNode();
+  if (!element) {
+    throw new Error("could not find element " + el.getInfo());
+    return false;
+  }
+
+  events.triggerKeyEvent(element, 'keypress', aKey, modifiers);
+  frame.events.pass({'function':'Controller.keypress()'});
+  return true;
+}
+
+MozMillController.prototype.type = function (el, text) {
+  var element = (el == null) ? this.window : el.getNode();
+  if (!element) {
+    throw new Error("could not find element " + el.getInfo());
+    return false;
+  }
+
+  for (var indx = 0; indx < text.length; indx++) {
+    events.triggerKeyEvent(element, 'keypress', text.charAt(indx), {});
+  }
+
+  frame.events.pass({'function':'Controller.type()'});
+  return true;
+}
+
 MozMillController.prototype.open = function(url){
   if (this.mozmillModule.Application == 'Firefox') {
     this.window.openLocation();
@@ -193,16 +220,14 @@ MozMillController.prototype.open = function(url){
     this.window.ShowAndSelectContentsOfURLBar();
   }
   
-  var el = new elementslib.ID(this.window.document, 'urlbar').getNode();
-  this.type(new elementslib.ID(this.window.document, 'urlbar'), url);
-  events.triggerKeyEvent(el, 'keypress', null, 13, {}); 
-  frame.events.pass({'function':'Controller.open()'});
-};
+  var el = new elementslib.ID(this.window.document, 'urlbar');
 
-MozMillController.prototype.keypress = function(el, aKey, modifiers){
-  var element = el == null ? this.window : el.getNode();
-  events.triggerKeyEvent(element, 'keypress', aKey, modifiers);
-};
+  // Enter URL and press return
+  this.type(el, url);
+  events.triggerKeyEvent(el.getNode(), 'keypress', "VK_RETURN", {});
+
+  frame.events.pass({'function':'Controller.open()'});
+}
 
 MozMillController.prototype.rightclick = function(el){
   var element = el.getNode();
@@ -291,60 +316,6 @@ MozMillController.prototype.waitThenClick = function (elem, timeout, interval) {
   this.waitForElement(elem, timeout, interval);
   this.click(elem);
 }
-
-MozMillController.prototype.type = function (el, text){
-  //this.window.focus();
-  var element = el.getNode();
-  if (!element){ 
-    throw new Error("could not find element " + el.getInfo());     
-    return false; 
-  } 
-  //clear the box
-  element.value = '';
-  //Get the focus on to the item to be typed in, or selected
-
-  try {
-    events.triggerEvent(element, 'focus', true);
-    events.triggerEvent(element, 'select', true);
-  }
-  catch(err){}
-
-  //Make sure text fits in the textbox
-  var maxLengthAttr = element.getAttribute("maxLength");
-  var actualValue = text;
-  var stringValue = text;
-   
-  if (maxLengthAttr != null) {
-    var maxLength = parseInt(maxLengthAttr);
-    if (stringValue.length > maxLength) {
-      //truncate it to fit
-      actualValue = stringValue.substr(0, maxLength);
-    }
-  }
-
-  var s = actualValue;
-  for (var c = 0; c < s.length; c++){
-      events.triggerKeyEvent(element, 'keydown', s.charAt(c), 0, {});  
-      events.triggerKeyEvent(element, 'keypress', s.charAt(c), 0, {});  
-      events.triggerKeyEvent(element, 'keyup', s.charAt(c), 0, {});  
-                  
-      //can't get synthesizeKey to do anything
-      //EventUtils.synthesizeKey(s.charAt(c), {}, element.ownerDocument.defaultView); 
-  }
-  
-  // DGF this used to be skipped in chrome URLs, but no longer.  Is xpcnativewrappers to blame?
-  //Another wierd chrome thing?
-  try {
-    events.triggerEvent(element, 'input', true);
-  }catch(err){ }
-  
-  try {
-    events.triggerEvent(element, 'change', true);
-  }catch(err){ }
-   
-  frame.events.pass({'function':'Controller.type()'});
-  return true;
-};
 
 /* Select the specified option and trigger the relevant events of the element.*/
 MozMillController.prototype.select = function (el, indx, option, value) {
