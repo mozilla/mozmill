@@ -303,7 +303,7 @@ MozMillController.prototype.type = function (el, text){
   //Get the focus on to the item to be typed in, or selected
 
   try {
-    events.triggerEvent(element, 'focus', false);
+    events.triggerEvent(element, 'focus', true);
     events.triggerEvent(element, 'select', true);
   }
   catch(err){}
@@ -323,12 +323,12 @@ MozMillController.prototype.type = function (el, text){
 
   var s = actualValue;
   for (var c = 0; c < s.length; c++){
-      try { events.triggerKeyEvent(element, 'keydown', s.charAt(c), null, {});}
-      catch(err){}
-      events.triggerKeyEvent(element, 'keypress', null, null, {});
-      element.value += s.charAt(c);   
-      try { events.triggerKeyEvent(element, 'keyup', s.charAt(c), null, {}); }
-      catch(err){}
+      events.triggerKeyEvent(element, 'keydown', s.charAt(c), 0, {});  
+      events.triggerKeyEvent(element, 'keypress', s.charAt(c), 0, {});  
+      events.triggerKeyEvent(element, 'keyup', s.charAt(c), 0, {});  
+                  
+      //can't get synthesizeKey to do anything
+      //EventUtils.synthesizeKey(s.charAt(c), {}, element.ownerDocument.defaultView); 
   }
   
   // DGF this used to be skipped in chrome URLs, but no longer.  Is xpcnativewrappers to blame?
