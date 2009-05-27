@@ -352,34 +352,25 @@ MozMillController.prototype.select = function (el, indx, option, value) {
   if (!element){ 
     throw new Error("could not find element " + el.getInfo());     
     return false; 
-  } 
-  
-  if (indx){
-   element.options.selectedIndex = indx;
-   frame.events.pass({'function':'Controller.select()'});
-   return true;
   }
+  
+  //if we have a select drop down
+  if (element.tagName.toLowerCase() == "select"){
+    if (indx){
+     element.options.selectedIndex = indx;
+     frame.events.pass({'function':'Controller.select()'});
+     return true;
+    }
 
- try{ events.triggerEvent(element, 'focus', false);}
- catch(err){};
+   try{ events.triggerEvent(element, 'focus', false);}
+   catch(err){};
 
- var optionToSelect = null;
- for (var opt=0;opt<element.options.length;opt++){
-   var el = element.options[opt]
+   var optionToSelect = null;
+   for (var opt=0;opt<element.options.length;opt++){
+     var el = element.options[opt]
 
-   if (option != undefined){
-     if(el.innerHTML.indexOf(option) != -1){
-       if (el.selected && el.options[opt] == optionToSelect){
-         continue;
-       }
-       optionToSelect = el;
-       optionToSelect.selected = true;
-       events.triggerEvent(element, 'change', true);
-       break;
-     }
-   }
-   else{
-      if(el.value.indexOf(value) != -1){
+     if (option != undefined){
+       if(el.innerHTML.indexOf(option) != -1){
          if (el.selected && el.options[opt] == optionToSelect){
            continue;
          }
@@ -388,14 +379,53 @@ MozMillController.prototype.select = function (el, indx, option, value) {
          events.triggerEvent(element, 'change', true);
          break;
        }
+     }
+     else{
+        if(el.value.indexOf(value) != -1){
+           if (el.selected && el.options[opt] == optionToSelect){
+             continue;
+           }
+           optionToSelect = el;
+           optionToSelect.selected = true;
+           events.triggerEvent(element, 'change', true);
+           break;
+         }
+     }
    }
- }
- if (optionToSelect == null){
-   throw new Error('optionsToSelect == null')
-   return false;
- }
- frame.events.pass({'function':'Controller.select()'});
- return true;
+   if (optionToSelect == null){
+     throw new Error('optionsToSelect == null')
+     return false;
+   }
+  }
+  //if we have a xul menulist select accordingly
+  else if (element.tagName.toLowerCase() == "menulist"){
+    var success = false;
+    
+    if (indx){
+      element.selectedIndex = indx;
+      success = true;
+    }
+    if (value){
+      element.selectedIndex = value;
+      success == true;
+    }
+    if (option){
+      //iterate items to find the one with the correct option string
+      for (var i=1;i<element.itemCount; i++){
+        if (element.getItemAtIndex(i).label == option){
+          element.selectedIndex = i;
+          success = true;
+        }
+      }
+    }
+    if (!success){
+      throw new Error('No item selected.')
+      return false;
+    }
+  }
+
+   frame.events.pass({'function':'Controller.select()'});
+   return true;
 };
 
 //Directly access mouse events
