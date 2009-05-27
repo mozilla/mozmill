@@ -198,9 +198,10 @@ MozMillController.prototype.open = function(url){
   events.triggerKeyEvent(el, 'keypress', null, 13, {}); 
   frame.events.pass({'function':'Controller.open()'});
 };
-MozMillController.prototype.keypress = function(el, charSeq, keyCode, modifiers){
-  var element = el.getNode();
-  events.triggerKeyEvent(element, 'keypress', charSeq, keyCode, modifiers);  
+
+MozMillController.prototype.keypress = function(el, aKey, modifiers){
+  var element = el == null ? this.window : el.getNode();
+  events.triggerKeyEvent(element, 'keypress', aKey, modifiers);
 };
 
 MozMillController.prototype.rightclick = function(el){
@@ -846,5 +847,3 @@ MozMillAsyncTest.prototype.run = function () {
 MozMillAsyncTest.prototype.finish = function () {
   this._done = true;
 }
-
-

@@ -312,7 +312,7 @@ function synthesizeKey(aKey, aEvent, aWindow)
   if (utils) {
     var keyCode = 0, charCode = 0;
     if (aKey.indexOf("VK_") == 0)
-      keyCode = KeyEvent["DOM_" + aKey];
+      keyCode = aWindow.KeyEvent["DOM_" + aKey];
     else
       charCode = aKey.charCodeAt(0);
 

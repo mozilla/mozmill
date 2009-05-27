@@ -92,47 +92,15 @@ var getKeyCodeFromKeySequence = function(keySequence) {
     eventsLogger.error("invalid keySequence "+String(keySequence));
   }
   // mozmill.results.writeResult("invalid keySequence");
-  
-}
-//events.triggerKeyEvent(element, 'keypress', charSeq, keyCode, modifiers);  
-var triggerKeyEvent = function(element, eventType, charSeq, keyCode, modifiers) {
-  
-    //normalize
-    var nChar = getKeyCodeFromKeySequence(charSeq);
-    //if the event is executed against the window instead of the node
-    //use event utils which does a sendKeys to the window
-    if ((element.defaultView != undefined) || (element.tagName == "window")){
-      var win = null;
-      if (element.defaultView){
-        win = element.defaultView;
-      } else{
-        win = element.ownerDocument.defaultView;
-      }
-      EventUtils.synthesizeKey(String.fromCharCode(nChar), modifiers, win);
-      return;
     }
     
+//events.triggerKeyEvent(element, 'keypress', charSeq, keyCode, modifiers);
+var triggerKeyEvent = function(element, eventType, aKey, modifiers) {
+  // get the window and send event
+  var win = element.ownerDocument ? element.ownerDocument.defaultView : element;
+  win.focus();
   
-  var evt;
-  if (element.ownerDocument.defaultView.KeyEvent) {
-      evt = element.ownerDocument.defaultView.document.createEvent('KeyEvents');
-      evt.initKeyEvent(eventType, true, true, element.ownerDocument.defaultView, 
-        modifiers.ctrlKey, modifiers.altKey, modifiers.shiftKey, modifiers.metaKey, keyCode, nChar);
-  } 
-  else {
-      evt = element.ownerDocument.defaultView.document.createEvent('UIEvents');
-
-      evt.shiftKey = modifiers.shiftKey;
-      evt.metaKey = modifiers.metaKey;
-      evt.altKey = modifiers.altKey;
-      evt.ctrlKey = modifiers.ctrlKey;
-
-      evt.initUIEvent(eventType, true, true, element.ownerDocument.defaultView, 1);
-      evt.keyCode = keycode;
-      evt.which = keycode;
-
-  }
-  element.dispatchEvent(evt);
+  EventUtils.synthesizeKey(aKey, modifiers, win);
 }
 
     /* Fire a mouse event in a browser-compatible manner */
