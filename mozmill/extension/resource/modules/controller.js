@@ -328,7 +328,7 @@ MozMillController.prototype.select = function (el, indx, option, value) {
   
   //if we have a select drop down
   if (element.tagName.toLowerCase() == "select"){
-    if (indx){
+    if (indx != undefined) {
      element.options.selectedIndex = indx;
      frame.events.pass({'function':'Controller.select()'});
      return true;
@@ -339,7 +339,7 @@ MozMillController.prototype.select = function (el, indx, option, value) {
 
    var optionToSelect = null;
    for (var opt=0;opt<element.options.length;opt++){
-     var el = element.options[opt]
+     el = element.options[opt];
 
      if (option != undefined){
        if(el.innerHTML.indexOf(option) != -1){
@@ -373,15 +373,13 @@ MozMillController.prototype.select = function (el, indx, option, value) {
   else if (element.tagName.toLowerCase() == "menulist"){
     var success = false;
     
-    if (indx){
+    if (indx != undefined) {
       element.selectedIndex = indx;
       success = true;
-    }
-    if (value){
+    } else if (value != undefined){
       element.selectedIndex = value;
       success == true;
-    }
-    if (option){
+    } else if (option != undefined){
       //iterate items to find the one with the correct option string
       for (var i=1;i<element.itemCount; i++){
         if (element.getItemAtIndex(i).label == option){
