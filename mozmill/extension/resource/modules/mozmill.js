@@ -43,7 +43,7 @@ var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
                         "wm", "platform", "getAddrbkController", 
                         "getMsgComposeController", "getDownloadsController",
                         "Application", "MozMillAsyncTest", "cleanQuit",
-                        "getPlacesController"];
+                        "getPlacesController", 'isMac', 'isLinux', 'isWindows'];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 var events = {};      Components.utils.import('resource://mozmill/modules/events.js', events);
@@ -54,6 +54,20 @@ var os = {}; Components.utils.import('resource://mozmill/stdlib/os.js', os);
 var withs = {}; Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
 
 var platform = os.getPlatform();
+
+var isMac = false;
+var isWindows = false;
+var isLinux = false;
+
+if (platform == "darwin"){
+  isMac = true;
+}
+if (platform == "winnt"){
+  isWindows = true;
+}
+if (platform == "linux"){
+  isLinux = true;
+}
 
 var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
            .getService(Components.interfaces.nsIWindowMediator);
