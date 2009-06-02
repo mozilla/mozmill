@@ -196,9 +196,12 @@ DomInspectorConnector.prototype.clipCopy = function(e){
      window.document.getElementById('eventsOut').value += "Alt Key: "+ e.altKey + "\n";
      window.document.getElementById('eventsOut').value += "Meta Key: "+ e.metaKey + "\n\n";
      
+     //we need some code here to map keyCodes to the desired mozilla VK_WHATEVER
+     //and substituting that in for e.charCode in the following concat.
+     
      var ctrlString = "";
      ctrlString += MozMilldx.evtDispatch(e);
-     ctrlString += "\nController: controller.keypress(element,"+e.charCode+","+e.keyCode+",";
+     ctrlString += "\nController: controller.keypress(element,"+e.charCode+",";
      ctrlString += "{";
      if (e.ctrlKey){
        ctrlString += "ctrlKey:"+e.ctrlKey.toString()+",";

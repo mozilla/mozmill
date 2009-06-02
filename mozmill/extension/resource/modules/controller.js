@@ -485,29 +485,12 @@ MozMillController.prototype.doubleClick = function(el) {
 MozMillController.prototype.assertText = function (el, text) {
   //this.window.focus();
   var n = el.getNode();
-  var validator = text;
-  try{
-    if (n.innerHTML.indexOf(validator) != -1){ 
-      frame.events.pass({'function':'Controller.assertText()'});
-      return true; 
-      }
-    if (n.hasChildNodes()){
-      for(var m = n.firstChild; m != null; m = m.nextSibling) {
-        if (m.innerHTML.indexOf(validator) != -1){ 
-          frame.events.pass({'function':'Controller.assertText()'});
-          return true; 
-          }
-        if (m.value.indexOf(validator) != -1){ 
-          frame.events.pass({'function':'Controller.assertText()'});
-          return true; 
-          }
-      }
-    }
-  }
-  catch(error){
-    throw new Error("could not validate element " + el.getInfo()+" with text "+ text);
-    return false;
-  }
+
+  if (n.innerHTML == text){ 
+    frame.events.pass({'function':'Controller.assertText()'});
+    return true; 
+   }
+
   throw new Error("could not validate element " + el.getInfo()+" with text "+ text);
   return false;
   
@@ -541,12 +524,11 @@ MozMillController.prototype.assertNodeNotExist = function (el) {
 MozMillController.prototype.assertValue = function (el, value) {
   //this.window.focus();
   var n = el.getNode();
-  var validator = value;
 
-  if (n.value.indexOf(validator) != -1){
+  if (n.value == value){
     frame.events.pass({'function':'Controller.assertValue()'});
     return true; 
-    }
+  }
   throw new Error("could not validate element " + el.getInfo()+" with value "+ value);
   return false;
 };

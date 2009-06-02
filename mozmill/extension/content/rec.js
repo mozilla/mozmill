@@ -70,14 +70,18 @@ var getEventSet = function (eArray) {
 
 var recorderMethodCases = {
   'click': function (x) {return 'click('+x['inspected'].elementText+')';},
+  //this code is causing issues when recording type
+  //and also requires the same code as the DX for genating accurate keypress
+  //based on the new VK_ keyCode API
+  
   'keypress': function (x) {
     if (x['evt'].charCode == 0){
-      return 'keypress(' + x['inspected'].elementText + ',' + x['evt'].keyCode + ',' +x['evt'].ctrlKey 
-              + ','+ x['evt'].altKey + ',' + x['evt'].shiftKey + ',' + x['evt'].metaKey + ')';
+      return 'keypress(' + x['inspected'].elementText + ',' + x['evt'].keyCode + ', {ctrlkey:' +x['evt'].ctrlKey 
+              + ', altKey:'+ x['evt'].altKey + ',shiftKey:' + x['evt'].shiftKey + ', metaKey:' + x['evt'].metaKey + '})';
     }
     else {
-      return 'keypress(' + x['inspected'].elementText + ',' + x['evt'].charCode + ',' +x['evt'].ctrlKey 
-              + ','+ x['evt'].altKey + ',' + x['evt'].shiftKey + ',' + x['evt'].metaKey + ')'; 
+      return 'keypress(' + x['inspected'].elementText + ',"' + String.fromCharCode(x['evt'].charCode) + '", {ctrlkey:' +x['evt'].ctrlKey 
+              + ', altKey:'+ x['evt'].altKey + ',shiftKey:' + x['evt'].shiftKey + ', metaKey:' + x['evt'].metaKey + '})'; 
     }
    },
   'change': function (x) {return 'type('+x['inspected'].elementText+',"'+x['evt'].target.value+'")';},
