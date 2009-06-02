@@ -101,7 +101,11 @@ var triggerKeyEvent = function(element, eventType, aKey, modifiers) {
   var win = element.ownerDocument ? element.ownerDocument.defaultView : element;
   win.focus();
   
-  EventUtils.synthesizeKey(aKey, modifiers, win);
+  try {
+      EventUtils.synthesizeKey(aKey, modifiers, win);
+  } catch(e) {
+    throw new Error("Synthesizing key event failed. \n"+e)
+  }
 }
 
     /* Fire a mouse event in a browser-compatible manner */
