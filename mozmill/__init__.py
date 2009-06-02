@@ -249,6 +249,8 @@ class MozMillRestart(MozMill):
             self.endRunnerCalled = False
             sleep(sleeptime)
             frame.runTestFile(test)
+            while not self.endRunnerCalled:
+                sleep(.25)
             self.stop_runner()
             sleep(2)
             
