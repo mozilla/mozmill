@@ -39,7 +39,7 @@ import os
 import sys
 import copy
 import socket
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import logging
 logger = logging.getLogger('mozmill')
@@ -161,6 +161,8 @@ class MozMill(object):
         except socket.error:
             pass
         self.runner.wait()
+        self.back_channel.close()
+        self.bridge.close()
 
 class MozMillRestart(MozMill):
     
@@ -187,9 +189,13 @@ class MozMillRestart(MozMill):
         self.runner.start()
         back_channel, bridge = jsbridge.wait_and_create_network("127.0.0.1", self.jsbridge_port)
         for listener in self.listeners:
+            print '--- Adding listener', listener
             back_channel.add_listener(listener[0], **listener[1])
         for global_listener in self.global_listeners:
             back_channel.add_global_listener(global_listener)
+        
+        self.back_channel = back_channel
+        self.endRunnerCalled = False
         
         frame = jsbridge.JSObject(bridge, "Components.utils.import('resource://mozmill/modules/frame.js')")
         self.bridge = bridge
@@ -197,12 +203,79 @@ class MozMillRestart(MozMill):
     
     def stop_runner(self):
         sleep(1)
+        
         mozmill = jsbridge.JSObject(self.bridge, "Components.utils.import('resource://mozmill/modules/mozmill.js')")
+        
         try:
             mozmill.cleanQuit()
         except socket.error:
-            pass
-        self.runner.wait()
+            pass        
+        self.back_channel.close()
+        self.bridge.close()
+        starttime = datetime.now()
+        self.runner.wait(timeout=5)
+        endtime = datetime.now()
+        if ( endtime - starttime ) > timedelta(seconds=5):
+            try: self.runner.stop()
+            except: pass
+            self.runner.wait()
+        from jsbridge import network
+        
+        while network.thread.isAlive():
+            sleep(.5)
+            print 'thread is still alive'
+        
+    def endRunner_listener(self, obj):
+        self.endRunnerCalled = True
+        
+    def run_dir(self, test_dir, report=False, sleeptime=4):
+        if os.path.isfile(os.path.join(test_dir, 'testPre.js')):   
+            pre_test = os.path.join(test_dir, 'testPre.js')
+            post_test = os.path.join(test_dir, 'testPost.js') 
+            if not os.path.exists(pre_test) or not os.path.exists(post_test):
+                print "Skipping "+test_dir+" does not contain both pre and post test."
+                return
+            
+            tests = [pre_test, post_test]
+        else:
+            if not os.path.isfile(os.path.join(test_dir, 'test1.js')):
+                print "Skipping "+test_dir+" does not contain any known test file names"
+                return
+            tests = []
+            counter = 1
+            while os.path.isfile(os.path.join(test_dir, "test"+str(counter)+".js")):
+                tests.append(os.path.join(test_dir, "test"+str(counter)+".js"))
+                counter += 1
+    
+        self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
+        from jsbridge import network
+        for test in tests:
+            frame = self.start_runner()
+            print "started runner"
+            self.endRunnerCalled = False
+            sleep(sleeptime)
+            print "starting runTestFile"
+            frame.runTestFile(test)
+            print "test file finished"
+            while self.endRunnerCalled is False:
+                print self.endRunnerCalled
+                sleep(.5)
+            self.stop_runner()
+            sleep(2)
+            
+        
+        # Reset the profile.
+        profile = self.runner.profile
+        profile.cleanup()
+        if profile.create_new:
+            profile.profile = profile.create_new_profile(profile.default_profile)                
+        for plugin in profile.plugins:
+            profile.install_plugin(plugin)
+        if jsbridge.extension_path not in profile.plugins:
+            profile.install_plugin(jsbridge.extension_path)
+        if extension_path not in profile.plugins:
+            profile.install_plugin(extension_path)
+        profile.set_preferences(profile.preferences)
     
     def run_tests(self, test_dir, report=False, sleeptime=4):
         if report:
@@ -218,33 +291,7 @@ class MozMillRestart(MozMill):
                 
         for d in test_dirs:
             d = os.path.abspath(os.path.join(test_dir, d))
-            pre_test = os.path.join(d, 'testPre.js')
-            post_test = os.path.join(d, 'testPost.js')
-            
-            if not os.path.exists(pre_test) or not os.path.exists(post_test):
-                print "Skipping "+d+" does not contain both pre and post test."
-            else:
-                frame = self.start_runner()
-                sleep(sleeptime)
-                frame.runTestFile(pre_test)
-                self.stop_runner()
-                frame = self.start_runner()
-                sleep(sleeptime)
-                frame.runTestFile(post_test)
-                self.stop_runner()
-                
-                # Reset the profile.
-                profile = self.runner.profile
-                profile.cleanup()
-                if profile.create_new:
-                    profile.profile = profile.create_new_profile(profile.default_profile)                
-                for plugin in profile.plugins:
-                    profile.install_plugin(plugin)
-                if jsbridge.extension_path not in profile.plugins:
-                    profile.install_plugin(jsbridge.extension_path)
-                if extension_path not in profile.plugins:
-                    profile.install_plugin(extension_path)
-                profile.set_preferences(profile.preferences)
+            self.run_dir(d, report, sleeptime)
                 
         class Blank(object):
             def stop(self):

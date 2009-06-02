@@ -6,7 +6,7 @@ var setupModule = function(module) {
 }
 
 var testKnowRightsDoesNotExist = function(){
-  var e = new elementslib.Lookup(controller.window.document, '/id("main-window")/id("browser")/id("appcontent")/id("content")/anon({"anonid":"tabbox"})/anon({"anonid":"panelcontainer"})/[0]/{"label":"Mozilla Firefox is free and open software from the non-profit Mozilla Foundation.","value":"about-rights"}/{"accesskey":"K"}');
+  var e = new elementslib.Lookup(controller.window.document, '/id("main-window")/id("browser")/id("appcontent")/id("content")/anon({"anonid":"tabbox"})/anon({"anonid":"panelcontainer"})/[0]/{"value":"about-rights"}/{"accesskey":"K"}');
   
   if (e.exists()) {
     throw 'First run "know our rights" dialog is up after restart';

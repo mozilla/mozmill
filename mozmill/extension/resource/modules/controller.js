@@ -810,7 +810,7 @@ MozMillAsyncTest.prototype.run = function () {
   if (r == true) {
     return true;
   } else {
-    throw "MozMillAsyncTest did not finish properly: timed out."
+    throw "MozMillAsyncTest did not finish properly: timed out. Done is "+this._done
   }
 }
 MozMillAsyncTest.prototype.finish = function () {
