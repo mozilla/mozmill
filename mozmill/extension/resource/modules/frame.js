@@ -214,10 +214,7 @@ try {
 }
 
 if (jsbridge) {
-  events.addListener('', function (name, obj) {
-    jsbridge.fireEvent('mozmill.'+name, obj);
-    aConsoleService.logStringMessage("jsbridge event called "+name);
-    } );
+  events.addListener('', function (name, obj) {jsbridge.fireEvent('mozmill.'+name, obj)} );
 }
 
 var http_server = httpd.getServer(43336);

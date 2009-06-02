@@ -188,8 +188,8 @@ class MozMillRestart(MozMill):
     def start_runner(self):
         self.runner.start()
         back_channel, bridge = jsbridge.wait_and_create_network("127.0.0.1", self.jsbridge_port)
+        
         for listener in self.listeners:
-            print '--- Adding listener', listener
             back_channel.add_listener(listener[0], **listener[1])
         for global_listener in self.global_listeners:
             back_channel.add_global_listener(global_listener)
@@ -210,8 +210,8 @@ class MozMillRestart(MozMill):
             mozmill.cleanQuit()
         except socket.error:
             pass        
-        self.back_channel.close()
-        self.bridge.close()
+        # self.back_channel.close()
+        # self.bridge.close()
         starttime = datetime.now()
         self.runner.wait(timeout=5)
         endtime = datetime.now()
@@ -219,11 +219,6 @@ class MozMillRestart(MozMill):
             try: self.runner.stop()
             except: pass
             self.runner.wait()
-        from jsbridge import network
-        
-        while network.thread.isAlive():
-            sleep(.5)
-            print 'thread is still alive'
         
     def endRunner_listener(self, obj):
         self.endRunnerCalled = True
@@ -248,18 +243,12 @@ class MozMillRestart(MozMill):
                 counter += 1
     
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
-        from jsbridge import network
+        
         for test in tests:
             frame = self.start_runner()
-            print "started runner"
             self.endRunnerCalled = False
             sleep(sleeptime)
-            print "starting runTestFile"
             frame.runTestFile(test)
-            print "test file finished"
-            while self.endRunnerCalled is False:
-                print self.endRunnerCalled
-                sleep(.5)
             self.stop_runner()
             sleep(2)
             
