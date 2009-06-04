@@ -432,6 +432,12 @@ Runner.prototype.wrapper = function (func, arg) {
 }
 
 Runner.prototype._runTestModule = function (module) {
+  if (module.__requirements__ != undefined && module.__force_skip__ == undefined) {
+    for each(req in module.__requirements__) {
+      module[req] = this.collector.getModule(req);
+    }
+  }
+  
   var attrs = [];
   for (i in module) {
     attrs.push(i);
