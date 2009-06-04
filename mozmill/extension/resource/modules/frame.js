@@ -89,6 +89,7 @@ var loadFile = function(path, collector) {
   module.elementslib = elementslib;
   module.Cc = Components.classes;
   module.Ci = Components.interfaces;
+  module.Cu = Components.utils;
   if (collector != undefined) {
     collector.current_file = file;
     collector.current_path = path;
