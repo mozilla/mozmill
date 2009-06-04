@@ -336,6 +336,7 @@ Collector.prototype.initTestDirectory = function (directory) {
       var f = dfiles[i];
       if ( f.isDirectory() && 
            !withs.startsWith(f.leafName, '.') && 
+           withs.startsWith(f.leafName, "test") &&
            !arrays.inArray(r.loaded_directories, f.path) ) {
         recursiveModuleLoader(os.getFileForPath(f.path));
       } else if ( withs.startsWith(f.leafName, "test") && 
