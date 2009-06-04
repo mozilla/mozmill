@@ -63,6 +63,18 @@ arrayRemove = function(array, from, to) {
   return array.push.apply(array, rest);
 };
 
+mozmill = undefined; elementslib = undefined;
+var loadTestResources = function () {
+  if (mozmill == undefined) {
+    mozmill = {};
+    Components.utils.import("resource://mozmill/modules/mozmill.js", mozmill);
+  }
+  if (elementslib == undefined) {
+    elementslib = {};
+    Components.utils.import("resource://mozmill/modules/elementslib.js", elementslib);
+  }
+}
+
 var loadFile = function(path, collector) {
   var file = Components.classes["@mozilla.org/file/local;1"]
                        .createInstance(Components.interfaces.nsILocalFile);
@@ -72,6 +84,11 @@ var loadFile = function(path, collector) {
   var module = {};  
   module.registeredFunctions = registeredFunctions;
   module.collector = collector
+  loadTestResources();
+  module.mozmill = mozmill;
+  module.elementslib = elementslib;
+  module.Cc = Components.classes;
+  module.Ci = Components.interfaces;
   if (collector != undefined) {
     collector.current_file = file;
     collector.current_path = path;
