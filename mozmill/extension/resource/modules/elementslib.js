@@ -129,7 +129,7 @@ ID.prototype.getInfo = function () {
   return "ID: " + this.nodeID;
 }
 ID.prototype.getNodeForDocument = function (s) {
-  return this.document.getElementById(s);
+  return this._document.getElementById(s);
 }
 ID.prototype.getNode = function () {
   return this.nodeSearch(this._document, this.getNodeForDocument, this.nodeID);
