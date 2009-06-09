@@ -171,6 +171,9 @@ function __doEventDispatch(aTarget, aCharCode, aKeyCode, aHasShift) {
  */
 function _parseModifiers(aEvent)
 {
+  var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
+                  .getService(Components.interfaces.nsIAppShellService)
+                  .hiddenDOMWindow;
   const masks = Components.interfaces.nsIDOMNSEvent;
   var mval = 0;
   if (aEvent.shiftKey)
@@ -182,7 +185,7 @@ function _parseModifiers(aEvent)
   if (aEvent.metaKey)
     mval |= masks.META_MASK;
   if (aEvent.accelKey)
-    mval |= (navigator.platform.indexOf("Mac") >= 0) ? masks.META_MASK :
+    mval |= (hwindow.navigator.platform.indexOf("Mac") >= 0) ? masks.META_MASK :
                                                        masks.CONTROL_MASK;
 
   return mval;
