@@ -147,11 +147,7 @@ var checkChrome = function() {
  }*/
  
  var genBoiler = function(w){
-   var value = '' +
-   "var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);\n" +
-   "var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);\n" +
-   "\n" +
-   "var setupModule = function(module) {\n" +
+   var value = "var setupModule = function(module) {\n" +
    "  module.controller = mozmill.getBrowserController();\n" +
    "}\n" +
    "\n" +

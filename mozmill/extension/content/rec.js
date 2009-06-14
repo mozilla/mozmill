@@ -181,11 +181,7 @@ var getRecordedScript = function (recorder_array) {
     test.push(setup[inspected.controllerText]  + '.' + methodString + ';');
   }
   
-  var rscript = [
-    "var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);",
-    "var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);",
-    '', 'var setupModule = function(module) {',
-  ];
+  var rscript = ['var setupModule = function(module) {',];
   for (i in setup) {
     rscript.push("  "+setup[i]+' = '+i+';')
   }

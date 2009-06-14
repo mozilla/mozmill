@@ -373,7 +373,7 @@ MozMillController.prototype.select = function (el, indx, option, value) {
   else if (element.tagName.toLowerCase() == "menulist"){
     var success = false;
     
-    if (indx != undefined) {
+    if (indx >= 0) {
       element.selectedIndex = indx;
       success = true;
     } else if (value != undefined){
