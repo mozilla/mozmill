@@ -376,10 +376,10 @@ MozMillController.prototype.select = function (el, indx, option, value) {
     if (indx >= 0) {
       element.selectedIndex = indx;
       success = true;
-    } else if (value != undefined){
+    } else if (value != undefined && value != null){
       element.selectedIndex = value;
       success == true;
-    } else if (option != undefined){
+    } else if (option != undefined && value != null){
       //iterate items to find the one with the correct option string
       for (var i=1;i<element.itemCount; i++){
         if (element.getItemAtIndex(i).label == option){
