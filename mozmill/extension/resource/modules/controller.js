@@ -731,9 +731,9 @@ Tabs.prototype.selectTab = function(index) {
   // GO in to tab manager and grab the tab by index and call focus.
 }
 Tabs.prototype.findWindow = function (doc) {
-  for each(w in this.controller.window.frames) {
-    if (w.document == doc) {
-      return w;
+  for for (i=0;i<=(this.controller.window.frames.length-1);i++) {
+    if (this.controller.window.frames[i].document == doc) {
+      return this.controller.window.frames[i];
     }
   }
   throw "Cannot find window for document. Doc title == "+doc.title;
