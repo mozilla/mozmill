@@ -730,6 +730,20 @@ Tabs.prototype.__defineGetter__("activeTab", function() {
 Tabs.prototype.selectTab = function(index) {
   // GO in to tab manager and grab the tab by index and call focus.
 }
+Tabs.prototype.findWindow = function (doc) {
+  for each(w in this.controller.window.frames) {
+    if (w.document == doc) {
+      return w;
+    }
+  }
+  throw "Cannot find window for document. Doc title == "+doc.title;
+}
+Tabs.prototype.getTabWindow = function(index) {
+  return this.findWindow(this.getTab(index));
+}
+Tabs.prototype.__defineGetter__("activeTabWindow", function () {
+  return this.findWindow(this.activeTab);
+})
 Tabs.prototype.__defineGetter__("length", function () {		
   return this.controller.window.gBrowser.browsers.length;		
 })
