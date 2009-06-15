@@ -99,7 +99,7 @@ var getKeyCodeFromKeySequence = function(keySequence) {
 var triggerKeyEvent = function(element, eventType, aKey, modifiers) {
   // get the window and send event
   var win = element.ownerDocument ? element.ownerDocument.defaultView : element;
-  win.focus();
+  // win.focus();
   
   try {
       EventUtils.synthesizeKey(aKey, modifiers, win);
