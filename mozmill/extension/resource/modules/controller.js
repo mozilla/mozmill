@@ -37,7 +37,8 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["MozMillController", "sleep", "waitForEval", "MozMillAsyncTest"];
+var EXPORTED_SYMBOLS = ["MozMillController", "sleep", "waitForEval", "MozMillAsyncTest",
+                        "globalEventRegistry", "waitFor"];
 
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
 var EventUtils = {}; Components.utils.import('resource://mozmill/modules/EventUtils.js', EventUtils); 
@@ -701,6 +702,36 @@ MozMillController.prototype.dragDropElemToElem = function (dstart, ddest) {
   events.triggerMouseEvent(dest, 'click', true, destCoords.left, destCoords.top);
   frame.events.pass({'function':'Controller.dragDropElemToElem()'});
   return true;
+}
+
+var waitFor = function (node, events) {
+  if (node.getNode != undefined) {
+    node = node.getNode();
+  }
+  this.events = events;
+  this.node = node;
+  this.registry = {};
+  if (node._mozmillEventRegistry == undefined) {
+    node._mozmillEventRegistry = {}
+  }
+  for each(e in events) {
+    var listener = function (event) {
+      this.result = true;
+    }
+    this.registry[e] = listener;
+    this.registry[e].result = false;
+    this.node.addEventListener(e, this.registry[e], true);
+  }
+}
+waitFor.prototype.wait = function (timeout, interval) {
+  for (e in this.registry) {
+    var r = waitForEval("subject.result == true", timeout, interval, this.registry[e])
+    if (!r) {
+        throw "Event didn't fire before timeout. event == "+e+", result is "+this.registry[e].result;
+      }
+    this.node.removeEventListener(e, this.registry[e], true);
+  }
+  
 }
 
 function preferencesAdditions(controller) {
