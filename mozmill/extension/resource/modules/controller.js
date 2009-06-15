@@ -193,7 +193,7 @@ MozMillController.prototype.keypress = function(el, aKey, modifiers) {
     throw new Error("could not find element " + el.getInfo());
     return false;
   }
-
+  element.focus();
   events.triggerKeyEvent(element, 'keypress', aKey, modifiers);
   frame.events.pass({'function':'Controller.keypress()'});
   return true;
