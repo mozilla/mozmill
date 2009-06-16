@@ -800,10 +800,14 @@ function browserAdditions( controller ) {
     if (timeout == undefined) {
       var timeout = 30000;
     }
+    
+    //Wait for the state where the page has unloaded
+    //then wait for the new one to load
+    waitForEval("subject.body.style == undefined", timeout, interval, _document);
     waitForEval("subject.body.style != undefined", timeout, interval, _document);
     //Once the object is available it's somewhere between 1 and 3 seconds before the DOM
     //Actually becomes available to us
-    sleep(3000);
+    //sleep(3000);
   }
 }
 
