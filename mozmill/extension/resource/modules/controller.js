@@ -710,13 +710,11 @@ var waitFor = function (node, events) {
   }
   this.events = events;
   this.node = node;
+  node.firedEvents = {}
   this.registry = {};
-  if (node._mozmillEventRegistry == undefined) {
-    node._mozmillEventRegistry = {}
-  }
   for each(e in events) {
     var listener = function (event) {
-      this.result = true;
+      this.firedEvents[event.type] = true;
     }
     this.registry[e] = listener;
     this.registry[e].result = false;
@@ -725,7 +723,7 @@ var waitFor = function (node, events) {
 }
 waitFor.prototype.wait = function (timeout, interval) {
   for (e in this.registry) {
-    var r = waitForEval("subject.result == true", timeout, interval, this.registry[e])
+    var r = waitForEval("subject['"+e+"'] == true", timeout, interval, this.node.firedEvents)
     if (!r) {
         throw "Event didn't fire before timeout. event == "+e+", result is "+this.registry[e].result;
       }

@@ -93,7 +93,7 @@ var getKeyCodeFromKeySequence = function(keySequence) {
     eventsLogger.error("invalid keySequence "+String(keySequence));
   }
   // mozmill.results.writeResult("invalid keySequence");
-    }
+}
     
 //events.triggerKeyEvent(element, 'keypress', charSeq, keyCode, modifiers);
 var triggerKeyEvent = function(element, eventType, aKey, modifiers) {
