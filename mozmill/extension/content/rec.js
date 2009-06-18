@@ -178,6 +178,10 @@ var getRecordedScript = function (recorder_array) {
       alert("Don't have a case for event type: "+x['evt'].type)
     }
     var methodString = recorderMethodCases[x['evt'].type](x).replace(inspected.documentString, inspected.documentString.replace('controller.', setup[inspected.controllerText]+'.'))
+
+    if (x['evt'].button == 2){
+      methodString = methodString.replace("click", "rightClick");
+    }
     test.push(setup[inspected.controllerText]  + '.' + methodString + ';');
   }
   
