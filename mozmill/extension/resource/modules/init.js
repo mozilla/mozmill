@@ -52,8 +52,12 @@ while(enumerator.hasMoreElements()) {
 var observer = {
   observe: function(subject,topic,data){
     
-    subject.addEventListener("load", function(event) {
+    subject.addEventListener("DOMContentLoaded", function(event) {
       subject.documentLoaded = true;
+    }, false);
+    
+    subject.addEventListener("unload", function(event) {
+      subject.documentLoaded = false;
     }, false);
     
   }
