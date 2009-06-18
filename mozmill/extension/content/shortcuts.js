@@ -19,6 +19,10 @@ function isAccel(e){
 //window onkeypress handler for various keyboard
 //shortcuts
 window.onkeypress = function(e){
+  //if a test is in the middle of running, don't allow shortcuts to go through
+  if ($("#runningStatus")[0].innerHTML.indexOf("Running") != -1){
+    return;
+  }
   if (isAccel(e)){ 
     switch(String.fromCharCode(e.charCode).toLowerCase()){
       case 'z':
