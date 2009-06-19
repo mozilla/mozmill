@@ -199,6 +199,18 @@ MozMillController.prototype.keypress = function(el, aKey, modifiers) {
   return true;
 }
 
+MozMillController.prototype.triggerKeyEvent = function(el, aKey, modifiers) {
+  var element = (el == null) ? this.window : el.getNode();
+  if (!element) {
+    throw new Error("could not find element " + el.getInfo());
+    return false;
+  }
+  element.focus();
+  events.triggerKeyEvent(element, 'keypress', aKey, modifiers);
+  frame.events.pass({'function':'Controller.keypress()'});
+  return true;
+}
+
 MozMillController.prototype.type = function (el, text) {
   var element = (el == null) ? this.window : el.getNode();
   if (!element) {
