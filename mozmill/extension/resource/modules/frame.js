@@ -239,8 +239,6 @@ if (jsbridge) {
   events.addListener('', function (name, obj) {jsbridge.fireEvent('mozmill.'+name, obj)} );
 }
 
-var http_port = 43336;
-
 var http_server = httpd.getServer(43336);
 
 function Collector () {
