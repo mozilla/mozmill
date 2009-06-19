@@ -37,9 +37,9 @@
 // ***** END LICENSE BLOCK *****
 
 var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
-var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
+// var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
 
-var menusLogger = logging.getLogger('menusLogger');
+// var menusLogger = logging.getLogger('menusLogger');
 
 function openNewWindow(){
   window.open('');

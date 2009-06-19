@@ -41,9 +41,9 @@ var EXPORTED_SYMBOLS = ["createEventObject", "triggerEvent", "getKeyCodeFromKeyS
                         "triggerKeyEvent", "triggerMouseEvent"];
                         
 var EventUtils = {}; Components.utils.import('resource://mozmill/modules/EventUtils.js', EventUtils); 
-var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
+// var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
 
-var eventsLogger = logging.getLogger('eventsLogger');
+// var eventsLogger = logging.getLogger('eventsLogger');
 
 var createEventObject = function(element, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
   var evt = element.ownerDocument.createEventObject();
@@ -90,7 +90,7 @@ var getKeyCodeFromKeySequence = function(keySequence) {
 
   }
   if (keySequence != null){
-    eventsLogger.error("invalid keySequence "+String(keySequence));
+    // eventsLogger.error("invalid keySequence "+String(keySequence));
   }
   // mozmill.results.writeResult("invalid keySequence");
 }

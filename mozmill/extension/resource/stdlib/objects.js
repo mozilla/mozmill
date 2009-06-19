@@ -45,9 +45,9 @@ var getLength = function (obj) {
   return len;
 }
 
-var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
+// var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
 
-var objectsLogger = logging.getLogger('objectsLogger');
+// var objectsLogger = logging.getLogger('objectsLogger');
 
 // var compare = function (obj1, obj2, depth, recursion) {
 //   if (depth == undefined) {

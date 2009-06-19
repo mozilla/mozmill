@@ -234,7 +234,6 @@ mozmill/extension/resource/stdlib/arrays.js
 mozmill/extension/resource/stdlib/dom.js
 mozmill/extension/resource/stdlib/httpd.js
 mozmill/extension/resource/stdlib/json2.js
-mozmill/extension/resource/stdlib/logging.js
 mozmill/extension/resource/stdlib/objects.js
 mozmill/extension/resource/stdlib/os.js
 mozmill/extension/resource/stdlib/strings.js
@@ -255,6 +254,11 @@ test/restart/test_browser/testPost.js
 test/restart/test_browser/testPre.js
 test/restart/test_fails/testPost.js
 test/restart/test_fails/testPre.js
+test/restart/test_multi_restart/test1.js
+test/restart/test_multi_restart/test2.js
+test/restart/test_multi_restart/test3.js
+test/restart/test_multi_restart/test4.js
+test/restart/test_multi_restart/test5.js
 test/restart/test_nothing/testPost.js
 test/restart/test_nothing/testPre.js
 test/test_something/test_parents.js

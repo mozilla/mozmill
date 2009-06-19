@@ -41,10 +41,10 @@ var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', u
 var objects = {}; Components.utils.import('resource://mozmill/stdlib/objects.js', objects);
 var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
-var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
+// var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 
-var recorderLogger = logging.getLogger('recorderLogger');
+// var recorderLogger = logging.getLogger('recorderLogger');
 
 var currentRecorderArray = [];
 

@@ -171,11 +171,15 @@ events.setModule = function (v) {
                           'currentModule', 'setModule', v);
 }
 events.pass = function (obj) {
-  events.currentTest.__passes__.push(obj);
+  if (events.currentTest) {
+    events.currentTest.__passes__.push(obj);
+  }
   events.fireEvent('pass', obj);
 }
 events.fail = function (obj) {
-  events.currentTest.__fails__.push(obj);
+  if (events.currentTest) {
+    events.currentTest.__fails__.push(obj);
+  }
   events.fireEvent('fail', obj);
 }
 events.skip = function (reason) {
@@ -246,8 +250,8 @@ function Collector () {
   this.testing = [];
   this.httpd_started = false;
   this.starting_http_port = 43336;
-  var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
-  this.logger = new logging.Logger('Collector');
+  // var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
+  // this.logger = new logging.Logger('Collector');
 }
 Collector.prototype.getModule = function (name) {
   return this.test_modules_by_name[name];
@@ -354,8 +358,8 @@ Collector.prototype.initTestDirectory = function (directory) {
 function Runner (collector) {
   this.collector = collector;
   events.fireEvent('startRunner', true);
-  var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
-  this.logger = new logging.Logger('Runner');
+  // var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
+  // this.logger = new logging.Logger('Runner');
   var m = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', m);
   this.platform = m.platform;
 }
