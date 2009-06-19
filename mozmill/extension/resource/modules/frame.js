@@ -239,6 +239,8 @@ if (jsbridge) {
   events.addListener('', function (name, obj) {jsbridge.fireEvent('mozmill.'+name, obj)} );
 }
 
+var http_port = 43336;
+
 var http_server = httpd.getServer(43336);
 
 function Collector () {
@@ -249,7 +251,7 @@ function Collector () {
   this.loaded_directories = [];
   this.testing = [];
   this.httpd_started = false;
-  this.starting_http_port = 43336;
+  this.http_port = 43336;
   // var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
   // this.logger = new logging.Logger('Collector');
 }
@@ -257,10 +259,17 @@ Collector.prototype.getModule = function (name) {
   return this.test_modules_by_name[name];
 }
 Collector.prototype.startHttpd = function () {
-  if (http_server._socket == null) {
-    http_server.start();
+  while (this.httpd == undefined) {
+    try {
+      http_server.start(this.http_port);
+      this.httpd = http_server;
+    } catch(e) { // Failure most likely due to port conflict
+      this.http_port++;
+      http_server = httpd.getServer(this.http_port);
+    }; 
+    
+    
   }
-  this.httpd = http_server;
 }
 Collector.prototype.stopHttpd = function () {
   this.httpd.stop()
@@ -277,7 +286,7 @@ Collector.prototype.addHttpResource = function (directory, ns) {
              .createInstance(Components.interfaces.nsILocalFile);
   lp.initWithPath(os.abspath(directory, this.current_file));
   this.httpd.registerDirectory('/'+ns+'/', lp);
-  return 'http://localhost:'+this.httpd._port+'/'+ns+'/'
+  return 'http://localhost:'+this.http_port+'/'+ns+'/'
 }
 Collector.prototype.initTestModule = function (filename) {
   var test_module = loadFile(filename, this);

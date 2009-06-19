@@ -4625,7 +4625,7 @@ function getServer (port, basePath) {
      srv.registerDirectory("/", lp);
    srv.registerContentType("sjs", SJS_TYPE);
    srv.identity.setPrimary("http", "localhost", port);
-   srv.start(port);
+   // srv.start(port);
    
    srv._port = port;
 
