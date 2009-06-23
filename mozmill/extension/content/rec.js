@@ -76,11 +76,11 @@ var recorderMethodCases = {
   
   'keypress': function (x) {
     if (x['evt'].charCode == 0){
-      return 'keypress(' + x['inspected'].elementText + ',' + x['evt'].keyCode + ', {ctrlkey:' +x['evt'].ctrlKey 
+      return 'keypress(' + x['inspected'].elementText + ',' + x['evt'].keyCode + ', {ctrlKey:' +x['evt'].ctrlKey 
               + ', altKey:'+ x['evt'].altKey + ',shiftKey:' + x['evt'].shiftKey + ', metaKey:' + x['evt'].metaKey + '})';
     }
     else {
-      return 'keypress(' + x['inspected'].elementText + ',"' + String.fromCharCode(x['evt'].charCode) + '", {ctrlkey:' +x['evt'].ctrlKey 
+      return 'keypress(' + x['inspected'].elementText + ',"' + String.fromCharCode(x['evt'].charCode) + '", {ctrlKey:' +x['evt'].ctrlKey 
               + ', altKey:'+ x['evt'].altKey + ',shiftKey:' + x['evt'].shiftKey + ', metaKey:' + x['evt'].metaKey + '})'; 
     }
    },
