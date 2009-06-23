@@ -340,7 +340,7 @@ MozMillController.prototype.select = function (el, indx, option, value) {
   }
   
   //if we have a select drop down
-  if (element.tagName.toLowerCase() == "select"){
+  if (element.localName.toLowerCase() == "select"){
     if (indx != undefined) {
      element.options.selectedIndex = indx;
      frame.events.pass({'function':'Controller.select()'});
@@ -383,7 +383,7 @@ MozMillController.prototype.select = function (el, indx, option, value) {
    }
   }
   //if we have a xul menulist select accordingly
-  else if (element.tagName.toLowerCase() == "menulist"){
+  else if (element.localName.toLowerCase() == "menulist"){
     var success = false;
     
     if (indx >= 0) {
