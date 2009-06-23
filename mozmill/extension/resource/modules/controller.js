@@ -813,10 +813,12 @@ function browserAdditions( controller ) {
       var timeout = 30000;
     }
     
-    waitForEval("subject.documentLoaded == true", timeout, interval, _document.defaultView);
+    var win = _document.defaultView;
+    
+    waitForEval("subject.documentLoaded == true", timeout, interval, win);
     //Once the object is available it's somewhere between 1 and 3 seconds before the DOM
     //Actually becomes available to us
-    sleep(100);
+    sleep(1);
   }
 }
 

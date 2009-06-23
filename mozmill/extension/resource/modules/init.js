@@ -39,27 +39,57 @@
 var EXPORTED_SYMBOLS = ["mozmill"];
 
 var mozmill = Components.utils.import('resource://mozmill/modules/mozmill.js');
-
+var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                    .getService(Components.interfaces.nsIWindowMediator)
                    .getEnumerator("");
+
+
+
 while(enumerator.hasMoreElements()) {
   var win = enumerator.getNext();
   win.documentLoaded = true;
-}
+  
+  try {
+    win.content.documentLoaded = true;
+  } catch(e){}
+
+  win.addEventListener("DOMContentLoaded", function(event) {
+    win.documentLoaded = true;
+    
+    //try attaching a listener to the dom content for load and beforeunload
+    //so that we can properly set the documentLoaded flag
+    try {
+      win.content.addEventListener("load", function(event) {
+        win.content.documentLoaded = true;
+      }, false);
+      win.content.addEventListener("beforeunload", function(event) {
+        win.content.documentLoaded = false;
+      }, false);
+    } catch(err){}
+
+  }, false);
+  
+};
 
 //when a new dom window gets opened
 var observer = {
   observe: function(subject,topic,data){
-    
-    subject.addEventListener("DOMContentLoaded", function(event) {
-      subject.documentLoaded = true;
-    }, false);
-    
-    subject.addEventListener("unload", function(event) {
-      subject.documentLoaded = false;
-    }, false);
-    
+      subject.addEventListener("DOMContentLoaded", function(event) {
+        subject.documentLoaded = true;
+        
+        //try attaching a listener to the dom content for load and beforeunload
+        //so that we can properly set the documentLoaded flag
+        try {
+          subject.content.addEventListener("load", function(event) {
+            subject.content.documentLoaded = true;
+          }, false);
+          subject.content.addEventListener("beforeunload", function(event) {
+            subject.content.documentLoaded = false;
+          }, false);
+        } catch(err){}
+
+      }, false);  
   }
 };
 
