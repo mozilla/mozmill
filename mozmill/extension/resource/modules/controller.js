@@ -242,18 +242,20 @@ MozMillController.prototype.open = function(url){
   frame.events.pass({'function':'Controller.open()'});
 }
 
-MozMillController.prototype.rightclick = function(el){
+MozMillController.prototype.rightclick = function(el, left, top){
   var element = el.getNode();
   if (!element){ 
     throw new Error("could not find element " + el.getInfo());     
     return false; 
   }
+  if (isNaN(left)){ left = 1; }
+  if (isNaN(top)){ top = 1; }
   
-  EventUtils.synthesizeMouse(element, 0, 0, { type : "contextmenu", button: 2 }, element.ownerDocument.defaultView);
+  EventUtils.synthesizeMouse(element, left, top, { type : "contextmenu", button: 2 }, element.ownerDocument.defaultView);
   //var evt = element.ownerDocument.defaultView.document.createEvent('MouseEvents');
   //evt.initMouseEvent("click", true, true, element.ownerDocument.defaultView, 0, 0, 0, 0, 0, false, false, false, false, 2, null);
   return true;
-}
+};
 
 MozMillController.prototype.click = function(el){
     //this.window.focus();
