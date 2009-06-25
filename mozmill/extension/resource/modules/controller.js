@@ -526,11 +526,13 @@ MozMillController.prototype.assertNode = function (el) {
 // Assert that a specified node doesn't exist
 MozMillController.prototype.assertNodeNotExist = function (el) {
   //this.window.focus();
-  var element = el.getNode();
-  if (!element){ 
+  try {
+    var element = el.getNode();
+  } catch(err){
     frame.events.pass({'function':'Controller.assertNodeNotExist()'});
-    return true; 
+    return true;
   }
+
   throw new Error("Unexpectedly found element " + el.getInfo());     
   return false;
 };
