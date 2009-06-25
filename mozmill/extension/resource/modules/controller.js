@@ -254,6 +254,7 @@ MozMillController.prototype.rightclick = function(el, left, top){
   EventUtils.synthesizeMouse(element, left, top, { type : "contextmenu", button: 2 }, element.ownerDocument.defaultView);
   //var evt = element.ownerDocument.defaultView.document.createEvent('MouseEvents');
   //evt.initMouseEvent("click", true, true, element.ownerDocument.defaultView, 0, 0, 0, 0, 0, false, false, false, false, 2, null);
+  frame.events.pass({'function':'Controller.rightclick()'});
   return true;
 };
 
@@ -320,12 +321,14 @@ MozMillController.prototype.waitForElement = function (elem, timeout, interval) 
   if (!r) {
     throw new Error("timeout exceeded for waitForElement "+elem.getInfo());
   }
+  frame.events.pass({'function':'Controller.waitForElement()'});
 }
 MozMillController.prototype.waitForImage = function (elem, timeout, interval) {
   var r = waitForImage(elem, timeout, interval);
   if (!r) {
     throw new Error("timeout exceeded for waitForImage "+elem.getInfo());
   }
+  frame.events.pass({'function':'Controller.waitForImage()'});
 }
 MozMillController.prototype.waitThenClick = function (elem, timeout, interval) {
   this.waitForElement(elem, timeout, interval);
@@ -823,6 +826,7 @@ function browserAdditions( controller ) {
     //Once the object is available it's somewhere between 1 and 3 seconds before the DOM
     //Actually becomes available to us
     sleep(1);
+    frame.events.pass({'function':'Controller.waitForPageLoad()'}); 
   }
 }
 
