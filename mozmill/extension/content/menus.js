@@ -54,6 +54,12 @@ function getFileName(path){
   return pathArr[pathArr.length-1]
 }
 
+function testFinished(){
+  document.getElementById('runningStatus').textContent = 'Test Finished, See Output Tab...';
+  $("#tabs").tabs().tabs("select", 1);
+  window.focus();
+}
+
 function openFile(){
   $("#tabs").tabs().tabs("select", 0);
   var openObj = utils.openFile(window);
@@ -132,8 +138,8 @@ function runFile(){
     $("#tabs").tabs("select", 1);
     frame.runTestFile(fp.file.path);
   }
-  document.getElementById('runningStatus').textContent = 'Test Finished, See Output Tab...';
-  $("#tabs").tabs().tabs("select", 1); 
+  
+  testFinished();
 }
 
 function runDirectory(){
@@ -147,8 +153,7 @@ function runDirectory(){
     $("#tabs").tabs("select", 1);
     frame.runTestDirectory(fp.file.path);
   }
-  document.getElementById('runningStatus').textContent = 'Test Finished, See Output Tab...';
-  $("#tabs").tabs().tabs("select", 1); 
+  testFinished();
 }
 
 // function reloadFile(){
@@ -165,8 +170,7 @@ function runEditor(){
     //setTimeout('$("#tabs").tabs("select", 1)', 4000);
     $("#testDialog").dialog("close");
     frame.runTestFile(window.openFn);
-    document.getElementById('runningStatus').textContent = 'Test Finished, See Output Tab...';
-    $("#tabs").tabs().tabs("select", 1); 
+    testFinished();
   }
     doRun();
 
