@@ -36,7 +36,8 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','events', 
-                        'jsbridge', 'runTestDirectory', 'runTestFile', 'log', 'getThread'];
+                        'jsbridge', 'runTestDirectory', 'runTestFile', 'log', 'getThread',
+                        'timers'];
 
 var httpd = {};   Components.utils.import('resource://mozmill/stdlib/httpd.js', httpd);
 var os = {};      Components.utils.import('resource://mozmill/stdlib/os.js', os);
@@ -130,6 +131,8 @@ function stateChangeBase (possibilties, restrictions, target, cmeta, v) {
   events.fireEvent(cmeta, target);
 }
 
+timers = [];
+
 var events = {
   'currentState' : null,
   'currentModule': null,
@@ -174,17 +177,33 @@ events.pass = function (obj) {
   if (events.currentTest) {
     events.currentTest.__passes__.push(obj);
   }
+  for each(timer in timers) {
+    timer.actions.push(
+      {"currentTest":events.currentModule.__file__+"::"+events.currentTest.__name__, "obj":obj,
+       "result":"pass"}
+    );
+  }
   events.fireEvent('pass', obj);
 }
 events.fail = function (obj) {
   if (events.currentTest) {
     events.currentTest.__fails__.push(obj);
   }
+  for each(time in timers) {
+    timer.actions.push(
+      {"currentTest":events.currentModule.__file__+"::"+events.currentTest.__name__, "obj":obj,
+       "result":"fail"}
+    );
+  }
   events.fireEvent('fail', obj);
 }
 events.skip = function (reason) {
   events.currentTest.skipped = true;
   events.currentTest.skipped_reason = reason;
+  timer.actions.push(
+    {"currentTest":events.currentModule.__file__+"::"+events.currentTest.__name__, "obj":reason,
+     "result":"skip"}
+  );
   events.fireEvent('skip', reason);
 }
 events.fireEvent = function (name, obj) {

@@ -121,7 +121,7 @@ class MozMill(object):
         if report:
             appInfo = jsbridge.JSObject(self.bridge, appInfoJs)
 
-            results = {'testType':'mozmill', 'starttime':starttime, 
+            results = {'type':'mozmill-test', 'starttime':starttime, 
                        'endtime':endtime, 'tests':self.alltests}
             results['appInfo.id'] = str(appInfo.ID)
             results['buildid'] = str(appInfo.appBuildID)

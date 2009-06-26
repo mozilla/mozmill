@@ -50,6 +50,7 @@ var controller = {};  Components.utils.import('resource://mozmill/modules/contro
 var events = {};      Components.utils.import('resource://mozmill/modules/events.js', events);
 var utils = {};       Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
+var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
 
 var os = {}; Components.utils.import('resource://mozmill/stdlib/os.js', os);
 var withs = {}; Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
@@ -186,6 +187,22 @@ waitFor = controller.waitFor;
 
 MozMillAsyncTest = controller.MozMillAsyncTest;
 
-
+function timer () {
+  this.timers = {};
+  frame.timers.push(this);
+  this.actions = [];
+}
+timer.prototype.start = function (name) {
+  this.timers[name].startTime = (new Date).getTime();
+} 
+timer.prototype.stop = function (name) {
+  var t = this.timers[name];
+  t.endTime = (new Date).getTime();
+  t.totalTime = (t.endTime - t.startTime);
+}
+timer.prototype.end = function () {
+  frame.events.fireEvent("timer", this);
+  frame.timers.remove(this);
+}
 
 
