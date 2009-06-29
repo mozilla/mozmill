@@ -258,53 +258,19 @@ MozMillController.prototype.rightclick = function(el, left, top){
   return true;
 };
 
-MozMillController.prototype.click = function(el){
+MozMillController.prototype.click = function(el, left, top){
     //this.window.focus();
     var element = el.getNode();
     if (!element){ 
       throw new Error("could not find element " + el.getInfo());     
       return false; 
-    }     
-    try { events.triggerEvent(element, 'focus', false); }
-    catch(err){ }
+    }
     
-    //launch the click on firefox chrome
-    if ((element.click) || (element.baseURI.indexOf('chrome://') != -1)){
-      element.click();
-      frame.events.pass({'function':'Controller.click()'});
-      return true;
-    }
-
-    // Add an event listener that detects if the default action has been prevented.
-    // (This is caused by a javascript onclick handler returning false)
-    // we capture the whole event, rather than the getPreventDefault() state at the time,
-    // because we need to let the entire event bubbling and capturing to go through
-    // before making a decision on whether we should force the href
-    var savedEvent = null;
-    element.addEventListener('click', function(evt) {
-        savedEvent = evt;
-    }, false);
-    // Trigger the event.
-    events.triggerMouseEvent(element, 'mousedown', true);
-    events.triggerMouseEvent(element, 'mouseup', true);
-    events.triggerMouseEvent(element, 'click', true);
-    // Perform the link action if preventDefault was set.
-    // In chrome URL, the link action is already executed by triggerMouseEvent.
-    if (!utils.checkChrome && savedEvent != null && !savedEvent.getPreventDefault()) {
-        // if (element.href) {
-        //     this.open(element.href);
-        // } 
-        // else {
-        var itrElement = element;
-        while (itrElement != null) {
-          // if (itrElement.href) {
-          //   this.open(itrElement.href);
-          //   break;
-          // }
-          itrElement = itrElement.parentNode;
-          // }
-        }
-    }
+    if (isNaN(left)){ left = 1; }
+    if (isNaN(top)){ top = 1; }
+         
+    EventUtils.synthesizeMouse(element, left, top, {}, element.ownerDocument.defaultView);
+    
     frame.events.pass({'function':'Controller.click()'});
     return true;
 };
