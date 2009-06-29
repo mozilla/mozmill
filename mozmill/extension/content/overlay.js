@@ -48,21 +48,24 @@ var MozMill = {
   onMenuItemCommand: function() {
     var mmWindows = utils.getWindowByTitle('MozMill IDE');
     if (!mmWindows){
-      // var height = utils.getPreference("mozmill.height", 740);
-      //    var width = utils.getPreference("mozmill.width", 635);
+      var height = utils.getPreference("mozmill.height", 740);
+      var width = utils.getPreference("mozmill.width", 635);
       //move to top left corner
-      window.screenY = 0;
-      window.screenX = 0;
+      var left = utils.getPreference("mozmill.screenX", 0);
+      var top = utils.getPreference("mozmill.screenY", 0);
 
-      //make only browser windows big
-      var width = window.screen.availWidth/2.5;
-      var height = window.screen.availHeight;
-      window.resizeTo((window.screen.availWidth - width), window.screen.availHeight);
+      if (left == 0){
+        //make only browser windows big
+        var width = window.screen.availWidth/2.5;
+        var height = window.screen.availHeight;
+        window.resizeTo((window.screen.availWidth - width), window.screen.availHeight);
+
+        var height = window.innerHeight;
+        var left = window.innerWidth; 
+      }
       
-      var h = window.innerHeight;
-      var l = window.innerWidth;
-      var paramString = "chrome,resizable,height=" + h +
-                               ",width=" + width + ",left="+l+",top=0";
+      var paramString = "chrome,resizable,height=" + height +
+                               ",width=" + width + ",left="+left+",top="+top;
       var w = window.open("chrome://mozmill/content/mozmill.html", "", paramString);
     } else { mmWindows[0].focus(); }
   }

@@ -75,6 +75,8 @@ function cleanUp(){
   //cleanup frame event listeners for output
   removeStateListeners();
   // Just store width and height
+  utils.setPreference("mozmill.screenX", window.screenX);
+  utils.setPreference("mozmill.screenY", window.screenY);
   utils.setPreference("mozmill.width", window.document.documentElement.clientWidth);
   utils.setPreference("mozmill.height", window.document.documentElement.clientHeight);
 }
