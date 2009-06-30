@@ -261,7 +261,7 @@ MozMillController.prototype.rightClick = function(el, left, top){
 
 //show a deprecation warning for rightclick to update to rightClick
 MozMillController.prototype.rightclick = function(){
-  frame.log({function:'Deprecation Warning', message:'Controller.rightclick should be renamed to Controller.rightClick'});
+  frame.log({function:'rightclick - Deprecation Warning', message:'Controller.rightclick should be renamed to Controller.rightClick'});
   this.rightClick.apply(this, arguments);
 }
 
