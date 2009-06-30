@@ -114,9 +114,10 @@ var triggerMouseEvent = function(element, eventType, canBubble, clientX, clientY
   clientX = clientX ? clientX: 0;
   clientY = clientY ? clientY: 0;
 
-  //LOG.warn("mozmill.events.triggerMouseEvent assumes setting screenX and screenY to 0 is ok");
-  var screenX = 0;
-  var screenY = 0;
+  // Fixing this - make the mouse understand where it is on the screen, needed
+  // for double click.
+  var screenX = element.boxObject.screenX ? element.boxObject.screenX : 0;
+  var screenY = element.boxObject.screenY ? element.boxObject.screenY : 0;;
 
   canBubble = (typeof(canBubble) == undefined) ? true: canBubble;
 
