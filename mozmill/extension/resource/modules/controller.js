@@ -242,7 +242,8 @@ MozMillController.prototype.open = function(url){
   frame.events.pass({'function':'Controller.open()'});
 }
 
-MozMillController.prototype.rightclick = function(el, left, top){
+
+MozMillController.prototype.rightClick = function(el, left, top){
   var element = el.getNode();
   if (!element){ 
     throw new Error("could not find element " + el.getInfo());     
@@ -257,6 +258,13 @@ MozMillController.prototype.rightclick = function(el, left, top){
   frame.events.pass({'function':'Controller.rightclick()'});
   return true;
 };
+
+//show a deprecation warning for rightclick to update to rightClick
+MozMillController.prototype.rightclick = function(){
+  frame.log({function:'Deprecation Warning', message:'Controller.rightclick should be renamed to Controller.rightClick'});
+  this.rightClick.apply(this, arguments);
+}
+
 
 MozMillController.prototype.click = function(el, left, top){
     //this.window.focus();
