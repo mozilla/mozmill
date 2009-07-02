@@ -78,17 +78,6 @@ var checkTypeFunction = function(element) {
   controller.assertValue(element, "Mozilla Firefox");
 }
 
-var testContentTextboxAutoFocus = function() {
-  controller.open("http://www.google.com");
-  controller.waitForPageLoad(controller.tabs.activeTab);
-
-  // Focus should be automatically set to the search text box
-  var searchField = new elementslib.Name(controller.window.content.document, 'q');
-  controller.waitForElement(searchField, 5000);
-  controller.type(null, "Mozilla");
-  controller.assertValue(searchField, "Mozilla");
-}
-
 var testContentTextboxFocus = function() {
   controller.open("http://www.mozilla.org");
   controller.waitForPageLoad(controller.tabs.activeTab);

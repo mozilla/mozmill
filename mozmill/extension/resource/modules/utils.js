@@ -21,6 +21,7 @@
 // Contributor(s):
 //  Adam Christian <adam.christian@gmail.com>
 //  Mikeal Rogers <mikeal.rogers@gmail.com>
+//  Henrik Skupin <hskupin@mozilla.com>
 // 
 // Alternatively, the contents of this file may be used under the terms of
 // either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -37,7 +38,7 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler", 
-                        "getFile", "Copy", "getWindows", "runEditor", 
+                        "getFile", "Copy", "getChromeWindow", "getWindows", "runEditor",
                         "runFile", "getWindowByTitle", "tempfile", 
                         "getMethodInWindows", "getPreference", "setPreference"];
 
@@ -57,9 +58,21 @@ function Copy (obj) {
   }
 }
 
+function getChromeWindow(aWindow) {
+  var chromeWin = aWindow
+           .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+           .getInterface(Components.interfaces.nsIWebNavigation)
+           .QueryInterface(Components.interfaces.nsIDocShellTreeItem)
+           .rootTreeItem
+           .QueryInterface(Components.interfaces.nsIInterfaceRequestor)
+           .getInterface(Components.interfaces.nsIDOMWindow)
+           .QueryInterface(Components.interfaces.nsIDOMChromeWindow);
+  return chromeWin;
+}
+
 function getWindows(type) {
   if (type == undefined) {
-      var type = "";
+      type = "";
   }
   var windows = []
   var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]

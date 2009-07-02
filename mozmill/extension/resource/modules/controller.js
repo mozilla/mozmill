@@ -187,21 +187,6 @@ var MozMillController = function (window) {
   
 }
 
-MozMillController.prototype.checkFocus = function(element) {
-  // Don't check focus if the element is the window itself
-  if (element == this.window)
-    return;
-
-  // Check if the element is a parent or the focused element itself
-  var focusedElement = this.window.document.commandDispatcher.focusedElement;
-  for (var node = focusedElement; node && node != element; )
-    node = node.parentNode;
-
-  // Only focus the element when it hasn't been focused yet
-  if (!node)
-    element.focus();
-}
-
 MozMillController.prototype.keypress = function(el, aKey, modifiers) {
   var element = (el == null) ? this.window : el.getNode();
   if (!element) {
@@ -209,7 +194,6 @@ MozMillController.prototype.keypress = function(el, aKey, modifiers) {
     return false;
   }
 
-  this.checkFocus(element);
   events.triggerKeyEvent(element, 'keypress', aKey, modifiers);
   frame.events.pass({'function':'Controller.keypress()'});
   return true;
@@ -222,7 +206,6 @@ MozMillController.prototype.triggerKeyEvent = function(el, aKey, modifiers) {
     return false;
   }
 
-  this.checkFocus(element);
   events.triggerKeyEvent(element, 'keypress', aKey, modifiers);
   frame.events.pass({'function':'Controller.keypress()'});
   return true;
@@ -235,7 +218,6 @@ MozMillController.prototype.type = function (el, text) {
     return false;
   }
 
-  this.checkFocus(element);
   for (var indx = 0; indx < text.length; indx++) {
     events.triggerKeyEvent(element, 'keypress', text.charAt(indx), {});
   }

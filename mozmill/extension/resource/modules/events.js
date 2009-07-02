@@ -41,6 +41,8 @@ var EXPORTED_SYMBOLS = ["createEventObject", "triggerEvent", "getKeyCodeFromKeyS
                         "triggerKeyEvent", "triggerMouseEvent"];
                         
 var EventUtils = {}; Components.utils.import('resource://mozmill/modules/EventUtils.js', EventUtils); 
+var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
+
 // var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
 
 // var eventsLogger = logging.getLogger('eventsLogger');
@@ -95,12 +97,22 @@ var getKeyCodeFromKeySequence = function(keySequence) {
   // mozmill.results.writeResult("invalid keySequence");
 }
     
-//events.triggerKeyEvent(element, 'keypress', charSeq, keyCode, modifiers);
 var triggerKeyEvent = function(element, eventType, aKey, modifiers) {
   // get the window and send event
   var win = element.ownerDocument ? element.ownerDocument.defaultView : element;
   win.focus();
   
+  // If we have an element check if it needs to be focused
+  if (element.ownerDocument) {
+    var focusedElement = utils.getChromeWindow(win).document.commandDispatcher.focusedElement;
+    for (var node = focusedElement; node && node != element; )
+      node = node.parentNode;
+
+    // Only focus the element when it's not focused yet
+    if (!node)
+      element.focus();
+  }
+
   try {
       EventUtils.synthesizeKey(aKey, modifiers, win);
   } catch(e) {
