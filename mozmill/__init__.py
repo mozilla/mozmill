@@ -317,6 +317,8 @@ class CLI(jsbridge.CLI):
         
     def run(self):
         runner = self.parse_and_get_runner()
+        if '-foreground' not in runner.cmdargs:
+            runner.cmdargs.append('-foreground')
         
         if self.options.test:
             t = os.path.abspath(os.path.expanduser(self.options.test))
