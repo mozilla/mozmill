@@ -279,6 +279,10 @@ MozMillController.prototype.click = function(el, left, top){
       throw new Error("could not find element " + el.getInfo());     
       return false; 
     }
+    if (element.tagName == "menuitem") {
+      element.click();
+      return true;
+    }
     
     if (isNaN(left)){ left = 1; }
     if (isNaN(top)){ top = 1; }
