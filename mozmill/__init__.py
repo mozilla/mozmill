@@ -75,6 +75,7 @@ class LoggerListener(object):
             self.cases[eName](obj)
 
 class MozMill(object):
+    endRunnerCalled = False
     
     def __init__(self, runner_class=mozrunner.FirefoxRunner, 
                  profile_class=mozrunner.FirefoxProfile, jsbridge_port=24242):
@@ -152,8 +153,9 @@ class MozMill(object):
 
     def endRunner_listener(self, obj):
         print 'Passed '+str(len(self.passes))+' :: Failed '+str(len(self.fails))+' :: Skipped '+str(len(self.skipped))
+        self.endRunnerCalled = True
 
-    def stop(self):
+    def stop(self, timeout=10):
         sleep(1)
         mozmill = jsbridge.JSObject(self.bridge, "Components.utils.import('resource://mozmill/modules/mozmill.js')")
         try:
@@ -163,6 +165,12 @@ class MozMill(object):
         self.runner.wait()
         self.back_channel.close()
         self.bridge.close()
+        x = 0
+        while self.endRunnerCalled is False and x != timeout:
+            sleep(1); x += 1
+        if timeout == x:
+            print "endRunner was never called. There must have been a failure in the framework."
+            sys.exit(1)
 
 class MozMillRestart(MozMill):
     

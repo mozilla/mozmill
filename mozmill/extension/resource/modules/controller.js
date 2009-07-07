@@ -130,8 +130,9 @@ function waitForElement(elem, timeout, interval) {
   return waitForEval('subject.exists()', timeout, interval, elem);
 }
 
-var Menu = function (elements, doc) {
+var Menu = function (elements, doc, window) {
   this.doc = doc;
+  this.window = window;
   for each(node in elements) {
     if (node.tagName){
       if (node.tagName == "menu") {
@@ -148,6 +149,11 @@ var Menu = function (elements, doc) {
 };
 
 Menu.prototype.reload = function () {
+  var utils = this.window.QueryInterface(Components.interfaces.nsIInterfaceRequestor).
+              getInterface(Components.interfaces.nsIDOMWindowUtils);
+  utils.forceUpdateNativeMenuAt("4");
+  utils.activateNativeMenuItemAt("4|10");
+  
   var elements = this.doc.getElementsByTagName('menubar')[0].childNodes;
   for each(node in elements) {
     if (node.tagName){
@@ -182,7 +188,7 @@ var MozMillController = function (window) {
 
   //this will break on windows for addons and downloads controller
   try {
-    this.menus = new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes, this.window.document);  
+    this.menus = new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes, this.window.document, this.window);  
   } catch(err){}
   
 }

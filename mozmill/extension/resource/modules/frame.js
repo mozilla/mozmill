@@ -200,10 +200,12 @@ events.fail = function (obj) {
 events.skip = function (reason) {
   events.currentTest.skipped = true;
   events.currentTest.skipped_reason = reason;
-  timer.actions.push(
-    {"currentTest":events.currentModule.__file__+"::"+events.currentTest.__name__, "obj":reason,
-     "result":"skip"}
-  );
+  for each(timer in timers) {
+    timer.actions.push(
+      {"currentTest":events.currentModule.__file__+"::"+events.currentTest.__name__, "obj":reason,
+       "result":"skip"}
+    );
+  }
   events.fireEvent('skip', reason);
 }
 events.fireEvent = function (name, obj) {
