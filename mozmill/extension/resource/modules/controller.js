@@ -468,16 +468,18 @@ MozMillController.prototype.radio = function(el){
 }
 
 //Double click for Mozilla
-MozMillController.prototype.doubleClick = function(el) {
+MozMillController.prototype.doubleClick = function(el, left, top) {
    //this.window.focus();
    var element = el.getNode();
    if (!element){ 
     throw new Error("could not find element " + el.getInfo());     
     return false; 
    } 
-   events.triggerEvent(element, 'focus', false);
-   events.triggerMouseEvent(element, 'dblclick', true);
-   events.triggerEvent(element, 'blur', false);
+
+  if (isNaN(left)) { left = 1; }
+  if (isNaN(top)) { top = 1; }
+
+  EventUtils.synthesizeMouse(element, left, top, {clickCount: 2}, element.ownerDocument.defaultView);
  
    frame.events.pass({'function':'Controller.doubleClick()'});
    return true;
