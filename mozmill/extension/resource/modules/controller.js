@@ -519,9 +519,14 @@ MozMillController.prototype.assertNodeNotExist = function (el) {
     frame.events.pass({'function':'Controller.assertNodeNotExist()'});
     return true;
   }
-
-  throw new Error("Unexpectedly found element " + el.getInfo());     
-  return false;
+  
+  if (element) {
+    throw new Error("Unexpectedly found element " + el.getInfo());     
+    return false;
+  } else {
+    frame.events.pass({'function':'Controller.assertNodeNotExist()'});
+    return true;
+  }
 };
 
 //Assert that a form element contains the expected value
