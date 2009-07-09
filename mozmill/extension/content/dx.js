@@ -49,7 +49,20 @@ DomInspectorConnector.prototype.grab = function(){
   var dispArr = disp.split(': ');
   $('editorInput').value += 'new elementslib.'+dispArr[0].toUpperCase()+"('"+dispArr[1]+"')\n";
 }  
+
+DomInspectorConnector.prototype.changeClick = function(e) {
+  if (this.on){
+    this.dxOff()
+    this.dxOn();
+  }
+  else {
+    this.dxOff();
+  }
+
+}
+
 DomInspectorConnector.prototype.evtDispatch = function(e) {
+  
   //if this function was called less than a second ago, exit
   //this should solve the flickering problem
   var currentTime = new Date();
@@ -94,6 +107,7 @@ DomInspectorConnector.prototype.dxToggle = function(){
 //and can be obnoxious im enabling it to be turned off and on with a toggle check box
 DomInspectorConnector.prototype.dxOn = function() {
   this.on = true;
+  $("#inspectDialog").dialog().parents(".ui-dialog:first").find(".ui-dialog-buttonpane button")[2].innerHTML = "Stop";
   document.getElementById('eventsOut').value = "";
   //document.getElementById('inspectClickSelection').disabled = true;
   //$('domExplorer').setAttribute('label', 'Disable Inspector');
@@ -137,6 +151,7 @@ DomInspectorConnector.prototype.observer = {
 
 DomInspectorConnector.prototype.dxOff = function() {
   this.on = false;
+  $("#inspectDialog").dialog().parents(".ui-dialog:first").find(".ui-dialog-buttonpane button")[2].innerHTML = "Start";
   //document.getElementById('inspectClickSelection').disabled = false;
 
   //try to cleanup left over outlines
@@ -156,8 +171,13 @@ DomInspectorConnector.prototype.dxOff = function() {
   //$('dxContainer').style.display = "none";
   //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
   for each(win in utils.getWindows()) {
-    this.dxRecursiveUnBind(win, clickMethod);
+    this.dxRecursiveUnBind(win, 'click');
   }
+  
+  for each(win in utils.getWindows()) {
+    this.dxRecursiveUnBind(win, 'dblclick');
+  }
+  
 
   var observerService =
     Components.classes["@mozilla.org/observer-service;1"]

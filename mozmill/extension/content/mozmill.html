@@ -62,7 +62,8 @@
         },
         buttons: { 
           "Close": function() {
-            jQuery(this).dialog("close"); 
+            jQuery(this).dialog("close");
+            MozMilldx.dxOff();
             
           },
           "Send to Clipboard": function() {
@@ -95,7 +96,6 @@
         buttons: { 
          "Close": function() { 
              jQuery(this).dialog("close");
-             MozMilldx.dxOff(); 
          } 
         }
       });
@@ -211,8 +211,8 @@
       <div id="inspectDialog" title="Inspector">
       	<p>
       	  <div style="float:right;">
-      	      Double: <input id="inspectDouble" type="radio" name="inspectClickSelection" value="double" checked>
-              Single: <input id="inspectSingle" type="radio" name="inspectClickSelection" value="single" >
+      	      Double: <input id="inspectDouble" type="radio" name="inspectClickSelection" value="double" onclick="MozMilldx.changeClick();" checked>
+              Single: <input id="inspectSingle" type="radio" name="inspectClickSelection" onclick="MozMilldx.changeClick();" value="single">
       	  </div><br>
       	  <div id="dxContainer" style="padding:3px;">
             <strong>Element</strong>::
