@@ -290,6 +290,9 @@ MozMillController.prototype.click = function(el, left, top){
     EventUtils.synthesizeMouse(element, left, top, {}, element.ownerDocument.defaultView);
     
     frame.events.pass({'function':'Controller.click()'});
+    // Allow any event listeners to respond to our click - needed to ensure things
+    // like menupopups close.
+    this.sleep(0);
     return true;
 };
 
