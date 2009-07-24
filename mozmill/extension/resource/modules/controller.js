@@ -585,6 +585,22 @@ MozMillController.prototype.assertChecked = function (el) {
   return false;
 };
 
+// Assert that a provided checkbox is not checked
+MozMillController.prototype.assertNotChecked = function (el) {
+  var n = el.getNode();
+
+  if (!n) {
+    throw new Error("Could not find element" + el.getInfo());
+  }
+
+  if (!n.hasAttribute("checked") || n.checked != true){ 
+    frame.events.pass({'function':'Controller.assertNotChecked()'});
+    return true; 
+    }
+  throw new Error("assert failed for checked element " + el.getInfo());
+  return false;
+};
+
 // Assert that a an element's property is a particular value
 MozMillController.prototype.assertProperty = function(el, attrib, val) {
   var element = el.getNode();
