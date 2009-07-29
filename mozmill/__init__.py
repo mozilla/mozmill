@@ -217,13 +217,13 @@ class MozMillRestart(MozMill):
         try:
             mozmill.cleanQuit()
         except socket.error:
-            pass        
+            pass
         # self.back_channel.close()
         # self.bridge.close()
         starttime = datetime.now()
-        self.runner.wait(timeout=5)
+        self.runner.wait(timeout=30)
         endtime = datetime.now()
-        if ( endtime - starttime ) > timedelta(seconds=5):
+        if ( endtime - starttime ) > timedelta(seconds=30):
             try: self.runner.stop()
             except: pass
             self.runner.wait()
