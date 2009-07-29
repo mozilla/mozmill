@@ -629,6 +629,21 @@ MozMillController.prototype.assertProperty = function(el, attrib, val) {
   return res;
 };
 
+// Assert that an element's property does not exist
+MozMillController.prototype.assertPropertyNotExist = function(el, attrib) {
+  var element = el.getNode();
+  if (!element) {
+    throw new Error("could not find element " + el.getInfo());
+	return false;
+  }
+  if (!element.hasAttribute(attrib)) {
+    frame.events.pass({'function':'Controller.assertPropertyNotExist()'});
+    return true;
+  }
+  throw new Error("assert failed for checked element " + el.getInfo());
+  return false;
+};
+
 // Assert that a specified image has actually loaded
 // The Safari workaround results in additional requests
 // for broken images (in Safari only) but works reliably
