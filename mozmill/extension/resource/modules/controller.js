@@ -575,9 +575,9 @@ MozMillController.prototype.assertSelected = function (el, value) {
 //Assert that a provided checkbox is checked
 MozMillController.prototype.assertChecked = function (el) {
   //this.window.focus();
-  var n = el.getNode();
+  var element = el.getNode();
 
-  if (n.checked == true){ 
+  if (element.checked == true){ 
     frame.events.pass({'function':'Controller.assertChecked()'});
     return true; 
     }
@@ -587,9 +587,9 @@ MozMillController.prototype.assertChecked = function (el) {
 
 // Assert that a provided checkbox is not checked
 MozMillController.prototype.assertNotChecked = function (el) {
-  var n = el.getNode();
+  var element = el.getNode();
 
-  if (!n) {
+  if (!element) {
     throw new Error("Could not find element" + el.getInfo());
   }
 
@@ -597,7 +597,7 @@ MozMillController.prototype.assertNotChecked = function (el) {
     frame.events.pass({'function':'Controller.assertNotChecked()'});
     return true; 
     }
-  throw new Error("assert failed for checked element " + el.getInfo());
+  throw new Error("assert failed for not checked element " + el.getInfo());
   return false;
 };
 
