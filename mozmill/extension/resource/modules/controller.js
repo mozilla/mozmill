@@ -593,7 +593,7 @@ MozMillController.prototype.assertNotChecked = function (el) {
     throw new Error("Could not find element" + el.getInfo());
   }
 
-  if (!n.hasAttribute("checked") || n.checked != true){ 
+  if (!element.hasAttribute("checked") || element.checked != true){
     frame.events.pass({'function':'Controller.assertNotChecked()'});
     return true; 
     }
