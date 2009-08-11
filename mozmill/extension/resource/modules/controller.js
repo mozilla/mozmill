@@ -817,6 +817,12 @@ Tabs.prototype.__defineGetter__("activeTabWindow", function () {
 Tabs.prototype.__defineGetter__("length", function () {		
   return this.controller.window.gBrowser.browsers.length;		
 })
+Tabs.prototype.__defineGetter__("activeTabIndex", function() {
+  return this.controller.window.gBrowser.tabContainer.selectedIndex;
+})
+Tabs.prototype.selectTabIndex = function(i) {
+  this.controller.window.gBrowser.selectTabAtIndex(i);
+}
 
 function browserAdditions( controller ) {
   controller.tabs = new Tabs(controller);
