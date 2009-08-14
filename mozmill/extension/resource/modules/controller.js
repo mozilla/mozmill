@@ -321,83 +321,94 @@ MozMillController.prototype.waitThenClick = function (elem, timeout, interval) {
 
 /* Select the specified option and trigger the relevant events of the element.*/
 MozMillController.prototype.select = function (el, indx, option, value) {
-  //this.window.focus();
+
   element = el.getNode();
   if (!element){ 
-    throw new Error("could not find element " + el.getInfo());     
+    throw new Error("Could not find element " + el.getInfo());
     return false; 
   }
   
   //if we have a select drop down
   if (element.localName.toLowerCase() == "select"){
+    var item = null;
+
+    // The selected item should be set via its index
     if (indx != undefined) {
-     element.options.selectedIndex = indx;
+      // Resetting a menulist has to be handled separately
+      if (indx == -1) {
+        events.triggerEvent(element, 'focus', false);
+        element.selectedIndex = indx;
+        events.triggerEvent(element, 'change', true);
+
      frame.events.pass({'function':'Controller.select()'});
      return true;
+      } else {
+        item = element.options.item(indx);
     }
-
-   try{ events.triggerEvent(element, 'focus', false);}
-   catch(err){};
-
-   var optionToSelect = null;
-   for (var opt=0;opt<element.options.length;opt++){
-     el = element.options[opt];
-
-     if (option != undefined){
-       if(el.innerHTML.indexOf(option) != -1){
-         if (el.selected && el.options[opt] == optionToSelect){
-           continue;
-         }
-         optionToSelect = el;
-         optionToSelect.selected = true;
-         events.triggerEvent(element, 'change', true);
+    } else {
+      for (var i = 0; i < element.options.length; i++) {
+        var entry = element.options.item(i);
+        if (option != undefined && entry.innerHTML == option ||
+            value != undefined && entry.value == value) {
+          item = entry;
          break;
        }
      }
-     else{
-        if(el.value.indexOf(value) != -1){
-           if (el.selected && el.options[opt] == optionToSelect){
-             continue;
            }
-           optionToSelect = el;
-           optionToSelect.selected = true;
+
+    // Click the item
+    try {
+      // EventUtils.synthesizeMouse doesn't work.
+      events.triggerEvent(element, 'focus', false);
+      item.selected = true;
            events.triggerEvent(element, 'change', true);
-           break;
-         }
-     }
-   }
-   if (optionToSelect == null){
-     throw new Error('optionsToSelect == null')
+
+      frame.events.pass({'function':'Controller.select()'});
+      return true;
+    } catch (ex) {
+      throw new Error("No item selected for element " + el.getInfo());
      return false;
    }
   }
   //if we have a xul menulist select accordingly
   else if (element.localName.toLowerCase() == "menulist"){
-    var success = false;
+    var item = null;
     
-    if (indx >= 0) {
+    if (indx != undefined) {
+      if (indx == -1) {
+        events.triggerEvent(element, 'focus', false);
       element.selectedIndex = indx;
-      success = true;
-    } else if (value != undefined && value != null){
-      element.selectedIndex = value;
-      success == true;
-    } else if (option != undefined && option != null){
-      //iterate items to find the one with the correct option string
-      for (var i=1;i<element.itemCount; i++){
-        if (element.getItemAtIndex(i).label == option){
-          element.selectedIndex = i;
-          success = true;
-        }
+        events.triggerEvent(element, 'change', true);
+
+        frame.events.pass({'function':'Controller.select()'});
+        return true;
+      } else {
+        item = element.getItemAtIndex(indx);
       }
+    } else {
+      for (var i = 0; i < element.itemCount; i++) {
+        var entry = element.getItemAtIndex(i);
+        if (option != undefined && entry.label == option ||
+            value != undefined && entry.value == value) {
+          item = entry;
+          break;
     }
-    if (!success){
-      throw new Error('No item selected.')
-      return false;
     }
   }
 
+    // Click the item
+    try {
+      EventUtils.synthesizeMouse(element, 1, 1, {}, item.ownerDocument.defaultView);
+      this.sleep(0);
+      EventUtils.synthesizeMouse(item, 1, 1, {}, item.ownerDocument.defaultView);
+
    frame.events.pass({'function':'Controller.select()'});
    return true;
+    } catch (ex) {
+      throw new Error('No item selected for element ' + el.getInfo());
+      return false;
+    }
+  }
 };
 
 //Directly access mouse events
