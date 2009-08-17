@@ -134,14 +134,14 @@ class MozMill(object):
             sysname, nodename, release, version, machine = os.uname()
             sysinfo = {'os.name':sysname, 'hostname':nodename, 'os.version.number':release,
                        'os.version.string':version, 'arch':machine}
-            results['sysinfo'] = sysinfo
             if sys.platform == 'darwin':
                 import platform
-                results['mac_ver'] = platform.mac_ver()
+                sysinfo['mac_ver'] = platform.mac_ver()
             elif sys.platform == 'linux2':
                 import platform
-                results['linux_distrobution'] = platform.linux_distrobution()
-                results['libc_ver'] = platform.libc_ver()
+                sysinfo['linux_distrobution'] = platform.linux_distrobution()
+                sysinfo['libc_ver'] = platform.libc_ver()           
+            results['sysinfo'] = sysinfo
             
             results['testPath'] = test
             import httplib2
