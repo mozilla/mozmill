@@ -48,14 +48,34 @@ var withs = {}; Components.utils.import('resource://mozmill/stdlib/withs.js', wi
 var dom = {}; Components.utils.import('resource://mozmill/stdlib/dom.js', dom);
 var objects = {}; Components.utils.import('resource://mozmill/stdlib/objects.js', objects);
 
+var countQuotes = function(str){
+  var count = 0;
+  var i = 0;
+  while(i < str.length) {
+    i = str.indexOf('"', i);
+    if (i != -1) {
+      count++;
+      i++;
+    } else {
+      break;
+    }
+  }
+  return count;
+}
 var smartSplit = function (str) {
   // Note: I would love it if someone good with regular expressions 
   // could just replace this function with a good regex
+
+  // Ensure we have an even number of quotes
+  if (countQuotes(str) % 2 != 0) {
+    throw new Error ("Invalid Lookup Expression");
+  }
+
   var repls = [];
-  while (str.indexOf('"') != -1) {
+  while ((str.indexOf('"') != -1) && i <= str.length) {
     var i = str.indexOf('"');
     var s = str.slice(i, str.indexOf('"', i + 1) +1)
-    var str = str.replace(s, '%$^'+repls.length);
+    str = str.replace(s, '%$^'+repls.length);
     repls.push(s)
   }
   
