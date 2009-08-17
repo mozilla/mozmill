@@ -40,11 +40,14 @@ import sys
 import copy
 import socket
 from datetime import datetime, timedelta
+try:
+    import json
+except:
+    import simplejson as json
 
 import logging
 logger = logging.getLogger('mozmill')
 
-import simplejson
 import jsbridge
 import mozrunner
 
@@ -132,10 +135,18 @@ class MozMill(object):
             sysinfo = {'os.name':sysname, 'hostname':nodename, 'os.version.number':release,
                        'os.version.string':version, 'arch':machine}
             results['sysinfo'] = sysinfo
+            if sys.platform == 'darwin':
+                import platform
+                results['mac_ver'] = platform.mac_ver()
+            elif sys.platform == 'linux2':
+                import platform
+                results['linux_distrobution'] = platform.linux_distrobution()
+                results['libc_ver'] = platform.libc_ver()
+            
             results['testPath'] = test
             import httplib2
             http = httplib2.Http()
-            response, content = http.request(report, 'POST', body=simplejson.dumps(results))
+            response, content = http.request(report, 'POST', body=json.dumps(results))
         
         # Give a second for any callbacks to finish.
         sleep(1)
