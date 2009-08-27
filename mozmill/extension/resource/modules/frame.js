@@ -58,6 +58,8 @@ var backstage = this;
 
 var registeredFunctions = {};
 
+var persisted = {};
+
 arrayRemove = function(array, from, to) {
   var rest = array.slice((to || from) + 1 || array.length);
   array.length = from < 0 ? array.length + from : from;
@@ -88,6 +90,7 @@ var loadFile = function(path, collector) {
   loadTestResources();
   module.mozmill = mozmill;
   module.elementslib = elementslib;
+  module.persisted = persisted;
   module.Cc = Components.classes;
   module.Ci = Components.interfaces;
   module.Cu = Components.utils;
@@ -409,6 +412,11 @@ Runner.prototype.runTestFile = function (filename) {
   this.runTestModule(this.collector.test_modules_by_filename[filename]);
 }
 Runner.prototype.end = function () {
+  try {
+    events.fireEvent('persist', persisted);
+  } catch(e) {
+    events.fireEvent('error', "persist serialization failed.");
+  }
   events.fireEvent('endRunner', true);
 }
 Runner.prototype.getDependencies = function (module) {

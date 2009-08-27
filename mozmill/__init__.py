@@ -217,6 +217,8 @@ class MozMillRestart(MozMill):
         self.endRunnerCalled = False
         
         frame = jsbridge.JSObject(bridge, "Components.utils.import('resource://mozmill/modules/frame.js')")
+        if hasattr(self, 'persist'):
+            frame.persisted = self.persisted
         self.bridge = bridge
         return frame
     
@@ -241,6 +243,9 @@ class MozMillRestart(MozMill):
         
     def endRunner_listener(self, obj):
         self.endRunnerCalled = True
+    
+    def persist_listener(self, obj):
+        self.persisted = obj
         
     def run_dir(self, test_dir, report=False, sleeptime=4):
         if os.path.isfile(os.path.join(test_dir, 'testPre.js')):   
@@ -261,6 +266,7 @@ class MozMillRestart(MozMill):
                 tests.append(os.path.join(test_dir, "test"+str(counter)+".js"))
                 counter += 1
     
+        self.add_listener(self.persist_listener, eventType="mozmill.persist")
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
         
         for test in tests:
