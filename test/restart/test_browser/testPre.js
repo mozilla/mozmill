@@ -5,6 +5,8 @@ var setupModule = function(module) {
   module.controller = mozmill.getBrowserController();
 }
 
+persisted.test = true;
+
 var testKnowRightsClick = function(){
   controller.sleep(1000)
   controller.waitForPageLoad(2000)

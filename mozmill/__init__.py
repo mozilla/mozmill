@@ -217,8 +217,6 @@ class MozMillRestart(MozMill):
         self.endRunnerCalled = False
         
         frame = jsbridge.JSObject(bridge, "Components.utils.import('resource://mozmill/modules/frame.js')")
-        if hasattr(self, 'persist'):
-            frame.persisted = self.persisted
         self.bridge = bridge
         return frame
     
@@ -273,6 +271,8 @@ class MozMillRestart(MozMill):
             frame = self.start_runner()
             self.endRunnerCalled = False
             sleep(sleeptime)
+            if hasattr(self, 'persisted'):
+                frame.persisted = self.persisted
             frame.runTestFile(test)
             while not self.endRunnerCalled:
                 sleep(.25)
