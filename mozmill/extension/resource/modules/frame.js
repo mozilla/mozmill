@@ -37,7 +37,7 @@
 
 var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','events', 
                         'jsbridge', 'runTestDirectory', 'runTestFile', 'log', 'getThread',
-                        'timers'];
+                        'timers', 'persisted'];
 
 var httpd = {};   Components.utils.import('resource://mozmill/stdlib/httpd.js', httpd);
 var os = {};      Components.utils.import('resource://mozmill/stdlib/os.js', os);
