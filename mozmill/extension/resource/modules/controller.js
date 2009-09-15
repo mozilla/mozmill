@@ -401,6 +401,7 @@ MozMillController.prototype.select = function (el, indx, option, value) {
       EventUtils.synthesizeMouse(element, 1, 1, {}, item.ownerDocument.defaultView);
       this.sleep(0);
       EventUtils.synthesizeMouse(item, 1, 1, {}, item.ownerDocument.defaultView);
+      this.sleep(0);
 
    frame.events.pass({'function':'Controller.select()'});
    return true;
