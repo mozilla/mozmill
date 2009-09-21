@@ -249,21 +249,79 @@ MozMillController.prototype.open = function(url){
 }
 
 
-MozMillController.prototype.rightClick = function(el, left, top){
-  var element = el.getNode();
+MozMillController.prototype.click = function(elem, left, top)
+{
+  var element = elem.getNode();
   if (!element){ 
-    throw new Error("could not find element " + el.getInfo());     
+    throw new Error("could not find element " + elem.getInfo());
     return false; 
   }
+
+  if (element.tagName == "menuitem") {
+    element.click();
+    return true;
+  }
+
   if (isNaN(left)){ left = 1; }
   if (isNaN(top)){ top = 1; }
   
-  EventUtils.synthesizeMouse(element, left, top, { type : "contextmenu", button: 2 }, element.ownerDocument.defaultView);
-  //var evt = element.ownerDocument.defaultView.document.createEvent('MouseEvents');
-  //evt.initMouseEvent("click", true, true, element.ownerDocument.defaultView, 0, 0, 0, 0, 0, false, false, false, false, 2, null);
-  frame.events.pass({'function':'Controller.rightclick()'});
+  // Scroll element into view otherwise the click will fail
+  if (element.scrollIntoView)
+    element.scrollIntoView();
+
+  EventUtils.synthesizeMouse(element, left, top, {}, element.ownerDocument.defaultView);
+  this.sleep(0);
+
+  frame.events.pass({'function':'Controller.click()'});
   return true;
-};
+}
+
+MozMillController.prototype.doubleClick = function(elem, left, top)
+{
+  var element = elem.getNode();
+  if (!element) {
+    throw new Error("could not find element " + elem.getInfo());
+    return false;
+}
+
+  if (isNaN(left)) { left = 1; }
+  if (isNaN(top)) { top = 1; }
+
+  // Scroll element into view before initiating a right click
+  if (element.scrollIntoView)
+    element.scrollIntoView();
+
+  EventUtils.synthesizeMouse(element, left, top, {clickCount: 2},
+                             element.ownerDocument.defaultView);
+  this.sleep(0);
+
+   frame.events.pass({'function':'Controller.doubleClick()'});
+   return true;
+}
+
+MozMillController.prototype.rightClick = function(elem, left, top)
+{
+  var element = elem.getNode();
+    if (!element){ 
+      throw new Error("could not find element " + el.getInfo());     
+      return false; 
+    }
+    
+    if (isNaN(left)){ left = 1; }
+    if (isNaN(top)){ top = 1; }
+         
+  // Scroll element into view before initiating a right click
+  if (element.scrollIntoView)
+    element.scrollIntoView();
+    
+  EventUtils.synthesizeMouse(element, left, top,
+                             { type : "contextmenu", button: 2 },
+                             element.ownerDocument.defaultView);
+  this.sleep(0);
+
+  frame.events.pass({'function':'Controller.rightClick()'});
+    return true;
+}
 
 //show a deprecation warning for rightclick to update to rightClick
 MozMillController.prototype.rightclick = function(){
@@ -271,27 +329,6 @@ MozMillController.prototype.rightclick = function(){
   this.rightClick.apply(this, arguments);
 }
 
-
-MozMillController.prototype.click = function(el, left, top){
-    //this.window.focus();
-    var element = el.getNode();
-    if (!element){ 
-      throw new Error("could not find element " + el.getInfo());     
-      return false; 
-    }
-    if (element.tagName == "menuitem") {
-      element.click();
-      return true;
-    }
-    
-    if (isNaN(left)){ left = 1; }
-    if (isNaN(top)){ top = 1; }
-         
-    EventUtils.synthesizeMouse(element, left, top, {}, element.ownerDocument.defaultView);
-    
-    frame.events.pass({'function':'Controller.click()'});
-    return true;
-};
 
 MozMillController.prototype.sleep = sleep;
 MozMillController.prototype.waitForEval = function (expression, timeout, interval, subject) {
@@ -478,25 +515,6 @@ MozMillController.prototype.radio = function(el){
   var element = el.getNode();
   return MozMillController.click(element);      
 }
-
-//Double click for Mozilla
-MozMillController.prototype.doubleClick = function(el, left, top) {
-   //this.window.focus();
-   var element = el.getNode();
-   if (!element){ 
-    throw new Error("could not find element " + el.getInfo());     
-    return false; 
-   } 
-
-  if (isNaN(left)) { left = 1; }
-  if (isNaN(top)) { top = 1; }
-
-  EventUtils.synthesizeMouse(element, left, top, {clickCount: 2}, element.ownerDocument.defaultView);
- 
-   frame.events.pass({'function':'Controller.doubleClick()'});
-   return true;
-};
-
 
 MozMillController.prototype.assertText = function (el, text) {
   //this.window.focus();
