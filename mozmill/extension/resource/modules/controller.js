@@ -38,7 +38,7 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ["MozMillController", "sleep", "waitForEval", "MozMillAsyncTest",
-                        "globalEventRegistry", "waitForEvents"];
+                        "globalEventRegistry"];
 
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
 var EventUtils = {}; Components.utils.import('resource://mozmill/modules/EventUtils.js', EventUtils); 
@@ -110,7 +110,12 @@ function waitForEval (expression, timeout, interval, subject) {
   return r;
 }
 
-var waitForEvents = function (node, events)
+waitForEvents = function() {}
+waitForEvents.prototype = {
+  /**
+   *  Initialize list of events for given node
+   */
+  init : function waitForEvents_init(node, events)
 {
   if (node.getNode != undefined)
     node = node.getNode();
@@ -128,17 +133,22 @@ var waitForEvents = function (node, events)
     this.registry[e].result = false;
     this.node.addEventListener(e, this.registry[e], true);
   }
-}
+  },
 
-waitForEvents.prototype.wait = function(timeout, interval)
+  /**
+   * Wait until all assigned events have been fired
+   */
+  wait : function waitForEvents_wait(timeout, interval)
 {
   for (e in this.registry) {
-    var r = waitForEval("subject['"+e+"'] == true", timeout, interval, this.node.firedEvents)
+      var r = waitForEval("subject['" + e + "'] == true",
+                          timeout, interval, this.node.firedEvents)
     if (!r)
-      throw "Event didn't fire before timeout. event == "+e+", result is "+this.registry[e].result;
+        throw new Error("Timeout happened before event '" + e +"' was fired.");
 
     this.node.removeEventListener(e, this.registry[e], true);
   }
+}
 }
 
 function waitForImage(elem, timeout, interval) {
@@ -368,6 +378,7 @@ MozMillController.prototype.waitForEval = function (expression, timeout, interva
     throw new Error("timeout exceeded for waitForEval('"+expression+"')");
   }
 }
+
 MozMillController.prototype.waitForElement = function (elem, timeout, interval) {
   var r = waitForElement(elem, timeout, interval);
   if (!r) {
@@ -375,6 +386,13 @@ MozMillController.prototype.waitForElement = function (elem, timeout, interval) 
   }
   frame.events.pass({'function':'Controller.waitForElement()'});
 }
+
+MozMillController.prototype.__defineGetter__("waitForEvents", function() {
+  if (this._waitForEvents == undefined)
+    this._waitForEvents = new waitForEvents();
+  return this._waitForEvents;
+});
+
 MozMillController.prototype.waitForImage = function (elem, timeout, interval) {
   var r = waitForImage(elem, timeout, interval);
   if (!r) {
@@ -382,6 +400,7 @@ MozMillController.prototype.waitForImage = function (elem, timeout, interval) {
   }
   frame.events.pass({'function':'Controller.waitForImage()'});
 }
+
 MozMillController.prototype.waitThenClick = function (elem, timeout, interval) {
   this.waitForElement(elem, timeout, interval);
   this.click(elem);

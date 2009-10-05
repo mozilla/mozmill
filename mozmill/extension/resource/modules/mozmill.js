@@ -44,7 +44,7 @@ var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
                         "getMsgComposeController", "getDownloadsController",
                         "Application", "MozMillAsyncTest", "cleanQuit",
                         "getPlacesController", 'isMac', 'isLinux', 'isWindows',
-                        "waitFor"];
+                       ];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 var events = {};      Components.utils.import('resource://mozmill/modules/events.js', events);
@@ -183,8 +183,6 @@ function getAddrbkController () {
   }
 }
 
-waitFor = controller.waitFor;
-
 MozMillAsyncTest = controller.MozMillAsyncTest;
 
 function timer () {
@@ -204,5 +202,3 @@ timer.prototype.end = function () {
   frame.events.fireEvent("timer", this);
   frame.timers.remove(this);
 }
-
-
