@@ -370,6 +370,46 @@ MozMillController.prototype.rightclick = function(){
   this.rightClick.apply(this, arguments);
 }
 
+/**
+ * Enable/Disable a checkbox depending on the target state
+ */
+MozMillController.prototype.check = function(el, state) {
+  var result = false;
+  var element = el.getNode();
+
+  if (!element) {
+    throw new Error("could not find element " + el.getInfo());
+    return false;
+  }
+
+  state = (typeof(state) == "boolean") ? state : false;
+  if (state != element.checked) {
+    this.click(el);
+    this.waitForEval("subject.checked == " + state, 500, 100, element);
+    result = true;
+  }
+
+  frame.events.pass({'function':'Controller.check(' + el.getInfo() + ', state: ' + state + ')'});
+  return result;
+}
+
+/**
+ * Select the given radio button
+ */
+MozMillController.prototype.radio = function(el)
+{
+  var element = el.getNode();
+  if (!element) {
+    throw new Error("could not find element " + el.getInfo());
+    return false;
+  }
+
+  this.click(el);
+  this.waitForEval("subject.selected == true", 500, 100, element);
+
+  frame.events.pass({'function':'Controller.radio(' + el.getInfo() + ')'});
+  return true;
+}
 
 MozMillController.prototype.sleep = sleep;
 MozMillController.prototype.waitForEval = function (expression, timeout, interval, subject) {
@@ -550,20 +590,6 @@ MozMillController.prototype.refresh = function(){
   this.window.content.location.reload(true);
   frame.events.pass({'function':'Controller.refresh()'});
   return true;
-}
-
-//there is a problem with checking via click in safari
-MozMillController.prototype.check = function(el){
-  //this.window.focus();
-  var element = el.getNode();
-  return MozMillController.click(element);    
-}
-
-//Radio buttons are even WIERDER in safari, not breaking in FF
-MozMillController.prototype.radio = function(el){
-  //this.window.focus();
-  var element = el.getNode();
-  return MozMillController.click(element);      
 }
 
 MozMillController.prototype.assertText = function (el, text) {
