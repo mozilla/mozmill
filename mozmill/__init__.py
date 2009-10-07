@@ -181,6 +181,7 @@ class MozMill(object):
             sleep(1); x += 1
         if timeout == x:
             print "endRunner was never called. There must have been a failure in the framework."
+            self.runner.profile.cleanup()
             sys.exit(1)
 
 class MozMillRestart(MozMill):
@@ -376,6 +377,7 @@ class CLI(jsbridge.CLI):
             if m.runner:
                 m.stop()
             if len(m.fails) > 0:
+                m.runner.profile.cleanup()
                 sys.exit(1)
         else:
             if self.options.shell:
@@ -385,7 +387,7 @@ class CLI(jsbridge.CLI):
                     runner.wait()
                 except KeyboardInterrupt:
                     runner.stop()
-        runner.profile.cleanup()
+        m.runner.profile.cleanup()
 
 class RestartCLI(CLI):
     parser_options = copy.copy(CLI.parser_options)
