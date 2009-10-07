@@ -1,28 +1,28 @@
 // ***** BEGIN LICENSE BLOCK *****
 // Version: MPL 1.1/GPL 2.0/LGPL 2.1
-// 
+//
 // The contents of this file are subject to the Mozilla Public License Version
 // 1.1 (the "License"); you may not use this file except in compliance with
 // the License. You may obtain a copy of the License at
 // http://www.mozilla.org/MPL/
-// 
+//
 // Software distributed under the License is distributed on an "AS IS" basis,
 // WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 // for the specific language governing rights and limitations under the
 // License.
-// 
+//
 // The Original Code is Mozilla Corporation Code.
-// 
+//
 // The Initial Developer of the Original Code is
 // Adam Christian.
 // Portions created by the Initial Developer are Copyright (C) 2008
 // the Initial Developer. All Rights Reserved.
-// 
+//
 // Contributor(s):
 //  Adam Christian <adam.christian@gmail.com>
 //  Mikeal Rogers <mikeal.rogers@gmail.com>
 //  Henrik Skupin <hskupin@mozilla.com>
-// 
+//
 // Alternatively, the contents of this file may be used under the terms of
 // either the GNU General Public License Version 2 or later (the "GPL"), or
 // the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -34,14 +34,14 @@
 // and other provisions required by the GPL or the LGPL. If you do not delete
 // the provisions above, a recipient may use your version of this file under
 // the terms of any one of the MPL, the GPL or the LGPL.
-// 
+//
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ["MozMillController", "sleep", "waitForEval", "MozMillAsyncTest",
                         "globalEventRegistry"];
 
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
-var EventUtils = {}; Components.utils.import('resource://mozmill/modules/EventUtils.js', EventUtils); 
+var EventUtils = {}; Components.utils.import('resource://mozmill/modules/EventUtils.js', EventUtils);
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
@@ -83,30 +83,30 @@ function waitForEval (expression, timeout, interval, subject) {
   if (timeout == undefined) {
     timeout = 30000;
   }
-  
+
   var self = {};
   self.counter = 0;
   self.result = eval(expression);
-  
+
   function wait(){
     self.result = eval(expression);
     self.counter += interval;
   }
-  
+
   var timeoutInterval = hwindow.setInterval(wait, interval);
-  
+
   var thread = Components.classes["@mozilla.org/thread-manager;1"]
             .getService()
             .currentThread;
-  
+
   while((self.result != true) && (self.counter < timeout))  {
     thread.processNextEvent(true);
-  }  
-  if (self.counter < timeout) { var r = true; } 
+  }
+  if (self.counter < timeout) { var r = true; }
   else { var r = false; }
-  
+
   hwindow.clearInterval(timeoutInterval);
-  
+
   return r;
 }
 
@@ -184,7 +184,7 @@ var Menu = function (elements, doc, window) {
       } else if (node.tagName == "menuitem") {
         this[node.getAttribute("label")] = node;
         this[node.id] = node;
-      } 
+      }
     }
   }
 };
@@ -194,7 +194,7 @@ Menu.prototype.reload = function () {
               getInterface(Components.interfaces.nsIDOMWindowUtils);
   utils.forceUpdateNativeMenuAt("4");
   utils.activateNativeMenuItemAt("4|10");
-  
+
   var elements = this.doc.getElementsByTagName('menubar')[0].childNodes;
   for each(node in elements) {
     if (node.tagName){
@@ -206,18 +206,18 @@ Menu.prototype.reload = function () {
       } else if (node.tagName == "menuitem") {
         this[node.getAttribute("label")] = node;
         this[node.id] = node;
-      } 
+      }
     }
   }
 }
 
-var MozMillController = function (window) {    
+var MozMillController = function (window) {
   // TODO: Check if window is loaded and block until it has if it hasn't.
   this.window = window;
-  
-  this.mozmillModule = {}; 
+
+  this.mozmillModule = {};
   Components.utils.import('resource://mozmill/modules/mozmill.js', this.mozmillModule);
-  
+
   waitForEval("try { subject != null; } catch(err){}", 5000, undefined, window)
   waitForEval("try { subject.documentLoaded != undefined; } catch(err){}", 5000, undefined, window)
 
@@ -229,9 +229,9 @@ var MozMillController = function (window) {
 
   //this will break on windows for addons and downloads controller
   try {
-    this.menus = new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes, this.window.document, this.window);  
+    this.menus = new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes, this.window.document, this.window);
   } catch(err){}
-  
+
 }
 
 MozMillController.prototype.keypress = function(el, aKey, modifiers) {
@@ -279,7 +279,7 @@ MozMillController.prototype.open = function(url){
   } else if (this.mozmillModule.Application == 'SeaMonkey') {
     this.window.ShowAndSelectContentsOfURLBar();
   }
-  
+
   var el = new elementslib.ID(this.window.document, 'urlbar');
 
   // Enter URL and press return
@@ -289,13 +289,13 @@ MozMillController.prototype.open = function(url){
   frame.events.pass({'function':'Controller.open()'});
 }
 
-
 MozMillController.prototype.click = function(elem, left, top)
 {
+  this.doMouse(elem, "click", 0, left, top);
   var element = elem.getNode();
-  if (!element){ 
+  if (!element){
     throw new Error("could not find element " + elem.getInfo());
-    return false; 
+    return false;
   }
 
   if (element.tagName == "menuitem") {
@@ -303,9 +303,9 @@ MozMillController.prototype.click = function(elem, left, top)
     return true;
   }
 
-  if (isNaN(left)){ left = 1; }
-  if (isNaN(top)){ top = 1; }
-  
+  if (isNaN(left)) { left = 1; }
+  if (isNaN(top)) { top = 1; }
+
   // Scroll element into view otherwise the click will fail
   if (element.scrollIntoView)
     element.scrollIntoView();
@@ -323,12 +323,12 @@ MozMillController.prototype.doubleClick = function(elem, left, top)
   if (!element) {
     throw new Error("could not find element " + elem.getInfo());
     return false;
-}
+  }
 
   if (isNaN(left)) { left = 1; }
   if (isNaN(top)) { top = 1; }
 
-  // Scroll element into view before initiating a right click
+  // Scroll element into view before initiating a double click
   if (element.scrollIntoView)
     element.scrollIntoView();
 
@@ -336,25 +336,117 @@ MozMillController.prototype.doubleClick = function(elem, left, top)
                              element.ownerDocument.defaultView);
   this.sleep(0);
 
-   frame.events.pass({'function':'Controller.doubleClick()'});
-   return true;
+  frame.events.pass({'function':'Controller.doubleClick()'});
+  return true;
 }
+
+MozMillController.prototype.mouseDown = function (elem, button, left, top)
+{
+  var element = elem.getNode();
+  if (!element) {
+    throw new Error("could not find element " + elem.getInfo());
+    return false;
+  }
+
+  if (isNaN(left)) { left = 1; }
+  if (isNaN(top)) { top = 1; }
+
+  // Scroll element into view before initiating a mouse down
+  if (element.scrollIntoView)
+    element.scrollIntoView();
+
+  EventUtils.synthesizeMouse(element, left, top, {button: button, type: "mousedown"},
+                             element.ownerDocument.defaultView);
+  this.sleep(0);
+
+  frame.events.pass({'function':'Controller.mouseDown()'});
+  return true;
+};
+
+MozMillController.prototype.mouseOut = function (elem, button, left, top)
+{
+  var element = elem.getNode();
+  if (!element) {
+    throw new Error("could not find element " + elem.getInfo());
+    return false;
+  }
+
+  if (isNaN(left)) { left = 1; }
+  if (isNaN(top)) { top = 1; }
+
+  // Scroll element into view before initiating a mouse down
+  if (element.scrollIntoView)
+    element.scrollIntoView();
+
+  EventUtils.synthesizeMouse(element, left, top, {button: button, type: "mouseout"},
+                             element.ownerDocument.defaultView);
+  this.sleep(0);
+
+  frame.events.pass({'function':'Controller.mouseOut()'});
+  return true;
+};
+
+MozMillController.prototype.mouseOver = function (elem, button, left, top)
+{
+  var element = elem.getNode();
+  if (!element) {
+    throw new Error("could not find element " + elem.getInfo());
+    return false;
+  }
+
+  if (isNaN(left)) { left = 1; }
+  if (isNaN(top)) { top = 1; }
+
+  // Scroll element into view before initiating a mouse down
+  if (element.scrollIntoView)
+    element.scrollIntoView();
+
+  EventUtils.synthesizeMouse(element, left, top, {button: button, type: "mouseover"},
+                             element.ownerDocument.defaultView);
+  this.sleep(0);
+
+  frame.events.pass({'function':'Controller.mouseOver()'});
+  return true;
+};
+
+MozMillController.prototype.mouseUp = function (elem, button, left, top)
+{
+  var element = elem.getNode();
+  if (!element) {
+    throw new Error("could not find element " + elem.getInfo());
+    return false;
+  }
+
+  if (isNaN(left)) { left = 1; }
+  if (isNaN(top)) { top = 1; }
+
+  // Scroll element into view before initiating a mouse down
+  if (element.scrollIntoView)
+    element.scrollIntoView();
+
+  EventUtils.synthesizeMouse(element, left, top, {button: button, type: "mouseup"},
+                             element.ownerDocument.defaultView);
+  this.sleep(0);
+
+  frame.events.pass({'function':'Controller.mouseUp()'});
+  return true;
+};
 
 MozMillController.prototype.rightClick = function(elem, left, top)
 {
   var element = elem.getNode();
-    if (!element){ 
-      throw new Error("could not find element " + el.getInfo());     
-      return false; 
+    if (!element){
+      throw new Error("could not find element " + el.getInfo());
+      return false;
     }
-    
-    if (isNaN(left)){ left = 1; }
-    if (isNaN(top)){ top = 1; }
-         
+
+    if (isNaN(left)) { left = 1; }
+    if (isNaN(top)) { top = 1; }
+
   // Scroll element into view before initiating a right click
   if (element.scrollIntoView)
     element.scrollIntoView();
-    
+
   EventUtils.synthesizeMouse(element, left, top,
                              { type : "contextmenu", button: 2 },
                              element.ownerDocument.defaultView);
@@ -450,11 +542,11 @@ MozMillController.prototype.waitThenClick = function (elem, timeout, interval) {
 MozMillController.prototype.select = function (el, indx, option, value) {
 
   element = el.getNode();
-  if (!element){ 
+  if (!element){
     throw new Error("Could not find element " + el.getInfo());
-    return false; 
+    return false;
   }
-  
+
   //if we have a select drop down
   if (element.localName.toLowerCase() == "select"){
     var item = null;
@@ -500,7 +592,7 @@ MozMillController.prototype.select = function (el, indx, option, value) {
   //if we have a xul menulist select accordingly
   else if (element.localName.toLowerCase() == "menulist"){
     var item = null;
-    
+
     if (indx != undefined) {
       if (indx == -1) {
         events.triggerEvent(element, 'focus', false);
@@ -539,39 +631,6 @@ MozMillController.prototype.select = function (el, indx, option, value) {
   }
 };
 
-//Directly access mouse events
-MozMillController.prototype.mousedown = function (el){
-  //this.window.focus();
-  var mdnElement = el.getNode();
-  events.triggerMouseEvent(mdnElement, 'mousedown', true);    
-  frame.events.pass({'function':'Controller.mousedown()'});
-  return true;
-};
-
-MozMillController.prototype.mouseup = function (el){
-  //this.window.focus();
-  var mupElement = el.getNode();
-  events.triggerMouseEvent(mdnElement, 'mupElement', true);  
-  frame.events.pass({'function':'Controller.mouseup()'});
-  return true;
-};
-
-MozMillController.prototype.mouseover = function (el){
-  //this.window.focus();
-  var mdnElement = el.getNode();
-  events.triggerMouseEvent(mdnElement, 'mouseover', true);  
-  frame.events.pass({'function':'Controller.mouseover()'});
-  return true;
-};
-
-MozMillController.prototype.mouseout = function (el){
-  //this.window.focus();
-  var moutElement = el.getNode();
-  events.triggerMouseEvent(moutElement, 'mouseout', true);
-  frame.events.pass({'function':'Controller.mouseout()'});
-  return true;
-};
-
 //Browser navigation functions
 MozMillController.prototype.goBack = function(){
   //this.window.focus();
@@ -596,23 +655,23 @@ MozMillController.prototype.assertText = function (el, text) {
   //this.window.focus();
   var n = el.getNode();
 
-  if (n.innerHTML == text){ 
+  if (n.innerHTML == text){
     frame.events.pass({'function':'Controller.assertText()'});
-    return true; 
+    return true;
    }
 
   throw new Error("could not validate element " + el.getInfo()+" with text "+ text);
   return false;
-  
+
 };
 
 //Assert that a specified node exists
 MozMillController.prototype.assertNode = function (el) {
   //this.window.focus();
   var element = el.getNode();
-  if (!element){ 
-    throw new Error("could not find element " + el.getInfo());     
-    return false; 
+  if (!element){
+    throw new Error("could not find element " + el.getInfo());
+    return false;
   }
   frame.events.pass({'function':'Controller.assertNode()'});
   return true;
@@ -627,9 +686,9 @@ MozMillController.prototype.assertNodeNotExist = function (el) {
     frame.events.pass({'function':'Controller.assertNodeNotExist()'});
     return true;
   }
-  
+
   if (element) {
-    throw new Error("Unexpectedly found element " + el.getInfo());     
+    throw new Error("Unexpectedly found element " + el.getInfo());
     return false;
   } else {
     frame.events.pass({'function':'Controller.assertNodeNotExist()'});
@@ -644,7 +703,7 @@ MozMillController.prototype.assertValue = function (el, value) {
 
   if (n.value == value){
     frame.events.pass({'function':'Controller.assertValue()'});
-    return true; 
+    return true;
   }
   throw new Error("could not validate element " + el.getInfo()+" with value "+ value);
   return false;
@@ -654,13 +713,13 @@ MozMillController.prototype.assertValue = function (el, value) {
 MozMillController.prototype.assertJS = function (js) {
   //this.window.focus();
   var result = eval(js);
-  if (result){ 
+  if (result){
     frame.events.pass({'function':'Controller.assertJS()'});
-    return result; 
+    return result;
   }
-  
-  else{ 
-    throw new Error("javascript assert was not succesful"); 
+
+  else{
+    throw new Error("javascript assert was not succesful");
     return result;}
 };
 
@@ -670,9 +729,9 @@ MozMillController.prototype.assertSelected = function (el, value) {
   var n = el.getNode();
   var validator = value;
 
-  if (n.options[n.selectedIndex].value == validator){ 
+  if (n.options[n.selectedIndex].value == validator){
     frame.events.pass({'function':'Controller.assertSelected()'});
-    return true; 
+    return true;
     }
   throw new Error("could not assert value for element " + el.getInfo()+" with value "+ value);
   return false;
@@ -683,9 +742,9 @@ MozMillController.prototype.assertChecked = function (el) {
   //this.window.focus();
   var element = el.getNode();
 
-  if (element.checked == true){ 
+  if (element.checked == true){
     frame.events.pass({'function':'Controller.assertChecked()'});
-    return true; 
+    return true;
     }
   throw new Error("assert failed for checked element " + el.getInfo());
   return false;
@@ -701,7 +760,7 @@ MozMillController.prototype.assertNotChecked = function (el) {
 
   if (!element.hasAttribute("checked") || element.checked != true){
     frame.events.pass({'function':'Controller.assertNotChecked()'});
-    return true; 
+    return true;
     }
   throw new Error("assert failed for not checked element " + el.getInfo());
   return false;
@@ -711,7 +770,7 @@ MozMillController.prototype.assertNotChecked = function (el) {
 MozMillController.prototype.assertProperty = function(el, attrib, val) {
   var element = el.getNode();
   if (!element){
-    throw new Error("could not find element " + el.getInfo());     
+    throw new Error("could not find element " + el.getInfo());
     return false;
   }
   var value = eval ('element.' + attrib+';');
@@ -731,7 +790,7 @@ MozMillController.prototype.assertProperty = function(el, attrib, val) {
   } else {
     throw new Error('Controller.assertProperty() failed');
   }
-  
+
   return res;
 };
 
@@ -796,7 +855,7 @@ MozMillController.prototype.assertImageLoaded = function (el) {
   } else {
     throw new Error('Controller.assertImageLoaded() failed.')
   }
-  
+
   return ret;
 };
 
@@ -804,17 +863,17 @@ MozMillController.prototype.assertImageLoaded = function (el) {
 MozMillController.prototype.mouseMove = function (doc, start, dest) {
   //if one of these elements couldn't be looked up
   if (typeof start != 'object'){
-    throw new Error("received bad coordinates");     
+    throw new Error("received bad coordinates");
     return false;
   }
   if (typeof dest != 'object'){
-    throw new Error("received bad coordinates");     
+    throw new Error("received bad coordinates");
     return false;
   }
-    
+
   //Do the initial move to the drag element position
   events.triggerMouseEvent(doc.body, 'mousemove', true, start[0], start[1]);
-  events.triggerMouseEvent(doc.body, 'mousemove', true, dest[0], dest[1]);  
+  events.triggerMouseEvent(doc.body, 'mousemove', true, dest[0], dest[1]);
   frame.events.pass({'function':'Controller.mouseMove()'});
   return true;
 }
@@ -824,27 +883,27 @@ MozMillController.prototype.dragDropElemToElem = function (dstart, ddest) {
   //Get the drag and dest
   var drag = dstart.getNode();
   var dest = ddest.getNode();
-  
+
   //if one of these elements couldn't be looked up
   if (!drag){
-    throw new Error("could not find element " + drag.getInfo());     
+    throw new Error("could not find element " + drag.getInfo());
     return false;
   }
   if (!dest){
-    throw new Error("could not find element " + dest.getInfo());     
+    throw new Error("could not find element " + dest.getInfo());
     return false;
   }
- 
+
   var dragCoords = null;
-  var destCoords = null; 
+  var destCoords = null;
 
   dragCoords = drag.getBoundingClientRect();
   destCoords = dest.getBoundingClientRect();
-    
+
   //Do the initial move to the drag element position
   events.triggerMouseEvent(drag.ownerDocument.body, 'mousemove', true, dragCoords.left, dragCoords.top);
   events.triggerMouseEvent(drag, 'mousedown', true, dragCoords.left, dragCoords.top); //do the mousedown
-  events.triggerMouseEvent(drag.ownerDocument.body, 'mousemove', true, destCoords.left, destCoords.top); 
+  events.triggerMouseEvent(drag.ownerDocument.body, 'mousemove', true, destCoords.left, destCoords.top);
   events.triggerMouseEvent(dest, 'mouseup', true, destCoords.left, destCoords.top);
   events.triggerMouseEvent(dest, 'click', true, destCoords.left, destCoords.top);
   frame.events.pass({'function':'Controller.dragDropElemToElem()'});
@@ -861,8 +920,8 @@ function preferencesAdditions(controller) {
     var label = node.attributes.item('label').value.replace('pane', '');
     controller.tabs[label] = obj;
   }
-  controller.prototype.__defineGetter__("activeTabButton", 
-    function () {return mainTabs.getElementsByAttribute('selected', true)[0]; 
+  controller.prototype.__defineGetter__("activeTabButton",
+    function () {return mainTabs.getElementsByAttribute('selected', true)[0];
   })
 }
 
@@ -892,8 +951,8 @@ Tabs.prototype.getTabWindow = function(index) {
 Tabs.prototype.__defineGetter__("activeTabWindow", function () {
   return this.findWindow(this.activeTab);
 })
-Tabs.prototype.__defineGetter__("length", function () {		
-  return this.controller.window.gBrowser.browsers.length;		
+Tabs.prototype.__defineGetter__("length", function () {
+  return this.controller.window.gBrowser.browsers.length;
 })
 Tabs.prototype.__defineGetter__("activeTabIndex", function() {
   return this.controller.window.gBrowser.tabContainer.selectedIndex;
@@ -918,21 +977,21 @@ function browserAdditions( controller ) {
     if (typeof(_document) != "object") {
       var _document = controller.tabs.activeTab;
     }
-    
+
     if (interval == undefined) {
       var interval = 100;
     }
     if (timeout == undefined) {
       var timeout = 30000;
     }
-    
+
     var win = _document.defaultView;
-    
+
     waitForEval("subject.documentLoaded == true", timeout, interval, win);
     //Once the object is available it's somewhere between 1 and 3 seconds before the DOM
     //Actually becomes available to us
     sleep(1);
-    frame.events.pass({'function':'Controller.waitForPageLoad()'}); 
+    frame.events.pass({'function':'Controller.waitForPageLoad()'});
   }
 }
 
@@ -943,7 +1002,7 @@ controllerAdditions = {
 
 var withs = {}; Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
 
-MozMillAsyncTest = function (timeout) { 
+MozMillAsyncTest = function (timeout) {
   if (timeout == undefined) {
     this.timeout = 6000;
   } else {
@@ -959,7 +1018,7 @@ MozMillAsyncTest.prototype.run = function () {
       this[i]();
     }
   }
-  
+
   var r = waitForEval("subject._done == true", this.timeout, undefined, this);
   if (r == true) {
     return true;
