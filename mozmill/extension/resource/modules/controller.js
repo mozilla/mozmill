@@ -291,7 +291,6 @@ MozMillController.prototype.open = function(url){
 
 MozMillController.prototype.click = function(elem, left, top)
 {
-  this.doMouse(elem, "click", 0, left, top);
   var element = elem.getNode();
   if (!element){
     throw new Error("could not find element " + elem.getInfo());
