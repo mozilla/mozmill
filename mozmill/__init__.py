@@ -284,7 +284,7 @@ class MozMillRestart(MozMill):
         profile = self.runner.profile
         profile.cleanup()
         if profile.create_new:
-            profile.profile = profile.create_new_profile(profile.default_profile)                
+            profile.profile = profile.create_new_profile(self.runner.binary)                
         for plugin in profile.plugins:
             profile.install_plugin(plugin)
         if jsbridge.extension_path not in profile.plugins:
