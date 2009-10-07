@@ -377,7 +377,8 @@ class CLI(jsbridge.CLI):
             if m.runner:
                 m.stop()
             if len(m.fails) > 0:
-                m.runner.profile.cleanup()
+                if m.runner is not None:
+                    m.runner.profile.cleanup()
                 sys.exit(1)
         else:
             if self.options.shell:
