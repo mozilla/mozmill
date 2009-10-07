@@ -388,7 +388,8 @@ class CLI(jsbridge.CLI):
                     runner.wait()
                 except KeyboardInterrupt:
                     runner.stop()
-        m.runner.profile.cleanup()
+        if m.runner is not None:
+            m.runner.profile.cleanup()
 
 class RestartCLI(CLI):
     parser_options = copy.copy(CLI.parser_options)
