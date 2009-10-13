@@ -309,6 +309,9 @@ class MozMillRestart(MozMill):
         for d in test_dirs:
             d = os.path.abspath(os.path.join(test_dir, d))
             self.run_dir(d, report, sleeptime)
+        
+        profile = self.runner.profile
+        profile.cleanup()
                 
         class Blank(object):
             def stop(self):
