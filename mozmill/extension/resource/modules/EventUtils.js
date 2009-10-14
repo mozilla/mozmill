@@ -314,10 +314,14 @@ function synthesizeKey(aKey, aEvent, aWindow)
                       getInterface(Components.interfaces.nsIDOMWindowUtils);
   if (utils) {
     var keyCode = 0, charCode = 0;
-    if (aKey.indexOf("VK_") == 0)
-      keyCode = aWindow.KeyEvent["DOM_" + aKey];
-    else
+
+    if (aKey.indexOf("VK_") == 0) {
+      var win = aWindow.wrappedJSObject ? aWindow.wrappedJSObject : aWindow;
+      keyCode = win.KeyEvent["DOM_" + aKey];
+    }
+    else {
       charCode = aKey.charCodeAt(0);
+    }
 
     var modifiers = _parseModifiers(aEvent);
 
