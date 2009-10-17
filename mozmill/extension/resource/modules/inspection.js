@@ -269,8 +269,9 @@ var getControllerAndDocument = function (_document, windowtype) {
       return {'controllerString':'mozmill.getBrowserController()',
               'documentString'  :'controller.tabs.activeTab',}
     } 
-  }  
+  }
   var controllerString = null;
+  var documentString = null;
   var w = null;
   
   if (windowtype == null || windowtype == '') {
@@ -297,20 +298,33 @@ var getControllerAndDocument = function (_document, windowtype) {
     controllerString = 'new mozmill.controller.MozMillController(mozmill.utils.getWindowByTitle("'+w.document.title+'"))';
   }
   
-  if (w.document == _document) {
-    return {'controllerString':controllerString, 'documentString':'controller.window.document'}
-  } else if ((w.frames) && Array(w.frames).length > 0) {
-    for (i in Array(w.frames)) {
-      if (w.frames[i].document == _document) {
-        return {'controllerString':controllerString,
-                'documentString':'controller.window.frames['+i+'].document',}
-      }
-    }
-  } 
-  if (controllerString == 'mozmill.getBrowserController()') {
-    var documentString = 'controller.tabs.activeTab';
-  } else { var documentString = 'Cannot find document'; }
-  return {'controllerString':controllerString, 'documentString':documentString,}
+  if(windowtype == 'navigator:browser' && c.tabs.activeTab == _document.defaultView.top.document) {
+    // if this document is from an iframe in the active tab
+    var stub = getDocumentStub(_document, c.tabs.activeTab.defaultView);
+    var windowString = 'controller.tabs.activeTab.defaultView';
+  }
+  else {
+    var stub = getDocumentStub(_document, w);
+    var windowString = 'controller.window';
+  }
+  if(stub)
+    documentString = windowString + stub;
+  else if (controllerString == 'mozmill.getBrowserController()')
+    documentString = 'controller.tabs.activeTab';
+  else
+    documentString = 'Cannot find document';
+  return {'controllerString':controllerString, 'documentString':documentString}
+}
+
+getDocumentStub = function( _document, _window) {
+  if(_window.document == _document)
+    return '.document';
+  for(var i = 0; i < _window.frames.length; i++) {
+    var stub = getDocumentStub(_document, _window.frames[i]);
+    if (stub)
+      return '.frames['+i+']' + stub;
+  }
+  return '';
 }
 
 var inspectElement = function(e){    
