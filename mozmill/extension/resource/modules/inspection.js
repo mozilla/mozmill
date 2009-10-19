@@ -269,13 +269,13 @@ var copyToClipboard = function(str){
 
 var getControllerAndDocument = function (_document, _window) {
   var windowtype = _window.document.documentElement.getAttribute('windowtype');
-  var controllerString, documentString;
+  var controllerString, documentString, activeTab;
 
   // TODO replace with object based cases
   switch(windowtype) {
     case 'navigator:browser':
       controllerString = 'mozmill.getBrowserController()';
-      var activeTab = mozmill.getBrowserController().tabs.activeTab;
+      activeTab = mozmill.getBrowserController().tabs.activeTab;
       break;
     case 'Browser:Preferences':
       controllerString = 'mozmill.getPreferencesController()';
@@ -284,9 +284,7 @@ var getControllerAndDocument = function (_document, _window) {
       controllerString = 'mozmill.getAddonsController()';
       break;
     default:
-      if(windowtype)
-        controllerString = 'new mozmill.controller.MozMillController(mozmill.utils.getWindowByType("' + windowtype + '"))';
-      else if(_window.document.title)
+      if(_window.document.title)
         controllerString = 'new mozmill.controller.MozMillController(mozmill.utils.getWindowByTitle("'+_window.document.title+'"))';
       else
         controllerString = 'Cannot find window';
