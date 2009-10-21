@@ -44,6 +44,7 @@ var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
                         "getMsgComposeController", "getDownloadsController",
                         "Application", "MozMillAsyncTest", "cleanQuit",
                         "getPlacesController", 'isMac', 'isLinux', 'isWindows',
+                        "firePythonCallbackAfterRestart", "firePythonCallback",
                        ];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
@@ -184,6 +185,13 @@ function getAddrbkController () {
 }
 
 MozMillAsyncTest = controller.MozMillAsyncTest;
+
+function firePythonCallback (method, obj) {
+  frame.events.fireEvent("firePythonCallback", {"method":method, "arg":obj, "fire_now":True});
+}
+function firePythonCallbackAfterRestart(method, obj) {
+  frame.events.fireEvent("firePythonCallback", {"method":method, "arg":obj, "fire_now":False});
+}
 
 function timer () {
   this.timers = {};
