@@ -396,6 +396,8 @@ class CLI(jsbridge.CLI):
                 self.start_shell(runner)
             else:
                 try:
+                    if not hasattr(runner, 'process_handler'):
+                        runner.start()
                     runner.wait()
                 except KeyboardInterrupt:
                     runner.stop()
