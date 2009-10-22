@@ -39,6 +39,7 @@ var EXPORTED_SYMBOLS = ["inspectElement"]
 
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
+var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 
 var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var dom = {}; Components.utils.import('resource://mozmill/stdlib/dom.js', dom);
@@ -143,6 +144,10 @@ var getDocument = function (elem) {
     var elem = elem.parentNode;
   }
   return elem;
+}
+
+var getTopWindow = function(doc) {
+  return utils.getChromeWindow(doc.defaultView);
 }
 
 var attributeToIgnore = ['focus', 'focused', 'selected', 'select', 'flex', // General Omissions
@@ -262,55 +267,55 @@ var copyToClipboard = function(str){
   gClipboardHelper.copyString(str);
 }
 
-var getControllerAndDocument = function (_document, windowtype) {
-  if (windowtype == null || windowtype == 'navigator:browser') {
-    var c = mozmill.getBrowserController();
-    if (c.tabs.activeTab == _document) {
-      return {'controllerString':'mozmill.getBrowserController()',
-              'documentString'  :'controller.tabs.activeTab',}
-    } 
-  }  
-  var controllerString = null;
-  var w = null;
-  
-  if (windowtype == null || windowtype == '') {
-    var windowtype = wm.getMostRecentWindow('').document.documentElement.getAttribute('windowtype');
-  } 
-  
+var getControllerAndDocument = function (_document, _window) {
+  var windowtype = _window.document.documentElement.getAttribute('windowtype');
+  var controllerString, documentString, activeTab;
+
   // TODO replace with object based cases
-  if (windowtype == 'navigator:browser') {
-    var w = wm.getMostRecentWindow('navigator:browser');
-    controllerString = 'mozmill.getBrowserController()'
-  } else if (windowtype == 'Browser:Preferences') {
-    var w = wm.getMostRecentWindow('Browser:Preferences');
-    controllerString = 'mozmill.getPreferencesController()'
-  } else if (windowtype == 'Extension:Manager') {
-    var w = wm.getMostRecentWindow('Extension:Manager');
-    controllerString = 'mozmill.getAddonsController()'
+  switch(windowtype) {
+    case 'navigator:browser':
+      controllerString = 'mozmill.getBrowserController()';
+      activeTab = mozmill.getBrowserController().tabs.activeTab;
+      break;
+    case 'Browser:Preferences':
+      controllerString = 'mozmill.getPreferencesController()';
+      break;
+    case 'Extension:Manager':
+      controllerString = 'mozmill.getAddonsController()';
+      break;
+    default:
+      if(_window.document.title)
+        controllerString = 'new mozmill.controller.MozMillController(mozmill.utils.getWindowByTitle("'+_window.document.title+'"))';
+      else
+        controllerString = 'Cannot find window';
+      break;
   }
-  
-  if (!w) {
-    if (windowtype == null) {
-      var windowtype = '';
-    }
-    w = wm.getMostRecentWindow(windowtype);
-    controllerString = 'new mozmill.controller.MozMillController(mozmill.utils.getWindowByTitle("'+w.document.title+'"))';
+
+  if(activeTab == _document) {
+    documentString = 'controller.tabs.activeTab';
+  } else if(activeTab == _document.defaultView.top.document) {
+    // if this document is from an iframe in the active tab
+    var stub = getDocumentStub(_document, activeTab.defaultView);
+    documentString = 'controller.tabs.activeTab.defaultView' + stub;
+  } else {
+    var stub = getDocumentStub(_document, _window);
+    if(stub)
+      documentString = 'controller.window' + stub;
+    else
+      documentString = 'Cannot find document';
   }
-  
-  if (w.document == _document) {
-    return {'controllerString':controllerString, 'documentString':'controller.window.document'}
-  } else if ((w.frames) && Array(w.frames).length > 0) {
-    for (i in Array(w.frames)) {
-      if (w.frames[i].document == _document) {
-        return {'controllerString':controllerString,
-                'documentString':'controller.window.frames['+i+'].document',}
-      }
-    }
-  } 
-  if (controllerString == 'mozmill.getBrowserController()') {
-    var documentString = 'controller.tabs.activeTab';
-  } else { var documentString = 'Cannot find document'; }
-  return {'controllerString':controllerString, 'documentString':documentString,}
+  return {'controllerString':controllerString, 'documentString':documentString}
+}
+
+getDocumentStub = function( _document, _window) {
+  if(_window.document == _document)
+    return '.document';
+  for(var i = 0; i < _window.frames.length; i++) {
+    var stub = getDocumentStub(_document, _window.frames[i]);
+    if (stub)
+      return '.frames['+i+']' + stub;
+  }
+  return '';
 }
 
 var inspectElement = function(e){    
@@ -337,7 +342,8 @@ var inspectElement = function(e){
   }
   
   var windowtype = _document.documentElement.getAttribute('windowtype');
-  r = getControllerAndDocument(_document, windowtype);
+  var _window = getTopWindow(_document);
+  r = getControllerAndDocument(_document, _window);
     
   // displayText = "Controller: " + r.controllerString + '\n\n';
   if ( isNotAnonymous(target) ) {  
