@@ -187,10 +187,10 @@ function getAddrbkController () {
 MozMillAsyncTest = controller.MozMillAsyncTest;
 
 function firePythonCallback (method, obj) {
-  frame.events.fireEvent("firePythonCallback", {"method":method, "arg":obj, "fire_now":True});
+  frame.events.fireEvent("firePythonCallback", {"method":method, "arg":obj, "fire_now":true});
 }
 function firePythonCallbackAfterRestart(method, obj) {
-  frame.events.fireEvent("firePythonCallback", {"method":method, "arg":obj, "fire_now":False});
+  frame.events.fireEvent("firePythonCallback", {"method":method, "arg":obj, "fire_now":false});
 }
 
 function timer () {

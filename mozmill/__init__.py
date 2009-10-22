@@ -41,6 +41,7 @@ import sys
 import copy
 import socket
 import imp
+import traceback
 from datetime import datetime, timedelta
 
 try:
@@ -247,7 +248,14 @@ class MozMillRestart(MozMill):
         try:
             meth(arg)
         except Exception, e:
+            self.endTest_listener({"name":method, "failed":1, 
+                                   "python_exception_type":e.__class__.__name__,
+                                   "python_exception_string":str(e),
+                                   "python_traceback":traceback.format_exc(),
+                                   "filename":self.python_callbacks_module.__file__})
             return False
+        self.endTest_listener({"name":method, "failed":0, 
+                               "filename":self.python_callbacks_module.__file__})
         return True
     
     def firePythonCallback_listener(self, obj):
@@ -308,8 +316,7 @@ class MozMillRestart(MozMill):
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
         
         if os.path.isfile(os.path.join(test_dir, 'callbacks.py')):
-            name, f, pathname, description = ("callbacks",) + imp.find_module("callbacks", test_dir)
-            self.python_callbacks_module = imp.load_module(name, f, pathname, description)
+            self.python_callbacks_module = imp.load_source('callbacks', os.path.join(test_dir, 'callbacks.py'))
         
         for test in tests:
             frame = self.start_runner()
@@ -321,10 +328,10 @@ class MozMillRestart(MozMill):
             while not self.endRunnerCalled:
                 sleep(.25)
             self.stop_runner()
-            for callback in self.python_callbacks:
-                self.fire_python_callback(obj['method'], obj['arg'])
-            self.python_callbacks = []
             sleep(2)
+            for callback in self.python_callbacks:
+                self.fire_python_callback(callback['method'], callback['arg'])
+            self.python_callbacks = []
         
         self.python_callbacks_module = None    
         
