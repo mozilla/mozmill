@@ -49,6 +49,7 @@ import logging
 logger = logging.getLogger('mozmill')
 
 import jsbridge
+from jsbridge.network import JSBridgeDisconnectError
 import mozrunner
 
 from time import sleep
@@ -171,7 +172,7 @@ class MozMill(object):
         mozmill = jsbridge.JSObject(self.bridge, "Components.utils.import('resource://mozmill/modules/mozmill.js')")
         try:
             mozmill.cleanQuit()
-        except socket.error:
+        except (socket.error, JSBridgeDisconnectError):
             pass
         self.runner.wait()
         self.back_channel.close()
@@ -228,7 +229,7 @@ class MozMillRestart(MozMill):
         
         try:
             mozmill.cleanQuit()
-        except socket.error:
+        except (socket.error, JSBridgeDisconnectError):
             pass
         # self.back_channel.close()
         # self.bridge.close()
@@ -375,8 +376,15 @@ class CLI(jsbridge.CLI):
             if self.options.showall:
                 logging.basicConfig(level=logging.DEBUG)
                 self.options.showall = False
-            m.run_tests(os.path.abspath(os.path.expanduser(self.options.test)), 
-                        self.options.report)
+            try:
+                m.run_tests(os.path.abspath(os.path.expanduser(self.options.test)), 
+                            self.options.report)
+            except JSBridgeDisconnectError:
+                print 'Application unexpectedly closed'
+                if m.runner is not None:
+                    m.runner.profile.cleanup()
+                sys.exit(1)
+            
             if m.runner:
                 m.stop()
             if len(m.fails) > 0:
