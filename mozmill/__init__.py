@@ -346,7 +346,7 @@ class CLI(jsbridge.CLI):
         return profile
         
     def run(self):
-        runner = self.parse_and_get_runner()
+        runner = self.create_runner()
         if '-foreground' not in runner.cmdargs:
             runner.cmdargs.append('-foreground')
         
@@ -390,7 +390,6 @@ class CLI(jsbridge.CLI):
             if len(m.fails) > 0:
                 if m.runner is not None:
                     m.runner.profile.cleanup()
-                sys.exit(1)
         else:
             if self.options.shell:
                 self.start_shell(runner)
