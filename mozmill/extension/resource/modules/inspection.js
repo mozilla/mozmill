@@ -277,9 +277,6 @@ var getControllerAndDocument = function (_document, _window) {
       controllerString = 'mozmill.getBrowserController()';
       activeTab = mozmill.getBrowserController().tabs.activeTab;
       break;
-    case 'Browser:Preferences':
-      controllerString = 'mozmill.getPreferencesController()';
-      break;
     case 'Extension:Manager':
       controllerString = 'mozmill.getAddonsController()';
       break;
