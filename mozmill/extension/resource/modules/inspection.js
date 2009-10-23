@@ -284,7 +284,9 @@ var getControllerAndDocument = function (_document, _window) {
       controllerString = 'mozmill.getAddonsController()';
       break;
     default:
-      if(_window.document.title)
+      if(windowtype)
+        controllerString = 'new mozmill.controller.MozMillController(mozmill.utils.getWindowByType("' + windowtype + '"))';
+      else if(_window.document.title)
         controllerString = 'new mozmill.controller.MozMillController(mozmill.utils.getWindowByTitle("'+_window.document.title+'"))';
       else
         controllerString = 'Cannot find window';
