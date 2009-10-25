@@ -39,7 +39,7 @@
 
 var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler", 
                         "getFile", "Copy", "getChromeWindow", "getWindows", "runEditor",
-                        "runFile", "getWindowByTitle", "tempfile", 
+                        "runFile", "getWindowByTitle", "getWindowByType", "tempfile", 
                         "getMethodInWindows", "getPreference", "setPreference"];
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
@@ -102,6 +102,12 @@ function getWindowByTitle(title) {
       return w;
     }
   }
+}
+
+function getWindowByType(type) {
+  var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
+           .getService(Components.interfaces.nsIWindowMediator);
+  return wm.getMostRecentWindow(type);
 }
 
 function tempfile(appention) {
