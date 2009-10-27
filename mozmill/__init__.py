@@ -412,9 +412,6 @@ class CLI(jsbridge.CLI):
             
             if self.mozmill.runner:
                 self.mozmill.stop()
-            if len(self.mozmill.fails) > 0:
-                if self.mozmill.runner is not None:
-                    self.mozmill.runner.profile.cleanup()
         else:
             if self.options.shell:
                 self.start_shell(runner)
@@ -425,6 +422,7 @@ class CLI(jsbridge.CLI):
                     runner.wait()
                 except KeyboardInterrupt:
                     runner.stop()
+
         if self.mozmill.runner is not None:
             self.mozmill.runner.profile.cleanup()
 
