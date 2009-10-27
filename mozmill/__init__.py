@@ -20,6 +20,7 @@
 #
 # Contributor(s):
 #  Mikeal Rogers <mikeal.rogers@gmail.com>
+#  Henrik Skupin <hskupin@mozilla.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -39,7 +40,9 @@ import os
 import sys
 import copy
 import socket
+
 from datetime import datetime, timedelta
+
 try:
     import json
 except:
@@ -78,44 +81,74 @@ class LoggerListener(object):
             self.cases[eName] = self.default(eName)
             self.cases[eName](obj)
 
+class Persisted(object):
+    ''' Class used to share data between Python and Javascript '''
+
+    def reset(self):
+        for entry in self.__dict__:
+            del entry
+
 class MozMill(object):
-    endRunnerCalled = False
-    
+
     def __init__(self, runner_class=mozrunner.FirefoxRunner, 
                  profile_class=mozrunner.FirefoxProfile, jsbridge_port=24242):
         self.runner_class = runner_class
         self.profile_class = profile_class
         self.jsbridge_port = jsbridge_port
+
+        self.persisted = Persisted()
+        self.endRunnerCalled = False
+
         self.passes = [] ; self.fails = [] ; self.skipped = []
         self.alltests = []
-    
-    def add_listener(self, *args, **kwargs):
-        self.back_channel.add_listener(*args, **kwargs)
-    
-    def add_global_listener(self, *args, **kwargs):
-        self.back_channel.add_global_listener(*args, **kwargs)
-    
+
+        self.listeners = []
+        self.global_listeners = []
+        self.add_listener(self.persist_listener, eventType="mozmill.persist")
+        self.add_listener(self.endTest_listener, eventType='mozmill.endTest')
+        self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
+
+    def add_listener(self, callback, **kwargs):
+        self.listeners.append((callback, kwargs,))
+
+    def add_global_listener(self, callback):
+        self.global_listeners.append(callback)
+
+    def persist_listener(self, obj):
+        self.persisted.__dict__ = obj
+
+    def create_network(self):
+        self.back_channel, self.bridge = jsbridge.wait_and_create_network("127.0.0.1",
+                                                                          self.jsbridge_port)
+        # Assign listeners to the back channel
+        for listener in self.listeners:
+            self.back_channel.add_listener(listener[0], **listener[1])
+        for global_listener in self.global_listeners:
+            self.back_channel.add_global_listener(global_listener)
+
     def start(self, profile=None, runner=None):
         if not profile:
             profile = self.profile_class(plugins=[jsbridge.extension_path, extension_path])
         if not runner:
             runner = self.runner_class(profile=self.profile, 
                                        cmdargs=["-jsbridge", str(self.jsbridge_port)])
-        
-        self.profile = profile; self.runner = runner
-        self.runner.start()
-        
-        self.back_channel, self.bridge = jsbridge.wait_and_create_network("127.0.0.1", self.jsbridge_port)
-    
-    def run_tests(self, test, report=False, sleeptime=4):
-        
-        self.add_listener(self.endTest_listener, eventType='mozmill.endTest')
-        self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
 
-        frame = jsbridge.JSObject(self.bridge, "Components.utils.import('resource://mozmill/modules/frame.js')")
+        self.profile = profile;
+        self.runner = runner
+        self.runner.start()
+        self.endRunnerCalled = False
+
+        self.create_network()
+
+    def run_tests(self, test, report=False, sleeptime = 4):
+        frame = jsbridge.JSObject(self.bridge,
+                                  "Components.utils.import('resource://mozmill/modules/frame.js')")
         sleep(sleeptime)
         starttime = datetime.utcnow().isoformat()
-        
+
+        ''' transfer persisted data '''
+        frame.persisted = self.persisted.__dict__
+
         if os.path.isdir(test):
             frame.runTestDirectory(test)
         else:
@@ -155,21 +188,24 @@ class MozMill(object):
     def endTest_listener(self, test):
         self.alltests.append(test)
         if test.get('skipped', False):
-            print 'Test Skipped : '+test['name']+' | '+test.get('skipped_reason', '')
+            print "Test Skipped : %s | %s" % (test['name'], test.get('skipped_reason', ''))
             self.skipped.append(test)
         elif test['failed'] > 0:
-            print 'Test Failed : '+test['name']+' in '+test['filename']
+            print "Test Failed : %s in %s" % (test['name'], test['filename'])
             self.fails.append(test)
         else:
             self.passes.append(test)
 
     def endRunner_listener(self, obj):
-        print 'Passed '+str(len(self.passes))+' :: Failed '+str(len(self.fails))+' :: Skipped '+str(len(self.skipped))
+        print "Passed %d :: Failed %d :: Skipped %d" % (len(self.passes),
+                                                        len(self.fails),
+                                                        len(self.skipped))
         self.endRunnerCalled = True
 
     def stop(self, timeout=10):
         sleep(1)
-        mozmill = jsbridge.JSObject(self.bridge, "Components.utils.import('resource://mozmill/modules/mozmill.js')")
+        mozmill = jsbridge.JSObject(self.bridge,
+                            "Components.utils.import('resource://mozmill/modules/mozmill.js')")
         try:
             mozmill.cleanQuit()
         except (socket.error, JSBridgeDisconnectError):
@@ -178,54 +214,42 @@ class MozMill(object):
         self.back_channel.close()
         self.bridge.close()
         x = 0
-        while self.endRunnerCalled is False and x != timeout:
-            sleep(1); x += 1
+        while self.endRunnerCalled is False and x < timeout:
+            sleep(1);
+            x += 1
         if timeout == x:
             print "endRunner was never called. There must have been a failure in the framework."
             self.runner.profile.cleanup()
             sys.exit(1)
 
 class MozMillRestart(MozMill):
-    
+
     def __init__(self, *args, **kwargs):
         super(MozMillRestart, self).__init__(*args, **kwargs)
-        self.listeners = []
-        self.global_listeners = []
-    
-    def add_listener(self, callback, **kwargs):
-        self.listeners.append((callback, kwargs,))
-    def add_global_listener(self, callback):
-        self.global_listeners.append(callback)
-    
+
     def start(self, runner=None, profile=None):
         if not profile:
             profile = self.profile_class(plugins=[jsbridge.extension_path, extension_path])
         if not runner:
             runner = self.runner_class(profile=self.profile, 
                                        cmdargs=["-jsbridge", str(self.jsbridge_port)])
-        
-        self.profile = profile; self.runner = runner
-        
+
+        self.profile = profile;
+        self.runner = runner
+
     def start_runner(self):
         self.runner.start()
-        back_channel, bridge = jsbridge.wait_and_create_network("127.0.0.1", self.jsbridge_port)
-        
-        for listener in self.listeners:
-            back_channel.add_listener(listener[0], **listener[1])
-        for global_listener in self.global_listeners:
-            back_channel.add_global_listener(global_listener)
-        
-        self.back_channel = back_channel
         self.endRunnerCalled = False
-        
-        frame = jsbridge.JSObject(bridge, "Components.utils.import('resource://mozmill/modules/frame.js')")
-        self.bridge = bridge
+
+        self.create_network()
+        frame = jsbridge.JSObject(self.bridge,
+                                  "Components.utils.import('resource://mozmill/modules/frame.js')")
         return frame
     
     def stop_runner(self):
         sleep(1)
-        
-        mozmill = jsbridge.JSObject(self.bridge, "Components.utils.import('resource://mozmill/modules/mozmill.js')")
+        mozmill = jsbridge.JSObject(self.bridge,
+                            "Components.utils.import('resource://mozmill/modules/mozmill.js')")
         
         try:
             mozmill.cleanQuit()
@@ -240,13 +264,10 @@ class MozMillRestart(MozMill):
             try: self.runner.stop()
             except: pass
             self.runner.wait()
-        
+
     def endRunner_listener(self, obj):
         self.endRunnerCalled = True
-    
-    def persist_listener(self, obj):
-        self.persisted = obj
-        
+
     def run_dir(self, test_dir, report=False, sleeptime=4):
         if os.path.isfile(os.path.join(test_dir, 'testPre.js')):   
             pre_test = os.path.join(test_dir, 'testPre.js')
@@ -265,23 +286,21 @@ class MozMillRestart(MozMill):
             while os.path.isfile(os.path.join(test_dir, "test"+str(counter)+".js")):
                 tests.append(os.path.join(test_dir, "test"+str(counter)+".js"))
                 counter += 1
-    
-        self.add_listener(self.persist_listener, eventType="mozmill.persist")
+
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
-        
+
         for test in tests:
             frame = self.start_runner()
             self.endRunnerCalled = False
             sleep(sleeptime)
-            if hasattr(self, 'persisted'):
-                frame.persisted = self.persisted
+
+            frame.persisted = self.persisted.__dict__
             frame.runTestFile(test)
             while not self.endRunnerCalled:
                 sleep(.25)
             self.stop_runner()
             sleep(2)
-            
-        
+
         # Reset the profile.
         profile = self.runner.profile
         profile.cleanup()
@@ -321,11 +340,13 @@ class MozMillRestart(MozMill):
         # Set to None to avoid calling .stop
         self.runner = None
         sleep(1) # Give a second for any pending callbacks to finish
-        print 'Passed '+str(len(self.passes))+' :: Failed '+str(len(self.fails))+' :: Skipped '+str(len(self.skipped))
-    
+        print "Passed %d :: Failed %d :: Skipped %d" % (len(self.passes),
+                                                        len(self.fails),
+                                                        len(self.skipped))
+
 class CLI(jsbridge.CLI):
     mozmill_class = MozMill
-    
+
     parser_options = copy.copy(jsbridge.CLI.parser_options)
     parser_options[("-t", "--test",)] = dict(dest="test", default=False, 
                                              help="Run test file or directory.")
@@ -338,26 +359,30 @@ class CLI(jsbridge.CLI):
                                          help="Report the results. Requires url to results server.")
     parser_options[("--showall",)] = dict(dest="showall", default=False, action="store_true",
                                          help="Show all test output.")
-    
-    
+
+    def __init__(self, *args, **kwargs):
+        super(CLI, self).__init__(*args, **kwargs)
+        self.mozmill = self.mozmill_class(runner_class=mozrunner.FirefoxRunner,
+                                          profile_class=mozrunner.FirefoxProfile,
+                                          jsbridge_port=int(self.options.port))
+
     def get_profile(self, *args, **kwargs):
         profile = super(CLI, self).get_profile(*args, **kwargs)
         profile.install_plugin(extension_path)
         return profile
-        
+
     def run(self):
         runner = self.create_runner()
         if '-foreground' not in runner.cmdargs:
             runner.cmdargs.append('-foreground')
-        
+
         if self.options.test:
             t = os.path.abspath(os.path.expanduser(self.options.test))
             if ( not os.path.isdir(t) ) and ( not os.path.isfile(t) ):
                 raise Exception("Not a valid test file/directory")
-        
-        m = self.mozmill_class(runner_class=mozrunner.FirefoxRunner, profile_class=mozrunner.FirefoxProfile, jsbridge_port=int(self.options.port))
-        m.start(runner=runner, profile=runner.profile)
-        m.add_global_listener(LoggerListener())
+
+        self.mozmill.start(runner=runner, profile=runner.profile)
+        self.mozmill.add_global_listener(LoggerListener())
         if self.options.showerrors:
             outs = logging.StreamHandler()
             outs.setLevel(logging.ERROR)
@@ -377,19 +402,19 @@ class CLI(jsbridge.CLI):
                 logging.basicConfig(level=logging.DEBUG)
                 self.options.showall = False
             try:
-                m.run_tests(os.path.abspath(os.path.expanduser(self.options.test)), 
+                self.mozmill.run_tests(os.path.abspath(os.path.expanduser(self.options.test)), 
                             self.options.report)
             except JSBridgeDisconnectError:
                 print 'Application unexpectedly closed'
-                if m.runner is not None:
-                    m.runner.profile.cleanup()
+                if self.mozmill.runner is not None:
+                    self.mozmill.runner.profile.cleanup()
                 sys.exit(1)
             
-            if m.runner:
-                m.stop()
-            if len(m.fails) > 0:
-                if m.runner is not None:
-                    m.runner.profile.cleanup()
+            if self.mozmill.runner:
+                self.mozmill.stop()
+            if len(self.mozmill.fails) > 0:
+                if self.mozmill.runner is not None:
+                    self.mozmill.runner.profile.cleanup()
         else:
             if self.options.shell:
                 self.start_shell(runner)
@@ -400,16 +425,16 @@ class CLI(jsbridge.CLI):
                     runner.wait()
                 except KeyboardInterrupt:
                     runner.stop()
-        if m.runner is not None:
-            m.runner.profile.cleanup()
+        if self.mozmill.runner is not None:
+            self.mozmill.runner.profile.cleanup()
 
 class RestartCLI(CLI):
+    mozmill_class = MozMillRestart
+
     parser_options = copy.copy(CLI.parser_options)
     parser_options[("-t", "--test",)] = dict(dest="test", default=False, 
                                              help="Run test directory.")
-    
-    mozmill_class = MozMillRestart
-    
+
     def run(self, *args, **kwargs):
         if len(sys.argv) is 1:
             print "Restart test CLI cannot be run without arguments, try --help for usage."
