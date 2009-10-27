@@ -81,13 +81,6 @@ class LoggerListener(object):
             self.cases[eName] = self.default(eName)
             self.cases[eName](obj)
 
-class Persisted(object):
-    ''' Class used to share data between Python and Javascript '''
-
-    def reset(self):
-        for entry in self.__dict__:
-            del entry
-
 class TestsFailedException(Exception):
     pass
 
@@ -102,7 +95,7 @@ class MozMill(object):
         self.passes = [] ; self.fails = [] ; self.skipped = []
         self.alltests = []
 
-        self.persisted = Persisted()
+        self.persisted = {}
         self.endRunnerCalled = False
 
         self.global_listeners = []
@@ -118,7 +111,7 @@ class MozMill(object):
         self.global_listeners.append(callback)
 
     def persist_listener(self, obj):
-        self.persisted.__dict__ = obj
+        self.persisted = obj
 
     def create_network(self):
         self.back_channel, self.bridge = jsbridge.wait_and_create_network("127.0.0.1",
@@ -150,7 +143,7 @@ class MozMill(object):
         starttime = datetime.utcnow().isoformat()
 
         ''' transfer persisted data '''
-        frame.persisted = self.persisted.__dict__
+        frame.persisted = self.persisted
 
         if os.path.isdir(test):
             frame.runTestDirectory(test)
@@ -298,7 +291,7 @@ class MozMillRestart(MozMill):
             self.endRunnerCalled = False
             sleep(sleeptime)
 
-            frame.persisted = self.persisted.__dict__
+            frame.persisted = self.persisted
             frame.runTestFile(test)
             while not self.endRunnerCalled:
                 sleep(.25)
@@ -375,7 +368,7 @@ class CLI(jsbridge.CLI):
         profile.install_plugin(extension_path)
         return profile
 
-    def __run(self):
+    def _run(self):
         runner = self.create_runner()
         if '-foreground' not in runner.cmdargs:
             runner.cmdargs.append('-foreground')
@@ -436,7 +429,7 @@ class CLI(jsbridge.CLI):
 
     def run(self):
         try:
-            self.__run()
+            self._run()
         except TestsFailedException, e:
             sys.exit(1)
 
