@@ -1,8 +1,9 @@
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
+var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 
 var setupModule = function(module) {
-  module.controller = mozmill.getPreferencesController(); 
+  module.controller = new controller.MozMillController(mozmill.utils.getWindowByType("Browser:Preferences"));
 }
 
 var test_TabsTab = function() {

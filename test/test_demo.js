@@ -1,9 +1,11 @@
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
+var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 
 var test_PrefsContentTab = function() {
   // Bring up preferences controller.
-  var controller = mozmill.getPreferencesController();
+  var controller = new controller.MozMillController(mozmill.utils.getWindowByType("Browser:Preferences"));
+
   // click on the Content prefs tab
   controller.click(new elementslib.Elem( controller.tabs.Content.button ));
   controller.sleep(1000);

@@ -38,12 +38,12 @@
 
 var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
                         "getBrowserController", "newBrowserController", 
-                        "getAddonsController", "getPreferencesController", 
-                        "newMail3PaneController", "getMail3PaneController", 
-                        "wm", "platform", "getAddrbkController", 
-                        "getMsgComposeController", "getDownloadsController",
-                        "Application", "MozMillAsyncTest", "cleanQuit",
-                        "getPlacesController", 'isMac', 'isLinux', 'isWindows',
+                        "getAddonsController", "newMail3PaneController",
+                        "getMail3PaneController", "wm", "platform",
+                        "getAddrbkController", "getMsgComposeController",
+                        "getDownloadsController", "Application",
+                        "MozMillAsyncTest", "cleanQuit", "getPlacesController",
+                        'isMac', 'isLinux', 'isWindows',
                        ];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
@@ -137,16 +137,6 @@ function getAddonsController () {
 
 function getDownloadsController() {
   utils.getMethodInWindows('BrowserDownloadsUI')();
-  return new controller.MozMillController(wm.getMostRecentWindow(''));
-}
-
-function getPreferencesController() {
-  if (Application == 'Thunderbird') {
-    utils.getMethodInWindows('openOptionsDialog')();
-  } else {
-    utils.getMethodInWindows('openPreferences')();
-  }
-  //controller.sleep(1000)
   return new controller.MozMillController(wm.getMostRecentWindow(''));
 }
 
