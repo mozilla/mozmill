@@ -140,6 +140,16 @@ function getDownloadsController() {
   return new controller.MozMillController(wm.getMostRecentWindow(''));
 }
 
+function getPreferencesController() {
+  if (Application == 'Thunderbird') {
+    utils.getMethodInWindows('openOptionsDialog')();
+  } else {
+    utils.getMethodInWindows('openPreferences')();
+  }
+  // utils.sleep(1000)
+  return new controller.MozMillController(wm.getMostRecentWindow(''));
+}
+
 // Thunderbird functions
 function newMail3PaneController () {
   return new controller.MozMillController(utils.getMethodInWindows('toMessengerWindow')());
@@ -158,7 +168,7 @@ function getMail3PaneController () {
 // Thunderbird - Address book window
 function newAddrbkController () {
   utils.getMethodInWindows("toAddressBook")();
-  controller.sleep(2000)
+  utils.sleep(2000);
   var addyWin = wm.getMostRecentWindow("mail:addressbook");
   return new controller.MozMillController(addyWin);
 }

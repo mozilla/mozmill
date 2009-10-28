@@ -40,7 +40,8 @@
 var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler", 
                         "getFile", "Copy", "getChromeWindow", "getWindows", "runEditor",
                         "runFile", "getWindowByTitle", "getWindowByType", "tempfile", 
-                        "getMethodInWindows", "getPreference", "setPreference"];
+                        "getMethodInWindows", "getPreference", "setPreference",
+                        "sleep"];
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
               .getService(Components.interfaces.nsIAppShellService)
@@ -387,6 +388,34 @@ function setPreference(aName, aValue) {
 
   return true;
 }
+
+/**
+ * Sleep for the given amount of milliseconds
+ **/
+function sleep (milliseconds) {
+  var self = {};
+
+  // We basically just call this once after the specified number of milliseconds
+  function wait() {
+    self.timeup = true;
+  }
+
+  // Calls repeatedly every X milliseconds until clearInterval is called
+  var interval = hwindow.setInterval(wait, milliseconds);
+
+  var thread = Components.classes["@mozilla.org/thread-manager;1"]
+            .getService()
+            .currentThread;
+  // This blocks execution until our while loop condition is invalidated.  Note
+  // that you must use a simple boolean expression for the loop, a function call
+  // will not work.
+  while(!self.timeup)
+    thread.processNextEvent(true);
+  hwindow.clearInterval(interval);
+
+  return true;
+}
+
 
  // 
  // //Function to start the running of jsTests

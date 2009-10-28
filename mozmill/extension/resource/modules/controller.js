@@ -37,7 +37,7 @@
 //
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["MozMillController", "sleep", "waitForEval", "MozMillAsyncTest",
+var EXPORTED_SYMBOLS = ["MozMillController", "waitForEval", "MozMillAsyncTest",
                         "globalEventRegistry"];
 
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
@@ -51,30 +51,6 @@ var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
                 .hiddenDOMWindow;
 var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
      getService(Components.interfaces.nsIConsoleService);
-
-function sleep (milliseconds) {
-  var self = {};
-
-  // We basically just call this once after the specified number of milliseconds
-  function wait() {
-    self.timeup = true;
-  }
-
-  // Calls repeatedly every X milliseconds until clearInterval is called
-  var interval = hwindow.setInterval(wait, milliseconds);
-
-  var thread = Components.classes["@mozilla.org/thread-manager;1"]
-            .getService()
-            .currentThread;
-  // This blocks execution until our while loop condition is invalidated.  Note
-  // that you must use a simple boolean expression for the loop, a function call
-  // will not work.
-  while(!self.timeup)
-    thread.processNextEvent(true);
-  hwindow.clearInterval(interval);
-
-  return true;
-}
 
 function waitForEval (expression, timeout, interval, subject) {
   if (interval == undefined) {
@@ -242,18 +218,7 @@ MozMillController.prototype.keypress = function(el, aKey, modifiers) {
   }
 
   events.triggerKeyEvent(element, 'keypress', aKey, modifiers);
-  frame.events.pass({'function':'Controller.keypress()'});
-  return true;
-}
 
-MozMillController.prototype.triggerKeyEvent = function(el, aKey, modifiers) {
-  var element = (el == null) ? this.window : el.getNode();
-  if (!element) {
-    throw new Error("could not find element " + el.getInfo());
-    return false;
-  }
-
-  events.triggerKeyEvent(element, 'keypress', aKey, modifiers);
   frame.events.pass({'function':'Controller.keypress()'});
   return true;
 }
@@ -502,7 +467,8 @@ MozMillController.prototype.radio = function(el)
   return true;
 }
 
-MozMillController.prototype.sleep = sleep;
+MozMillController.prototype.sleep = utils.sleep;
+
 MozMillController.prototype.waitForEval = function (expression, timeout, interval, subject) {
   var r = waitForEval(expression, timeout, interval, subject);
   if (!r) {
@@ -989,7 +955,7 @@ function browserAdditions( controller ) {
     waitForEval("subject.documentLoaded == true", timeout, interval, win);
     //Once the object is available it's somewhere between 1 and 3 seconds before the DOM
     //Actually becomes available to us
-    sleep(1);
+    utils.sleep(1);
     frame.events.pass({'function':'Controller.waitForPageLoad()'});
   }
 }
