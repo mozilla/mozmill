@@ -241,8 +241,6 @@ MozMillController.prototype.type = function (el, text) {
 // Open the specified url in the current tab
 MozMillController.prototype.open = function(url)
 {
-  var app = this.mozmillModule.Application;
-
   switch(this.mozmillModule.Application) {
     case "Firefox":
       this.window.gBrowser.loadURI(url);
