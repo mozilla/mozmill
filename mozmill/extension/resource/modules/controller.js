@@ -678,19 +678,19 @@ MozMillController.prototype.assertValue = function (el, value) {
   return false;
 };
 
-//Assert that a provided value is selected in a select element
-MozMillController.prototype.assertJS = function (js) {
-  //this.window.focus();
-  var result = eval(js);
-  if (result){
-    frame.events.pass({'function':'Controller.assertJS()'});
-    return result;
-  }
+// Assert that the result of a Javascript expression is true
+MozMillController.prototype.assertJS = function(expression, subject)
+{
+  var desc = 'Controller.assertJS("' + expression + '")';
+  var result = eval(expression);
 
-  else{
-    throw new Error("javascript assert was not succesful");
-    return result;}
-};
+  if (result)
+    frame.events.pass({'function': desc});
+  else
+    throw new Error(desc);
+
+  return result; 
+}
 
 //Assert that a provided value is selected in a select element
 MozMillController.prototype.assertSelected = function (el, value) {
