@@ -38,7 +38,7 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ["MozMillController", "waitForEval", "MozMillAsyncTest",
-                        "globalEventRegistry"];
+                        "globalEventRegistry", "sleep"];
 
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
 var EventUtils = {}; Components.utils.import('resource://mozmill/modules/EventUtils.js', EventUtils);
@@ -466,6 +466,10 @@ MozMillController.prototype.radio = function(el)
   frame.events.pass({'function':'Controller.radio(' + el.getInfo() + ')'});
   return true;
 }
+
+// The global sleep function has been moved to utils.js. Leave this symbol
+// for compatibility reasons
+var sleep = utils.sleep;
 
 MozMillController.prototype.sleep = utils.sleep;
 
