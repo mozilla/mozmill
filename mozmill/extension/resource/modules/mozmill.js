@@ -146,7 +146,7 @@ function getPreferencesController() {
   } else {
     utils.getMethodInWindows('openPreferences')();
   }
-  //controller.sleep(1000)
+  // utils.sleep(1000)
   return new controller.MozMillController(wm.getMostRecentWindow(''));
 }
 
@@ -168,7 +168,7 @@ function getMail3PaneController () {
 // Thunderbird - Address book window
 function newAddrbkController () {
   utils.getMethodInWindows("toAddressBook")();
-  controller.sleep(2000)
+  utils.sleep(2000);
   var addyWin = wm.getMostRecentWindow("mail:addressbook");
   return new controller.MozMillController(addyWin);
 }
