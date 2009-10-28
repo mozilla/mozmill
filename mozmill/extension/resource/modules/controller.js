@@ -238,18 +238,21 @@ MozMillController.prototype.type = function (el, text) {
   return true;
 }
 
-MozMillController.prototype.open = function(url){
-  if (this.mozmillModule.Application == 'Firefox') {
-    this.window.openLocation();
-  } else if (this.mozmillModule.Application == 'SeaMonkey') {
-    this.window.ShowAndSelectContentsOfURLBar();
+// Open the specified url in the current tab
+MozMillController.prototype.open = function(url)
+{
+  var app = this.mozmillModule.Application;
+
+  switch(this.mozmillModule.Application) {
+    case "Firefox":
+      this.window.gBrowser.loadURI(url);
+      break;
+    case "SeaMonkey":
+      this.window.getBrowser().loadURI(url);
+      break;
+    default:
+      throw new Error("MozMillController.open not supported.");
   }
-
-  var el = new elementslib.ID(this.window.document, 'urlbar');
-
-  // Enter URL and press return
-  this.type(el, url);
-  events.triggerKeyEvent(el.getNode(), 'keypress', "VK_RETURN", {});
 
   frame.events.pass({'function':'Controller.open()'});
 }
