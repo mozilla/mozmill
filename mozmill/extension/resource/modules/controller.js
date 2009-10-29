@@ -38,7 +38,7 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ["MozMillController", "waitForEval", "MozMillAsyncTest",
-                        "globalEventRegistry"];
+                        "globalEventRegistry", "sleep"];
 
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
 var EventUtils = {}; Components.utils.import('resource://mozmill/modules/EventUtils.js', EventUtils);
@@ -238,18 +238,19 @@ MozMillController.prototype.type = function (el, text) {
   return true;
 }
 
-MozMillController.prototype.open = function(url){
-  if (this.mozmillModule.Application == 'Firefox') {
-    this.window.openLocation();
-  } else if (this.mozmillModule.Application == 'SeaMonkey') {
-    this.window.ShowAndSelectContentsOfURLBar();
+// Open the specified url in the current tab
+MozMillController.prototype.open = function(url)
+{
+  switch(this.mozmillModule.Application) {
+    case "Firefox":
+      this.window.gBrowser.loadURI(url);
+      break;
+    case "SeaMonkey":
+      this.window.getBrowser().loadURI(url);
+      break;
+    default:
+      throw new Error("MozMillController.open not supported.");
   }
-
-  var el = new elementslib.ID(this.window.document, 'urlbar');
-
-  // Enter URL and press return
-  this.type(el, url);
-  events.triggerKeyEvent(el.getNode(), 'keypress', "VK_RETURN", {});
 
   frame.events.pass({'function':'Controller.open()'});
 }
@@ -467,6 +468,10 @@ MozMillController.prototype.radio = function(el)
   return true;
 }
 
+// The global sleep function has been moved to utils.js. Leave this symbol
+// for compatibility reasons
+var sleep = utils.sleep;
+
 MozMillController.prototype.sleep = utils.sleep;
 
 MozMillController.prototype.waitForEval = function (expression, timeout, interval, subject) {
@@ -674,19 +679,19 @@ MozMillController.prototype.assertValue = function (el, value) {
   return false;
 };
 
-//Assert that a provided value is selected in a select element
-MozMillController.prototype.assertJS = function (js) {
-  //this.window.focus();
-  var result = eval(js);
-  if (result){
-    frame.events.pass({'function':'Controller.assertJS()'});
-    return result;
-  }
+// Assert that the result of a Javascript expression is true
+MozMillController.prototype.assertJS = function(expression, subject)
+{
+  var desc = 'Controller.assertJS("' + expression + '")';
+  var result = eval(expression);
 
-  else{
-    throw new Error("javascript assert was not succesful");
-    return result;}
-};
+  if (result)
+    frame.events.pass({'function': desc});
+  else
+    throw new Error(desc);
+
+  return result; 
+}
 
 //Assert that a provided value is selected in a select element
 MozMillController.prototype.assertSelected = function (el, value) {
