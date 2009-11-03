@@ -202,12 +202,6 @@ var MozMillController = function (window) {
     controllerAdditions[window.document.documentElement.getAttribute('windowtype')](this);
     this.windowtype = window.document.documentElement.getAttribute('windowtype');
   }
-
-  //this will break on windows for addons and downloads controller
-  try {
-    this.menus = new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes, this.window.document, this.window);
-  } catch(err){}
-
 }
 
 MozMillController.prototype.keypress = function(el, aKey, modifiers) {
@@ -493,6 +487,11 @@ MozMillController.prototype.__defineGetter__("waitForEvents", function() {
   if (this._waitForEvents == undefined)
     this._waitForEvents = new waitForEvents();
   return this._waitForEvents;
+});
+
+MozMillController.prototype.__defineGetter__("menus", function() {
+  if(this.window.document.getElementsByTagName('menubar').length > 0)
+    return new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes, this.window.document, this.window);
 });
 
 MozMillController.prototype.waitForImage = function (elem, timeout, interval) {
