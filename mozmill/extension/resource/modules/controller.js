@@ -625,7 +625,7 @@ MozMillController.prototype.assertText = function (el, text) {
   //this.window.focus();
   var n = el.getNode();
 
-  if (n.innerHTML == text){
+  if (n && n.innerHTML == text){
     frame.events.pass({'function':'Controller.assertText()'});
     return true;
    }
