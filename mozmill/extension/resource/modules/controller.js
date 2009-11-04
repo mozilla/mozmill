@@ -670,7 +670,7 @@ MozMillController.prototype.assertValue = function (el, value) {
   //this.window.focus();
   var n = el.getNode();
 
-  if (n.value == value){
+  if (n && n.value == value){
     frame.events.pass({'function':'Controller.assertValue()'});
     return true;
   }
@@ -698,7 +698,7 @@ MozMillController.prototype.assertSelected = function (el, value) {
   var n = el.getNode();
   var validator = value;
 
-  if (n.options[n.selectedIndex].value == validator){
+  if (n && n.options[n.selectedIndex].value == validator){
     frame.events.pass({'function':'Controller.assertSelected()'});
     return true;
     }
@@ -711,7 +711,7 @@ MozMillController.prototype.assertChecked = function (el) {
   //this.window.focus();
   var element = el.getNode();
 
-  if (element.checked == true){
+  if (element && element.checked == true){
     frame.events.pass({'function':'Controller.assertChecked()'});
     return true;
     }
