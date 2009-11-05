@@ -223,8 +223,6 @@ class MozMillRestart(MozMill):
 
     def __init__(self, *args, **kwargs):
         super(MozMillRestart, self).__init__(*args, **kwargs)
-        self.listeners = []
-        self.global_listeners = []
         self.python_callbacks = []
     
     def add_listener(self, callback, **kwargs):
