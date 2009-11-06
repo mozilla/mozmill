@@ -101,7 +101,7 @@ var triggerKeyEvent = function(element, eventType, aKey, modifiers) {
   // get the window and send focus event
   var win = element.ownerDocument ? element.ownerDocument.defaultView : element;
   win.focus();
-  utils.sleep(0);
+  utils.sleep(5);
   
   // If we have an element check if it needs to be focused
   if (element.ownerDocument) {
