@@ -224,7 +224,7 @@ class MozMillRestart(MozMill):
     def __init__(self, *args, **kwargs):
         super(MozMillRestart, self).__init__(*args, **kwargs)
         self.python_callbacks = []
-    
+
     def add_listener(self, callback, **kwargs):
         self.listeners.append((callback, kwargs,))
     def add_global_listener(self, callback):
@@ -399,6 +399,9 @@ class CLI(jsbridge.CLI):
                                           profile_class=mozrunner.FirefoxProfile,
                                           jsbridge_port=int(self.options.port))
 
+        self.mozmill.add_global_listener(LoggerListener())
+
+
     def get_profile(self, *args, **kwargs):
         profile = super(CLI, self).get_profile(*args, **kwargs)
         profile.install_plugin(extension_path)
@@ -415,7 +418,6 @@ class CLI(jsbridge.CLI):
                 raise Exception("Not a valid test file/directory")
 
         self.mozmill.start(runner=runner, profile=runner.profile)
-        self.mozmill.add_global_listener(LoggerListener())
         if self.options.showerrors:
             outs = logging.StreamHandler()
             outs.setLevel(logging.ERROR)
