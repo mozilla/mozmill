@@ -1,10 +1,8 @@
-
-
 def nowCallback(obj):
-    print 'nowCallback'
+    obj = "pre"
 
 def postCallback(obj):
-    print 'postCallback'
-    
+    assert obj == "post"
+
 def failCallback(obj):
     assert True is False
