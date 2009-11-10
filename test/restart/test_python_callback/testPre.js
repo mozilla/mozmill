@@ -1,9 +1,16 @@
-var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
+var jum = {}; Components.utils.import('resource://mozmill/modules/jum.js', jum);
 
 var testPythonCallNow = function() {
-  mozmill.firePythonCallback("nowCallback", null)
+  var state = ""
+  mozmill.firePythonCallback("nowCallback", state)
+  jum.assertEquals(state, "pre");
 }
 
 var testPythonFail = function() {
-  mozmill.firePythonCallback("failCallback", null)
+  try {
+    mozmill.firePythonCallback("failCallback", null);
+    throw new Error("Python Callback hasn't thrown exception.");
+  } catch (ex) {
+    // We expect to have an assertion
+  }
 }

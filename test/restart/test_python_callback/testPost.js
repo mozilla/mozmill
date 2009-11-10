@@ -1,5 +1,6 @@
-var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
+var jum = {}; Components.utils.import('resource://mozmill/modules/jum.js', jum);
 
 var testPythonCallPost = function() {
-  mozmill.firePythonCallbackAfterRestart("postCallback", null)
+  var status = "post";
+  mozmill.firePythonCallbackAfterRestart("postCallback", null);
 }
