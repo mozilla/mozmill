@@ -1,5 +1,5 @@
 def nowCallback(obj):
-    obj = "pre"
+    assert obj == "pre"
 
 def postCallback(obj):
     assert obj == "post"
