@@ -66,7 +66,7 @@ var MozMill = {
       
       var paramString = "chrome,resizable,height=" + height +
                                ",width=" + width + ",left="+left+",top="+top;
-      var w = window.open("chrome://mozmill/content/mozmill.html", "", paramString);
+      var w = window.open("chrome://mozmill/content/mozmill.xul", "", paramString);
     } else { mmWindows[0].focus(); }
   }
 };

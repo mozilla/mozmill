@@ -1,9 +1,6 @@
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 
-var copyInspector = function() {
-  MozMilldx.inspectorToClipboard();
-  $("#tabs").tabs().tabs("select", 0);
-}
+
 
 var showFileDialog = function(){
   $("#fileDialog").dialog("open");

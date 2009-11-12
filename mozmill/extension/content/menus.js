@@ -41,6 +41,14 @@ var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', f
 
 // var menusLogger = logging.getLogger('menusLogger');
 
+function showFileMenu() {
+  $("#fileMenu").click();
+}
+
+function showRunMenu() {
+  $("runMenu").click();
+}
+
 function openNewWindow(){
   window.open('');
 }
