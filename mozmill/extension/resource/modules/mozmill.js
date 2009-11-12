@@ -38,12 +38,12 @@
 
 var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
                         "getBrowserController", "newBrowserController", 
-                        "getAddonsController", "newMail3PaneController",
-                        "getMail3PaneController", "wm", "platform",
-                        "getAddrbkController", "getMsgComposeController",
-                        "getDownloadsController", "Application",
-                        "MozMillAsyncTest", "cleanQuit", "getPlacesController",
-                        'isMac', 'isLinux', 'isWindows',
+                        "getAddonsController", "getPreferencesController", 
+                        "newMail3PaneController", "getMail3PaneController", 
+                        "wm", "platform", "getAddrbkController", 
+                        "getMsgComposeController", "getDownloadsController",
+                        "Application", "MozMillAsyncTest", "cleanQuit",
+                        "getPlacesController", 'isMac', 'isLinux', 'isWindows',
                        ];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);

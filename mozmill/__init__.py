@@ -40,7 +40,8 @@ import os
 import sys
 import copy
 import socket
-
+import imp
+import traceback
 from datetime import datetime, timedelta
 
 try:
@@ -222,19 +223,45 @@ class MozMillRestart(MozMill):
 
     def __init__(self, *args, **kwargs):
         super(MozMillRestart, self).__init__(*args, **kwargs)
+        self.python_callbacks = []
 
+    def add_listener(self, callback, **kwargs):
+        self.listeners.append((callback, kwargs,))
+    def add_global_listener(self, callback):
+        self.global_listeners.append(callback)
+    
     def start(self, runner=None, profile=None):
         if not profile:
             profile = self.profile_class(plugins=[jsbridge.extension_path, extension_path])
         if not runner:
             runner = self.runner_class(profile=self.profile, 
                                        cmdargs=["-jsbridge", str(self.jsbridge_port)])
-
         self.profile = profile;
         self.runner = runner
 
         self.endRunnerCalled = False
-
+    
+    def fire_python_callback(self, method, arg):
+        meth = getattr(self.python_callbacks_module, method)
+        try:
+            meth(arg)
+        except Exception, e:
+            self.endTest_listener({"name":method, "failed":1, 
+                                   "python_exception_type":e.__class__.__name__,
+                                   "python_exception_string":str(e),
+                                   "python_traceback":traceback.format_exc(),
+                                   "filename":self.python_callbacks_module.__file__})
+            return False
+        self.endTest_listener({"name":method, "failed":0, 
+                               "filename":self.python_callbacks_module.__file__})
+        return True
+    
+    def firePythonCallback_listener(self, obj):
+        if obj['fire_now']:
+            self.fire_python_callback(obj['method'], obj['arg'])
+        else:
+            self.python_callbacks.append(obj)
+        
     def start_runner(self):
         self.runner.start()
 
@@ -285,7 +312,10 @@ class MozMillRestart(MozMill):
                 counter += 1
 
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
-
+        
+        if os.path.isfile(os.path.join(test_dir, 'callbacks.py')):
+            self.python_callbacks_module = imp.load_source('callbacks', os.path.join(test_dir, 'callbacks.py'))
+        
         for test in tests:
             frame = self.start_runner()
             self.endRunnerCalled = False
@@ -297,7 +327,12 @@ class MozMillRestart(MozMill):
                 sleep(.25)
             self.stop_runner()
             sleep(2)
-
+            for callback in self.python_callbacks:
+                self.fire_python_callback(callback['method'], callback['arg'])
+            self.python_callbacks = []
+        
+        self.python_callbacks_module = None    
+        
         # Reset the profile.
         profile = self.runner.profile
         profile.cleanup()
@@ -318,6 +353,7 @@ class MozMillRestart(MozMill):
                      if d.startswith('test') and os.path.isdir(os.path.join(test_dir, d))]
         
         self.add_listener(self.endTest_listener, eventType='mozmill.endTest')
+        self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
         # self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
 
         if len(test_dirs) is 0:
@@ -363,6 +399,9 @@ class CLI(jsbridge.CLI):
                                           profile_class=mozrunner.FirefoxProfile,
                                           jsbridge_port=int(self.options.port))
 
+        self.mozmill.add_global_listener(LoggerListener())
+
+
     def get_profile(self, *args, **kwargs):
         profile = super(CLI, self).get_profile(*args, **kwargs)
         profile.install_plugin(extension_path)
@@ -379,7 +418,6 @@ class CLI(jsbridge.CLI):
                 raise Exception("Not a valid test file/directory")
 
         self.mozmill.start(runner=runner, profile=runner.profile)
-        self.mozmill.add_global_listener(LoggerListener())
         if self.options.showerrors:
             outs = logging.StreamHandler()
             outs.setLevel(logging.ERROR)
