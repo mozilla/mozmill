@@ -41,7 +41,7 @@ desc = """UI Automation tool for Mozilla applications."""
 summ = """A tool for full UI automation of Mozilla applications."""
 
 PACKAGE_NAME = "mozmill"
-PACKAGE_VERSION = "1.3beta1"
+PACKAGE_VERSION = "1.3"
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
