@@ -17,41 +17,31 @@
   <script src="rec.js"></script>
   <script src="menus.js"></script>
 
+  <script src="embed.js"></script>
+  <script src="editor.js"></script>
+
   <script src="jquery/jquery-1.3.2.min.js"></script>
   <script src="jquery/jquery-ui-1.7.1.custom.min.js"></script>
   <script src="ui.js"></script>
-  <script src="editarea/edit_area/edit_area_loader.js"></script>
 
-   <script src="jquery/fg.menu.js"></script>
-   <link type="text/css" href="css/fg.menu.css" rel="Stylesheet" />
+  <script src="jquery/fg.menu.js"></script>
+  <link type="text/css" href="css/fg.menu.css" rel="Stylesheet" />
 
 </head>
-<body onunload="cleanUp();">
+<body onload=""onunload="cleanUp();">
   <script src="shortcuts.js"></script>
   <script type="text/javascript">
   	var syncHeights = function(){
   	    $('#tabs')[0].style.height = window.innerHeight - 90 + "px";
-        if ($('#editorInput')[0].style.height != window.innerHeight - 180 + "px"){
-          if ( $('#tabs').tabs("option","selected") == 0 ){
-            editAreaLoader.toggle("editorInput");
-            $('#editorInput')[0].style.height = window.innerHeight - 180 + "px";
-            editAreaLoader.toggle("editorInput");
-          }
-        }
-        $('#editorInput')[0].style.height = window.innerHeight - 180 + "px";
         $('#resOut')[0].style.height = window.innerHeight - 170 + "px";
         $('#shellOutput')[0].style.height = window.innerHeight - 220 + "px";
   	}
   	
   	$(function() {
+      
       $("#tabs").tabs();
       $('#tabs').bind('tabsshow', function(event, ui) {
          syncHeights();
-         if ( $('#tabs').tabs("option","selected") == 0 ){
-           editAreaLoader.toggle("editorInput");
-           $('#editorInput')[0].style.height = window.innerHeight - 170 + "px";
-           editAreaLoader.toggle("editorInput");
-         }
       });
 
      $('#fileMenu').menu({ 
@@ -129,7 +119,7 @@
           <button id="runButton"  class="ui-state-default ui-corner-all" onclick="runEditor();">Run</button>
           <button id="recordToggle"  class="ui-state-default ui-corner-all" onclick="MozMillrec.toggle();"><u>R</u>ecord</button>
           </span>
-          <textarea id="editorInput" value="" style="font-family:monospace;font-size:12px;width:100%"></textarea>
+          <div id="editor"></div>
       	</div>
       	<div id="tabs-2">
           <div id="outOptions" >
@@ -192,82 +182,7 @@
       
       <div id="recordDialog" title="Recorder">
       </div>
-      
+    <script src="shell.js"></script>    
     </div>
-    
-    <script language="Javascript" type="text/javascript">    
-      //make the editor fill the space on mac
-      // if (navigator.platform.indexOf('Mac') != -1){
-      //       document.getElementById('editorInput').rows = 43;
-      //     }
-  		var eaInit = function(){
-  		   window.openFn = utils.tempfile().path;
-         editAreaLoader.openFile('editorInput', {text:'',title:getFileName(window.openFn),id:window.openFn});
-         
-         function alpha(e) {
-           if (e.ctrlKey || e.metaKey){
-             return false;
-           }
-           if ((e.charCode > 96) && (e.charCode < 123)){
-             return true;
-           }
-           else if ((e.charCode > 64) && (e.charCode < 91)){
-             return true;
-           }
-           else if ((e.charCode > 44) && (e.charCode < 58)){
-             return true;
-           }
-           return false;
-         };
-         
-         window.frames['frame_editorInput'].onkeypress = function(e){
-           if (alpha(e)){
-             var node = window.frames['frame_editorInput'].document.getElementById('tab_file_'+encodeURIComponent(window.openFn));
-             node.getElementsByTagName("strong")[0].style.display = "inline";
-           }
-         }
-         
-         //fixing the editor or resize issue
-          window.onresize = function(e){
-            syncHeights();
-          }
-          syncHeights();
-  		};
-  		
-  		var eaFileClosed = function(obj){
-          var all = editAreaLoader.getAllFiles('editorInput');
-          var count = 0;
-          //open a new temp if the last window
-          //gets closed, since there is no array
-          //we have to loop the object properties
-          for (x in all){
-            count++;
-          }
-          if (count == 1){
-            newFile();
-          }
-  		};
-  		
-  		var eaTabOn = function(obj){
-  		  window.openFn = editAreaLoader.getCurrentFile('editorInput').id;
-  		}
-  	
-      // initialisation
-      editAreaLoader.init({
-       id: "editorInput" // id of the textarea to transform    
-       ,start_highlight: true  // if start with highlight
-       ,allow_resize: false
-       ,allow_toggle: true
-       ,browsers: "all"
-       ,language: "en"
-       ,syntax: "js"
-       ,is_multi_files: true
-       ,EA_load_callback : "eaInit"
-       ,EA_file_close_callback: "eaFileClosed"
-       ,EA_file_switch_on_callback: "eaTabOn"
-      });
-    
-  	</script>
-  	<script src="shell.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 
-body{ font: 10px Verdana, sans-serif;}
+body{ font: 10px Verdana, sans-serif; background-color: window;}
 
 #dialog_link {padding: .4em 1em .4em 20px;text-decoration: none;position: relative;}
 #dialog_link span.ui-icon {margin: 0 5px 0 0;position: absolute;left: .2em;top: 50%;margin-top: -8px;}
@@ -30,6 +30,11 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
 .menuitem { cursor: pointer; padding-top: 2px; font-size: 12px; padding-bottom: 2px;}
 
 .menuitem:hover { background-color: #E7E7E7;}
+
+#editor {
+  width: 500px;
+  height: 540px;
+}
 
 #shellInput {
   width: 99%;
