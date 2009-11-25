@@ -35,11 +35,11 @@
   - 
   - *****  END LICENSE BLOCK ***** -->
 <?xml-stylesheet href="chrome://mozmill/skin/window.css" type="text/css"?>
-<window id="rainbow-picker-window" 
+<window id="mozmill-window" 
         title="MozMill IDE"
         windowtype="mozmill:ide"
         xmlns:html="http://www.w3.org/1999/xhtml"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         persist="width height screenX screenY">
-   <iframe style="" type="content" src="mozmill.html" flex="1" width="400px" height="700px"/>
+   <iframe id="mozmill-iframe" src="mozmill.html" flex="1" width="400px" height="700px"/>
 </window>
