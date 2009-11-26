@@ -41,5 +41,10 @@
         xmlns:html="http://www.w3.org/1999/xhtml"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         persist="width height screenX screenY">
-   <iframe id="mozmill-iframe" src="mozmill.html" flex="1" width="400px" height="700px"/>
+   <script type="application/x-javascript" src="chrome://mozmill/content/window.js"/>
+
+   <tooltip id="mozmill-tooltip" onpopupshowing="return fillTooltip(document.tooltipNode);"/>
+
+   <iframe id="mozmill-iframe" src="mozmill.html" flex="1" width="400px" height="700px"
+           tooltip="mozmill-tooltip"/>
 </window>

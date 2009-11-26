@@ -1,0 +1,8 @@
+#mozmill-window {
+  /* bug 529589 */
+  background: white !important; 
+}
+
+#mozmill-window iframe {
+  border: none;
+}
