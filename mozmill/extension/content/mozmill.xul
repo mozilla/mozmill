@@ -34,14 +34,14 @@
   - the terms of any one of the MPL, the GPL or the LGPL.
   - 
   - *****  END LICENSE BLOCK ***** -->
-<?xml-stylesheet href="chrome://mozmill/skin/window.css" type="text/css"?>
+<?xml-stylesheet href="chrome://mozmill/skin/chrome.css" type="text/css"?>
 <window id="mozmill-window" 
         title="MozMill IDE"
         windowtype="mozmill:ide"
         xmlns:html="http://www.w3.org/1999/xhtml"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         persist="width height screenX screenY">
-   <script type="application/x-javascript" src="chrome://mozmill/content/window.js"/>
+   <script type="application/x-javascript" src="chrome://mozmill/content/chrome.js"/>
 
    <tooltip id="mozmill-tooltip" onpopupshowing="return fillTooltip(document.tooltipNode);"/>
 

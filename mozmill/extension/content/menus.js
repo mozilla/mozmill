@@ -191,30 +191,10 @@ function newFile(){
 }
 
 function genBoiler(){
-    $("#tabs").tabs().tabs("select", 0);
-    window.openFn = utils.tempfile().path;
-    editAreaLoader.openFile('editorInput', {text:'',title:getFileName(window.openFn),id:window.openFn});
-    utils.genBoiler(window);
-    var node = window.frames['frame_editorInput'].document.getElementById('tab_file_'+encodeURIComponent(window.openFn));
-    node.getElementsByTagName("strong")[0].style.display = "inline";
-}
-
-function toggleHideEditor(){
-  //feature to turn off editor and simply run file from window.openFn
-  if ($('#frame_editorInput')[0].style.visibility != "hidden"){
-    $('#frame_editorInput')[0].style.visibility = "hidden";
-    $('#EditAreaArroundInfos_editorInput')[0].style.visibility = "hidden";
-
-    var of = document.createElement('div');
-    of.innerHTML = "<b>Open File</b>: " + window.openFn;
-    of.id = "ofdiv";
-    $('#tabs-1 > p')[0].insertBefore(of, $('#tabs-1 > p')[0].childNodes[0]);
-    
-  } else{
-    $('#ofdiv')[0].parentNode.removeChild($('#ofdiv')[0]);
-    $('#frame_editorInput')[0].style.visibility = "visible";
-    $('#EditAreaArroundInfos_editorInput')[0].style.visibility = "visible";
-  }
+  $("#tabs").tabs().tabs("select", 0);
+  window.openFn = utils.tempfile().path;
+  editAreaLoader.openFile('editorInput', {text:'',title:getFileName(window.openFn),id:window.openFn});
+  utils.genBoiler(window);
 }
 
 function swapTabs(tab){
@@ -237,7 +217,6 @@ function logicalClear(){
 }
 
 function accessOutput(){
-  
   var n = $('resOut');
   var txt = '';
   for (var c = 0; c < n.childNodes.length; c++){
