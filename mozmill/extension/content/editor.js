@@ -42,7 +42,7 @@ function editorTab() {
   editorElement.style.height = "200px";
   editorElement.style.margin = "20px";
   editorElement.id = "editor" + Math.round(Math.random() * 1000);
-  editorElement.src = "iframeeditor.html"
+  editorElement.src = "oldeditor.html"
   document.getElementById("editors").appendChild(editorElement);
   this.fileName = "temp";
 }

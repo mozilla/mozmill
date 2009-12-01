@@ -41,17 +41,6 @@ var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', f
 
 // var menusLogger = logging.getLogger('menusLogger');
 
-function showFileMenu() {
-  $("#fileMenu").click();
-}
-
-function showRunMenu() {
-  $("runMenu").click();
-}
-
-function openNewWindow(){
-  window.open('');
-}
 
 function getFileName(path){
   var splt = "/"
@@ -60,12 +49,6 @@ function getFileName(path){
   }
   var pathArr = path.split(splt);
   return pathArr[pathArr.length-1]
-}
-
-function testFinished(){
-  document.getElementById('runningStatus').textContent = 'Test Finished, See Output Tab...';
-  $("#tabs").tabs().tabs("select", 1);
-  window.focus();
 }
 
 function openFile(){
@@ -164,24 +147,14 @@ function runDirectory(){
   testFinished();
 }
 
-// function reloadFile(){
-//    var data = utils.getFile(window.openFn);
-//    $('editorInput').value = data;
-// }
-
 function runEditor(){
   saveFile();
   
   var doRun = function(){
-    document.getElementById('runningStatus').textContent = 'Running Test...';
-    //utils.runEditor(window);
-    //setTimeout('$("#tabs").tabs("select", 1)', 4000);
-    $("#testDialog").dialog("close");
     frame.runTestFile(window.openFn);
     testFinished();
   }
     doRun();
-
 }
 
 function newFile(){
@@ -197,41 +170,4 @@ function genBoiler(){
   utils.genBoiler(window);
 }
 
-function swapTabs(tab){
-  $('editorTab').style.display = 'none';
-  $('outputTab').style.display = 'none';
-  $('eventsTab').style.display = 'none';
-  $('shellTab').style.display = 'none';
-  
-  $('editorHead').style.background = '#aaa';
-  $('outputHead').style.background = '#aaa';
-  $('eventsHead').style.background = '#aaa';
-  $('shellHead').style.background = '#aaa';
-  
-  $(tab+'Tab').style.display = 'block';
-  $(tab+'Head').style.background = 'white';
-}
 
-function logicalClear(){
-  $('#resOut')[0].innerHTML = '';
-}
-
-function accessOutput(){
-  var n = $('resOut');
-  var txt = '';
-  for (var c = 0; c < n.childNodes.length; c++){
-    if (n.childNodes[c].textContent){
-      txt += n.childNodes[c].textContent + '\n';  
-    }
-    else{
-      txt += n.childNodes[c].value + '\n';
-    }
-  }
-  if (txt == undefined){ return; }
-  copyToClipboard(txt);
-}
-
-var copyToClipboard = function(str){
-  const gClipboardHelper = Components.classes["@mozilla.org/widget/clipboardhelper;1"] .getService(Components.interfaces.nsIClipboardHelper); 
-  gClipboardHelper.copyString(str);
-}
