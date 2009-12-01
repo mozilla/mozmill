@@ -25,16 +25,13 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
 
 #outClear { position: relative; top: -3px;}
 
+.editor-frame { border: none; }
+
 .menu { width:100%;font-size:12px; cursor: pointer; padding-top: 2px; padding-left: 4px; padding-right: 4px;}
 
 .menuitem { cursor: pointer; padding-top: 2px; font-size: 12px; padding-bottom: 2px;}
 
 .menuitem:hover { background-color: #E7E7E7;}
-
-#editor {
-  width: 500px;
-  height: 540px;
-}
 
 #shellInput {
   width: 99%;

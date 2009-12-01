@@ -1,73 +1,92 @@
-window.addEventListener("load", function() {editor.init();}, false);
-
 var editor = {
   index : 0,
 
   tabs : [],
 
-  init : function() {
-     this.editor = new bespin.editor.Component("editor",
-       { language: "js",
-         loadfromdiv: false });
-     this.editor.setContent("var x = 2349823;");
-	 this.openNew();
+  currentTab : null,
+
+  width : 500,
+  
+  height : 700,
+
+  init : function(width, height) {
+    this.width = width;
+    this.height = height;
+    this.openNew();
+  },
+
+  resize : function(width, height) {
+    this.width = width;
+    this.height = height;
+    this.reloadSize();
+  },
+
+  reloadSize : function() {
+    if(this.currentTab) {
+      this.currentTab.iframeElement.style.width = this.width + "px";
+      this.currentTab.iframeElement.style.height = this.height + "px";
+      if(this.currentTab.editorElement) {
+        this.currentTab.editorElement.style.width = (this.width - 20) + "px";
+        this.currentTab.editorElement.style.height = (this.height - 20) + "px";
+      }
+    }
   },
 
   switchTab : function(index) {
-    this.tabs[this.index].storeContent(this.editor.getContent());    
+    if(this.currentTab)
+      this.currentTab.iframeElement.style.display = "none";
     this.index = index;
-    this.editor.setContent(this.tabs[index].content);
+    this.currentTab = this.tabs[index];
+    this.reloadSize();
+    this.currentTab.iframeElement.style.display = "block";
   },
 
-  closeTab : function(index) {
+  closeCurrentTab : function(index) {
     var len = this.tabs.length;
     this.tabs.slice(index, len).concat(this.tabs.slice(0, index - 1));
   },
 
   openNew : function() {
-    this.tabs.push(new editorTab());
-    this.switchTab(this.tabs.length - 1);
-  },
-
-  openTemplate : function() {
-    var newTab = new editorTab();
-    newTab.initWithTemplate();
+    var newTab = new editorTab(this.width, this.height);
     this.tabs.push(newTab);
+    this.switchTab(this.tabs.length - 1);
   }
 }
 
-function editorTab() {
-  var editorElement = document.createElement("iframe");
-  editorElement.style.width ="400px";
-  editorElement.style.height = "200px";
-  editorElement.style.margin = "20px";
-  editorElement.id = "editor" + Math.round(Math.random() * 1000);
-  editorElement.src = "oldeditor.html"
-  document.getElementById("editors").appendChild(editorElement);
+
+function editorTab(width, height) {
+  var iframeElement = document.createElement("iframe");
+  iframeElement.style.width = width + "px";
+  iframeElement.style.height = height + "px";
+  iframeElement.className = "editor-frame";
+  var editorObject = this;
+
+  iframeElement.addEventListener("load", function() {
+    editorObject.editorElement = iframeElement.contentDocument.getElementById("editor");
+    editorObject.editor = iframeElement.contentWindow.editor;
+  } , true);
+  iframeElement.src = "oldeditor.html";
+  document.getElementById("editors").appendChild(iframeElement);
+
+  this.iframeElement = iframeElement;
   this.fileName = "temp";
 }
 
 editorTab.prototype = {
-
-  initWithTemplate : function() {
-    this.content = "boilerplate";
-    this.fileName = "temp"; // utils.tempfile().path;
-  },
-
   initFromFile : function(file) {
-    this.content = FileIO.read(file);
+    this.editor.setContent(FileIO.read(file));
     this.fileName = file;
   },
 
-  storeContent : function(content) {
-    this.content = content;
+  setContent : function(content) {
+    this.editor.setContent(content);
   },
 
   saveToFile : function() {
     var file = this.fileName;
     if (!file.exists())
       FileIO.create(file); 
-    FileIO.write(file, this.content, 'w');
+    FileIO.write(file, this.editor.getContent(), 'w');
   },
 
   saveAs : function(fileName) {

@@ -17,7 +17,6 @@
   <script src="rec.js"></script>
   <script src="menus.js"></script>
 
-  <script src="embed.js"></script>
   <script src="editor.js"></script>
 
   <script src="jquery/jquery-1.3.2.min.js"></script>
@@ -34,14 +33,15 @@
   	    $('#tabs')[0].style.height = window.innerHeight - 60 + "px";
         $('#resOut')[0].style.height = window.innerHeight - 170 + "px";
         $('#shellOutput')[0].style.height = window.innerHeight - 220 + "px";
-        $('#editor')[0].style.height = window.innerHeight - 140 + "px";
-        $('#editor')[0].style.width = window.innerWidth - 56 + "px";
+        editor.resize(window.innerWidth - 56, window.innerHeight - 140);
   	}
 
     window.onresize = function(){ syncHeights(); }
   	
   	$(function() {
       $("#tabs").tabs();
+
+      editor.init(window.innerWidth - 56, window.innerHeight - 140);
       syncHeights();
 
       $('#tabs').bind('tabsshow', function(event, ui) {
@@ -49,13 +49,13 @@
       });
 
       $('#fileMenu').menu({
-        content: $('#fileMenulist').html(), // grab content from this page
-        showSpeed: 200 
+        content: $('#fileMenulist').html(),
+        showSpeed: 120 
       });
 
       $('#runMenu').menu({
-         content: $('#runMenulist').html(), // grab content from this page
-         showSpeed: 200 
+         content: $('#runMenulist').html(),
+         showSpeed: 120 
       });
 	});
   </script>
@@ -98,7 +98,7 @@
           <button id="runButton"  class="ui-state-default ui-corner-all" onclick="runEditor();">Run</button>
           <button id="recordToggle"  class="ui-state-default ui-corner-all" onclick="MozMillrec.toggle();"><u>R</u>ecord</button>
           </span>
-          <div id="editor"></div>
+          <div id="editors"></div>
       	</div>
       	<div id="tabs-2">
           <div id="outOptions" >
