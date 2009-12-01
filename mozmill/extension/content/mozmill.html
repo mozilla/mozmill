@@ -52,11 +52,6 @@
         content: $('#fileMenulist').html(),
         showSpeed: 120 
       });
-
-      $('#runMenu').menu({
-         content: $('#runMenulist').html(),
-         showSpeed: 120 
-      });
 	});
   </script>
 
@@ -83,17 +78,11 @@
               <li class="menuitem"><a href="#" onclick="saveFile();"><u>S</u>ave</a></li>
               <li class="menuitem"><a href="#" onclick="saveAsFile();">Save <u>A</u>s</a></li>
               <li class="menuitem"><a href="#" onclick="closeFile();"><u>C</u>lose Current File</a></li>
-              </ul>
-            </div>
-          <span tabindex="0" class="menu" id="runMenu"><u>T</u>est</span>
-          <div style="display:none;">
-            <ul id="runMenulist">
               <li class="menuitem"><a href="#" onclick="runEditor();">Run <u>E</u>ditor</a></li>
               <li class="menuitem"><a href="#" onclick="runFile();">Run <u>F</u>ile</a></li>
               <li class="menuitem"><a href="#" onclick="runDirectory();">Run <u>D</u>irectory</a></li>
               </ul>
-            </div>
-           
+            </div> 
          <span style="float:right;">
           <button id="runButton"  class="ui-state-default ui-corner-all" onclick="runEditor();">Run</button>
           <button id="recordToggle"  class="ui-state-default ui-corner-all" onclick="MozMillrec.toggle();"><u>R</u>ecord</button>

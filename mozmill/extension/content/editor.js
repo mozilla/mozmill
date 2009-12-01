@@ -46,15 +46,15 @@ var editor = {
     this.tabs.slice(index, len).concat(this.tabs.slice(0, index - 1));
   },
 
-  openNew : function() {
-    var newTab = new editorTab(this.width, this.height);
+  openNew : function(content) {
+    var newTab = new editorTab(this.width, this.height, content);
     this.tabs.push(newTab);
     this.switchTab(this.tabs.length - 1);
   }
 }
 
 
-function editorTab(width, height) {
+function editorTab(width, height, content) {
   var iframeElement = document.createElement("iframe");
   iframeElement.style.width = width + "px";
   iframeElement.style.height = height + "px";
@@ -63,8 +63,13 @@ function editorTab(width, height) {
 
   iframeElement.addEventListener("load", function() {
     editorObject.editorElement = iframeElement.contentDocument.getElementById("editor");
-    editorObject.editor = iframeElement.contentWindow.editor;
-  } , true);
+    var win = iframeElement.contentWindow;
+    win.onEditorLoad = function() {
+      editorObject.editor = win.editor;
+      if(content)
+        win.editor.setContent(content);
+    }
+  }, true);
   iframeElement.src = "oldeditor.html";
   document.getElementById("editors").appendChild(iframeElement);
 

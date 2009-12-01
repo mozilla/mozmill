@@ -51,12 +51,13 @@ function getFileName(path){
   return pathArr[pathArr.length-1]
 }
 
-function openFile(){
+function openFile(){ alert("opening file");
   $("#tabs").tabs().tabs("select", 0);
   var openObj = utils.openFile(window);
   if (openObj){
-    editAreaLoader.openFile('editorInput', {text:'',title:getFileName(openObj.path),id:openObj.path});
-    editAreaLoader.setValue('editorInput', openObj.data);    
+   /* editAreaLoader.openFile('editorInput', {text:'',title:getFileName(openObj.path),id:openObj.path});
+    editAreaLoader.setValue('editorInput', openObj.data);  */
+    editor.openNew(openObj.data);  
   }
 }
 
