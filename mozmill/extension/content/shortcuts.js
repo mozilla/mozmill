@@ -86,7 +86,7 @@ window.onkeypress = function(e){
       break;
       case 'm':
         e.preventDefault();
-        genBoiler();
+        newTemplate();
       break;
       case 'k':
         toggleHideEditor();

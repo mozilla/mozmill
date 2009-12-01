@@ -51,75 +51,38 @@ function getFileName(path){
   return pathArr[pathArr.length-1]
 }
 
-function openFile(){ alert("opening file");
-  $("#tabs").tabs().tabs("select", 0);
+function openFile(){
   var openObj = utils.openFile(window);
-  if (openObj){
-   /* editAreaLoader.openFile('editorInput', {text:'',title:getFileName(openObj.path),id:openObj.path});
-    editAreaLoader.setValue('editorInput', openObj.data);  */
-    editor.openNew(openObj.data);  
-  }
+  if (openObj)
+    editor.openNew(openObj.data, openObj.path);
 }
 
 function saveAsFile() {
-  var openFn = utils.saveAsFile(window);  
-  if (openFn){
+  var content = editor.getContent();
+  var filename = utils.saveAsFile(window, content);
+  if (filename){
     //save the old tab
-    var oldFn = window.openFn;
-    window.openFn = openFn;
-    var data = utils.getFile(window.openFn);
-    editAreaLoader.openFile('editorInput', {text:data,title:getFileName(window.openFn),id:window.openFn});
-    //close the old tab
-    editAreaLoader.closeFile('editorInput', oldFn);
+    editor.closeCurrentTab();
+    editor.openNew(content, filename);
     return true;
   }
   return false;
 }
 
 function saveFile() {
-  try { 
-    var node = window.frames['frame_editorInput'].document.getElementById('tab_file_'+encodeURIComponent(window.openFn));
-    node.getElementsByTagName("strong")[0].style.display = "none";
-  }
-  catch(err){}
-  
-  return utils.saveFile(window);
-}
-
-function changeEditor() {
-  if (window.openFn) {
-    // menusLogger.info(window.openFn);
-    $('saveMenu').removeAttribute("disabled");
-  } else { 
-    // menusLogger.info('openFn is '+openFn); 
-    }
+  var content = editor.getContent();
+  var filename = editor.getFilename(); alert(filename);
+  return utils.saveFile(window, content, filename);
 }
 
 function closeFile() {
-  //implementing the behavior where the mozmill window closes
-  //when cmd w is pressed if there is only an empty tmp file open
-  var all = editAreaLoader.getAllFiles('editorInput');
-  var count = 0;
-
-  for (x in all){
-    count++;
-  }
-  if (count == 1){
-    var data = editAreaLoader.getValue('editorInput');
-    if (data == ""){
-      window.close();
-      return;
-    }
-  }
   //if we aren't doing a close, default behavior to ask if we wanna close it
   var really = confirm("Are you sure you want to close this file?");
-  if (really == true) {
-    editAreaLoader.closeFile('editorInput', window.openFn);
-  }
+  if (really == true)
+    editor.closeCurrentTab();
 }
 
 function runFile(){
-  $('runningStatus').textContent = 'Running File...';
   var nsIFilePicker = Components.interfaces.nsIFilePicker;
   var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
   fp.init(window, "Select a File", nsIFilePicker.modeOpen);
@@ -130,12 +93,10 @@ function runFile(){
     $("#tabs").tabs("select", 1);
     frame.runTestFile(fp.file.path);
   }
-  
   testFinished();
 }
 
 function runDirectory(){
-  $('runningStatus').textContent = 'Running File...';
   var nsIFilePicker = Components.interfaces.nsIFilePicker;
   var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
   fp.init(window, "Select a Directory", nsIFilePicker.modeGetFolder);
@@ -150,25 +111,20 @@ function runDirectory(){
 
 function runEditor(){
   saveFile();
-  
-  var doRun = function(){
-    frame.runTestFile(window.openFn);
-    testFinished();
-  }
-    doRun();
+  var filename = editor.getFilename();
+  frame.runTestFile(filename);
+  testFinished();
 }
 
 function newFile(){
-  $("#tabs").tabs().tabs("select", 0);
-  window.openFn = utils.tempfile().path;
-  editAreaLoader.openFile('editorInput', {text:'',title:getFileName(window.openFn),id:window.openFn});
+  var filename = utils.tempfile().path;
+  editor.openNew("", filename);  // temp file name
 }
 
-function genBoiler(){
-  $("#tabs").tabs().tabs("select", 0);
-  window.openFn = utils.tempfile().path;
-  editAreaLoader.openFile('editorInput', {text:'',title:getFileName(window.openFn),id:window.openFn});
-  utils.genBoiler(window);
+function newTemplate(){
+  var template = utils.genBoiler(window);
+  var filename = utils.tempfile().path;
+  editor.openNew(template, filename);
 }
 
 
