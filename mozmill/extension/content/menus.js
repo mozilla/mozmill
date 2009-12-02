@@ -71,7 +71,7 @@ function saveAsFile() {
 
 function saveFile() {
   var content = editor.getContent();
-  var filename = editor.getFilename(); alert(filename);
+  var filename = editor.getFilename();
   return utils.saveFile(window, content, filename);
 }
 

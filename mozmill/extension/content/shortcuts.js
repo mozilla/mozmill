@@ -74,15 +74,11 @@ window.onkeypress = function(e){
       break;
       case 'n':
         e.preventDefault();
-        openNewWindow();
+        newTemplate();
       break;
       case 'l':
         e.preventDefault();
         logicalClear();
-      break;
-      case 'm':
-        e.preventDefault();
-        newTemplate();
       break;
       case 'k':
         toggleHideEditor();

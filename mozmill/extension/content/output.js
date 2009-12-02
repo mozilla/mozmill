@@ -173,18 +173,22 @@ function testListener (test) {
 }
 frame.events.addListener('setTest', testListener);
 function passListener (text) {
-  createCell('pass', text, text)
+  alert('pass listener fired');
+  createCell('pass', text, text);
 }
 frame.events.addListener('pass', passListener);
 function failListener (text) {
-  createCell('fail', text, text)
+  alert('fail listener fired');
+  createCell('fail', text, text);
 }
 frame.events.addListener('fail', failListener);
 function logListener (obj) {
-  createCell('log', obj, obj)
+  alert('log listener fired');
+  createCell('log', obj, obj);
 }
 frame.events.addListener('log', logListener);
 function loggerListener (obj) {
+  alert('logger listener fired');
   createCell('logger', obj, obj)
 }
 frame.events.addListener('logger', loggerListener);
