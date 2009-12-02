@@ -165,7 +165,12 @@ var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', f
 
 // Set UI Listeners in frame
 
-
+function stateListener (state) {
+  if (state != 'test') {  
+  //  utils.getWindowByTitle('MozMill IDE').document.getElementById('runningStatus').innerHTML = state;
+  }
+}
+frame.events.addListener('setState', stateListener);
 aConsoleService.logStringMessage('+++++++++++++++++++++++');
 aConsoleService.logStringMessage("Current setStateListener size: "+String(frame.events.listeners.setState.length) );
 function testListener (test) {
@@ -173,22 +178,18 @@ function testListener (test) {
 }
 frame.events.addListener('setTest', testListener);
 function passListener (text) {
-  alert('pass listener fired');
   createCell('pass', text, text);
 }
 frame.events.addListener('pass', passListener);
 function failListener (text) {
-  alert('fail listener fired');
   createCell('fail', text, text);
 }
 frame.events.addListener('fail', failListener);
 function logListener (obj) {
-  alert('log listener fired');
   createCell('log', obj, obj);
 }
 frame.events.addListener('log', logListener);
 function loggerListener (obj) {
-  alert('logger listener fired');
   createCell('logger', obj, obj)
 }
 frame.events.addListener('logger', loggerListener);
