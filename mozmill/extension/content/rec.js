@@ -213,11 +213,9 @@ RecorderConnector.prototype.toggle = function(){
 
 RecorderConnector.prototype.dispatch = function(evt){
   currentRecorderArray.push({'evt':evt, 'inspected':inspection.inspectElement(evt)});
-  var value = editAreaLoader.getValue('editorInput');
+  var value = editor.getContent();
   value += (evt.type + ':: ' + evt.timeStamp + '\n');
-  editAreaLoader.setValue('editorInput', value);
-  
-  //window.document.getElementById('editorInput').value += evt.type+'\n';
+  editor.setContent(value);
 }
 
 //Recursively bind to all the iframes and frames within
@@ -270,9 +268,7 @@ RecorderConnector.prototype.on = function() {
   $("#recordToggle").addClass("ui-state-highlight");
   $("#recordToggle").addClass("ui-priority-primary");
 
-  window.openFn = utils.tempfile().path;
-  editAreaLoader.openFile('editorInput', {text:'',title:getFileName(window.openFn),id:window.openFn});
-  window.openFn = null;
+  newFile();
   
   for each(win in utils.getWindows()) {
     if (win.document.title != "MozMill IDE"){
@@ -293,7 +289,6 @@ RecorderConnector.prototype.on = function() {
   observerService.addObserver(this.observer, "toplevel-window-ready", false);
   
   currentRecorderArray = [];
-  editAreaLoader.setValue('editorInput', '');
 };
 
 RecorderConnector.prototype.off = function() {
@@ -310,9 +305,7 @@ RecorderConnector.prototype.off = function() {
   }
   var r = getRecordedScript(currentRecorderArray);
 
-  editAreaLoader.closeFile('editorInput',  editAreaLoader.getCurrentFile('editorInput').id);
-  newFile();
-  editAreaLoader.setValue('editorInput', r);
+  editor.setContent(r);
   currentRecorderArray = [];
   //remove new window listener
   var observerService =

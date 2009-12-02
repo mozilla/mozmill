@@ -41,8 +41,8 @@
   	$(function() {
       $("#tabs").tabs();
 
-      editor.init(window.innerWidth - 56, window.innerHeight - 140);
       syncHeights();
+      newTemplate();
 
       $('#tabs').bind('tabsshow', function(event, ui) {
          syncHeights();

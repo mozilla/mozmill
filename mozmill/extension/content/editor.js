@@ -9,12 +9,6 @@ var editor = {
   
   height : 700,
 
-  init : function(width, height) {
-    this.width = width;
-    this.height = height;
-    this.openNew();
-  },
-
   resize : function(width, height) {
     this.width = width;
     this.height = height;
@@ -60,6 +54,10 @@ var editor = {
 
   getContent : function() {
     return this.currentTab.getContent();
+  },
+
+  setContent : function(content) {
+    this.currentTab.setContent(content);
   },
 
   getFilename : function() {

@@ -43,9 +43,6 @@ var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', u
 var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
      getService(Components.interfaces.nsIConsoleService);
 
-// var $ = function(id) {
-//    return document.getElementById(id);
-// };
 
 var createCell = function (t, obj, message) {
   // try {
@@ -167,17 +164,12 @@ var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', f
 // var utils = {}; Components.utils.import('resouce://mozmill/modules/utils.js', utils);
 
 // Set UI Listeners in frame
-function stateListener (state) {
-  if (state != 'test') {  
-    utils.getWindowByTitle('MozMill IDE').document.getElementById('runningStatus').innerHTML = state;
-  }
-}
-frame.events.addListener('setState', stateListener);
-aConsoleService.logStringMessage('+++++++++++++++++++++++')
+
+
+aConsoleService.logStringMessage('+++++++++++++++++++++++');
 aConsoleService.logStringMessage("Current setStateListener size: "+String(frame.events.listeners.setState.length) );
 function testListener (test) {
   createCell('test', test, 'Started running test: '+test.name);
-  utils.getWindowByTitle('MozMill IDE').document.getElementById('runningStatus').innerHTML = 'Running test: '+test.name;
 }
 frame.events.addListener('setTest', testListener);
 function passListener (text) {
@@ -198,7 +190,6 @@ function loggerListener (obj) {
 frame.events.addListener('logger', loggerListener);
 
 function removeStateListeners(){
-    frame.events.removeListener(stateListener);
     frame.events.removeListener(testListener);
     frame.events.removeListener(passListener);
     frame.events.removeListener(failListener);
