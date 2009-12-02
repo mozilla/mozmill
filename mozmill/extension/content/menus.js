@@ -89,7 +89,6 @@ function runFile(){
   fp.appendFilter("JavaScript Files","*.js");
   var res = fp.show();
   if (res == nsIFilePicker.returnOK){
-    $("#testDialog").dialog("close");
     $("#tabs").tabs("select", 1);
     frame.runTestFile(fp.file.path);
   }
@@ -102,7 +101,6 @@ function runDirectory(){
   fp.init(window, "Select a Directory", nsIFilePicker.modeGetFolder);
   var res = fp.show();
   if (res == nsIFilePicker.returnOK){
-    $("#testDialog").dialog("close");
     $("#tabs").tabs("select", 1);
     frame.runTestDirectory(fp.file.path);
   }
@@ -122,7 +120,13 @@ function newFile(){
 }
 
 function newTemplate(){
-  var template = utils.genBoiler(window);
+  var template = "var setupModule = function(module) {\n" +
+   "  module.controller = mozmill.getBrowserController();\n" +
+   "}\n" +
+   "\n" +
+   "var testFoo = function(){\n" +
+   "  controller.open('http://www.google.com');\n" +
+   "}\n";
   var filename = utils.tempfile().path;
   editor.openNew(template, filename);
 }

@@ -33,6 +33,10 @@ var editor = {
   },
 
   switchTab : function(index) {
+    if(!index)
+      index = this.tabs.length - 1;
+    if(index < 0)
+      return;
     if(this.currentTab)
       this.currentTab.iframeElement.style.display = "none";
     this.index = index;
@@ -41,15 +45,17 @@ var editor = {
     this.currentTab.iframeElement.style.display = "block";
   },
 
-  closeCurrentTab : function(index) {
-    var len = this.tabs.length;
-    this.tabs.slice(index, len).concat(this.tabs.slice(0, index - 1));
+  closeCurrentTab : function() {
+    this.currentTab.destroy();
+    this.currentTab = '';
+    this.tabs.splice(this.index, 1);
+    this.switchTab();
   },
 
   openNew : function(content, filename) {
     var newTab = new editorTab(content, filename);
     this.tabs.push(newTab);
-    this.switchTab(this.tabs.length - 1);
+    // will switch to new tab when the iframe has loaded
   },
 
   getContent : function() {
@@ -75,6 +81,7 @@ function editorTab(content, filename) {
       if(content)
         win.editor.setContent(content);
       editor.reloadSize();
+      editor.switchTab();
     } // this function is invoked by the iframe
   }, true);
   iframeElement.src = "oldeditor.html";
@@ -108,5 +115,9 @@ editorTab.prototype = {
   saveAs : function(fileName) {
     this.fileName = fileName;
     this.saveToFile;
+  },
+
+  destroy : function() {
+    this.iframeElement.parentNode.removeChild(this.iframeElement);
   }
 }

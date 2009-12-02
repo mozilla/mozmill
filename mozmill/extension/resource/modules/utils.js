@@ -164,16 +164,6 @@ var checkChrome = function() {
    mozmill.MozMillController.commands.jsTests(paramObj);
  }*/
  
- var genBoiler = function(){
-   var value = "var setupModule = function(module) {\n" +
-   "  module.controller = mozmill.getBrowserController();\n" +
-   "}\n" +
-   "\n" +
-   "var testFoo = function(){\n" +
-   "  controller.open('http://www.google.com');\n" +
-   "}\n"
- }
-
  var runFile = function(w){
    //define the interface
    var nsIFilePicker = Components.interfaces.nsIFilePicker;
