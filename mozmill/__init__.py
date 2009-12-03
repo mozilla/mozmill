@@ -62,7 +62,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 extension_path = os.path.join(basedir, 'extension')
 
-appInfoJs = "Components.classes['@mozilla.org/xre/app-info;1'].getService(Components.interfaces.nsIXULAppInfo)"
+mozmillModuleJs = "Components.utils.import('resource://mozmill/modules/mozmill.js')"
 
 class LoggerListener(object):
     cases = {
@@ -154,31 +154,8 @@ class MozMill(object):
         endtime = datetime.utcnow().isoformat()
 
         if report:
-            appInfo = jsbridge.JSObject(self.bridge, appInfoJs)
+            self.send_report(test, report, starttime, endtime)
 
-            results = {'type':'mozmill-test', 'starttime':starttime, 
-                       'endtime':endtime, 'tests':self.alltests}
-            results['appInfo.id'] = str(appInfo.ID)
-            results['buildid'] = str(appInfo.appBuildID)
-            results['appInfo.platformVersion'] = appInfo.platformVersion
-            results['appInfo.platformBuildID'] = appInfo.platformBuildID       
-            sysname, nodename, release, version, machine = os.uname()
-            sysinfo = {'os.name':sysname, 'hostname':nodename, 'os.version.number':release,
-                       'os.version.string':version, 'arch':machine}
-            if sys.platform == 'darwin':
-                import platform
-                sysinfo['mac_ver'] = platform.mac_ver()
-            elif sys.platform == 'linux2':
-                import platform
-                sysinfo['linux_distrobution'] = platform.linux_distrobution()
-                sysinfo['libc_ver'] = platform.libc_ver()           
-            results['sysinfo'] = sysinfo
-            
-            results['testPath'] = test
-            import httplib2
-            http = httplib2.Http()
-            response, content = http.request(report, 'POST', body=json.dumps(results))
-        
         # Give a second for any callbacks to finish.
         sleep(1)
         
@@ -199,10 +176,44 @@ class MozMill(object):
                                                         len(self.skipped))
         self.endRunnerCalled = True
 
+    def send_report(self, test, report, starttime, endtime):
+        mozmill = jsbridge.JSObject(self.bridge, mozmillModuleJs)
+        appInfo = mozmill.appInfo
+
+        results = {'type' : 'mozmill-test',
+                   'app.name' : appInfo.name,
+                   'app.id' : str(appInfo.ID),
+                   'app.version' : str(appInfo.version),
+                   'app.buildID' : str(appInfo.appBuildID),
+                   'platform.version' : str(appInfo.platformVersion),
+                   'platform.buildID' : str(appInfo.platformBuildID),
+                   'locale' : mozmill.locale,
+                   'starttime' : starttime, 
+                   'endtime' :endtime,
+                   'testPath' : test,
+                   'tests' : self.alltests
+                  }
+
+        sysname, nodename, release, version, machine = os.uname()
+        sysinfo = {'os.name':sysname, 'hostname':nodename, 'os.version.number':release,
+                   'os.version.string':version, 'arch':machine}
+        if sys.platform == 'darwin':
+            import platform
+            sysinfo['mac_ver'] = platform.mac_ver()
+        elif sys.platform == 'linux2':
+            import platform
+            sysinfo['linux_distrobution'] = platform.linux_distrobution()
+            sysinfo['libc_ver'] = platform.libc_ver()           
+        results['sysinfo'] = sysinfo
+
+        import httplib2
+        http = httplib2.Http()
+        response, content = http.request(report, 'POST', body=json.dumps(results))
+
+
     def stop(self, timeout=10):
         sleep(1)
-        mozmill = jsbridge.JSObject(self.bridge,
-                            "Components.utils.import('resource://mozmill/modules/mozmill.js')")
+        mozmill = jsbridge.JSObject(self.bridge, mozmillModuleJs)
         try:
             mozmill.cleanQuit()
         except (socket.error, JSBridgeDisconnectError):
