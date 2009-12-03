@@ -9,6 +9,8 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
 
 #topBar { height: 24px;}
 
+#alignButton { margin-right: 6px;}
+
 #dxContainer {margin-top: 16px; height: 160px;}
 
 #inspectOptions {margin-right: 10px;}
@@ -17,15 +19,15 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
 
 #outClear {margin-left: 20px;}
 
-#runButton {  font-size: 12px;}
+#tabs-1 { font-size: 12px;}
 
 #elementStr { margin-bottom: 8px;}
 
-#fileMenu { margin-left: 4px; font-size: 12px;}
+#fileMenu { margin-left: 6px; }
 
-#editor-tab-select { margin-left: 10px;  min-width: 50px;}
+#editor-tab-select { margin-left: 30%;  min-width: 70px; padding-left: 6px; padding-right: 6px;} 
 
-#recordToggle { margin-left: 4px;  font-size: 12px;}
+#recordToggle { margin-left: 4px;}
 
 #outClear { position: relative; top: -3px;}
 

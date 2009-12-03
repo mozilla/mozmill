@@ -56,7 +56,7 @@
   </script>
 
       <div id="topBar">
-        <button style="float:right;" class="ui-state-default ui-corner-all" onclick="align();"
+        <button id="alignButton" style="float:right;" class="ui-state-default ui-corner-all" onclick="align();"
                 title="Arrange Windows">
         <image src="img/align.png" style="border:none;"/>
         </button>
@@ -69,7 +69,7 @@
       		<li><a id="shellTab" href="#tabs-4">Shell</a></li>
       	</ul>
       	<div id="tabs-1">
-          <span tabindex="0" class="menu" id="fileMenu"><u>F</u>ile</span>
+          <span tabindex="0" class="menu" id="fileMenu"><u>A</u>ctions</span>
           <div style="display:none;">
             <ul id="fileMenulist">
               <li class="menuitem"><a href="#" onclick="openFile();"><u>O</u>pen</a></li>
@@ -77,15 +77,14 @@
               <li class="menuitem"><a href="#" onclick="saveFile();"><u>S</u>ave</a></li>
               <li class="menuitem"><a href="#" onclick="saveAsFile();">Save <u>A</u>s</a></li>
               <li class="menuitem"><a href="#" onclick="closeFile();"><u>C</u>lose Current File</a></li>
-              <li class="menuitem"><a href="#" onclick="runEditor();">Run <u>E</u>ditor</a></li>
               <li class="menuitem"><a href="#" onclick="runFile();">Run <u>F</u>ile</a></li>
               <li class="menuitem"><a href="#" onclick="runDirectory();">Run <u>D</u>irectory</a></li>
               </ul>
             </div> 
          <select id="editor-tab-select" onchange="tabSelected(this);"></select>
          <span style="float:right;">
-          <button id="runButton"  class="ui-state-default ui-corner-all" onclick="runEditor();">Run</button>
-          <button id="recordToggle"  class="ui-state-default ui-corner-all" onclick="MozMillrec.toggle();"><u>R</u>ecord</button>
+          <button id="runButton"  class="ui-state-default ui-corner-all" onclick="runEditor();"><u>R</u>un</button>
+          <button id="recordToggle"  class="ui-state-default ui-corner-all" onclick="MozMillrec.toggle();">Recor<u>d</u></button>
           </span>
           <div id="editors"></div>
       	</div>
