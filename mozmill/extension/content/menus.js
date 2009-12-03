@@ -115,8 +115,7 @@ function runEditor(){
 }
 
 function newFile(){
-  var filename = utils.tempfile().path;
-  editor.openNew("", filename);  // temp file name
+  editor.openNew();  // temp file name
 }
 
 function newTemplate(){
@@ -127,8 +126,11 @@ function newTemplate(){
    "var testFoo = function(){\n" +
    "  controller.open('http://www.google.com');\n" +
    "}\n";
-  var filename = utils.tempfile().path;
-  editor.openNew(template, filename);
+  editor.openNew(template);
+}
+
+function tabSelected(tabSelector) { alert(tabSelector.selectedIndex);
+  editor.switchTab(tabSelector.selectedIndex);
 }
 
 

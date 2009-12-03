@@ -9,6 +9,8 @@ var editor = {
   
   height : 700,
 
+  tempCount : 0,
+
   resize : function(width, height) {
     this.width = width;
     this.height = height;
@@ -31,6 +33,10 @@ var editor = {
       index = this.tabs.length - 1;
     if(index < 0)
       return;
+
+    var tabSelect = document.getElementById("editor-tab-select");
+    tabSelect.selectedIndex = index;
+
     if(this.currentTab)
       this.currentTab.iframeElement.style.display = "none";
     this.index = index;
@@ -43,12 +49,32 @@ var editor = {
     this.currentTab.destroy();
     this.currentTab = '';
     this.tabs.splice(this.index, 1);
+
+    var tabSelect = document.getElementById("editor-tab-select");
+    var option = tabSelect.getElementsByTagName("option")[this.index];
+    tabSelect.removeChild(option);
+
     this.switchTab();
   },
 
   openNew : function(content, filename) {
+    if(!filename) {
+      this.tempCount++;
+      filename = utils.tempfile("mozmill.utils.temp" + this.tempCount).path;
+      var tabName = "temp " + this.tempCount;
+    }
+    else
+      var tabName = getFileName(filename);
+
+    var tabSelect = document.getElementById("editor-tab-select");
+    var option = document.createElement("option");
+    option.value = this.tabs.length - 1;
+    option.innerHTML = tabName;
+    tabSelect.appendChild(option);
+
     var newTab = new editorTab(content, filename);
     this.tabs.push(newTab);
+
     // will switch to new tab when the iframe has loaded
   },
 
