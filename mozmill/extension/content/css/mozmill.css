@@ -17,11 +17,15 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
 
 #outClear {margin-left: 20px;}
 
-#runButton { position: relative; top: -3px; font-size: 12px;}
+#runButton {  font-size: 12px;}
 
 #elementStr { margin-bottom: 8px;}
 
-#recordToggle { margin-left: 4px; position: relative; top: -3px; font-size: 12px;}
+#fileMenu { margin-left: 4px; font-size: 12px;}
+
+#editor-tab-select { margin-left: 10px;  min-width: 50px;}
+
+#recordToggle { margin-left: 4px;  font-size: 12px;}
 
 #outClear { position: relative; top: -3px;}
 

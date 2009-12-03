@@ -29,8 +29,8 @@ var editor = {
   },
 
   switchTab : function(index) {
-    if(!index)
-      index = this.tabs.length - 1;
+    if(index == undefined) {
+      index = this.tabs.length - 1;}
     if(index < 0)
       return;
 

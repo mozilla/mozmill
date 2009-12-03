@@ -129,8 +129,8 @@ function newTemplate(){
   editor.openNew(template);
 }
 
-function tabSelected(tabSelector) { alert(tabSelector.selectedIndex);
-  editor.switchTab(tabSelector.selectedIndex);
+function tabSelected(selector) {
+  editor.switchTab(selector.selectedIndex);
 }
 
 
