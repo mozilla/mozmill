@@ -15,17 +15,15 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
 
 #inspectOptions {margin-right: 10px;}
 
-#dxToggle {font-size: 12px;}
-
 #outClear {margin-left: 20px;}
 
-#tabs-1 { font-size: 12px;}
+.tab { font-size: 12px;}
 
 #elementStr { margin-bottom: 8px;}
 
 #fileMenu { margin-left: 6px; }
 
-#editor-tab-select { margin-left: 30%;  min-width: 70px; padding-left: 6px; padding-right: 6px;} 
+#editor-tab-select { margin-left: 29%;  min-width: 70px; padding-left: 6px; padding-right: 6px;} 
 
 #recordToggle { margin-left: 4px;}
 

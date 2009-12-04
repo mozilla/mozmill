@@ -32,13 +32,9 @@ window.onkeypress = function(e){
         e.preventDefault();
         align();
       break;
-      case 'f':
+      case 'a':
         e.preventDefault();
         showFileMenu();
-      break;
-      case 't':
-        e.preventDefault();
-        showRunMenu();
       break;
       case 'p':
         e.preventDefault();
@@ -52,19 +48,19 @@ window.onkeypress = function(e){
         e.preventDefault();
         newFile();
       break;
-      case 'e':
+      case 'r':
         e.preventDefault();
         runEditor();
       break;
-      case 'r':
+      case 'd':
         e.preventDefault();
         MozMillrec.toggle();
       break;
-      case 'a':
+      case 'v':
         e.preventDefault();
         saveAsFile();
       break;
-      case 's':
+      case 'e':
         e.preventDefault();
         saveFile();
       break;
@@ -76,12 +72,13 @@ window.onkeypress = function(e){
         e.preventDefault();
         newTemplate();
       break;
+      case 't':
+        e.preventDefault();
+        runDirectory();
+      break;
       case 'l':
         e.preventDefault();
         logicalClear();
-      break;
-      case 'k':
-        toggleHideEditor();
       break;
       case '1':
         e.preventDefault();

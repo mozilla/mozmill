@@ -68,17 +68,17 @@
       		<li><a id="eventsTab" href="#tabs-3">Inspector</a></li>
       		<li><a id="shellTab" href="#tabs-4">Shell</a></li>
       	</ul>
-      	<div id="tabs-1">
+      	<div id="tabs-1" class="tab">
           <span tabindex="0" class="menu" id="fileMenu"><u>A</u>ctions</span>
           <div style="display:none;">
             <ul id="fileMenulist">
               <li class="menuitem"><a href="#" onclick="openFile();"><u>O</u>pen</a></li>
               <li class="menuitem"><a href="#" onclick="newTemplate();"><u>N</u>ew</li>
               <li class="menuitem"><a href="#" onclick="saveFile();"><u>S</u>ave</a></li>
-              <li class="menuitem"><a href="#" onclick="saveAsFile();">Save <u>A</u>s</a></li>
+              <li class="menuitem"><a href="#" onclick="saveAsFile();">Sa<u>v</u>e As</a></li>
               <li class="menuitem"><a href="#" onclick="closeFile();"><u>C</u>lose Current File</a></li>
               <li class="menuitem"><a href="#" onclick="runFile();">Run <u>F</u>ile</a></li>
-              <li class="menuitem"><a href="#" onclick="runDirectory();">Run <u>D</u>irectory</a></li>
+              <li class="menuitem"><a href="#" onclick="runDirectory();">Run Direc<u>t</u>ory</a></li>
               </ul>
             </div> 
          <select id="editor-tab-select" onchange="tabSelected(this);"></select>
@@ -88,7 +88,7 @@
           </span>
           <div id="editors"></div>
       	</div>
-      	<div id="tabs-2">
+      	<div id="tabs-2" class="tab">
           <div id="outOptions" >
             <span id="outToggles">
               Pass:<input id="outPass" label="Pass" type=checkbox checked onchange="updateOutput();"/>
@@ -101,7 +101,7 @@
             <div id="resOut" style="overflow:auto;position:absolute;height:90%;width:98%"></div>
       	  </p>
       	</div>
-      	<div id="tabs-3">
+      	<div id="tabs-3" class="tab">
       	    <div id="dxOptions" style="float:right;">
       	        Double Click: <input id="inspectDouble" type="radio" name="inspectClickSelection" value="double" onclick="MozMilldx.changeClick();" checked>
                 Single Click: <input id="inspectSingle" type="radio" name="inspectClickSelection" onclick="MozMilldx.changeClick();" value="single">
@@ -123,7 +123,7 @@
           </div>
       	</p>
       	</div>
-      	<div id="tabs-4">
+      	<div id="tabs-4" class="tab">
       		<p>
             <textarea id="shellInput">Type commands here...</textarea>
               <div id="shellOutput">

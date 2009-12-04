@@ -88,6 +88,14 @@ var editor = {
 
   getFilename : function() {
     return this.currentTab.filename;
+  },
+
+  changeFilename : function(filename) {
+    this.currentTab.filename = filename;
+
+    var tabSelect = document.getElementById("editor-tab-select");
+    var option = tabSelect.getElementsByTagName("option")[this.index];
+    option.innerHTML = getFileName(filename);
   }
 }
 

@@ -53,8 +53,10 @@ function getFileName(path){
 
 function openFile(){
   var openObj = utils.openFile(window);
-  if (openObj)
+  if (openObj) {
+    $("#tabs").tabs("select", 0);
     editor.openNew(openObj.data, openObj.path);
+  }
 }
 
 function saveAsFile() {
@@ -62,8 +64,11 @@ function saveAsFile() {
   var filename = utils.saveAsFile(window, content);
   if (filename){
     //save the old tab
-    editor.closeCurrentTab();
-    editor.openNew(content, filename);
+    $("#tabs").tabs("select", 0);
+    //editor.closeCurrentTab();
+    editor.changeFilename(filename);
+    saveFile();
+    //editor.openNew(content, filename);
     return true;
   }
   return false;
