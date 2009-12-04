@@ -116,7 +116,7 @@ function editorTab(content, filename) {
       editor.switchTab();
     } // this function is invoked by the iframe
   }, true);
-  iframeElement.src = "oldeditor.html";
+  iframeElement.src = "editor.html";
   document.getElementById("editors").appendChild(iframeElement);
 
   this.iframeElement = iframeElement;
