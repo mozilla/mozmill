@@ -177,10 +177,13 @@ class MozMill(object):
         self.endRunnerCalled = True
 
     def send_report(self, test, report, starttime, endtime):
+        import platform
+
         mozmill = jsbridge.JSObject(self.bridge, mozmillModuleJs)
         appInfo = mozmill.appInfo
 
         results = {'type' : 'mozmill-test',
+                   'uploaded' : datetime.now().isoformat(),
                    'app.name' : appInfo.name,
                    'app.id' : str(appInfo.ID),
                    'app.version' : str(appInfo.version),
@@ -194,16 +197,16 @@ class MozMill(object):
                    'tests' : self.alltests
                   }
 
-        sysname, nodename, release, version, machine = os.uname()
-        sysinfo = {'os.name':sysname, 'hostname':nodename, 'os.version.number':release,
-                   'os.version.string':version, 'arch':machine}
-        if sys.platform == 'darwin':
-            import platform
-            sysinfo['mac_ver'] = platform.mac_ver()
-        elif sys.platform == 'linux2':
-            import platform
+        (system, node, release, version, machine, processor) = platform.uname()
+        sysinfo = {'os.name' : system, 'hostname' : node, 'os.version.number' : version,
+                   'os.version.string' : release, 'arch' : machine}
+        if system == 'Darwin':
+            sysinfo['os.name'] = "Mac OS X"
+            sysinfo['os.version.number'] = platform.mac_ver()[0]
+            sysinfo['os.version.string'] = platform.mac_ver()[0]
+        elif system == 'linux2':
             sysinfo['linux_distrobution'] = platform.linux_distrobution()
-            sysinfo['libc_ver'] = platform.libc_ver()           
+            sysinfo['libc_ver'] = platform.libc_ver()
         results['sysinfo'] = sysinfo
 
         import httplib2
