@@ -170,6 +170,9 @@ events.endTest = function (test) {
     obj['skipped'] = true;
     obj.skipped_reason = test.skipped_reason;
   }
+  if (test.meta) {
+    obj.meta = test.meta;
+  }
   events.fireEvent('endTest', obj);
 }
 events.setModule = function (v) {
