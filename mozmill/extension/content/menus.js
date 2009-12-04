@@ -68,13 +68,18 @@ function saveAsFile() {
   return false;
 }
 
+function saveToFile() {
+  var filename = editor.getFilename();
+  var content = editor.getContent();
+  utils.saveFile(window, content, filename);
+}
+
 function saveFile() {
   var filename = editor.getFilename();
   if(/mozmill\.utils\.temp/.test(filename))
     saveAsFile();
   else {
-    var content = editor.getContent();
-    utils.saveFile(window, content, filename);
+    saveToFile();
   }
 }
 
@@ -85,7 +90,7 @@ function closeFile() {
     editor.closeCurrentTab();
 }
 
-function runFile(){
+function runFile(){ alert('runfile');
   var nsIFilePicker = Components.interfaces.nsIFilePicker;
   var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
   fp.init(window, "Select a File", nsIFilePicker.modeOpen);
@@ -111,7 +116,7 @@ function runDirectory(){
 }
 
 function runEditor(){
-  saveFile();
+  saveToFile();
   var filename = editor.getFilename();
   frame.runTestFile(filename);
   testFinished();
