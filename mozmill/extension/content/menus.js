@@ -37,9 +37,6 @@
 // ***** END LICENSE BLOCK *****
 
 var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
-// var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
-
-// var menusLogger = logging.getLogger('menusLogger');
 
 
 function getFileName(path){
@@ -121,7 +118,7 @@ function runEditor(){
 }
 
 function newFile(){
-  editor.openNew();  // temp file name
+  editor.openNew();
 }
 
 function newTemplate(){

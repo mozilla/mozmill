@@ -124,29 +124,12 @@ function editorTab(content, filename) {
 }
 
 editorTab.prototype = {
-  initFromFile : function(file) {
-    this.editor.setContent(FileIO.read(file));
-    this.fileName = file;
-  },
-
   setContent : function(content) {
     this.editor.setContent(content);
   },
 
   getContent : function() {
     return this.editor.getContent();
-  },
-
-  saveToFile : function() {
-    var file = this.fileName;
-    if (!file.exists())
-      FileIO.create(file); 
-    FileIO.write(file, this.editor.getContent(), 'w');
-  },
-
-  saveAs : function(fileName) {
-    this.fileName = fileName;
-    this.saveToFile;
   },
 
   destroy : function() {
