@@ -21,7 +21,7 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
 
 #elementStr { margin-bottom: 8px;}
 
-#fileMenu { margin-left: 6px; }
+#fileMenu { margin-left: 6px;}
 
 #editor-tab-select { margin-left: 29%;  min-width: 70px; padding-left: 6px; padding-right: 6px;} 
 
@@ -29,11 +29,13 @@ ul#icons span.ui-icon {float: left; margin: 0 4px;}
 
 #outClear { position: relative; top: -3px;}
 
-.editor-frame { border: none; }
+.editor-frame { border: none;}
 
 .menu { width:100%;font-size:12px; cursor: pointer; padding-top: 2px; padding-left: 4px; padding-right: 4px;}
 
 .menuitem { cursor: pointer; padding-top: 2px; font-size: 12px; padding-bottom: 2px;}
+
+.menuitem a { width: 100%}
 
 .menuitem:hover { background-color: #E7E7E7;}
 

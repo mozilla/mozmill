@@ -209,7 +209,7 @@ function Menu(caller, options){
 			else { menu.drilldown(container, options); }	
 		}
 		else {
-			container.find('a').click(function(){
+			container.find('li').click(function(){ // Mozmill modified : 'a' to 'li'
 				menu.chooseItem(this);
 				return false;
 			});

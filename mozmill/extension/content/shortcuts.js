@@ -60,7 +60,7 @@ window.onkeypress = function(e){
         e.preventDefault();
         saveAsFile();
       break;
-      case 'e':
+      case 's':
         e.preventDefault();
         saveFile();
       break;

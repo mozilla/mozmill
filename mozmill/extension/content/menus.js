@@ -63,25 +63,26 @@ function saveAsFile() {
   var content = editor.getContent();
   var filename = utils.saveAsFile(window, content);
   if (filename){
-    //save the old tab
     $("#tabs").tabs("select", 0);
-    //editor.closeCurrentTab();
     editor.changeFilename(filename);
     saveFile();
-    //editor.openNew(content, filename);
     return true;
   }
   return false;
 }
 
 function saveFile() {
-  var content = editor.getContent();
   var filename = editor.getFilename();
-  return utils.saveFile(window, content, filename);
+  if(/mozmill\.utils\.temp/.test(filename))
+    saveAsFile();
+  else {
+    var content = editor.getContent();
+    utils.saveFile(window, content, filename);
+  }
 }
 
 function closeFile() {
-  //if we aren't doing a close, default behavior to ask if we wanna close it
+  $("#tabs").tabs("select", 0);
   var really = confirm("Are you sure you want to close this file?");
   if (really == true)
     editor.closeCurrentTab();
