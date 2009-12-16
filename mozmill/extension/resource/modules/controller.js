@@ -391,6 +391,30 @@ MozMillController.prototype.mouseUp = function (elem, button, left, top)
   return true;
 };
 
+MozMillController.prototype.middleClick = function(elem, left, top)
+{
+  var element = elem.getNode();
+    if (!element){
+      throw new Error("could not find element " + el.getInfo());
+      return false;
+    }
+
+    if (isNaN(left)) { left = 1; }
+    if (isNaN(top)) { top = 1; }
+
+  // Scroll element into view before initiating a right click
+  if (element.scrollIntoView)
+    element.scrollIntoView();
+
+  EventUtils.synthesizeMouse(element, left, top,
+                             { button: 1 },
+                             element.ownerDocument.defaultView);
+  this.sleep(0);
+
+  frame.events.pass({'function':'Controller.middleClick()'});
+    return true;
+}
+
 MozMillController.prototype.rightClick = function(elem, left, top)
 {
   var element = elem.getNode();
