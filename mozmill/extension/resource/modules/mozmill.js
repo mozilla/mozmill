@@ -197,7 +197,8 @@ function firePythonCallbackAfterRestart(method, obj) {
   frame.events.fireEvent("firePythonCallback", {"method":method, "arg":obj, "fire_now":false});
 }
 
-function timer () {
+function timer (name) {
+  this.name = name;
   this.timers = {};
   frame.timers.push(this);
   this.actions = [];
