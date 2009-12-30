@@ -154,7 +154,8 @@ class MozMill(object):
         endtime = datetime.utcnow().isoformat()
 
         if report:
-            self.send_report(test, report, starttime, endtime)
+            results = self.get_report(test, starttime, endtime)
+            self.send_report(results, report)
 
         # Give a second for any callbacks to finish.
         sleep(1)
@@ -176,20 +177,17 @@ class MozMill(object):
                                                         len(self.skipped))
         self.endRunnerCalled = True
 
-    def send_report(self, test, report, starttime, endtime):
-        import platform
 
-        mozmill = jsbridge.JSObject(self.bridge, mozmillModuleJs)
+    def get_appinfo(self, bridge):
+        mozmill = jsbridge.JSObject(bridge, mozmillModuleJs)
         appInfo = mozmill.appInfo
-
-        results = {'type' : 'mozmill-test',
-                   'uploaded' : datetime.now().isoformat(),
-                   'app.name' : appInfo.name,
+        results = {'app.name' : appInfo.name,
                    'app.id' : str(appInfo.ID),
                    'app.version' : str(appInfo.version),
                    'app.buildID' : str(appInfo.appBuildID),
                    'platform.version' : str(appInfo.platformVersion),
                    'platform.buildID' : str(appInfo.platformBuildID),
+                   'uploaded' : datetime.now().isoformat(),
                    'locale' : mozmill.locale,
                    'starttime' : starttime, 
                    'endtime' :endtime,
@@ -197,6 +195,10 @@ class MozMill(object):
                    'tests' : self.alltests
                   }
 
+
+        return results
+    
+    def get_sysinfo(self):
         (system, node, release, version, machine, processor) = platform.uname()
         sysinfo = {'os.name' : system, 'hostname' : node, 'os.version.number' : version,
                    'os.version.string' : release, 'arch' : machine}
@@ -206,13 +208,25 @@ class MozMill(object):
             sysinfo['os.version.string'] = platform.mac_ver()[0]
         elif system == 'linux2':
             sysinfo['linux_distrobution'] = platform.linux_distrobution()
-            sysinfo['libc_ver'] = platform.libc_ver()
-        results['sysinfo'] = sysinfo
+            sysinfo['libc_ver'] = platform.libc_ver()        
+        return sysinfo
 
+    def get_report(self, test, starttime, endtime):
+        app_info = self.get_appinfo(self.bridge)
+        results = {'type' : 'mozmill-test',
+                   'starttime' : starttime, 
+                   'endtime' :endtime,
+                   'testPath' : test,
+                   'tests' : self.alltests
+                  }
+        results.update(app_info)
+        results['sysinfo'] = self.get_sysinfo()
+        return results
+
+    def send_report(self, results, report_url):
         import httplib2
         http = httplib2.Http()
-        response, content = http.request(report, 'POST', body=json.dumps(results))
-
+        response, content = http.request(report_url, 'POST', body=json.dumps(results))
 
     def stop(self, timeout=10):
         sleep(1)
@@ -280,6 +294,7 @@ class MozMillRestart(MozMill):
         self.runner.start()
 
         self.create_network()
+        self.appinfo = self.get_appinfo(self.bridge)
         frame = jsbridge.JSObject(self.bridge,
                                   "Components.utils.import('resource://mozmill/modules/frame.js')")
         return frame
@@ -360,9 +375,19 @@ class MozMillRestart(MozMill):
             profile.install_plugin(extension_path)
         profile.set_preferences(profile.preferences)
     
+    def get_report(self, test, starttime, endtime):
+        app_info = self.appinfo
+        results = {'type' : 'mozmill-restart-test',
+                   'starttime' : starttime, 
+                   'endtime' :endtime,
+                   'testPath' : test,
+                   'tests' : self.alltests
+                  }
+        results.update(app_info)
+        results['sysinfo'] = self.get_sysinfo()
+        return results
+    
     def run_tests(self, test_dir, report=False, sleeptime=4):
-        if report:
-            print 'Sorry, report is not yet implemented for restart tests.'
         test_dirs = [d for d in os.listdir(os.path.abspath(os.path.expanduser(test_dir))) 
                      if d.startswith('test') and os.path.isdir(os.path.join(test_dir, d))]
         
@@ -372,17 +397,22 @@ class MozMillRestart(MozMill):
 
         if len(test_dirs) is 0:
             test_dirs = [test_dir]
-                
+        
+        starttime = datetime.now().isoformat()        
         for d in test_dirs:
             d = os.path.abspath(os.path.join(test_dir, d))
             self.run_dir(d, report, sleeptime)
-        
+        endtime = datetime.now().isoformat()
         profile = self.runner.profile
         profile.cleanup()
                 
         class Blank(object):
             def stop(self):
                 pass
+        
+        if report:
+            results = self.get_report(test_dir, starttime, endtime)
+            self.send_report(results, report)
         
         # Set to None to avoid calling .stop
         self.runner = None
