@@ -189,16 +189,11 @@ class MozMill(object):
                    'platform.buildID' : str(appInfo.platformBuildID),
                    'uploaded' : datetime.now().isoformat(),
                    'locale' : mozmill.locale,
-                   'starttime' : starttime, 
-                   'endtime' :endtime,
-                   'testPath' : test,
-                   'tests' : self.alltests
                   }
-
-
         return results
     
     def get_sysinfo(self):
+        import platform
         (system, node, release, version, machine, processor) = platform.uname()
         sysinfo = {'os.name' : system, 'hostname' : node, 'os.version.number' : version,
                    'os.version.string' : release, 'arch' : machine}
