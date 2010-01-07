@@ -134,7 +134,7 @@ class MozMill(object):
         if os.path.isfile(callback_file):
             python_callbacks_module = imp.load_source('callbacks', callback_file)
         else:
-            raise("No valid callback file")        
+            raise Exception("No valid callback file")
         self.fire_python_callback(obj['method'], obj['arg'], python_callbacks_module)
 
     def create_network(self):
