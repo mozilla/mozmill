@@ -114,6 +114,29 @@ class MozMill(object):
     def persist_listener(self, obj):
         self.persisted = obj
 
+    def fire_python_callback(self, method, arg, python_callbacks_module):
+        meth = getattr(python_callbacks_module, method)
+        try:
+            meth(arg)
+        except Exception, e:
+            self.endTest_listener({"name":method, "failed":1, 
+                                   "python_exception_type":e.__class__.__name__,
+                                   "python_exception_string":str(e),
+                                   "python_traceback":traceback.format_exc(),
+                                   "filename":python_callbacks_module.__file__})
+            return False
+        self.endTest_listener({"name":method, "failed":0, 
+                               "filename":python_callbacks_module.__file__})
+        return True
+    
+    def firePythonCallback_listener(self, obj):
+        callback_file = "%s_callbacks.py" % os.path.splitext(obj['filename'])[0]
+        if os.path.isfile(callback_file):
+            python_callbacks_module = imp.load_source('callbacks', callback_file)
+        else:
+            raise Exception("No valid callback file")
+        self.fire_python_callback(obj['method'], obj['arg'], python_callbacks_module)
+
     def create_network(self):
         self.back_channel, self.bridge = jsbridge.wait_and_create_network("127.0.0.1",
                                                                           self.jsbridge_port)
@@ -130,6 +153,7 @@ class MozMill(object):
             runner = self.runner_class(profile=self.profile, 
                                        cmdargs=["-jsbridge", str(self.jsbridge_port)])
 
+        self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
         self.profile = profile;
         self.runner = runner
         self.runner.start()
@@ -240,25 +264,10 @@ class MozMillRestart(MozMill):
         self.runner = runner
 
         self.endRunnerCalled = False
-    
-    def fire_python_callback(self, method, arg):
-        meth = getattr(self.python_callbacks_module, method)
-        try:
-            meth(arg)
-        except Exception, e:
-            self.endTest_listener({"name":method, "failed":1, 
-                                   "python_exception_type":e.__class__.__name__,
-                                   "python_exception_string":str(e),
-                                   "python_traceback":traceback.format_exc(),
-                                   "filename":self.python_callbacks_module.__file__})
-            return False
-        self.endTest_listener({"name":method, "failed":0, 
-                               "filename":self.python_callbacks_module.__file__})
-        return True
-    
+     
     def firePythonCallback_listener(self, obj):
         if obj['fire_now']:
-            self.fire_python_callback(obj['method'], obj['arg'])
+            self.fire_python_callback(obj['method'], obj['arg'], self.python_callbacks_module)
         else:
             self.python_callbacks.append(obj)
         
@@ -328,7 +337,7 @@ class MozMillRestart(MozMill):
             self.stop_runner()
             sleep(2)
             for callback in self.python_callbacks:
-                self.fire_python_callback(callback['method'], callback['arg'])
+                self.fire_python_callback(callback['method'], callback['arg'], self.python_callbacks_module)
             self.python_callbacks = []
         
         self.python_callbacks_module = None    
