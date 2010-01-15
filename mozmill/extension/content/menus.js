@@ -136,7 +136,7 @@ function runFile(){
   if (res == nsIFilePicker.returnOK){
     $("#testDialog").dialog("close");
     $("#tabs").tabs("select", 1);
-    frame.runTestFile(fp.file.path);
+    frame.runTestFile(fp.file.path, true);
   }
   
   testFinished();
@@ -151,7 +151,7 @@ function runDirectory(){
   if (res == nsIFilePicker.returnOK){
     $("#testDialog").dialog("close");
     $("#tabs").tabs("select", 1);
-    frame.runTestDirectory(fp.file.path);
+    frame.runTestDirectory(fp.file.path, true);
   }
   testFinished();
 }
@@ -169,7 +169,7 @@ function runEditor(){
     //utils.runEditor(window);
     //setTimeout('$("#tabs").tabs("select", 1)', 4000);
     $("#testDialog").dialog("close");
-    frame.runTestFile(window.openFn);
+    frame.runTestFile(window.openFn, true);
     testFinished();
   }
     doRun();

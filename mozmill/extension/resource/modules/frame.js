@@ -147,9 +147,10 @@ events.setState = function (v) {
                            'setupTest', 'teardownTest', 'test', 'collection'], 
                            null, 'currentState', 'setState', v);
 }
-events.setTest = function (test) {
+events.setTest = function (test, invokedFromIDE) {
   test.__passes__ = [];
   test.__fails__ = [];
+  test.__invokedFromIDE__ = invokedFromIDE;
   events.currentTest = test;
   var obj = {'filename':events.currentModule.__file__,
              'name':test.__name__,
@@ -215,6 +216,9 @@ events.skip = function (reason) {
   events.fireEvent('skip', reason);
 }
 events.fireEvent = function (name, obj) {
+  if (events.currentTest && name == "firePythonCallback" && events.currentTest.__invokedFromIDE__) {
+    throw new Error("tests that use firePythonCallback cannot be run from the IDE\n");
+  }
   if (this.listeners[name]) {
     for (i in this.listeners[name]) {
       this.listeners[name][i](obj);
@@ -389,8 +393,9 @@ Collector.prototype.initTestDirectory = function (directory) {
   recursiveModuleLoader(os.getFileForPath(directory));
 }
 
-function Runner (collector) {
+function Runner (collector, invokedFromIDE) {
   this.collector = collector;
+  this.invokedFromIDE = invokedFromIDE
   events.fireEvent('startRunner', true);
   // var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
   // this.logger = new logging.Logger('Runner');
@@ -510,7 +515,7 @@ Runner.prototype._runTestModule = function (module) {
         var setupTestPassed = true;
       }  
       events.setState('test'); 
-      events.setTest(test);
+      events.setTest(test, this.invokedFromIDE);
       if (setupTestPassed) {
         this.wrapper(test);
       } else {
@@ -557,14 +562,15 @@ Runner.prototype.runTestModule = function (module) {
   this._runTestModule(module);
 }
 
-var runTestDirectory = function (dir) {
-  var runner = new Runner(new Collector());
+
+var runTestDirectory = function (dir, invokedFromIDE) {
+  var runner = new Runner(new Collector(), invokedFromIDE);
   runner.runTestDirectory(dir);
   runner.end();
   return true;
 }
-var runTestFile = function (filename) {
-  var runner = new Runner(new Collector());
+var runTestFile = function (filename, invokedFromIDE) {
+  var runner = new Runner(new Collector(), invokedFromIDE);
   runner.runTestFile(filename);
   runner.end();
   return true;
