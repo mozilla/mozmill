@@ -225,7 +225,7 @@ class MozMill(object):
             sysinfo['os.name'] = "Mac OS X"
             sysinfo['os.version.number'] = platform.mac_ver()[0]
             sysinfo['os.version.string'] = platform.mac_ver()[0]
-        elif system == 'linux2':
+        elif (system == 'linux2') or (system == "solaris"):
             sysinfo['linux_distrobution'] = platform.linux_distrobution()
             sysinfo['libc_ver'] = platform.libc_ver()        
         return sysinfo
