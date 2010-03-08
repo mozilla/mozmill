@@ -90,7 +90,7 @@ function closeFile() {
     editor.closeCurrentTab();
 }
 
-function runFile(){ alert('runfile');
+function runFile(){
   var nsIFilePicker = Components.interfaces.nsIFilePicker;
   var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
   fp.init(window, "Select a File", nsIFilePicker.modeOpen);

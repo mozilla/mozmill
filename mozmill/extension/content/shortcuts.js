@@ -56,7 +56,7 @@ window.onkeypress = function(e){
         e.preventDefault();
         MozMillrec.toggle();
       break;
-      case 'v':
+      case 'e':
         e.preventDefault();
         saveAsFile();
       break;
@@ -64,7 +64,7 @@ window.onkeypress = function(e){
         e.preventDefault();
         saveFile();
       break;
-      case 'c':
+      case 'u':
         e.preventDefault();
         closeFile();
       break;
