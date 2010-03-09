@@ -37,8 +37,8 @@
 //
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["MozMillController", "sleep", "waitForEval", "MozMillAsyncTest",
-                        "globalEventRegistry"];
+var EXPORTED_SYMBOLS = ["MozMillController", "waitForEval", "MozMillAsyncTest",
+                        "globalEventRegistry", "sleep"];
 
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
 var EventUtils = {}; Components.utils.import('resource://mozmill/modules/EventUtils.js', EventUtils);
@@ -51,30 +51,6 @@ var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
                 .hiddenDOMWindow;
 var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
      getService(Components.interfaces.nsIConsoleService);
-
-function sleep (milliseconds) {
-  var self = {};
-
-  // We basically just call this once after the specified number of milliseconds
-  function wait() {
-    self.timeup = true;
-  }
-
-  // Calls repeatedly every X milliseconds until clearInterval is called
-  var interval = hwindow.setInterval(wait, milliseconds);
-
-  var thread = Components.classes["@mozilla.org/thread-manager;1"]
-            .getService()
-            .currentThread;
-  // This blocks execution until our while loop condition is invalidated.  Note
-  // that you must use a simple boolean expression for the loop, a function call
-  // will not work.
-  while(!self.timeup)
-    thread.processNextEvent(true);
-  hwindow.clearInterval(interval);
-
-  return true;
-}
 
 function waitForEval (expression, timeout, interval, subject) {
   if (interval == undefined) {
@@ -226,12 +202,6 @@ var MozMillController = function (window) {
     controllerAdditions[window.document.documentElement.getAttribute('windowtype')](this);
     this.windowtype = window.document.documentElement.getAttribute('windowtype');
   }
-
-  //this will break on windows for addons and downloads controller
-  try {
-    this.menus = new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes, this.window.document, this.window);
-  } catch(err){}
-
 }
 
 MozMillController.prototype.keypress = function(el, aKey, modifiers) {
@@ -242,18 +212,7 @@ MozMillController.prototype.keypress = function(el, aKey, modifiers) {
   }
 
   events.triggerKeyEvent(element, 'keypress', aKey, modifiers);
-  frame.events.pass({'function':'Controller.keypress()'});
-  return true;
-}
 
-MozMillController.prototype.triggerKeyEvent = function(el, aKey, modifiers) {
-  var element = (el == null) ? this.window : el.getNode();
-  if (!element) {
-    throw new Error("could not find element " + el.getInfo());
-    return false;
-  }
-
-  events.triggerKeyEvent(element, 'keypress', aKey, modifiers);
   frame.events.pass({'function':'Controller.keypress()'});
   return true;
 }
@@ -273,18 +232,19 @@ MozMillController.prototype.type = function (el, text) {
   return true;
 }
 
-MozMillController.prototype.open = function(url){
-  if (this.mozmillModule.Application == 'Firefox') {
-    this.window.openLocation();
-  } else if (this.mozmillModule.Application == 'SeaMonkey') {
-    this.window.ShowAndSelectContentsOfURLBar();
+// Open the specified url in the current tab
+MozMillController.prototype.open = function(url)
+{
+  switch(this.mozmillModule.Application) {
+    case "Firefox":
+      this.window.gBrowser.loadURI(url);
+      break;
+    case "SeaMonkey":
+      this.window.getBrowser().loadURI(url);
+      break;
+    default:
+      throw new Error("MozMillController.open not supported.");
   }
-
-  var el = new elementslib.ID(this.window.document, 'urlbar');
-
-  // Enter URL and press return
-  this.type(el, url);
-  events.triggerKeyEvent(el.getNode(), 'keypress', "VK_RETURN", {});
 
   frame.events.pass({'function':'Controller.open()'});
 }
@@ -431,6 +391,30 @@ MozMillController.prototype.mouseUp = function (elem, button, left, top)
   return true;
 };
 
+MozMillController.prototype.middleClick = function(elem, left, top)
+{
+  var element = elem.getNode();
+    if (!element){
+      throw new Error("could not find element " + el.getInfo());
+      return false;
+    }
+
+    if (isNaN(left)) { left = 1; }
+    if (isNaN(top)) { top = 1; }
+
+  // Scroll element into view before initiating a right click
+  if (element.scrollIntoView)
+    element.scrollIntoView();
+
+  EventUtils.synthesizeMouse(element, left, top,
+                             { button: 1 },
+                             element.ownerDocument.defaultView);
+  this.sleep(0);
+
+  frame.events.pass({'function':'Controller.middleClick()'});
+    return true;
+}
+
 MozMillController.prototype.rightClick = function(elem, left, top)
 {
   var element = elem.getNode();
@@ -502,7 +486,12 @@ MozMillController.prototype.radio = function(el)
   return true;
 }
 
-MozMillController.prototype.sleep = sleep;
+// The global sleep function has been moved to utils.js. Leave this symbol
+// for compatibility reasons
+var sleep = utils.sleep;
+
+MozMillController.prototype.sleep = utils.sleep;
+
 MozMillController.prototype.waitForEval = function (expression, timeout, interval, subject) {
   var r = waitForEval(expression, timeout, interval, subject);
   if (!r) {
@@ -522,6 +511,11 @@ MozMillController.prototype.__defineGetter__("waitForEvents", function() {
   if (this._waitForEvents == undefined)
     this._waitForEvents = new waitForEvents();
   return this._waitForEvents;
+});
+
+MozMillController.prototype.__defineGetter__("menus", function() {
+  if(this.window.document.getElementsByTagName('menubar').length > 0)
+    return new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes, this.window.document, this.window);
 });
 
 MozMillController.prototype.waitForImage = function (elem, timeout, interval) {
@@ -654,7 +648,7 @@ MozMillController.prototype.assertText = function (el, text) {
   //this.window.focus();
   var n = el.getNode();
 
-  if (n.innerHTML == text){
+  if (n && n.innerHTML == text){
     frame.events.pass({'function':'Controller.assertText()'});
     return true;
    }
@@ -700,7 +694,7 @@ MozMillController.prototype.assertValue = function (el, value) {
   //this.window.focus();
   var n = el.getNode();
 
-  if (n.value == value){
+  if (n && n.value == value){
     frame.events.pass({'function':'Controller.assertValue()'});
     return true;
   }
@@ -708,19 +702,19 @@ MozMillController.prototype.assertValue = function (el, value) {
   return false;
 };
 
-//Assert that a provided value is selected in a select element
-MozMillController.prototype.assertJS = function (js) {
-  //this.window.focus();
-  var result = eval(js);
-  if (result){
-    frame.events.pass({'function':'Controller.assertJS()'});
-    return result;
-  }
+// Assert that the result of a Javascript expression is true
+MozMillController.prototype.assertJS = function(expression, subject)
+{
+  var desc = 'Controller.assertJS("' + expression + '")';
+  var result = eval(expression);
 
-  else{
-    throw new Error("javascript assert was not succesful");
-    return result;}
-};
+  if (result)
+    frame.events.pass({'function': desc});
+  else
+    throw new Error(desc);
+
+  return result; 
+}
 
 //Assert that a provided value is selected in a select element
 MozMillController.prototype.assertSelected = function (el, value) {
@@ -728,7 +722,7 @@ MozMillController.prototype.assertSelected = function (el, value) {
   var n = el.getNode();
   var validator = value;
 
-  if (n.options[n.selectedIndex].value == validator){
+  if (n && n.options[n.selectedIndex].value == validator){
     frame.events.pass({'function':'Controller.assertSelected()'});
     return true;
     }
@@ -741,7 +735,7 @@ MozMillController.prototype.assertChecked = function (el) {
   //this.window.focus();
   var element = el.getNode();
 
-  if (element.checked == true){
+  if (element && element.checked == true){
     frame.events.pass({'function':'Controller.assertChecked()'});
     return true;
     }
@@ -989,7 +983,7 @@ function browserAdditions( controller ) {
     waitForEval("subject.documentLoaded == true", timeout, interval, win);
     //Once the object is available it's somewhere between 1 and 3 seconds before the DOM
     //Actually becomes available to us
-    sleep(1);
+    utils.sleep(1);
     frame.events.pass({'function':'Controller.waitForPageLoad()'});
   }
 }
