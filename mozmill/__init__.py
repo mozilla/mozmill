@@ -42,6 +42,7 @@ import copy
 import socket
 import imp
 import traceback
+import threading
 from datetime import datetime, timedelta
 
 try:
@@ -63,6 +64,21 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 extension_path = os.path.join(basedir, 'extension')
 
 mozmillModuleJs = "Components.utils.import('resource://mozmill/modules/mozmill.js')"
+
+class ZombieDetection(object):
+    """ Determines if the browser has stopped talking to us.  We assume that
+        if this happens the browser is in a hung state and the test run
+        should be terminated. """
+    def __init__(self, stopfunction):
+        self.stopfunction = stopfunction
+        self.doomsdayTimer = threading.Timer(1800, stopfunction) # 30 minutes
+        self.doomsdayTimer.start()
+
+    def resetTimer(self):
+        # Reset that timer
+        self.doomsdayTimer.cancel()
+        self.doomsdayTimer = threading.Timer(1800, self.stopfunction)
+        self.doomsdayTimer.start()
 
 class LoggerListener(object):
     cases = {
@@ -98,7 +114,7 @@ class MozMill(object):
 
         self.persisted = {}
         self.endRunnerCalled = False
-
+        self.zombieDetector = ZombieDetector(self.stop)
         self.global_listeners = []
         self.listeners = []
         self.add_listener(self.persist_listener, eventType="mozmill.persist")
@@ -147,6 +163,9 @@ class MozMill(object):
             self.back_channel.add_global_listener(global_listener)
 
     def start(self, profile=None, runner=None):
+        # Reset our Zombie counter
+        self.zombieDetector.resetTimer()
+
         if not profile:
             profile = self.profile_class(plugins=[jsbridge.extension_path, extension_path])
         if not runner:
@@ -162,6 +181,9 @@ class MozMill(object):
         self.create_network()
 
     def run_tests(self, test, report=False, sleeptime = 4):
+        # Reset our Zombie Because we are still active
+        self.zombieDetector.resetTimer()
+
         frame = jsbridge.JSObject(self.bridge,
                                   "Components.utils.import('resource://mozmill/modules/frame.js')")
         sleep(sleeptime)
@@ -185,6 +207,9 @@ class MozMill(object):
         sleep(1)
         
     def endTest_listener(self, test):
+        # Reset our Zombie Counter because we are still active
+        self.zombieDetector.resetTimer()
+
         self.alltests.append(test)
         if test.get('skipped', False):
             print "Test Skipped : %s | %s" % (test['name'], test.get('skipped_reason', ''))
@@ -295,6 +320,9 @@ class MozMillRestart(MozMill):
             self.python_callbacks.append(obj)
         
     def start_runner(self):
+        # Reset the zombie counter
+        self.zombieDetection.resetTimer()
+
         self.runner.start()
 
         self.create_network()
@@ -326,6 +354,9 @@ class MozMillRestart(MozMill):
         self.endRunnerCalled = True
 
     def run_dir(self, test_dir, report=False, sleeptime=4):
+        # Reset our Zombie counter on each directory
+        self.zombieDetection.resetTimer()
+
         if os.path.isfile(os.path.join(test_dir, 'testPre.js')):   
             pre_test = os.path.join(test_dir, 'testPre.js')
             post_test = os.path.join(test_dir, 'testPost.js') 
@@ -392,6 +423,9 @@ class MozMillRestart(MozMill):
         return results
     
     def run_tests(self, test_dir, report=False, sleeptime=4):
+        # Zombie Counter Reset
+        self.zombieDetector.resetTimer()
+
         test_dirs = [d for d in os.listdir(os.path.abspath(os.path.expanduser(test_dir))) 
                      if d.startswith('test') and os.path.isdir(os.path.join(test_dir, d))]
         
