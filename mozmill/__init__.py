@@ -148,7 +148,7 @@ class MozMill(object):
 
     def start(self, profile=None, runner=None):
         if not profile:
-            profile = self.profile_class(plugins=[jsbridge.extension_path, extension_path])
+            profile = self.profile_class(addons=[jsbridge.extension_path, extension_path])
         if not runner:
             runner = self.runner_class(profile=self.profile, 
                                        cmdargs=["-jsbridge", str(self.jsbridge_port)])
@@ -279,7 +279,7 @@ class MozMillRestart(MozMill):
     
     def start(self, runner=None, profile=None):
         if not profile:
-            profile = self.profile_class(plugins=[jsbridge.extension_path, extension_path])
+            profile = self.profile_class(addons=[jsbridge.extension_path, extension_path])
         if not runner:
             runner = self.runner_class(profile=self.profile, 
                                        cmdargs=["-jsbridge", str(self.jsbridge_port)])
@@ -371,12 +371,12 @@ class MozMillRestart(MozMill):
         profile.cleanup()
         if profile.create_new:
             profile.profile = profile.create_new_profile(self.runner.binary)                
-        for plugin in profile.plugins:
-            profile.install_plugin(plugin)
-        if jsbridge.extension_path not in profile.plugins:
-            profile.install_plugin(jsbridge.extension_path)
-        if extension_path not in profile.plugins:
-            profile.install_plugin(extension_path)
+        for addon in profile.addons:
+            profile.install_addon(addon)
+        if jsbridge.extension_path not in profile.addons:
+            profile.install_addon(jsbridge.extension_path)
+        if extension_path not in profile.addons:
+            profile.install_addon(extension_path)
         profile.set_preferences(profile.preferences)
     
     def get_report(self, test, starttime, endtime):
@@ -452,7 +452,7 @@ class CLI(jsbridge.CLI):
 
     def get_profile(self, *args, **kwargs):
         profile = super(CLI, self).get_profile(*args, **kwargs)
-        profile.install_plugin(extension_path)
+        profile.install_addon(extension_path)
         return profile
 
     def _run(self):
