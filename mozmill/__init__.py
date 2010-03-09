@@ -21,6 +21,7 @@
 # Contributor(s):
 #  Mikeal Rogers <mikeal.rogers@gmail.com>
 #  Henrik Skupin <hskupin@mozilla.com>
+#  Clint Talbert <ctalbert@mozilla.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -65,7 +66,7 @@ extension_path = os.path.join(basedir, 'extension')
 
 mozmillModuleJs = "Components.utils.import('resource://mozmill/modules/mozmill.js')"
 
-class ZombieDetection(object):
+class ZombieDetector(object):
     """ Determines if the browser has stopped talking to us.  We assume that
         if this happens the browser is in a hung state and the test run
         should be terminated. """
