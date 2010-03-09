@@ -41,7 +41,9 @@
         xmlns:html="http://www.w3.org/1999/xhtml"
         xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
         persist="width height screenX screenY">
+
    <script type="application/x-javascript" src="chrome://mozmill/content/chrome.js"/>
+   <script type="application/x-javascript" src="chrome://mozmill/content/shortcuts.js"/>
 
    <tooltip id="mozmill-tooltip" onpopupshowing="return fillTooltip(document.tooltipNode);"/>
 

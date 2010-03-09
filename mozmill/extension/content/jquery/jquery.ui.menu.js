@@ -9,7 +9,7 @@
  *
  * Depends:
  *	jquery.ui.core.js
- */ alert('hi');
+ */
 (function($) {
 
 $.widget("ui.menu", {

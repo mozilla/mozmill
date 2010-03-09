@@ -6,39 +6,21 @@ function isAccel(e){
   var isMac = (plat.indexOf('Mac') != -1);
   var modifiers = e.altKey;
   
-  if ((isMac) && (!modifiers) && (e.metaKey) && (!e.ctrlKey) && (!e.shiftKey)){
+  if ((isMac) && (!modifiers) && (e.metaKey) && (!e.ctrlKey) && (!e.shiftKey))
     return true;
-  }
-  else if ((!isMac) && (!modifiers) && (e.ctrlKey) && (e.shiftKey) && (!e.metaKey)){
-    
+  else if ((!isMac) && (!modifiers) && (e.ctrlKey) && (e.shiftKey) && (!e.metaKey))
     return true;
-  }
   return false;
 };
 
 //window onkeypress handler for various keyboard
 //shortcuts
 window.onkeypress = function(e){
-  if (isAccel(e)){ 
+  if (isAccel(e)){
     switch(String.fromCharCode(e.charCode).toLowerCase()){
-      case 'z':
-         var node = window.frames['frame_editorInput'].document.getElementById('tab_file_'+encodeURIComponent(window.openFn));
-         var disp = node.getElementsByTagName("strong")[0].style.display;
-         if (disp != "inline"){
-           return false;
-         }
-      break;
       case 'g':
         e.preventDefault();
         align();
-      break;
-      case 'a':
-        e.preventDefault();
-        showFileMenu();
-      break;
-      case 'p':
-        e.preventDefault();
-        showOptionDialog();
       break;
       case 'o':
         e.preventDefault();
