@@ -16,6 +16,7 @@ var testAsserts = function() {
   jum.assertNotNaN(4);
   jum.pass();
 }
+testAsserts.meta = {'litmusids':[2345678]}
 
 var testAsyncPass = new mozmill.MozMillAsyncTest();
 

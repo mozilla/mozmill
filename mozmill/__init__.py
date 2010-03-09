@@ -40,7 +40,8 @@ import os
 import sys
 import copy
 import socket
-
+import imp
+import traceback
 from datetime import datetime, timedelta
 
 try:
@@ -61,7 +62,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 
 extension_path = os.path.join(basedir, 'extension')
 
-appInfoJs = "Components.classes['@mozilla.org/xre/app-info;1'].getService(Components.interfaces.nsIXULAppInfo)"
+mozmillModuleJs = "Components.utils.import('resource://mozmill/modules/mozmill.js')"
 
 class LoggerListener(object):
     cases = {
@@ -113,6 +114,29 @@ class MozMill(object):
     def persist_listener(self, obj):
         self.persisted = obj
 
+    def fire_python_callback(self, method, arg, python_callbacks_module):
+        meth = getattr(python_callbacks_module, method)
+        try:
+            meth(arg)
+        except Exception, e:
+            self.endTest_listener({"name":method, "failed":1, 
+                                   "python_exception_type":e.__class__.__name__,
+                                   "python_exception_string":str(e),
+                                   "python_traceback":traceback.format_exc(),
+                                   "filename":python_callbacks_module.__file__})
+            return False
+        self.endTest_listener({"name":method, "failed":0, 
+                               "filename":python_callbacks_module.__file__})
+        return True
+    
+    def firePythonCallback_listener(self, obj):
+        callback_file = "%s_callbacks.py" % os.path.splitext(obj['filename'])[0]
+        if os.path.isfile(callback_file):
+            python_callbacks_module = imp.load_source('callbacks', callback_file)
+        else:
+            raise Exception("No valid callback file")
+        self.fire_python_callback(obj['method'], obj['arg'], python_callbacks_module)
+
     def create_network(self):
         self.back_channel, self.bridge = jsbridge.wait_and_create_network("127.0.0.1",
                                                                           self.jsbridge_port)
@@ -129,6 +153,7 @@ class MozMill(object):
             runner = self.runner_class(profile=self.profile, 
                                        cmdargs=["-jsbridge", str(self.jsbridge_port)])
 
+        self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
         self.profile = profile;
         self.runner = runner
         self.runner.start()
@@ -153,31 +178,9 @@ class MozMill(object):
         endtime = datetime.utcnow().isoformat()
 
         if report:
-            appInfo = jsbridge.JSObject(self.bridge, appInfoJs)
+            results = self.get_report(test, starttime, endtime)
+            self.send_report(results, report)
 
-            results = {'type':'mozmill-test', 'starttime':starttime, 
-                       'endtime':endtime, 'tests':self.alltests}
-            results['appInfo.id'] = str(appInfo.ID)
-            results['buildid'] = str(appInfo.appBuildID)
-            results['appInfo.platformVersion'] = appInfo.platformVersion
-            results['appInfo.platformBuildID'] = appInfo.platformBuildID       
-            sysname, nodename, release, version, machine = os.uname()
-            sysinfo = {'os.name':sysname, 'hostname':nodename, 'os.version.number':release,
-                       'os.version.string':version, 'arch':machine}
-            if sys.platform == 'darwin':
-                import platform
-                sysinfo['mac_ver'] = platform.mac_ver()
-            elif sys.platform == 'linux2':
-                import platform
-                sysinfo['linux_distrobution'] = platform.linux_distrobution()
-                sysinfo['libc_ver'] = platform.libc_ver()           
-            results['sysinfo'] = sysinfo
-            
-            results['testPath'] = test
-            import httplib2
-            http = httplib2.Http()
-            response, content = http.request(report, 'POST', body=json.dumps(results))
-        
         # Give a second for any callbacks to finish.
         sleep(1)
         
@@ -198,10 +201,55 @@ class MozMill(object):
                                                         len(self.skipped))
         self.endRunnerCalled = True
 
+
+    def get_appinfo(self, bridge):
+        mozmill = jsbridge.JSObject(bridge, mozmillModuleJs)
+        appInfo = mozmill.appInfo
+        results = {'app.name' : appInfo.name,
+                   'app.id' : str(appInfo.ID),
+                   'app.version' : str(appInfo.version),
+                   'app.buildID' : str(appInfo.appBuildID),
+                   'platform.version' : str(appInfo.platformVersion),
+                   'platform.buildID' : str(appInfo.platformBuildID),
+                   'uploaded' : datetime.now().isoformat(),
+                   'locale' : mozmill.locale,
+                  }
+        return results
+    
+    def get_sysinfo(self):
+        import platform
+        (system, node, release, version, machine, processor) = platform.uname()
+        sysinfo = {'os.name' : system, 'hostname' : node, 'os.version.number' : version,
+                   'os.version.string' : release, 'arch' : machine}
+        if system == 'Darwin':
+            sysinfo['os.name'] = "Mac OS X"
+            sysinfo['os.version.number'] = platform.mac_ver()[0]
+            sysinfo['os.version.string'] = platform.mac_ver()[0]
+        elif (system == 'linux2') or (system == "solaris"):
+            sysinfo['linux_distrobution'] = platform.linux_distrobution()
+            sysinfo['libc_ver'] = platform.libc_ver()        
+        return sysinfo
+
+    def get_report(self, test, starttime, endtime):
+        app_info = self.get_appinfo(self.bridge)
+        results = {'type' : 'mozmill-test',
+                   'starttime' : starttime, 
+                   'endtime' :endtime,
+                   'testPath' : test,
+                   'tests' : self.alltests
+                  }
+        results.update(app_info)
+        results['sysinfo'] = self.get_sysinfo()
+        return results
+
+    def send_report(self, results, report_url):
+        import httplib2
+        http = httplib2.Http()
+        response, content = http.request(report_url, 'POST', body=json.dumps(results))
+
     def stop(self, timeout=10):
         sleep(1)
-        mozmill = jsbridge.JSObject(self.bridge,
-                            "Components.utils.import('resource://mozmill/modules/mozmill.js')")
+        mozmill = jsbridge.JSObject(self.bridge, mozmillModuleJs)
         try:
             mozmill.cleanQuit()
         except (socket.error, JSBridgeDisconnectError):
@@ -222,23 +270,35 @@ class MozMillRestart(MozMill):
 
     def __init__(self, *args, **kwargs):
         super(MozMillRestart, self).__init__(*args, **kwargs)
+        self.python_callbacks = []
 
+    def add_listener(self, callback, **kwargs):
+        self.listeners.append((callback, kwargs,))
+    def add_global_listener(self, callback):
+        self.global_listeners.append(callback)
+    
     def start(self, runner=None, profile=None):
         if not profile:
             profile = self.profile_class(plugins=[jsbridge.extension_path, extension_path])
         if not runner:
             runner = self.runner_class(profile=self.profile, 
                                        cmdargs=["-jsbridge", str(self.jsbridge_port)])
-
         self.profile = profile;
         self.runner = runner
 
         self.endRunnerCalled = False
-
+     
+    def firePythonCallback_listener(self, obj):
+        if obj['fire_now']:
+            self.fire_python_callback(obj['method'], obj['arg'], self.python_callbacks_module)
+        else:
+            self.python_callbacks.append(obj)
+        
     def start_runner(self):
         self.runner.start()
 
         self.create_network()
+        self.appinfo = self.get_appinfo(self.bridge)
         frame = jsbridge.JSObject(self.bridge,
                                   "Components.utils.import('resource://mozmill/modules/frame.js')")
         return frame
@@ -285,7 +345,10 @@ class MozMillRestart(MozMill):
                 counter += 1
 
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
-
+        
+        if os.path.isfile(os.path.join(test_dir, 'callbacks.py')):
+            self.python_callbacks_module = imp.load_source('callbacks', os.path.join(test_dir, 'callbacks.py'))
+        
         for test in tests:
             frame = self.start_runner()
             self.endRunnerCalled = False
@@ -297,7 +360,12 @@ class MozMillRestart(MozMill):
                 sleep(.25)
             self.stop_runner()
             sleep(2)
-
+            for callback in self.python_callbacks:
+                self.fire_python_callback(callback['method'], callback['arg'], self.python_callbacks_module)
+            self.python_callbacks = []
+        
+        self.python_callbacks_module = None    
+        
         # Reset the profile.
         profile = self.runner.profile
         profile.cleanup()
@@ -311,28 +379,44 @@ class MozMillRestart(MozMill):
             profile.install_plugin(extension_path)
         profile.set_preferences(profile.preferences)
     
+    def get_report(self, test, starttime, endtime):
+        app_info = self.appinfo
+        results = {'type' : 'mozmill-restart-test',
+                   'starttime' : starttime, 
+                   'endtime' :endtime,
+                   'testPath' : test,
+                   'tests' : self.alltests
+                  }
+        results.update(app_info)
+        results['sysinfo'] = self.get_sysinfo()
+        return results
+    
     def run_tests(self, test_dir, report=False, sleeptime=4):
-        if report:
-            print 'Sorry, report is not yet implemented for restart tests.'
         test_dirs = [d for d in os.listdir(os.path.abspath(os.path.expanduser(test_dir))) 
                      if d.startswith('test') and os.path.isdir(os.path.join(test_dir, d))]
         
         self.add_listener(self.endTest_listener, eventType='mozmill.endTest')
+        self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
         # self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
 
         if len(test_dirs) is 0:
             test_dirs = [test_dir]
-                
+        
+        starttime = datetime.now().isoformat()        
         for d in test_dirs:
             d = os.path.abspath(os.path.join(test_dir, d))
             self.run_dir(d, report, sleeptime)
-        
+        endtime = datetime.now().isoformat()
         profile = self.runner.profile
         profile.cleanup()
                 
         class Blank(object):
             def stop(self):
                 pass
+        
+        if report:
+            results = self.get_report(test_dir, starttime, endtime)
+            self.send_report(results, report)
         
         # Set to None to avoid calling .stop
         self.runner = None
@@ -363,6 +447,9 @@ class CLI(jsbridge.CLI):
                                           profile_class=mozrunner.FirefoxProfile,
                                           jsbridge_port=int(self.options.port))
 
+        self.mozmill.add_global_listener(LoggerListener())
+
+
     def get_profile(self, *args, **kwargs):
         profile = super(CLI, self).get_profile(*args, **kwargs)
         profile.install_plugin(extension_path)
@@ -379,7 +466,6 @@ class CLI(jsbridge.CLI):
                 raise Exception("Not a valid test file/directory")
 
         self.mozmill.start(runner=runner, profile=runner.profile)
-        self.mozmill.add_global_listener(LoggerListener())
         if self.options.showerrors:
             outs = logging.StreamHandler()
             outs.setLevel(logging.ERROR)

@@ -98,7 +98,7 @@ function runFile(){
   var res = fp.show();
   if (res == nsIFilePicker.returnOK){
     $("#tabs").tabs("select", 1);
-    frame.runTestFile(fp.file.path);
+    frame.runTestFile(fp.file.path, true);
   }
   testFinished();
 }
@@ -110,7 +110,7 @@ function runDirectory(){
   var res = fp.show();
   if (res == nsIFilePicker.returnOK){
     $("#tabs").tabs("select", 1);
-    frame.runTestDirectory(fp.file.path);
+    frame.runTestDirectory(fp.file.path, true);
   }
   testFinished();
 }

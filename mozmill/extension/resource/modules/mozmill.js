@@ -38,12 +38,12 @@
 
 var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
                         "getBrowserController", "newBrowserController", 
-                        "getAddonsController", "newMail3PaneController",
-                        "getMail3PaneController", "wm", "platform",
-                        "getAddrbkController", "getMsgComposeController",
-                        "getDownloadsController", "Application",
-                        "MozMillAsyncTest", "cleanQuit", "getPlacesController",
-                        'isMac', 'isLinux', 'isWindows',
+                        "getAddonsController", "getPreferencesController", 
+                        "newMail3PaneController", "getMail3PaneController", 
+                        "wm", "platform", "getAddrbkController", 
+                        "getMsgComposeController", "getDownloadsController",
+                        "Application", "MozMillAsyncTest", "cleanQuit",
+                        "getPlacesController", 'isMac', 'isLinux', 'isWindows',
                        ];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
@@ -76,6 +76,10 @@ var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]
            
 var appInfo = Components.classes["@mozilla.org/xre/app-info;1"]
                .getService(Components.interfaces.nsIXULAppInfo);
+
+var locale = Components.classes["@mozilla.org/chrome/chrome-registry;1"]
+               .getService(Components.interfaces.nsIXULChromeRegistry)
+               .getSelectedLocale("global");
 
 var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
     getService(Components.interfaces.nsIConsoleService);
@@ -185,7 +189,15 @@ function getAddrbkController () {
 
 MozMillAsyncTest = controller.MozMillAsyncTest;
 
-function timer () {
+function firePythonCallback (method, obj) {
+  frame.events.fireEvent("firePythonCallback", {"method":method, "arg":obj, "fire_now":true, "filename":frame.events.currentModule.__file__});
+}
+function firePythonCallbackAfterRestart(method, obj) {
+  frame.events.fireEvent("firePythonCallback", {"method":method, "arg":obj, "fire_now":false, "filename":frame.events.currentModule.__file__});
+}
+
+function timer (name) {
+  this.name = name;
   this.timers = {};
   frame.timers.push(this);
   this.actions = [];
