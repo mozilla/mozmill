@@ -12,19 +12,14 @@ var editor = {
   tempCount : 0,
 
   resize : function(width, height) {
-    this.width = width;
-    this.height = height;
-    this.reloadSize();
-  },
+    if(width)
+      this.width = width;
+    if(height)
+      this.height = height;
 
-  reloadSize : function() {
     if(this.currentTab) {
       this.currentTab.iframeElement.style.width = this.width + "px";
       this.currentTab.iframeElement.style.height = this.height + "px";
-      if(this.currentTab.editorElement) {
-        this.currentTab.editorElement.style.width = (this.width - 20) + "px";
-        this.currentTab.editorElement.style.height = (this.height - 20) + "px";
-      }
     }
   },
 
@@ -41,7 +36,7 @@ var editor = {
       this.currentTab.iframeElement.style.display = "none";
     this.index = index;
     this.currentTab = this.tabs[index];
-    this.reloadSize();
+    this.resize();
     this.currentTab.iframeElement.style.display = "block";
   },
 
@@ -111,12 +106,12 @@ function editorTab(content, filename) {
       editorObject.editorElement = win.document.getElementById("editor");
       editorObject.editor = win.editor;
       if(content)
-        win.editor.setContent(content);
-      editor.reloadSize();
+        win.editor.value = content;
+      editor.resize();
       editor.switchTab();
     } // this function is invoked by the iframe
   }, true);
-  iframeElement.src = "editor.html";
+  iframeElement.src = "editor/editor.html";
   document.getElementById("editors").appendChild(iframeElement);
 
   this.iframeElement = iframeElement;
@@ -125,11 +120,11 @@ function editorTab(content, filename) {
 
 editorTab.prototype = {
   setContent : function(content) {
-    this.editor.setContent(content);
+    this.editor.value = content;
   },
 
   getContent : function() {
-    return this.editor.getContent();
+    return this.editor.value;
   },
 
   destroy : function() {

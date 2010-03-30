@@ -15,9 +15,13 @@ function isAccel(e){
 
 //window onkeypress handler for various keyboard
 //shortcuts
-window.onkeypress = function(e){
+function onkeypress(e){
   if (isAccel(e)){
     switch(String.fromCharCode(e.charCode).toLowerCase()){
+      case 'a':
+        e.preventDefault();
+        
+      break;
       case 'g':
         e.preventDefault();
         align();

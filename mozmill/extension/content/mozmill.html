@@ -10,30 +10,29 @@
   <!-- Date: 2009-02-03 -->
   <link type="text/css" href="css/smoothness/jquery-ui-1.7.1.custom.css" rel="Stylesheet" />
   <link type="text/css" href="css/mozmill.css" rel="Stylesheet" />
+  <link type="text/css" href="css/fg.menu.css" rel="Stylesheet"/>
 	
   <script src="mozmill.js"></script>
   <script src="output.js"></script>
   <script src="dx.js"></script>
   <script src="rec.js"></script>
   <script src="menus.js"></script>
-
-  <script src="editor.js"></script>
+  <script src="editor/editor.js"></script>
 
   <script src="jquery/jquery-1.3.2.min.js"></script>
   <script src="jquery/jquery-ui-1.7.1.custom.min.js"></script>
   <script src="ui.js"></script>
   <script src="jquery/fg.menu.js"></script>
-  <link type="text/css" href="css/fg.menu.css" rel="Stylesheet" />
 
 </head>
 <body onload=""onunload="cleanUp();">
   <script src="shortcuts.js"></script>
   <script type="text/javascript">
   	var syncHeights = function() {
-  	    $('#tabs')[0].style.height = window.innerHeight - 60 + "px";
-        $('#resOut')[0].style.height = window.innerHeight - 170 + "px";
-        $('#shellOutput')[0].style.height = window.innerHeight - 220 + "px";
-        editor.resize(window.innerWidth - 56, window.innerHeight - 140);
+  	    $('#tabs')[0].style.height = window.innerHeight - 40 + "px";
+        $('#resOut')[0].style.height = window.innerHeight - 150 + "px";
+        $('#shellOutput')[0].style.height = window.innerHeight - 200 + "px";
+        editor.resize(window.innerWidth - 56, window.innerHeight - 120);
   	}
 
     window.onresize = function(){ syncHeights(); }
@@ -54,14 +53,7 @@
       });
 	});
   </script>
-
-      <div id="topBar">
-        <button id="alignButton" style="float:right;" class="ui-state-default ui-corner-all" onclick="align();"
-                title="Arrange Windows">
-          <image src="img/align.png" style="border:none;"/>
-        </button>
-      </div>
-      <div id="tabs" style="position:relative;width:98%;height:90%">
+      <div id="tabs">
       	<ul>
       		<li><a id="editorTab" href="#tabs-1">Editor</a></li>
       		<li><a id="outputTab" href="#tabs-2">Output</a></li>

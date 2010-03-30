@@ -43,10 +43,8 @@
         persist="width height screenX screenY">
 
    <script type="application/x-javascript" src="chrome://mozmill/content/chrome.js"/>
-   <script type="application/x-javascript" src="chrome://mozmill/content/shortcuts.js"/>
-
    <tooltip id="mozmill-tooltip" onpopupshowing="return fillTooltip(document.tooltipNode);"/>
 
-   <iframe id="mozmill-iframe" src="mozmill.html" flex="1" width="400px" height="700px"
-           tooltip="mozmill-tooltip"/>
+   <iframe id="mozmill-iframe" src="mozmill.html" flex="1"
+           tooltip="mozmill-tooltip" onkeypress="onkeypress"/>
 </window>
