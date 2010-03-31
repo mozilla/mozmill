@@ -19,8 +19,8 @@ function onkeypress(e){
   if (isAccel(e)){
     switch(String.fromCharCode(e.charCode).toLowerCase()){
       case 'a':
+        showFileMenu();
         e.preventDefault();
-        
       break;
       case 'g':
         e.preventDefault();

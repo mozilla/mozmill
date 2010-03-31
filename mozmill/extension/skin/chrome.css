@@ -4,5 +4,6 @@
 }
 
 #mozmill-window iframe {
-  border: 3px solid #3ee;
+  border: none;
+  overflow: hidden;
 }

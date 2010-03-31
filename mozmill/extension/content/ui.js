@@ -9,10 +9,6 @@ function showFileMenu() {
   $("#fileMenu").click();
 }
 
-function showRunMenu() {
-  $("runMenu").click();
-}
-
 function openNewWindow() {
   window.open('');
 }

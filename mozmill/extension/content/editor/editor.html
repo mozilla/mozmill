@@ -3,8 +3,13 @@
 <link href="BespinEmbedded-DropIn-0.6.3/BespinEmbedded.compressed.css" type="text/css" rel="stylesheet">
 <script type="text/javascript" src="BespinEmbedded-DropIn-0.6.3/BespinEmbedded.compressed.js"></script>
 <style>
+  body {
+    padding: 0px;
+    margin: 0;
+  }
   .bespin {
     height: 100%;
+    width: 100%;
   }
 </style>
 <script>
@@ -13,7 +18,6 @@ function init() {
   editor = document.getElementById("editor").bespin;
   onEditorLoad(); 
 }
-window.onBespinLoad = init;
 
 </script>
 </head>

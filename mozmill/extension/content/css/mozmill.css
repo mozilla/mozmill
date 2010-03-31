@@ -1,4 +1,49 @@
-body{ font: 11px Corbel, Verdana, Helvetica, arial, sans-serif; background-color: window;}
+body{ font: 11px Corbel, Verdana, Helvetica, arial, sans-serif; background-color: window; margin: 0; padding: 0;}
+
+#tabs { position: relative;}
+
+.tab {
+  font-size: 12px;
+}
+
+.editor-frame { border: none;}
+
+#fileMenuButton {
+  float: left;
+  cursor: pointer;
+}
+
+#openTabs {
+  position: relative;
+  top: -4px;
+  margin-left: 16%;
+}
+
+#editor-tab-select { min-width: 70px; padding-left: 8px; padding-right: 10px;} 
+
+.menu {
+  font-size: 12px;
+  padding-top: 4px;
+  padding-left: 5px;
+  padding-right: 5px;
+  padding-bottom: 4px;
+  background-color: #e7e7e7;
+  -moz-border-radius: 3px;
+}
+
+.menu:hover {
+  background-color: #bbb;
+}
+
+.menu:active {
+  background-color: #aaa;
+}
+
+.menuitem { cursor: pointer; padding-top: 2px; font-size: 12px; padding-bottom: 2px;}
+
+.menuitem a { width: 100%}
+
+.menuitem:hover { background-color: #E7E7E7;}
 
 #dxContainer {margin-top: 16px; height: 160px;}
 
@@ -6,27 +51,11 @@ body{ font: 11px Corbel, Verdana, Helvetica, arial, sans-serif; background-color
 
 #outClear {margin-left: 20px;}
 
-.tab { font-size: 12px;}
-
 #elementStr { margin-bottom: 8px;}
-
-#fileMenu { margin-left: 6px;}
-
-#editor-tab-select { margin-left: 28%;  min-width: 70px; padding-left: 8px; padding-right: 10px;} 
 
 #recordToggle { margin-left: 4px;}
 
 #outClear { position: relative; top: -3px;}
-
-.editor-frame { border: none;}
-
-.menu { width:100%;font-size:12px; cursor: pointer; padding-top: 2px; padding-left: 4px; padding-right: 4px;}
-
-.menuitem { cursor: pointer; padding-top: 2px; font-size: 12px; padding-bottom: 2px;}
-
-.menuitem a { width: 100%}
-
-.menuitem:hover { background-color: #E7E7E7;}
 
 #shellInput {
   width: 99%;
