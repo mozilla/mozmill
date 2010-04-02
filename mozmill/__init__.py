@@ -115,7 +115,7 @@ class MozMill(object):
 
         self.persisted = {}
         self.endRunnerCalled = False
-        self.zombieDetector = ZombieDetector(self.stop)
+        #self.zombieDetector = ZombieDetector(self.stop)
         self.global_listeners = []
         self.listeners = []
         self.add_listener(self.persist_listener, eventType="mozmill.persist")
@@ -165,7 +165,7 @@ class MozMill(object):
 
     def start(self, profile=None, runner=None):
         # Reset our Zombie counter
-        self.zombieDetector.resetTimer()
+        #self.zombieDetector.resetTimer()
 
         if not profile:
             profile = self.profile_class(addons=[jsbridge.extension_path, extension_path])
@@ -183,7 +183,7 @@ class MozMill(object):
 
     def run_tests(self, test, report=False, sleeptime = 4):
         # Reset our Zombie Because we are still active
-        self.zombieDetector.resetTimer()
+        #self.zombieDetector.resetTimer()
 
         frame = jsbridge.JSObject(self.bridge,
                                   "Components.utils.import('resource://mozmill/modules/frame.js')")
@@ -209,7 +209,7 @@ class MozMill(object):
         
     def endTest_listener(self, test):
         # Reset our Zombie Counter because we are still active
-        self.zombieDetector.resetTimer()
+        #self.zombieDetector.resetTimer()
 
         self.alltests.append(test)
         if test.get('skipped', False):
@@ -322,7 +322,7 @@ class MozMillRestart(MozMill):
         
     def start_runner(self):
         # Reset the zombie counter
-        self.zombieDetection.resetTimer()
+        #self.zombieDetection.resetTimer()
 
         self.runner.start()
 
@@ -356,7 +356,7 @@ class MozMillRestart(MozMill):
 
     def run_dir(self, test_dir, report=False, sleeptime=4):
         # Reset our Zombie counter on each directory
-        self.zombieDetection.resetTimer()
+        #self.zombieDetection.resetTimer()
 
         if os.path.isfile(os.path.join(test_dir, 'testPre.js')):   
             pre_test = os.path.join(test_dir, 'testPre.js')
@@ -425,7 +425,7 @@ class MozMillRestart(MozMill):
     
     def run_tests(self, test_dir, report=False, sleeptime=4):
         # Zombie Counter Reset
-        self.zombieDetector.resetTimer()
+        #self.zombieDetector.resetTimer()
 
         test_dirs = [d for d in os.listdir(os.path.abspath(os.path.expanduser(test_dir))) 
                      if d.startswith('test') and os.path.isdir(os.path.join(test_dir, d))]
