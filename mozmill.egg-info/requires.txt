@@ -1,2 +1,0 @@
-jsbridge >= 2.3.4
-mozrunner >= 2.4
