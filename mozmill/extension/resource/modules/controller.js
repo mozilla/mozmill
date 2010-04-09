@@ -779,9 +779,9 @@ MozMillController.prototype.assertProperty = function(el, attrib, val) {
     res = true;
   }
   if (res) {
-    frame.events.pass({'function':'Controller.assertProperty()'});
+    frame.events.pass({'function':'Controller.assertProperty("' + el.getInfo() + '") : ' + val});
   } else {
-    throw new Error('Controller.assertProperty() failed');
+    throw new Error("Controller.assertProperty(" + el.getInfo() + ") : " + val + " == " + value);
   }
 
   return res;
