@@ -936,7 +936,7 @@ Tabs.prototype.findWindow = function (doc) {
       return this.controller.window.frames[i];
     }
   }
-  throw "Cannot find window for document. Doc title == "+doc.title;
+  throw new Error("Cannot find window for document. Doc title == " + doc.title);
 }
 Tabs.prototype.getTabWindow = function(index) {
   return this.findWindow(this.getTab(index));
@@ -1016,7 +1016,7 @@ MozMillAsyncTest.prototype.run = function () {
   if (r == true) {
     return true;
   } else {
-    throw "MozMillAsyncTest did not finish properly: timed out. Done is "+this._done
+    throw new Error("MozMillAsyncTest did not finish properly: timed out. Done is " + this._done);
   }
 }
 MozMillAsyncTest.prototype.finish = function () {

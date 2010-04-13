@@ -111,7 +111,7 @@ function sendKey(aKey, aTarget) {
   keyName = "DOM_VK_" + aKey.toUpperCase();
 
   if (!KeyEvent[keyName]) {
-    throw "Unknown key: " + keyName;
+    throw new Error("Unknown key: " + keyName);
   }
 
   return __doEventDispatch(aTarget, 0, KeyEvent[keyName], false);
