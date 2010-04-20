@@ -46,6 +46,14 @@
  * httpd.js.
  */
 
+var EXPORTED_SYMBOLS = ['getServer'];
+
+/**
+ * Overwrite both dump functions because we do not wanna have this output for Mozmill
+ */
+function dump() {}
+function dumpn() {}
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cr = Components.results;
@@ -5265,4 +5273,21 @@ function server(port, basePath)
     thread.processNextEvent(true);
 
   DEBUG = false;
+}
+
+function getServer (port, basePath) {
+  if (basePath) {
+    var lp = Cc["@mozilla.org/file/local;1"]
+               .createInstance(Ci.nsILocalFile);
+    lp.initWithPath(basePath);
+   }
+
+   var srv = new nsHttpServer();
+   if (lp)
+     srv.registerDirectory("/", lp);
+   srv.registerContentType("sjs", SJS_TYPE);
+   srv.identity.setPrimary("http", "localhost", port);
+   srv._port = port;
+
+   return srv;
 }

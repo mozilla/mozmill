@@ -1,7 +1,7 @@
-diff --git a/mozmill/extension/resource/stdlib/httpd.orig b/mozmill/extension/resource/stdlib/httpd.orig
+diff --git a/mozmill/extension/resource/stdlib/httpd.js b/mozmill/extension/resource/stdlib/httpd.js
 index e4562b7..d1697ab 100644
---- a/mozmill/extension/resource/stdlib/httpd.orig
-+++ b/mozmill/extension/resource/stdlib/httpd.orig
+--- a/mozmill/extension/resource/stdlib/httpd.js
++++ b/mozmill/extension/resource/stdlib/httpd.js
 @@ -46,6 +46,14 @@
   * httpd.js.
   */
