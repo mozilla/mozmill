@@ -40,8 +40,9 @@
 var EXPORTED_SYMBOLS = ["MozMillController", "waitForEval", "MozMillAsyncTest",
                         "globalEventRegistry", "sleep"];
 
+var EventUtils = {}; Components.utils.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
+
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
-var EventUtils = {}; Components.utils.import('resource://mozmill/modules/EventUtils.js', EventUtils);
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
