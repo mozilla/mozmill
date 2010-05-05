@@ -37,6 +37,7 @@
 # ***** END LICENSE BLOCK *****
 
 import os
+import re
 import shutil
 import tempfile
 
@@ -79,7 +80,10 @@ class Repository(object):
 
         # Try to initialize the repository at the new location
         if self._destination and os.path.isdir(self._destination):
-            self._repository = hg.repository(ui.ui(), self._destination)
+            try:
+                self._repository = hg.repository(ui.ui(), self._destination)
+            except:
+                self._repository = None
 
     destination = property(get_destination, set_destination, None)
 
@@ -88,17 +92,30 @@ class Repository(object):
         if destination is not None:
             self.destination = destination
 
+        print "cloning repository to %s" % self.destination
         hg.clone(ui.ui(), self.url, self.destination, True)
         self._repository = hg.repository(ui.ui(), self.destination)
+
+    ''' Identify the needed mozmill-tests branch from the application branch '''
+    def identify_branch(self, gecko_branch):
+        try:
+            m = re.search('(?<=-)([\d\.]+)', gecko_branch)
+            branch = 'mozilla' + m.group(0)
+        except:
+            branch = 'default'
+
+        return branch
 
     ''' Update the local repository '''
     def update(self, branch = None):
         if branch is None:
             branch = self.branch
 
+        print "updating to branch %s" % branch
         commands.pull(ui.ui(), self._repository, self.url)
         commands.update(ui.ui(), self._repository, None, branch, True)
 
     ''' Remove the local version of the repository '''
     def remove(self):
+        print "removing repository %s" % self.destination
         shutil.rmtree(self.destination)

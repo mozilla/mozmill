@@ -34,9 +34,30 @@
 #
 # ***** END LICENSE BLOCK *****
 
+import ConfigParser
+import os
 import re
 import sys
 
+''' Returns the folder which contains the binaries of the application '''
+def get_bin_folder(app_folder):
+    if sys.platform in ("darwin"):
+        app_folder = os.path.join(app_folder, 'Contents', 'MacOS')
+    return app_folder
+
+''' Class to retrieve entries from the application.ini file '''
+class ApplicationIni(object):
+
+    def __init__(self, folder):
+        self.ini_file = os.path.join(get_bin_folder(folder), 'application.ini')
+
+        self.config = ConfigParser.RawConfigParser()
+        self.config.read(self.ini_file)
+
+    def get(self, section, option):
+        return self.config.get(section, option)
+
+''' Class to handle the update channel '''
 class UpdateChannel(object):
 
     # List of available update channels
@@ -105,9 +126,5 @@ class UpdateChannel(object):
 
     # Get the default preferences folder
     def getPrefFolder(self):
-        if sys.platform == "darwin":
-            return self.folder + "/Contents/MacOS/defaults/pref/channel-prefs.js"
-        elif sys.platform == "linux2":
-            return self.folder + "/defaults/pref/channel-prefs.js"
-        elif sys.platform == "win32":
-            return self.folder  + "\\defaults\\pref\\channel-prefs.js"
+        pref_path = ('defaults', 'pref', 'channel-prefs.js')
+        return os.path.join(get_bin_folder(self.folder), *pref_path)

@@ -36,12 +36,15 @@
 #
 # ***** END LICENSE BLOCK *****
 
+mozmill_test_repository = 'http://hg.mozilla.org/qa/mozmill-tests'
+
 import copy
 import datetime
 import mozmill
 import optparse
 import os
 import sys
+import tempfile
 
 try:
     import json
@@ -53,11 +56,12 @@ abs_path = os.path.dirname(os.path.abspath(__file__))
 # Import local libraries
 sys.path.append(os.path.join(abs_path, "libs"))
 from install import Installer
-from prefs import UpdateChannel
+from application import UpdateChannel
+from application import ApplicationIni
+from repository import Repository
 
 class SoftwareUpdateCLI(mozmill.RestartCLI):
     app_binary = {'darwin' : '', 'linux2' : '/firefox', 'win32' : '/firefox.exe'}
-    test_path = abs_path + "/../firefox/softwareUpdate/"
 
     # Parser options and arguments
     parser_options = copy.copy(mozmill.RestartCLI.parser_options)
@@ -109,6 +113,18 @@ class SoftwareUpdateCLI(mozmill.RestartCLI):
         if self.options.type not in ["minor", "major"]:
             self.options.type = "minor"
 
+        # Clone the test repository
+        tmp_folder = tempfile.mkdtemp(".mozmill-tests")
+        self.repository = Repository(mozmill_test_repository, tmp_folder)
+        self.repository.clone()
+
+        # Set folder which contains the software update tests
+        self.test_folder = tmp_folder + "/firefox/softwareUpdate/"
+
+    def __del__(self):
+        # Remove the test repository
+        self.repository.remove()
+
     def prepare_channel(self):
         channel = UpdateChannel()
         channel.setFolder(self.options.folder)
@@ -118,6 +134,14 @@ class SoftwareUpdateCLI(mozmill.RestartCLI):
         else:
             channel.setChannel(self.options.channel)
             self.channel = self.options.channel
+
+    def prepare_tests(self):
+        # Get the source repository ...
+        ini = ApplicationIni(self.options.folder)
+        repo = ini.get('App', 'SourceRepository')
+
+        branch = self.repository.identify_branch(repo)
+        self.repository.update(branch)
 
     def prepare_build(self, binary):
         ''' Prepare the build for the test run '''
@@ -157,6 +181,7 @@ class SoftwareUpdateCLI(mozmill.RestartCLI):
         try:
             self.prepare_build(binary)
             self.prepare_channel()
+            self.prepare_tests()
 
             self.mozmill.passes = []
             self.mozmill.fails = []
@@ -168,9 +193,9 @@ class SoftwareUpdateCLI(mozmill.RestartCLI):
             self.mozmill.persisted["type"] = self.options.type
 
             if is_fallback:
-                self.options.test = self.test_path + "testFallbackUpdate/"
+                self.options.test = self.test_folder + "testFallbackUpdate/"
             else:
-                self.options.test = self.test_path + "testDirectUpdate/"
+                self.options.test = self.test_folder + "testDirectUpdate/"
 
             super(SoftwareUpdateCLI, self)._run(*args, **kwargs)
         except Exception, e:
