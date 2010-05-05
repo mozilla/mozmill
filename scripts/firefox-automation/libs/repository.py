@@ -79,11 +79,10 @@ class Repository(object):
         self._destination = value
 
         # Try to initialize the repository at the new location
-        if self._destination and os.path.isdir(self._destination):
-            try:
-                self._repository = hg.repository(ui.ui(), self._destination)
-            except:
-                self._repository = None
+        try:
+            self._repository = hg.repository(ui.ui(), self._destination)
+        except:
+            self._repository = None
 
     destination = property(get_destination, set_destination, None)
 
