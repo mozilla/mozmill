@@ -269,9 +269,12 @@ class MozMill(object):
         return results
 
     def send_report(self, results, report_url):
-        import httplib2
-        http = httplib2.Http()
-        response, content = http.request(report_url, 'POST', body=json.dumps(results))
+        try:
+            import httplib2
+            http = httplib2.Http()
+            response, content = http.request(report_url, 'POST', body=json.dumps(results))
+        except:
+            print "Sending results to '%s' failed." % report_url
 
     def stop(self, timeout=10):
         sleep(1)
@@ -437,25 +440,26 @@ class MozMillRestart(MozMill):
         if len(test_dirs) is 0:
             test_dirs = [test_dir]
         
-        starttime = datetime.now().isoformat()        
+        starttime = datetime.utcnow().isoformat()        
         for d in test_dirs:
             d = os.path.abspath(os.path.join(test_dir, d))
             self.run_dir(d, report, sleeptime)
-        endtime = datetime.now().isoformat()
+        endtime = datetime.utcnow().isoformat()
         profile = self.runner.profile
         profile.cleanup()
                 
         class Blank(object):
             def stop(self):
                 pass
-        
+
         if report:
             results = self.get_report(test_dir, starttime, endtime)
             self.send_report(results, report)
-        
+
         # Set to None to avoid calling .stop
         self.runner = None
         sleep(1) # Give a second for any pending callbacks to finish
+
         print "Passed %d :: Failed %d :: Skipped %d" % (len(self.passes),
                                                         len(self.fails),
                                                         len(self.skipped))
