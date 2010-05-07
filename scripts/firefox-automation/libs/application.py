@@ -11,9 +11,9 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is MozMill Test code.
+# The Original Code is MozMill automation code.
 #
-# The Initial Developer of the Original Code is Mozilla Foundation.
+# The Initial Developer of the Original Code is the Mozilla Foundation.
 # Portions created by the Initial Developer are Copyright (C) 2009
 # the Initial Developer. All Rights Reserved.
 #
@@ -39,14 +39,33 @@ import os
 import re
 import sys
 
-''' Returns the folder which contains the binaries of the application '''
 def get_bin_folder(app_folder):
+    """ Returns the folder which contains the binaries of the application. """
     if sys.platform in ("darwin"):
         app_folder = os.path.join(app_folder, 'Contents', 'MacOS')
     return app_folder
 
-''' Class to retrieve entries from the application.ini file '''
+def get_binary(app_folder):
+    """ Returns the binary given by the curent platform. """
+
+    if sys.platform in ("cygwin", "win32"):
+        path = "firefox.exe"
+    elif sys.platform in ("darwin"):
+        path = ""
+    elif sys.platform in ("linux2", "sunos5"):
+        path = "firefox"
+
+    return os.path.join(app_folder, path)
+
+def is_app_folder(path):
+    """ Checks if the folder is an application folder. """
+    file = os.path.join(get_bin_folder(path),
+                        "application.ini")
+
+    return os.path.exists(file)
+
 class ApplicationIni(object):
+    """ Class to retrieve entries from the application.ini file. """
 
     def __init__(self, folder):
         self.ini_file = os.path.join(get_bin_folder(folder), 'application.ini')
@@ -55,24 +74,25 @@ class ApplicationIni(object):
         self.config.read(self.ini_file)
 
     def get(self, section, option):
+        """ Retrieve the value of an entry. """
         return self.config.get(section, option)
 
-''' Class to handle the update channel '''
 class UpdateChannel(object):
+    """ Class to handle the update channel. """
 
     # List of available update channels
     channels = ["betatest", "beta", "nightly", "releasetest", "release"]
 
-    # Check if it's a valid update channel
     def isValidChannel(self, channel):
+        """ Checks if the update channel is valid. """
         try:
             self.channels.index(channel);
             return True
         except:
             return False
 
-    # Get the current update channel
     def getChannel(self):
+        """ Returns the current update channel. """
         try:
             file = open(self.getPrefFolder(), "r")
         except IOError, e:
@@ -84,8 +104,8 @@ class UpdateChannel(object):
             result = re.search(r"(" + '|'.join(self.channels) + ")", content)
             return result.group(0)
 
-    # Set the update channel to the specified one
     def setChannel(self, channel):
+        """ Sets the update channel. """
         print "Setting update channel to '%s'..." % channel
 
         if not self.isValidChannel(channel):
@@ -116,15 +136,15 @@ class UpdateChannel(object):
                 if channel != self.getChannel():
                     raise Exception("Update channel wasn't set correctly.")
 
-    # Get the application's folder
     def getFolder(self):
+        """ Returns the application's folder. """
         return self.folder
 
-    # Set the application's folder
     def setFolder(self, folder):
+        """ Sets the application's folder. """
         self.folder = folder
 
-    # Get the default preferences folder
     def getPrefFolder(self):
+        """ Returns the default preferences folder. """
         pref_path = ('defaults', 'pref', 'channel-prefs.js')
         return os.path.join(get_bin_folder(self.folder), *pref_path)

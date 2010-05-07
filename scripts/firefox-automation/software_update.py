@@ -15,7 +15,7 @@
 #
 # The Original Code is MozMill Test code.
 #
-# The Initial Developer of the Original Code is Mozilla Foundation.
+# The Initial Developer of the Original Code is the Mozilla Foundation.
 # Portions created by the Initial Developer are Copyright (C) 2009
 # the Initial Developer. All Rights Reserved.
 #

@@ -1,5 +1,3 @@
-#!/usr/bin/python
-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -13,9 +11,9 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is MozMill Test code.
+# The Original Code is MozMill automation code.
 #
-# The Initial Developer of the Original Code is Mozilla Foundation.
+# The Initial Developer of the Original Code is the Mozilla Foundation.
 # Portions created by the Initial Developer are Copyright (C) 2010
 # the Initial Developer. All Rights Reserved.
 #
@@ -36,14 +34,14 @@
 #
 # ***** END LICENSE BLOCK *****
 
+from mercurial import commands, hg, ui
+
 import os
 import re
 import shutil
-import tempfile
-
-from mercurial import commands, hg, ui
 
 class Repository(object):
+    """ Class to access a Mercurial repository. """
 
     def __init__(self, url, destination = None):
         self._repository = None
@@ -51,43 +49,43 @@ class Repository(object):
         self._url = url
         self.destination = destination
 
-    ''' Check if the local copy exists (get)'''
     @property
     def exists(self):
+        """ Checks if the local copy of the repository exists (read-only). """
         return self._repository is not None
 
-    ''' Remote location of the repository (get)'''
     @property
     def url(self):
+        """ Returns the remote location of the repository (read-only). """
         return self._url
 
-    ''' Selected branch (get|set)'''
     def get_branch(self):
+        """ Returns the selected branch. """
         if self._repository:
             return self._repository.dirstate.branch()
 
     def set_branch(self, value):
+        """ Updates the code to the specified branch. """
         self.update(value)
 
     branch = property(get_branch, set_branch, None)
 
-    ''' Local destination of the repository (get|set)'''
     def get_destination(self):
+        """ Returns the local destination of the repository. """
         return self._destination
 
     def set_destination(self, value):
-        self._destination = value
-
-        # Try to initialize the repository at the new location
+        """ Sets the location destination of the repository. """
         try:
+            self._destination = value
             self._repository = hg.repository(ui.ui(), self._destination)
         except:
             self._repository = None
 
     destination = property(get_destination, set_destination, None)
 
-    ''' Clone the repository '''
     def clone(self, destination = None):
+        """ Clone the repository to the local disk. """
         if destination is not None:
             self.destination = destination
 
@@ -95,8 +93,8 @@ class Repository(object):
         hg.clone(ui.ui(), self.url, self.destination, True)
         self._repository = hg.repository(ui.ui(), self.destination)
 
-    ''' Identify the needed mozmill-tests branch from the application branch '''
     def identify_branch(self, gecko_branch):
+        """ Identify the mozmill-tests branch from the gecko branch. """
         try:
             m = re.search('(?<=-)([\d\.]+)', gecko_branch)
             branch = 'mozilla' + m.group(0)
@@ -105,8 +103,8 @@ class Repository(object):
 
         return branch
 
-    ''' Update the local repository '''
     def update(self, branch = None):
+        """ Update the local repository for recent changes. """
         if branch is None:
             branch = self.branch
 
@@ -114,7 +112,8 @@ class Repository(object):
         commands.pull(ui.ui(), self._repository, self.url)
         commands.update(ui.ui(), self._repository, None, branch, True)
 
-    ''' Remove the local version of the repository '''
     def remove(self):
+        """ Remove the local version of the repository. """
         print "removing repository %s" % self.destination
         shutil.rmtree(self.destination)
+        self.destination = None

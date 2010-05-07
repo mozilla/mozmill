@@ -11,9 +11,9 @@
 # for the specific language governing rights and limitations under the
 # License.
 #
-# The Original Code is MozMill Test code.
+# The Original Code is MozMill automation code.
 #
-# The Initial Developer of the Original Code is Mozilla Foundation.
+# The Initial Developer of the Original Code is the Mozilla Foundation.
 # Portions created by the Initial Developer are Copyright (C) 2009
 # the Initial Developer. All Rights Reserved.
 #
@@ -43,8 +43,11 @@ import tempfile
 import time
 
 class Installer(object):
+    """ Class to handle installers and uninstallers. """
 
     def install(self, package=None, destination="./"):
+        """ Install a binary package on the system. """
+
         # Check for a valid install package
         if not os.path.isfile(package):
             str = "%s is not valid install package." % (package)
@@ -117,7 +120,7 @@ class Installer(object):
         return destination
 
     def uninstall(self, folder):
-        ''' Uninstall the build in the given folder '''
+        """ Uninstall a build from the system. """
 
         if sys.platform == "win32":
             # On Windows we try to use the uninstaller first
