@@ -264,14 +264,14 @@ class BftTestRun(TestRun):
 
         try:
             self.restart_tests = False
-            self.test_path = os.path.join('firefox','testDownloading')
+            self.test_path = os.path.join('firefox')
             TestRun.run_tests(self)
         except Exception, e:
             print e
 
         try:
             self.restart_tests = True
-            self.test_path = os.path.join('firefox','restartTests','testExtensionInstallUninstall')
+            self.test_path = os.path.join('firefox','restartTests')
             TestRun.run_tests(self)
         except Exception, e:
             print e
