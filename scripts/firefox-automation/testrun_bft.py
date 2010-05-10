@@ -38,43 +38,32 @@ import os, sys
 base_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(base_path, 'libs'))
 
-import copy
-import datetime
+# Global modules
 import optparse
 import tempfile
 
-import mozmill_wrapper
+# Local modules
 import testrun
 
-class BftTestRun(testrun.RestartTestRun):
-    """ Class to execute a Firefox BFT test-run """
-
-    def __init__(self, *args, **kwargs):
-        super(BftTestRun, self).__init__(*args, **kwargs)
-
-    def run_test(self, *args, **kwargs):
-        try:
-            self.test_path = os.path.join('firefox', 'testDownloading')
-            super(testrun.RestartTestRun, self).run_test(*args, **kwargs)
-        except Exception, e:
-            pass
-
-        try:
-            self.test_path = os.path.join('firefox','restartTests','testExtensionInstallUninstall')
-            super(BftTestRun, self).run_test(*args, **kwargs)
-        except Exception, e:
-            pass
-
 def main():
-    usage = "usage: %prog [options] (build|folder)"
+    """ Main function for the BFT test-run. """
+
+    usage = "usage: %prog [options] (binary|folder)"
     parser = optparse.OptionParser(usage = usage, version = "%prog 0.1")
-    parser.add_option("--report", dest="report", metavar="URL",
+    parser.add_option("--report",
+                      dest = "report_url",
+                      metavar = "URL",
                       help = "Send results to the report server")
+    parser.add_option("--logfile",
+                      dest = "logfile",
+                      metavar = "PATH",
+                      help = "Path to the log file")
     (options, binaries) = parser.parse_args()
 
-    run = BftTestRun()
+    run = testrun.BftTestRun()
     run.binaries = binaries
-    run.report_url = options.report
+    run.logfile = options.logfile
+    run.report_url = options.report_url
     run.run()
 
 if __name__ == "__main__":
