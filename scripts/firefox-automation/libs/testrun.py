@@ -36,11 +36,11 @@
 
 mozmill_tests_repository = "http://hg.mozilla.org/qa/mozmill-tests"
 
-# global modules
+# Global modules
 import os, sys
 import tempfile
 
-# local modules
+# Local modules
 import application
 import install
 import mozmill_wrapper
@@ -50,10 +50,24 @@ class TestRun(object):
     """ Class to execute a Mozmill test-run. """
 
     def __init__(self, *args, **kwargs):
-        self.binaries = [ ]
+        self.addon_list = [ ]
+        self.debug = False
+        self.logfile = None
+        self.report_url = None
         self.repository_path = ""
         self.repository_url = mozmill_tests_repository
+        self.restart_tests = False
         self.test_path = ""
+
+    def _get_addon_list(self):
+        """ Returns the location of add-ons which will be installed. """
+        return self._addons
+
+    def _set_addon_list(self, value):
+        """ Sets the location of add-ons which will be installed. """
+        self._addons = value
+
+    addon_list = property(_get_addon_list, _set_addon_list, None)
 
     def _get_binaries(self):
         """ Returns the list of binaries to test. """
@@ -82,6 +96,26 @@ class TestRun(object):
 
     binaries = property(_get_binaries, _set_binaries, None)
 
+    def _get_debug(self):
+        """ Returns the enabled state of the debug mode. """
+        return self._debug
+
+    def _set_debug(self, value):
+        """ Sets the enabled state of the debug mode. """
+        self._debug = value
+
+    debug = property(_get_debug, _set_debug, None)
+
+    def _get_logfile(self):
+        """ Returns the path of the log file. """
+        return self._logfile
+
+    def _set_logfile(self, value):
+        """ Sets the path of the log file. """
+        self._logfile = value
+
+    logfile = property(_get_logfile, _set_logfile, None)
+
     def _get_report_url(self):
         """ Returns the URL of the report server. """
         return self._report_url
@@ -90,7 +124,7 @@ class TestRun(object):
         """ Sets the URL of the report server. """
         self._report_url = value
 
-    report_url = property(_get_report_url, _set_report_url)
+    report_url = property(_get_report_url, _set_report_url, None)
 
     def _get_repository_path(self):
         """ Returns the local location of the repository. """
@@ -111,6 +145,16 @@ class TestRun(object):
         self._repository_url = value
 
     repository_url = property(_get_repository_url, _set_repository_url)
+
+    def _get_restart_tests(self):
+        """ Returns if a restart test-run has to be executed. """
+        return self._restart_tests
+
+    def _set_restart_tests(self, value):
+        """ Sets if a restart test-run has to be executed. """
+        self._restart_tests = value
+
+    restart_tests = property(_get_restart_tests, _set_restart_tests)
 
     def _get_test_path(self):
         """ Returns the relative test path inside the repository. """
@@ -172,19 +216,31 @@ class TestRun(object):
         branch_name = self._repository.identify_branch(repository_url)
         self._repository.update(branch_name)
 
-    def _init_test_data(self, *args, **kwargs):
-        """ Initialize the test-run data. """
+    def prepare_tests(self, *args, **kwargs):
+        """ Preparation which has to be done before starting a test. """
+
+        if self.restart_tests:
+            self._mozmill = mozmill_wrapper.MozmillWrapperRestartCLI()
+        else:
+            self._mozmill = mozmill_wrapper.MozmillWrapperCLI()
+
+        self._mozmill.addon_list = self.addon_list
         self._mozmill.binary = self._application
-        self._mozmill.report = self.report_url
+        self._mozmill.debug = self.debug
+        self._mozmill.logfile = self.logfile
+        self._mozmill.report_url = self.report_url
+        self._mozmill.showerrors = True
         self._mozmill.test = os.path.join(self.repository_path, self.test_path)
 
-    def run_test(self, *args, **kwargs):
-        self._mozmill = mozmill_wrapper.MozmillWrapperCLI()
-        self._init_test_data()
+    def run_tests(self, *args, **kwargs):
+        """ Start the execution of the tests. """
+
+        self.prepare_tests()
         self._mozmill.run()
 
-    ''' Run software update tests for all specified builds '''
     def run(self, *args, **kwargs):
+        """ Run software update tests for all specified builds. """
+
         self.clone_repository()
 
         # Run tests for each binary
@@ -192,7 +248,7 @@ class TestRun(object):
             try:
                 self.prepare_binary(binary)
                 self.prepare_repository()
-                self.run_test()
+                self.run_tests()
             except Exception, e:
                 print e.message
 
@@ -200,13 +256,22 @@ class TestRun(object):
 
         self.cleanup_repository()
 
+class BftTestRun(TestRun):
+    """ Class to execute a Firefox BFT test-run """
 
-class RestartTestRun(TestRun):
+    def run_tests(self, *args, **kwargs):
+        """ Execute the normal and restart tests in sequence. """
 
-    def run_test(self, *args, **kwargs):
         try:
-            self._mozmill = mozmill_wrapper.MozmillWrapperRestartCLI()
-            self._init_test_data()
-            self._mozmill.run()
+            self.restart_tests = False
+            self.test_path = os.path.join('firefox','testDownloading')
+            TestRun.run_tests(self)
         except Exception, e:
-            print e.message
+            print e
+
+        try:
+            self.restart_tests = True
+            self.test_path = os.path.join('firefox','restartTests','testExtensionInstallUninstall')
+            TestRun.run_tests(self)
+        except Exception, e:
+            print e

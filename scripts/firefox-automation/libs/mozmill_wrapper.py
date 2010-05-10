@@ -40,7 +40,7 @@ class MozmillWrapperCLI(mozmill.CLI):
     """ Wrapper class for the Mozmill CLI class. """
 
     def __init__(self, *args, **kwargs):
-        super(MozmillWrapperCLI, self).__init__(*args, **kwargs)
+        mozmill.CLI.__init__(self, *args, **kwargs)
 
     def _get_addon_list(self):
         """ Returns the location of add-ons which will be installed. """
@@ -103,15 +103,15 @@ class MozmillWrapperCLI(mozmill.CLI):
 
     profile = property(_get_profile, _set_profile, None)
 
-    def _get_report(self):
+    def _get_report_url(self):
         """ Returns the URL of the report server. """
         return self.options.report
 
-    def _set_report(self, value):
+    def _set_report_url(self, value):
         """ Sets the URL of the report server. """
         self.options.report = value
 
-    report = property(_get_report, _set_report, None)
+    report_url = property(_get_report_url, _set_report_url, None)
 
     def _get_shell(self):
         """ Returns if a Python shell has to be started. """
@@ -165,7 +165,7 @@ class MozmillWrapperCLI(mozmill.CLI):
 
     def run(self, *args, **kwargs):
         """ Start the test-run. """
-        super(MozmillWrapperCLI, self)._run(*args, **kwargs)
+        mozmill.CLI._run(self, *args, **kwargs)
 
 
 class MozmillWrapperRestartCLI(mozmill.RestartCLI, MozmillWrapperCLI):
@@ -173,4 +173,4 @@ class MozmillWrapperRestartCLI(mozmill.RestartCLI, MozmillWrapperCLI):
 
     def run(self, *args, **kwargs):
         """ Starts the test-run. """
-        super(MozmillWrapperRestartCLI, self)._run(*args, **kwargs)
+        mozmill.RestartCLI._run(self, *args, **kwargs)
