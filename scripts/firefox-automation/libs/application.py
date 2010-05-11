@@ -83,6 +83,23 @@ class UpdateChannel(object):
     # List of available update channels
     channels = ["betatest", "beta", "nightly", "releasetest", "release"]
 
+    def _get_folder(self):
+        """ Returns the applications folder. """
+        return self._folder
+
+    def _set_folder(self, value):
+        """ Sets the applications folder. """
+        self._folder = value
+
+    folder = property(_get_folder, _set_folder, None)
+
+    def _get_pref_folder(self):
+        """ Returns the default preferences folder. """
+        pref_path = ('defaults', 'pref', 'channel-prefs.js')
+        return os.path.join(get_bin_folder(self.folder), *pref_path)
+
+    pref_folder = property(_get_pref_folder, None, None)
+
     def isValidChannel(self, channel):
         """ Checks if the update channel is valid. """
         try:
@@ -91,10 +108,10 @@ class UpdateChannel(object):
         except:
             return False
 
-    def getChannel(self):
+    def _get_channel(self):
         """ Returns the current update channel. """
         try:
-            file = open(self.getPrefFolder(), "r")
+            file = open(self.pref_folder, "r")
         except IOError, e:
             raise e
         else:
@@ -104,15 +121,16 @@ class UpdateChannel(object):
             result = re.search(r"(" + '|'.join(self.channels) + ")", content)
             return result.group(0)
 
-    def setChannel(self, channel):
+    def _set_channel(self, value):
         """ Sets the update channel. """
-        print "Setting update channel to '%s'..." % channel
 
-        if not self.isValidChannel(channel):
-            raise Exception("%s is not a valid update channel" % channel)
+        print "Setting update channel to '%s'..." % value
+
+        if not self.isValidChannel(value):
+            raise Exception("%s is not a valid update channel" % value)
 
         try:
-            file = open(self.getPrefFolder(), "r")
+            file = open(self.pref_folder, "r")
         except IOError, e:
             raise e
         else:
@@ -122,10 +140,10 @@ class UpdateChannel(object):
 
             # Replace the current channel with the specified one
             result = re.sub(r"(" + '|'.join(self.channels) + ")",
-                            channel, content)
+                            value, content)
 
             try:
-                file = open(self.getPrefFolder(), "w")
+                file = open(self.pref_folder, "w")
             except IOError, e:
                 raise e
             else:
@@ -133,18 +151,7 @@ class UpdateChannel(object):
                 file.close()
 
                 # Check that the correct channel has been set
-                if channel != self.getChannel():
+                if value != self.channel:
                     raise Exception("Update channel wasn't set correctly.")
 
-    def getFolder(self):
-        """ Returns the application's folder. """
-        return self.folder
-
-    def setFolder(self, folder):
-        """ Sets the application's folder. """
-        self.folder = folder
-
-    def getPrefFolder(self):
-        """ Returns the default preferences folder. """
-        pref_path = ('defaults', 'pref', 'channel-prefs.js')
-        return os.path.join(get_bin_folder(self.folder), *pref_path)
+    channel = property(_get_channel, _set_channel, None)

@@ -38,6 +38,8 @@ mozmill_tests_repository = "http://hg.mozilla.org/qa/mozmill-tests"
 
 # Global modules
 import os, sys
+import datetime
+import shutil
 import tempfile
 
 # Local modules
@@ -251,8 +253,8 @@ class TestRun(object):
                 self.run_tests()
             except Exception, e:
                 print e.message
-
-            self.cleanup_binary(binary)
+            finally:
+                self.cleanup_binary(binary)
 
         self.cleanup_repository()
 
@@ -275,3 +277,156 @@ class BftTestRun(TestRun):
             TestRun.run_tests(self)
         except Exception, e:
             print e
+
+class UpdateTestRun(TestRun):
+    """ Class to execute software update tests """
+
+    def __init__(self, *args, **kwargs):
+        TestRun.__init__(self, *args, **kwargs)
+
+        self.channel = None
+        self.no_fallback = False
+        self.results = [ ]
+
+    def _get_channel(self):
+        """ Returns the current update channel. """
+        return self._channel
+
+    def _set_channel(self, value):
+        """ Sets the current update channel. """
+        self._channel = value
+
+    channel = property(_get_channel, _set_channel, None)
+
+    def _get_no_fallback(self):
+        """ Returns the current update no_fallback. """
+        return self._no_fallback
+
+    def _set_no_fallback(self, value):
+        """ Sets the current update no_fallback. """
+        self._no_fallback = value
+
+    no_fallback = property(_get_no_fallback, _set_no_fallback, None)
+
+    def _get_results(self):
+        """ Returns the update results. """
+        return self._results
+
+    def _set_results(self, value):
+        """ Sets the update results. """
+        self._results = value
+
+    results = property(_get_results, _set_results, None)
+
+    def build_wiki_entry(self, results):
+        entry = "* %s => %s, %s, %s, %s, %s, %s, '''%s'''\n" \
+                "** %s ID:%s\n** %s ID:%s\n" \
+                "** Passed %d :: Failed %d :: Skipped %d\n" % \
+                (results.get("preVersion", ""),
+                 results.get("postVersion", ""),
+                 results.get("type"),
+                 results.get("preLocale", ""),
+                 results.get("updateType", "unknown type"),
+                 results.get("channel", ""),
+                 datetime.date.today(),
+                 "PASS" if results.get("success", False) else "FAIL",
+                 results.get("preUserAgent", ""), results.get("preBuildId", ""),
+                 results.get("postUserAgent", ""), results.get("postBuildId", ""),
+                 len(results.get("passes")),
+                 len(results.get("fails")),
+                 len(results.get("skipped")))
+        return entry
+
+    def prepare_binary(self, binary, *args, **kwargs):
+        TestRun.prepare_binary(self, binary, *args, **kwargs)
+
+        # If a fallback update has to be performed, create a second copy
+        # of the application to avoid running the installer twice
+        if not self.no_fallback:
+            try:
+                self._backup_folder = tempfile.mkdtemp(".binary_backup")
+
+                print "Creating backup of binary (%s => %s)" % (self._folder,
+                                                                self._backup_folder)
+                shutil.rmtree(self._backup_folder)
+                shutil.copytree(self._folder, self._backup_folder)
+            except Exception, e:
+                print "Failure while creating the backup of the binary."
+
+    def prepare_channel(self):
+        update_channel = application.UpdateChannel()
+        update_channel.folder = self._folder
+    
+        if self.channel is None:
+            self.channel = update_channel.channel
+        else:
+            update_channel.channel = self.channel
+
+    def prepare_tests(self, *args, **kwargs):
+        self.prepare_channel()
+        self.restart_tests = True
+
+        TestRun.prepare_tests(self)
+        self._mozmill.persisted["channel"] = self.channel
+        #XXX: remove temporary folder
+        self._mozmill.test = os.path.join('/data','testing','mozmill','mozilla1.9.2', self.test_path)
+
+    def restore_binary(self, *args, **kwargs):
+        """ Restores the backup of the application binary. """
+
+        try:
+            print "Restoring backup of binary (%s => %s)" % (self._backup_folder,
+                                                             self._folder)
+            shutil.rmtree(self._folder)
+            shutil.move(self._backup_folder, self._folder)
+        except:
+            print "Failure while restoring the backup of the binary."
+
+    def run_tests(self, *args, **kwargs):
+        """ Start the execution of the tests. """
+
+        # Run direct update test
+        direct_data = self.run_update_tests(False)
+        direct_result = direct_data.get("success", False)
+            
+        # Restoring application backup and run fallback update tests
+        if not self.no_fallback:
+            self.restore_binary()
+
+            # Run fallback update test
+            fallback_data = self.run_update_tests(True)
+            fallback_result = fallback_data.get("success", False)
+
+        if not (direct_result and fallback_result):
+            self.results.append(self.build_wiki_entry(direct_data))
+        if not self.no_fallback:
+            self.results.append(self.build_wiki_entry(fallback_data))
+
+    def run_update_tests(self, is_fallback, *args, **kwargs):
+        try:
+            folder = 'testFallbackUpdate' if is_fallback else 'testDirectUpdate'
+            self.test_path = os.path.join('firefox', 'softwareUpdate', folder)
+            TestRun.run_tests(self)
+        except Exception, e:
+            print e
+        finally:
+            data = self._mozmill.persisted
+
+            # If a Mozmill test fails the update has to be also marked as failed
+            if self._mozmill.fails:
+                data["success"] = False
+
+            data["passes"] = self._mozmill.passes
+            data["fails"] = self._mozmill.fails
+            data["skipped"] = self._mozmill.skipped
+
+            return data
+
+    def run(self, *args, **kwargs):
+        self.results = [ ]
+        TestRun.run(self, *args, **kwargs)
+
+        # Print results to the console
+        print "\nResults:\n========"
+        for result in self.results:
+            print result

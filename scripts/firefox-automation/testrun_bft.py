@@ -50,20 +50,20 @@ def main():
 
     usage = "usage: %prog [options] (binary|folder)"
     parser = optparse.OptionParser(usage = usage, version = "%prog 0.1")
-    parser.add_option("--report",
-                      dest = "report_url",
-                      metavar = "URL",
-                      help = "Send results to the report server")
     parser.add_option("--logfile",
                       dest = "logfile",
                       metavar = "PATH",
                       help = "Path to the log file")
-    (options, binaries) = parser.parse_args()
+    parser.add_option("--report",
+                      dest = "report",
+                      metavar = "URL",
+                      help = "Send results to the report server")
+    (options, args) = parser.parse_args()
 
     run = testrun.BftTestRun()
-    run.binaries = binaries
+    run.binaries = args
     run.logfile = options.logfile
-    run.report_url = options.report_url
+    run.report_url = options.report
     run.run()
 
 if __name__ == "__main__":

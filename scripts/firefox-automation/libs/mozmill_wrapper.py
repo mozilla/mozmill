@@ -34,10 +34,18 @@
 #
 # ***** END LICENSE BLOCK *****
 
+import copy
 import mozmill
 
 class MozmillWrapperCLI(mozmill.CLI):
     """ Wrapper class for the Mozmill CLI class. """
+
+    # This is really bad but we have to declare all possible cli options.
+    # Otherwise the mozmill.CLI parser is failing.
+    # XXX: Can be removed once we do not have to depend on the CLI class anymore
+    parser_options = copy.copy(mozmill.CLI.parser_options)
+    parser_options[("--channel",)] = dict(dest="channel")
+    parser_options[("--no_fallback",)] = dict(dest="no_fallback")
 
     def __init__(self, *args, **kwargs):
         mozmill.CLI.__init__(self, *args, **kwargs)
@@ -72,6 +80,12 @@ class MozmillWrapperCLI(mozmill.CLI):
 
     debug = property(_get_debug, _set_debug, None)
 
+    def _get_fails(self):
+        """ Returns the failed tests. """
+        return self.mozmill.fails
+
+    fails = property(_get_fails, None, None)
+
     def _get_log_file(self):
         """ Returns the path of the log file. """
         return self.options.logfile
@@ -81,6 +95,22 @@ class MozmillWrapperCLI(mozmill.CLI):
         self.options.logfile = value
 
     log_file = property(_get_log_file, _set_log_file, None)
+
+    def _get_passes(self):
+        """ Returns the passed tests. """
+        return self.mozmill.passes
+
+    passes = property(_get_passes, None, None)
+
+    def _get_persisted(self):
+        """ Returns the path of the profile to use. """
+        return self.mozmill.persisted
+
+    def _set_persisted(self, value):
+        """ Sets the path of the profile to use. """
+        self.mozmill.persisted = value
+
+    persisted = property(_get_persisted, _set_persisted, None)
 
     def _get_port(self):
         """ Returns the TCP port for jsbridge. """
@@ -133,15 +163,21 @@ class MozmillWrapperCLI(mozmill.CLI):
 
     show_all = property(_get_show_all, _set_show_all, None)
 
-    def _get_show_errors(self):
+    def _get_showerrors(self):
         """ Returns if extended error output is wanted. """
         return self.options.showerrors
 
-    def _set_show_errors(self, value):
+    def _set_showerrors(self, value):
         """ Sets if extended error output is wanted. """
         self.options.showerrors = value
 
-    show_errors = property(_get_show_errors, _set_show_errors, None)
+    showerrors = property(_get_showerrors, _set_showerrors, None)
+
+    def _get_skipped(self):
+        """ Returns the skipped tests. """
+        return self.mozmill.skipped
+
+    skipped = property(_get_skipped, None, None)
 
     def _get_test(self):
         """ Returns the location of the tests. """
@@ -170,6 +206,8 @@ class MozmillWrapperCLI(mozmill.CLI):
 
 class MozmillWrapperRestartCLI(mozmill.RestartCLI, MozmillWrapperCLI):
     """ Wrapper class for the Mozmill RestartCLI class. """
+
+    parser_options = copy.copy(MozmillWrapperCLI.parser_options)
 
     def run(self, *args, **kwargs):
         """ Starts the test-run. """
