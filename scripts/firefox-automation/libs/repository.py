@@ -35,7 +35,6 @@
 # ***** END LICENSE BLOCK *****
 
 from mercurial import commands, hg, ui
-
 import os
 import re
 import shutil
@@ -43,7 +42,7 @@ import shutil
 class Repository(object):
     """ Class to access a Mercurial repository. """
 
-    def __init__(self, url, destination = None):
+    def __init__(self, url, destination=None):
         self._repository = None
         self._ui = ui.ui()
         self._url = url
@@ -84,7 +83,7 @@ class Repository(object):
 
     destination = property(get_destination, set_destination, None)
 
-    def clone(self, destination = None):
+    def clone(self, destination=None):
         """ Clone the repository to the local disk. """
         if destination is not None:
             self.destination = destination
@@ -103,7 +102,7 @@ class Repository(object):
 
         return branch
 
-    def update(self, branch = None):
+    def update(self, branch=None):
         """ Update the local repository for recent changes. """
         if branch is None:
             branch = self.branch

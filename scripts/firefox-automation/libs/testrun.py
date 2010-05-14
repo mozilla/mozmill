@@ -34,15 +34,14 @@
 #
 # ***** END LICENSE BLOCK *****
 
-mozmill_tests_repository = "http://hg.mozilla.org/qa/mozmill-tests"
+MOZMILL_TESTS_REPOSITORY = "http://hg.mozilla.org/qa/mozmill-tests"
 
-# Global modules
-import os, sys
+import os
 import datetime
 import shutil
+import sys
 import tempfile
 
-# Local modules
 import application
 import install
 import mozmill_wrapper
@@ -53,23 +52,14 @@ class TestRun(object):
 
     def __init__(self, *args, **kwargs):
         self.addon_list = [ ]
+        self.binaries = [ ]
         self.debug = False
         self.logfile = None
         self.report_url = None
-        self.repository_path = ""
-        self.repository_url = mozmill_tests_repository
+        self.repository_path = None
+        self.repository_url = MOZMILL_TESTS_REPOSITORY
         self.restart_tests = False
-        self.test_path = ""
-
-    def _get_addon_list(self):
-        """ Returns the location of add-ons which will be installed. """
-        return self._addons
-
-    def _set_addon_list(self, value):
-        """ Sets the location of add-ons which will be installed. """
-        self._addons = value
-
-    addon_list = property(_get_addon_list, _set_addon_list, None)
+        self.test_path = None
 
     def _get_binaries(self):
         """ Returns the list of binaries to test. """
@@ -79,7 +69,7 @@ class TestRun(object):
         """ Sets the list of binaries to test. """
         self._binaries = [ ]
 
-        if value is None:
+        if not value:
             return
 
         for path in value:
@@ -97,76 +87,6 @@ class TestRun(object):
                         self._binaries.append(os.path.abspath(os.path.join(root, file)))
 
     binaries = property(_get_binaries, _set_binaries, None)
-
-    def _get_debug(self):
-        """ Returns the enabled state of the debug mode. """
-        return self._debug
-
-    def _set_debug(self, value):
-        """ Sets the enabled state of the debug mode. """
-        self._debug = value
-
-    debug = property(_get_debug, _set_debug, None)
-
-    def _get_logfile(self):
-        """ Returns the path of the log file. """
-        return self._logfile
-
-    def _set_logfile(self, value):
-        """ Sets the path of the log file. """
-        self._logfile = value
-
-    logfile = property(_get_logfile, _set_logfile, None)
-
-    def _get_report_url(self):
-        """ Returns the URL of the report server. """
-        return self._report_url
-
-    def _set_report_url(self, value):
-        """ Sets the URL of the report server. """
-        self._report_url = value
-
-    report_url = property(_get_report_url, _set_report_url, None)
-
-    def _get_repository_path(self):
-        """ Returns the local location of the repository. """
-        return self._repository_path
-
-    def _set_repository_path(self, value):
-        """ Sets the local location of the repository. """
-        self._repository_path = value
-
-    repository_path = property(_get_repository_path, _set_repository_path)
-
-    def _get_repository_url(self):
-        """ Returns the remote location of the repository. """
-        return self._repository_url
-
-    def _set_repository_url(self, value):
-        """ Sets the remote location of the repository. """
-        self._repository_url = value
-
-    repository_url = property(_get_repository_url, _set_repository_url)
-
-    def _get_restart_tests(self):
-        """ Returns if a restart test-run has to be executed. """
-        return self._restart_tests
-
-    def _set_restart_tests(self, value):
-        """ Sets if a restart test-run has to be executed. """
-        self._restart_tests = value
-
-    restart_tests = property(_get_restart_tests, _set_restart_tests)
-
-    def _get_test_path(self):
-        """ Returns the relative test path inside the repository. """
-        return self._test_path
-
-    def _set_test_path(self, value):
-        """ Sets the relative test path inside the repository. """
-        self._test_path = value
-
-    test_path = property(_get_test_path, _set_test_path)
 
     def cleanup_binary(self, binary, *args, **kwargs):
         """ Remove the build when it has been installed before. """
@@ -192,7 +112,7 @@ class TestRun(object):
         """ Checks if a binary is an installer. """
         try:
             return os.path.splitext(path)[1] in (".bz2", ".dmg", ".exe", ".zip")
-        except:
+        except Exception, e:
             return False
 
     def prepare_binary(self, binary, *args, **kwargs):
@@ -287,36 +207,6 @@ class UpdateTestRun(TestRun):
         self.channel = None
         self.no_fallback = False
         self.results = [ ]
-
-    def _get_channel(self):
-        """ Returns the current update channel. """
-        return self._channel
-
-    def _set_channel(self, value):
-        """ Sets the current update channel. """
-        self._channel = value
-
-    channel = property(_get_channel, _set_channel, None)
-
-    def _get_no_fallback(self):
-        """ Returns the current update no_fallback. """
-        return self._no_fallback
-
-    def _set_no_fallback(self, value):
-        """ Sets the current update no_fallback. """
-        self._no_fallback = value
-
-    no_fallback = property(_get_no_fallback, _set_no_fallback, None)
-
-    def _get_results(self):
-        """ Returns the update results. """
-        return self._results
-
-    def _set_results(self, value):
-        """ Sets the update results. """
-        self._results = value
-
-    results = property(_get_results, _set_results, None)
 
     def build_wiki_entry(self, results):
         entry = "* %s => %s, %s, %s, %s, %s, %s, '''%s'''\n" \

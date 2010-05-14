@@ -34,33 +34,31 @@
 #
 # ***** END LICENSE BLOCK *****
 
-import os, sys
+import optparse
+import os
+import sys
+
 base_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(base_path, 'libs'))
 
-# Global modules
-import optparse
-import tempfile
-
-# Local modules
-import testrun
+from testrun import BftTestrun
 
 def main():
     """ Main function for the BFT test-run. """
 
     usage = "usage: %prog [options] (binary|folder)"
-    parser = optparse.OptionParser(usage = usage, version = "%prog 0.1")
+    parser = optparse.OptionParser(usage=usage, version="%prog 0.1")
     parser.add_option("--logfile",
-                      dest = "logfile",
-                      metavar = "PATH",
-                      help = "Path to the log file")
+                      dest="logfile",
+                      metavar="PATH",
+                      help="Path to the log file")
     parser.add_option("--report",
-                      dest = "report",
-                      metavar = "URL",
-                      help = "Send results to the report server")
+                      dest="report",
+                      metavar="URL",
+                      help="Send results to the report server")
     (options, args) = parser.parse_args()
 
-    run = testrun.BftTestRun()
+    run = BftTestRun()
     run.binaries = args
     run.logfile = options.logfile
     run.report_url = options.report

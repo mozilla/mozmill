@@ -39,15 +39,16 @@ import os
 import re
 import sys
 
+
 def get_bin_folder(app_folder):
     """ Returns the folder which contains the binaries of the application. """
     if sys.platform in ("darwin"):
         app_folder = os.path.join(app_folder, 'Contents', 'MacOS')
     return app_folder
 
+
 def get_binary(app_folder):
     """ Returns the binary given by the curent platform. """
-
     if sys.platform in ("cygwin", "win32"):
         path = "firefox.exe"
     elif sys.platform in ("darwin"):
@@ -57,12 +58,14 @@ def get_binary(app_folder):
 
     return os.path.join(app_folder, path)
 
+
 def is_app_folder(path):
     """ Checks if the folder is an application folder. """
     file = os.path.join(get_bin_folder(path),
                         "application.ini")
 
     return os.path.exists(file)
+
 
 class ApplicationIni(object):
     """ Class to retrieve entries from the application.ini file. """
@@ -83,24 +86,16 @@ class UpdateChannel(object):
     # List of available update channels
     channels = ["betatest", "beta", "nightly", "releasetest", "release"]
 
-    def _get_folder(self):
-        """ Returns the applications folder. """
-        return self._folder
+    def __init__(self, *args, **kwargs):
+        self.folder = ""
 
-    def _set_folder(self, value):
-        """ Sets the applications folder. """
-        self._folder = value
-
-    folder = property(_get_folder, _set_folder, None)
-
+    @property
     def _get_pref_folder(self):
         """ Returns the default preferences folder. """
         pref_path = ('defaults', 'pref', 'channel-prefs.js')
         return os.path.join(get_bin_folder(self.folder), *pref_path)
 
-    pref_folder = property(_get_pref_folder, None, None)
-
-    def isValidChannel(self, channel):
+    def is_valid_channel(self, channel):
         """ Checks if the update channel is valid. """
         try:
             self.channels.index(channel);
@@ -126,7 +121,7 @@ class UpdateChannel(object):
 
         print "Setting update channel to '%s'..." % value
 
-        if not self.isValidChannel(value):
+        if not self.is_valid_channel(value):
             raise Exception("%s is not a valid update channel" % value)
 
         try:

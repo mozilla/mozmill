@@ -14,7 +14,7 @@
 # The Original Code is MozMill automation code.
 #
 # The Initial Developer of the Original Code is the Mozilla Foundation.
-# Portions created by the Initial Developer are Copyright (C) 2009
+# Portions created by the Initial Developer are Copyright (C) 2010
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
@@ -34,37 +34,36 @@
 #
 # ***** END LICENSE BLOCK *****
 
-import os, sys
+import optparse
+import os
+import sys
+
 base_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(base_path, 'libs'))
 
-# Global modules
-import optparse
-
-# Local modules
-import testrun
+from testrun import UpdateTestRun
 
 def main():
     usage = "usage: %prog [options] (binary|folder)"
-    parser = optparse.OptionParser(usage = usage, version = "%prog 0.1")
+    parser = optparse.OptionParser(usage=usage, version="%prog 0.1")
     parser.add_option("--channel",
-                      dest = "channel",
-                      metavar = "CHANNEL",
-                      default = None,
-                      choices = [None, "nightly", "betatest", "beta",
-                                 "releasetest", "release"],
-                      help = "Update channel")
+                      dest="channel",
+                      metavar="CHANNEL",
+                      default=None,
+                      choices=[None, "nightly", "betatest", "beta",
+                               "releasetest", "release"],
+                      help="Update channel")
     parser.add_option("--no-fallback",
-                      dest = "no_fallback",
-                      default = False,
-                      help = "Do not perform a fallback update")
+                      dest="no_fallback",
+                      default=False,
+                      help="Do not perform a fallback update")
     parser.add_option("--report",
-                      dest = "report",
-                      metavar = "URL",
-                      help = "Send results to the report server")
+                      dest="report",
+                      metavar="URL",
+                      help="Send results to the report server")
     (options, binaries) = parser.parse_args()
 
-    run = testrun.UpdateTestRun()
+    run = UpdateTestRun()
     run.binaries = binaries
     run.channel = options.channel
     run.no_fallback = options.no_fallback
