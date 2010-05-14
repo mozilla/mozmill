@@ -90,7 +90,7 @@ class UpdateChannel(object):
         self.folder = ""
 
     @property
-    def _get_pref_folder(self):
+    def pref_folder(self):
         """ Returns the default preferences folder. """
         pref_path = ('defaults', 'pref', 'channel-prefs.js')
         return os.path.join(get_bin_folder(self.folder), *pref_path)

@@ -41,7 +41,7 @@ import sys
 base_path = os.path.dirname(os.path.abspath(__file__))
 sys.path.append(os.path.join(base_path, 'libs'))
 
-from testrun import BftTestrun
+from testrun import BftTestRun
 
 def main():
     """ Main function for the BFT test-run. """
