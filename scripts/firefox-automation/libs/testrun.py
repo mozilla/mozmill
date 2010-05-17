@@ -165,18 +165,19 @@ class TestRun(object):
 
         self.clone_repository()
 
-        # Run tests for each binary
-        for binary in self.binaries:
-            try:
-                self.prepare_binary(binary)
-                self.prepare_repository()
-                self.run_tests()
-            except Exception, e:
-                print e.message
-            finally:
-                self.cleanup_binary(binary)
-
-        self.cleanup_repository()
+        try:
+            # Run tests for each binary
+            for binary in self.binaries:
+                try:
+                    self.prepare_binary(binary)
+                    self.prepare_repository()
+                    self.run_tests()
+                except Exception, e:
+                    print e.message
+                finally:
+                    self.cleanup_binary(binary)
+        finally:
+            self.cleanup_repository()
 
 class BftTestRun(TestRun):
     """ Class to execute a Firefox BFT test-run """
@@ -258,8 +259,7 @@ class UpdateTestRun(TestRun):
 
         TestRun.prepare_tests(self)
         self._mozmill.persisted["channel"] = self.channel
-        #XXX: remove temporary folder
-        self._mozmill.test = os.path.join('/data','testing','mozmill','mozilla1.9.2', self.test_path)
+        self._mozmill.test = os.path.join(self.repository_path, self.test_path)
 
     def restore_binary(self, *args, **kwargs):
         """ Restores the backup of the application binary. """

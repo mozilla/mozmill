@@ -43,6 +43,7 @@ class MozmillWrapperCLI(mozmill.CLI):
     # This is really bad but we have to declare all possible cli options.
     # Otherwise the mozmill.CLI parser is failing.
     # XXX: Can be removed once we do not have to depend on the CLI class anymore
+    #      See bug 565733 for the refactoring work.
     parser_options = copy.copy(mozmill.CLI.parser_options)
     parser_options[("--channel",)] = dict(dest="channel")
     parser_options[("--no_fallback",)] = dict(dest="no_fallback")
