@@ -58,10 +58,10 @@ def main():
                       dest="report",
                       metavar="URL",
                       help="Send results to the report server")
-    (options, args) = parser.parse_args()
+    (options, binaries) = parser.parse_args()
 
     run = BftTestRun()
-    run.binaries = args
+    run.binaries = binaries
     run.logfile = options.logfile
     run.report_url = options.report
     run.run()

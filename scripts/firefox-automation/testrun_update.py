@@ -49,13 +49,18 @@ def main():
     usage = "usage: %prog [options] (binary|folder)"
     parser = optparse.OptionParser(usage=usage, version="%prog 0.1")
     parser.add_option("--channel",
-                      dest="channel",
-                      metavar="CHANNEL",
-                      default=None,
                       choices=[None, "nightly", "betatest", "beta",
                                "releasetest", "release"],
-                      help="Update channel")
+                      default=None,
+                      dest="channel",
+                      help="Update channel",
+                      metavar="CHANNEL")
+    parser.add_option("--logfile",
+                      dest="logfile",
+                      metavar="PATH",
+                      help="Path to the log file")
     parser.add_option("--no-fallback",
+                      action="store_true",
                       dest="no_fallback",
                       default=False,
                       help="Do not perform a fallback update")
@@ -68,6 +73,7 @@ def main():
     run = UpdateTestRun()
     run.binaries = binaries
     run.channel = options.channel
+    run.logfile = options.logfile
     run.no_fallback = options.no_fallback
     run.report_url = options.report
     run.run()
