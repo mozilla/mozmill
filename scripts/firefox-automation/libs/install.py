@@ -110,7 +110,7 @@ class Installer(object):
                     if not os.path.exists(targetFolder):
                         print "Failure in copying the application files"
                     raise e
-                else:
+                finally:
                     # Unmount disk image
                     print "Unmounting %s..." % fileName
                     cmdArgs = ["hdiutil", "detach", mountpoint]
