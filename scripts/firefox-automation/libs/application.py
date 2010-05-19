@@ -61,10 +61,24 @@ def get_binary(app_folder):
 
 def is_app_folder(path):
     """ Checks if the folder is an application folder. """
+    if sys.platform not in ("darwin"):
+        path = os.path.dirname(path)
+
     file = os.path.join(get_bin_folder(path),
                         "application.ini")
 
     return os.path.exists(file)
+
+
+def is_installer(path):
+    """ Checks if a binary is an installer. """
+    try:
+        if (os.path.splitext(path)[1] in (".bz2", ".dmg", ".exe")):
+            return os.path.basename(path) not in ("firefox.exe")
+        else:
+            return False
+    except Exception, e:
+        return False
 
 
 class ApplicationIni(object):

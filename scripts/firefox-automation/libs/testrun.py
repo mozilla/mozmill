@@ -77,20 +77,20 @@ class TestRun(object):
                 raise Exception("Path '%s' cannot be found." % (path))
 
             # Check if it's an installer or an already installed build
-            if self.is_installer(path) or application.is_app_folder(path):
+            if application.is_installer(path) or application.is_app_folder(path):
                 self._binaries.append(os.path.abspath(path))
                 continue
             # Otherwise recursivily scan the folder and add existing files
             for root, dirs, files in os.walk(path):
                 for file in files:
-                    if not file in [".DS_Store"] and self.is_installer(file):
+                    if not file in [".DS_Store"] and application.is_installer(file):
                         self._binaries.append(os.path.abspath(os.path.join(root, file)))
 
     binaries = property(_get_binaries, _set_binaries, None)
 
     def cleanup_binary(self, binary, *args, **kwargs):
         """ Remove the build when it has been installed before. """
-        if self.is_installer(binary):
+        if application.is_installer(binary):
             install.Installer().uninstall(self._folder)
 
     def cleanup_repository(self, *args, **kwargs):
@@ -108,17 +108,10 @@ class TestRun(object):
             raise Exception("Failure in setting up the mozmill-tests repository. " +
                             e.message)
 
-    def is_installer(self, path):
-        """ Checks if a binary is an installer. """
-        try:
-            return os.path.splitext(path)[1] in (".bz2", ".dmg", ".exe", ".zip")
-        except Exception, e:
-            return False
-
     def prepare_binary(self, binary, *args, **kwargs):
         """ Prepare the binary for the test run. """
 
-        if self.is_installer(binary):
+        if application.is_installer(binary):
             install_path = tempfile.mkdtemp(".binary")
             self._folder = install.Installer().install(binary, install_path)
             self._application = application.get_binary(self._folder)
