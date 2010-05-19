@@ -287,7 +287,7 @@ class UpdateTestRun(TestRun):
             fallback_data = self.run_update_tests(True)
             fallback_result = fallback_data.get("success", False)
 
-        if not (direct_result and fallback_result):
+        if not (direct_result and not self.no_fallback and fallback_result):
             self.results.append(self.build_wiki_entry(direct_data))
         if not self.no_fallback:
             self.results.append(self.build_wiki_entry(fallback_data))
