@@ -61,7 +61,7 @@ def get_binary(app_folder):
 
 def is_app_folder(path):
     """ Checks if the folder is an application folder. """
-    if sys.platform not in ("darwin"):
+    if sys.platform != "darwin":
         path = os.path.dirname(path)
 
     file = os.path.join(get_bin_folder(path),
