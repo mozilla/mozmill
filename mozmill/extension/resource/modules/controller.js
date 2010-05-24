@@ -40,8 +40,9 @@
 var EXPORTED_SYMBOLS = ["MozMillController", "waitForEval", "MozMillAsyncTest",
                         "globalEventRegistry", "sleep"];
 
+var EventUtils = {}; Components.utils.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
+
 var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
-var EventUtils = {}; Components.utils.import('resource://mozmill/modules/EventUtils.js', EventUtils);
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
@@ -779,9 +780,9 @@ MozMillController.prototype.assertProperty = function(el, attrib, val) {
     res = true;
   }
   if (res) {
-    frame.events.pass({'function':'Controller.assertProperty()'});
+    frame.events.pass({'function':'Controller.assertProperty("' + el.getInfo() + '") : ' + val});
   } else {
-    throw new Error('Controller.assertProperty() failed');
+    throw new Error("Controller.assertProperty(" + el.getInfo() + ") : " + val + " == " + value);
   }
 
   return res;
@@ -936,7 +937,7 @@ Tabs.prototype.findWindow = function (doc) {
       return this.controller.window.frames[i];
     }
   }
-  throw "Cannot find window for document. Doc title == "+doc.title;
+  throw new Error("Cannot find window for document. Doc title == " + doc.title);
 }
 Tabs.prototype.getTabWindow = function(index) {
   return this.findWindow(this.getTab(index));
@@ -1016,7 +1017,7 @@ MozMillAsyncTest.prototype.run = function () {
   if (r == true) {
     return true;
   } else {
-    throw "MozMillAsyncTest did not finish properly: timed out. Done is "+this._done
+    throw new Error("MozMillAsyncTest did not finish properly: timed out. Done is " + this._done);
   }
 }
 MozMillAsyncTest.prototype.finish = function () {

@@ -94,7 +94,7 @@ function getMethodInWindows (methodName) {
       return w[methodName];
     }
   }
-  throw "Method with name: '"+methodName+"' is not in any open window.";
+  throw new Error("Method with name: '" + methodName + "' is not in any open window.");
 }
 
 function getWindowByTitle(title) {

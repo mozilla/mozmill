@@ -1,0 +1,13 @@
+[reports]
+url=
+
+[darwin]
+shiretoko=/Applications/Shiretoko.app
+namoroka=/Applications/Namoroka.app
+minefield=/Applications/Minefield.app
+
+[linux2]
+namoroka=/home/user/namoroka/firefox
+
+[win32]
+firefox=c:\Program Files\Mozilla Firefox\firefox.exe

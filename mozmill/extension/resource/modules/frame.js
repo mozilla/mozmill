@@ -309,7 +309,7 @@ Collector.prototype.addHttpResource = function (directory, ns) {
     this.startHttpd();
   }
   if (ns == undefined) {
-    var ns = uuidgen.generateUUID().toString().replace('-', '').replace('{', '').replace('}','');
+    ns = uuidgen.generateUUID().toString().replace('-', '').replace('{', '').replace('}','');
   }
   var lp = Components.classes["@mozilla.org/file/local;1"]
              .createInstance(Components.interfaces.nsILocalFile);
@@ -470,9 +470,10 @@ Runner.prototype.wrapper = function (func, arg) {
     }
   } catch (e) {
     if (func._mozmillasynctest == true) {
-      func = {'filename':events.currentModule.__file__,
-                 'name':func.__name__,
-                }
+      func = {
+              'filename':events.currentModule.__file__,
+              'name':func.__name__
+             }
     }
     events.fail({'exception':e, 'test':func})
     Components.utils.reportError(e);

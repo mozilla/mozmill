@@ -138,7 +138,7 @@ Elem.prototype.getInfo = function () { return 'Elem instance.'; };
 
 var ID = function(_document, nodeID) {
   if (_document == undefined || nodeID == undefined) {
-    throw 'ID constructor did not recieve enough arguments.'
+    throw new Error('ID constructor did not recieve enough arguments.');
   }
   this._document = _document;
   this.nodeID = nodeID;
@@ -157,7 +157,7 @@ ID.prototype.getNode = function () {
 
 var Link = function(_document, linkName) {
   if (_document == undefined || linkName == undefined) {
-    throw 'Link constructor did not recieve enough arguments.'
+    throw new Error('Link constructor did not recieve enough arguments.');
   }
   this._document = _document;
   this.linkName = linkName;
@@ -210,7 +210,7 @@ Link.prototype.getNode = function () {
 
 var XPath = function(_document, expr) {
   if (_document == undefined || expr == undefined) {
-    throw 'XPath constructor did not recieve enough arguments.'
+    throw new Error('XPath constructor did not recieve enough arguments.');
   }
   this._document = _document;
   this.expr = expr;
@@ -246,7 +246,7 @@ XPath.prototype.getNode = function () {
 
 var Name = function(_document, nName) {
   if (_document == undefined || nName == undefined) {
-    throw 'Name constructor did not recieve enough arguments.'
+    throw new Error('Name constructor did not recieve enough arguments.');
   }
   this._document = _document;
   this.nName = nName;
@@ -272,7 +272,7 @@ Name.prototype.getNode = function () {
 
 function Lookup (_document, expression) {
   if (_document == undefined || expression == undefined) {
-    throw 'Lookup constructor did not recieve enough arguments.'
+    throw new Error('Lookup constructor did not recieve enough arguments.');
   }
   this._document = _document;
   this.expression = expression;
@@ -427,11 +427,11 @@ Lookup.prototype.getNode = function () {
       try {
         var obj = json2.JSON.parse(strings.vslice(exp, '[', ']'))
       } catch (err) {
-        throw err+'. String to be parsed was || '+strings.vslice(exp, '[', ']')+' ||'
+        throw new Error(err+'. String to be parsed was || '+strings.vslice(exp, '[', ']')+' ||');
       }
       var r = cases['index'](_document, parent, obj);
       if (r == null) {
-        throw 'Expression "'+exp+'" returned null. Anonymous == '+(cases == aCases) 
+        throw new Error('Expression "'+exp+'" returned null. Anonymous == '+(cases == aCases));
       }
       return r;
     }
@@ -441,7 +441,7 @@ Lookup.prototype.getNode = function () {
         try {
           var obj = json2.JSON.parse(strings.vslice(exp, '(', ')'))
         } catch(err) {
-           throw err+'. String to be parsed was || '+strings.vslice(exp, '(', ')')+'  ||'
+           throw new Error(err+'. String to be parsed was || '+strings.vslice(exp, '(', ')')+'  ||');
         }
         var result = cases[c](_document, parent, obj);
       }
@@ -452,7 +452,7 @@ Lookup.prototype.getNode = function () {
         try {
           var obj = json2.JSON.parse(exp)
         } catch(err) {
-          throw err+'. String to be parsed was || '+exp+' ||'
+          throw new Error(err+'. String to be parsed was || '+exp+' ||');
         }
         
         if (cases == aCases) {
@@ -462,7 +462,7 @@ Lookup.prototype.getNode = function () {
         }
       }
       if (!result) {
-        throw 'Expression "'+exp+'" returned null. Anonymous == '+(cases == aCases)
+        throw new Error('Expression "'+exp+'" returned null. Anonymous == '+(cases == aCases));
       }
     }
     

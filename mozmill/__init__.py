@@ -21,6 +21,7 @@
 # Contributor(s):
 #  Mikeal Rogers <mikeal.rogers@gmail.com>
 #  Henrik Skupin <hskupin@mozilla.com>
+#  Clint Talbert <ctalbert@mozilla.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -42,6 +43,7 @@ import copy
 import socket
 import imp
 import traceback
+import threading
 from datetime import datetime, timedelta
 
 try:
@@ -63,6 +65,21 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 extension_path = os.path.join(basedir, 'extension')
 
 mozmillModuleJs = "Components.utils.import('resource://mozmill/modules/mozmill.js')"
+
+class ZombieDetector(object):
+    """ Determines if the browser has stopped talking to us.  We assume that
+        if this happens the browser is in a hung state and the test run
+        should be terminated. """
+    def __init__(self, stopfunction):
+        self.stopfunction = stopfunction
+        self.doomsdayTimer = threading.Timer(1800, stopfunction) # 30 minutes
+        self.doomsdayTimer.start()
+
+    def resetTimer(self):
+        # Reset that timer
+        self.doomsdayTimer.cancel()
+        self.doomsdayTimer = threading.Timer(1800, self.stopfunction)
+        self.doomsdayTimer.start()
 
 class LoggerListener(object):
     cases = {
@@ -98,7 +115,7 @@ class MozMill(object):
 
         self.persisted = {}
         self.endRunnerCalled = False
-
+        #self.zombieDetector = ZombieDetector(self.stop)
         self.global_listeners = []
         self.listeners = []
         self.add_listener(self.persist_listener, eventType="mozmill.persist")
@@ -147,8 +164,11 @@ class MozMill(object):
             self.back_channel.add_global_listener(global_listener)
 
     def start(self, profile=None, runner=None):
+        # Reset our Zombie counter
+        #self.zombieDetector.resetTimer()
+
         if not profile:
-            profile = self.profile_class(plugins=[jsbridge.extension_path, extension_path])
+            profile = self.profile_class(addons=[jsbridge.extension_path, extension_path])
         if not runner:
             runner = self.runner_class(profile=self.profile, 
                                        cmdargs=["-jsbridge", str(self.jsbridge_port)])
@@ -162,6 +182,9 @@ class MozMill(object):
         self.create_network()
 
     def run_tests(self, test, report=False, sleeptime = 4):
+        # Reset our Zombie Because we are still active
+        #self.zombieDetector.resetTimer()
+
         frame = jsbridge.JSObject(self.bridge,
                                   "Components.utils.import('resource://mozmill/modules/frame.js')")
         sleep(sleeptime)
@@ -185,6 +208,9 @@ class MozMill(object):
         sleep(1)
         
     def endTest_listener(self, test):
+        # Reset our Zombie Counter because we are still active
+        #self.zombieDetector.resetTimer()
+
         self.alltests.append(test)
         if test.get('skipped', False):
             print "Test Skipped : %s | %s" % (test['name'], test.get('skipped_reason', ''))
@@ -225,7 +251,7 @@ class MozMill(object):
             sysinfo['os.name'] = "Mac OS X"
             sysinfo['os.version.number'] = platform.mac_ver()[0]
             sysinfo['os.version.string'] = platform.mac_ver()[0]
-        elif (system == 'linux2') or (system == "solaris"):
+        elif (system == 'linux2') or (system in ('sunos5', 'solaris')):
             sysinfo['linux_distrobution'] = platform.linux_distrobution()
             sysinfo['libc_ver'] = platform.libc_ver()        
         return sysinfo
@@ -243,9 +269,12 @@ class MozMill(object):
         return results
 
     def send_report(self, results, report_url):
-        import httplib2
-        http = httplib2.Http()
-        response, content = http.request(report_url, 'POST', body=json.dumps(results))
+        try:
+            import httplib2
+            http = httplib2.Http()
+            response, content = http.request(report_url, 'POST', body=json.dumps(results))
+        except:
+            print "Sending results to '%s' failed." % report_url
 
     def stop(self, timeout=10):
         sleep(1)
@@ -279,7 +308,7 @@ class MozMillRestart(MozMill):
     
     def start(self, runner=None, profile=None):
         if not profile:
-            profile = self.profile_class(plugins=[jsbridge.extension_path, extension_path])
+            profile = self.profile_class(addons=[jsbridge.extension_path, extension_path])
         if not runner:
             runner = self.runner_class(profile=self.profile, 
                                        cmdargs=["-jsbridge", str(self.jsbridge_port)])
@@ -295,6 +324,9 @@ class MozMillRestart(MozMill):
             self.python_callbacks.append(obj)
         
     def start_runner(self):
+        # Reset the zombie counter
+        #self.zombieDetection.resetTimer()
+
         self.runner.start()
 
         self.create_network()
@@ -326,6 +358,9 @@ class MozMillRestart(MozMill):
         self.endRunnerCalled = True
 
     def run_dir(self, test_dir, report=False, sleeptime=4):
+        # Reset our Zombie counter on each directory
+        #self.zombieDetection.resetTimer()
+
         if os.path.isfile(os.path.join(test_dir, 'testPre.js')):   
             pre_test = os.path.join(test_dir, 'testPre.js')
             post_test = os.path.join(test_dir, 'testPost.js') 
@@ -371,12 +406,12 @@ class MozMillRestart(MozMill):
         profile.cleanup()
         if profile.create_new:
             profile.profile = profile.create_new_profile(self.runner.binary)                
-        for plugin in profile.plugins:
-            profile.install_plugin(plugin)
-        if jsbridge.extension_path not in profile.plugins:
-            profile.install_plugin(jsbridge.extension_path)
-        if extension_path not in profile.plugins:
-            profile.install_plugin(extension_path)
+        for addon in profile.addons:
+            profile.install_addon(addon)
+        if jsbridge.extension_path not in profile.addons:
+            profile.install_addon(jsbridge.extension_path)
+        if extension_path not in profile.addons:
+            profile.install_addon(extension_path)
         profile.set_preferences(profile.preferences)
     
     def get_report(self, test, starttime, endtime):
@@ -392,6 +427,9 @@ class MozMillRestart(MozMill):
         return results
     
     def run_tests(self, test_dir, report=False, sleeptime=4):
+        # Zombie Counter Reset
+        #self.zombieDetector.resetTimer()
+
         test_dirs = [d for d in os.listdir(os.path.abspath(os.path.expanduser(test_dir))) 
                      if d.startswith('test') and os.path.isdir(os.path.join(test_dir, d))]
         
@@ -402,25 +440,26 @@ class MozMillRestart(MozMill):
         if len(test_dirs) is 0:
             test_dirs = [test_dir]
         
-        starttime = datetime.now().isoformat()        
+        starttime = datetime.utcnow().isoformat()        
         for d in test_dirs:
             d = os.path.abspath(os.path.join(test_dir, d))
             self.run_dir(d, report, sleeptime)
-        endtime = datetime.now().isoformat()
+        endtime = datetime.utcnow().isoformat()
         profile = self.runner.profile
         profile.cleanup()
                 
         class Blank(object):
             def stop(self):
                 pass
-        
+
         if report:
             results = self.get_report(test_dir, starttime, endtime)
             self.send_report(results, report)
-        
+
         # Set to None to avoid calling .stop
         self.runner = None
         sleep(1) # Give a second for any pending callbacks to finish
+
         print "Passed %d :: Failed %d :: Skipped %d" % (len(self.passes),
                                                         len(self.fails),
                                                         len(self.skipped))
@@ -452,7 +491,7 @@ class CLI(jsbridge.CLI):
 
     def get_profile(self, *args, **kwargs):
         profile = super(CLI, self).get_profile(*args, **kwargs)
-        profile.install_plugin(extension_path)
+        profile.install_addon(extension_path)
         return profile
 
     def _run(self):
