@@ -174,24 +174,26 @@ class TestRun(object):
         finally:
             self.cleanup_repository()
 
+
 class AddonsTestRun(TestRun):
     """ Class to execute a Firefox add-ons test-run """
 
-    def __init__(self, addons=[], logfile=None, report_url=None,
-                 with_untrusted=False, *args, **kwargs):
+    def __init__(self, binaries=None, addons=None, logfile=None,
+                 report_url=None, with_untrusted=False, *args, **kwargs):
 
         TestRun.__init__(self, *args, **kwargs)
 
-        self.addons = addons
+        self.addons = addons or []
+        self.binaries = binaries or []
         self.logfile = logfile
         self.report_url = report_url
         self.with_untrusted = with_untrusted
 
-
-    def download_addon(self, url, target_path, *args, **kwargs):
-        """ Parse the addon.ini file and download the XPI file """
+    def download_addon(self, url, target_path):
+        """ Download the XPI file """
         try:
-            target_path = os.path.join(target_path, os.path.basename(url))
+            filename = url.rstrip('/').rsplit('/', 1)[-1]
+            target_path = os.path.join(target_path, filename)
 
             print "Downloading %s to %s" % (url, target_path)
             urllib.urlretrieve(url, target_path)
@@ -200,21 +202,14 @@ class AddonsTestRun(TestRun):
         except Exception, e:
             print e
 
-    def get_all_addons(self, *args, **kwargs):
+    def get_all_addons(self):
         """ Retrieves all add-ons inside the "addons" folder. """
 
-        addons = []
         path = os.path.join(self.repository_path, "addons")
-        for root, dirs, files in os.walk(path):
-            for dir in dirs:
-                if root != path:
-                    break
-                addons.append(dir)
+        return [entry for entry in os.listdir(path)
+                      if os.path.isdir(os.path.join(path, entry))]
 
-        return addons
-
-
-    def get_download_url(self, *args, **kwargs):
+    def get_download_url(self):
         """ Read the addon.ini file and get the URL of the XPI. """
 
         try:
@@ -235,7 +230,6 @@ class AddonsTestRun(TestRun):
             print e
             return None
 
-
     def run_tests(self, *args, **kwargs):
         """ Execute the normal and restart tests in sequence. """
 
@@ -255,7 +249,7 @@ class AddonsTestRun(TestRun):
                     continue
 
                 # Check if the download URL is trusted and we can proceed
-                if url.find("addons.mozilla.org") == -1 and not self.with_untrusted:
+                if not "addons.mozilla.org" in url and not self.with_untrusted:
                     print "*** Download URL for '%s' is not trusted." % os.path.basename(url)
                     print "*** Use --with-trusted to force testing this add-on." 
                     continue
@@ -269,7 +263,7 @@ class AddonsTestRun(TestRun):
                     try:
                         self.restart_tests = False
                         self.addon_list = [xpi_path]
-                        TestRun.run_tests(self)
+                        TestRun.run_tests(self, *args, **kwargs)
                     except Exception, inst:
                         print "%s." % inst
 
@@ -279,7 +273,7 @@ class AddonsTestRun(TestRun):
                     try:
                         self.restart_tests = True
                         self.addon_list = [xpi_path]
-                        TestRun.run_tests(self)
+                        TestRun.run_tests(self, *args, **kwargs)
                     except Exception, inst:
                         print "%s." % inst
 

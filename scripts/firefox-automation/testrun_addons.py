@@ -48,15 +48,16 @@ from testrun import AddonsTestRun
 def main():
     usage = "usage: %prog [options] (binary|folder)"
     parser = optparse.OptionParser(usage=usage, version="%prog 0.1")
-    parser.add_option("--addons",
+    parser.add_option("-a", "--addon",
+                      action="append",
                       dest="addons",
-                      metavar="ID's",
-                      help = "List of add-on id's to test")
-    parser.add_option("--logfile",
+                      metavar="ID",
+                      help = "List of add-ons to use")
+    parser.add_option("-l", "--logfile",
                       dest = "logfile",
                       metavar = "PATH",
                       help = "Path to the log file")
-    parser.add_option("--report",
+    parser.add_option("-r", "--report",
                       dest = "report",
                       metavar = "URL",
                       help = "Send results to the report server")
@@ -67,11 +68,11 @@ def main():
                       help="Also run tests for add-ons which are not stored on AMO")
     (options, args) = parser.parse_args()
 
-    addon_list = options.addons.split(",") if options.addons else []
-    addons = AddonsTestRun(addon_list, options.logfile,
-                           options.report, options.with_untrusted)
-    addons.binaries = args
+    addons = AddonsTestRun(binaries=args, addons=options.addons,
+                           logfile=options.logfile, report=options.report,
+                           with_untrusted=options.with_untrusted)
     addons.run()
+
 
 if __name__ == "__main__":
     main()
