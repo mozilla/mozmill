@@ -63,7 +63,7 @@ class Installer(object):
             self.uninstall(destination)
 
             if fileExt == ".exe":
-                print "Installing %s => %s" % (fileName, destination)
+                print "*** Installing %s => %s" % (fileName, destination)
                 cmdArgs = [package, "-ms", "/D=%s" % destination]
                 result = subprocess.call(cmdArgs)
             else:
@@ -75,7 +75,7 @@ class Installer(object):
             self.uninstall(destination)
 
             if fileExt == ".bz2":
-                print "Installing %s => %s" % (fileName, destination)
+                print "*** Installing %s => %s" % (fileName, destination)
                 try:
                     os.mkdir(destination);
                 except:
@@ -90,7 +90,7 @@ class Installer(object):
         elif sys.platform == "darwin":
             # Mount disk image to a temporary mount point
             mountpoint = tempfile.mkdtemp()
-            print "Mounting %s => %s" % (fileName, mountpoint)
+            print "*** Mounting %s => %s" % (fileName, mountpoint)
             cmdArgs = ["hdiutil", "attach", package, "-mountpoint", mountpoint]
             result = subprocess.call(cmdArgs)
 
@@ -102,17 +102,17 @@ class Installer(object):
 
                     # If there is an existing installation remove it now
                     self.uninstall(targetFolder)
-                    print "Copying %s to %s" % (bundle, targetFolder)
+                    print "*** Copying %s to %s" % (bundle, targetFolder)
                     shutil.copytree(bundle, targetFolder)
 
                     destination = targetFolder
                 except Exception, e:
                     if not os.path.exists(targetFolder):
-                        print "Failure in copying the application files"
+                        print "*** Failure in copying the application files"
                     raise e
                 finally:
                     # Unmount disk image
-                    print "Unmounting %s..." % fileName
+                    print "*** Unmounting %s..." % fileName
                     cmdArgs = ["hdiutil", "detach", mountpoint]
                     result = subprocess.call(cmdArgs)
 
@@ -127,7 +127,7 @@ class Installer(object):
             log_file = "%suninstall\uninstall.log" % folder
             if os.path.exists(log_file):
                 try:
-                    print "Uninstalling %s" % folder
+                    print "*** Uninstalling %s" % folder
                     cmdArgs = ["%suninstall\helper.exe" % folder, "/S"]
                     result = subprocess.call(cmdArgs)
             
@@ -146,7 +146,7 @@ class Installer(object):
         contents = "Contents/MacOS/" if sys.platform == "darwin" else ""
         if os.path.exists("%s/%sapplication.ini" % (folder, contents)):
             try:
-                print "Removing old installation at %s" % (folder)
+                print "*** Removing old installation at %s" % (folder)
                 shutil.rmtree(folder)
 
                 # Wait at maximum 20s for the removal
@@ -155,5 +155,5 @@ class Installer(object):
                     time.sleep(1)
                     timeout -= 1
             except:
-                print "Folder '%s' could not be removed" % (folder)
+                print "*** Folder '%s' could not be removed" % (folder)
                 pass

@@ -47,6 +47,7 @@ class MozmillWrapperCLI(mozmill.CLI):
     parser_options = copy.copy(mozmill.CLI.parser_options)
     parser_options[("--channel",)] = dict(dest="channel")
     parser_options[("--no-fallback",)] = dict(dest="no_fallback")
+    parser_options[("--with-untrusted",)] = dict(dest="with_untrusted")
 
     def __init__(self, *args, **kwargs):
         mozmill.CLI.__init__(self, *args, **kwargs)

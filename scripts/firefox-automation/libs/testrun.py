@@ -36,11 +36,13 @@
 
 MOZMILL_TESTS_REPOSITORY = "http://hg.mozilla.org/qa/mozmill-tests"
 
+import ConfigParser
 import os
 import datetime
 import shutil
 import sys
 import tempfile
+import urllib
 
 import application
 import install
@@ -172,6 +174,127 @@ class TestRun(object):
         finally:
             self.cleanup_repository()
 
+class AddonsTestRun(TestRun):
+    """ Class to execute a Firefox add-ons test-run """
+
+    def __init__(self, addons=[], logfile=None, report_url=None,
+                 with_untrusted=False, *args, **kwargs):
+
+        TestRun.__init__(self, *args, **kwargs)
+
+        self.addons = addons
+        self.logfile = logfile
+        self.report_url = report_url
+        self.with_untrusted = with_untrusted
+
+
+    def download_addon(self, url, target_path, *args, **kwargs):
+        """ Parse the addon.ini file and download the XPI file """
+        try:
+            target_path = os.path.join(target_path, os.path.basename(url))
+
+            print "Downloading %s to %s" % (url, target_path)
+            urllib.urlretrieve(url, target_path)
+
+            return target_path
+        except Exception, e:
+            print e
+
+    def get_all_addons(self, *args, **kwargs):
+        """ Retrieves all add-ons inside the "addons" folder. """
+
+        addons = []
+        path = os.path.join(self.repository_path, "addons")
+        for root, dirs, files in os.walk(path):
+            for dir in dirs:
+                if root != path:
+                    break
+                addons.append(dir)
+
+        return addons
+
+
+    def get_download_url(self, *args, **kwargs):
+        """ Read the addon.ini file and get the URL of the XPI. """
+
+        try:
+            filename = os.path.join(self._base_path, "addon.ini")
+            config = ConfigParser.RawConfigParser()
+            config.read(filename)
+
+            # Get the platform the script is running on
+            if sys.platform in ("cygwin", "win32"):
+                platform = "win"
+            elif sys.platform in ("darwin"):
+                platform = "mac"
+            elif sys.platform in ("linux2", "sunos5"):
+                platform = "linux"
+
+            return config.get("download", platform)
+        except Exception, e:
+            print e
+            return None
+
+
+    def run_tests(self, *args, **kwargs):
+        """ Execute the normal and restart tests in sequence. """
+
+        # If no add-ons have been specified get all available add-on tests
+        if not self.addons:
+            self.addons = self.get_all_addons()
+
+        for self._addon in self.addons:
+            try:
+                # Get the download URL
+                self._base_path = os.path.join(self.repository_path, 'addons',
+                                               self._addon)
+                url = self.get_download_url()
+
+                if url is None:
+                    print "*** Could not read settings from '%s'." % filename
+                    continue
+
+                # Check if the download URL is trusted and we can proceed
+                if url.find("addons.mozilla.org") == -1 and not self.with_untrusted:
+                    print "*** Download URL for '%s' is not trusted." % os.path.basename(url)
+                    print "*** Use --with-trusted to force testing this add-on." 
+                    continue
+
+                # Download the add-on
+                xpi_path = self.download_addon(url, tempfile.gettempdir())
+
+                # Run normal tests if some exist
+                self.test_path = os.path.join(self._base_path, 'tests')
+                if os.path.isdir(self.test_path):
+                    try:
+                        self.restart_tests = False
+                        self.addon_list = [xpi_path]
+                        TestRun.run_tests(self)
+                    except Exception, inst:
+                        print "%s." % inst
+
+                # Run restart tests if some exist
+                self.test_path = os.path.join(self._base_path, 'restartTests')
+                if os.path.isdir(self.test_path):
+                    try:
+                        self.restart_tests = True
+                        self.addon_list = [xpi_path]
+                        TestRun.run_tests(self)
+                    except Exception, inst:
+                        print "%s." % inst
+
+            except Exception, e:
+                print e
+            finally:
+                try:
+                    # Remove downloaded add-on
+                    if os.path.exists(xpi_path):
+                        print "*** Removing downloaded add-on '%s'." % xpi_path
+                        os.remove(xpi_path)
+                except:
+                    pass
+
+
 class BftTestRun(TestRun):
     """ Class to execute a Firefox BFT test-run """
 
@@ -230,12 +353,12 @@ class UpdateTestRun(TestRun):
             try:
                 self._backup_folder = tempfile.mkdtemp(".binary_backup")
 
-                print "Creating backup of binary (%s => %s)" % (self._folder,
-                                                                self._backup_folder)
+                print "*** Creating backup of binary (%s => %s)" % (self._folder,
+                                                                    self._backup_folder)
                 shutil.rmtree(self._backup_folder)
                 shutil.copytree(self._folder, self._backup_folder)
             except Exception, e:
-                print "Failure while creating the backup of the binary."
+                print "*** Failure while creating the backup of the binary."
 
     def prepare_channel(self):
         update_channel = application.UpdateChannel()
@@ -258,12 +381,12 @@ class UpdateTestRun(TestRun):
         """ Restores the backup of the application binary. """
 
         try:
-            print "Restoring backup of binary (%s => %s)" % (self._backup_folder,
-                                                             self._folder)
+            print "*** Restoring backup of binary (%s => %s)" % (self._backup_folder,
+                                                                 self._folder)
             shutil.rmtree(self._folder)
             shutil.move(self._backup_folder, self._folder)
         except:
-            print "Failure while restoring the backup of the binary."
+            print "*** Failure while restoring the backup of the binary."
 
     def run_tests(self, *args, **kwargs):
         """ Start the execution of the tests. """

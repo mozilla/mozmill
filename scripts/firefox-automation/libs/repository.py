@@ -88,7 +88,7 @@ class Repository(object):
         if destination is not None:
             self.destination = destination
 
-        print "cloning repository to %s" % self.destination
+        print "*** Cloning repository to '%s'" % self.destination
         hg.clone(ui.ui(), self.url, self.destination, True)
         self._repository = hg.repository(ui.ui(), self.destination)
 
@@ -107,12 +107,12 @@ class Repository(object):
         if branch is None:
             branch = self.branch
 
-        print "updating to branch %s" % branch
+        print "*** Updating to branch '%s'" % branch
         commands.pull(ui.ui(), self._repository, self.url)
         commands.update(ui.ui(), self._repository, None, branch, True)
 
     def remove(self):
         """ Remove the local version of the repository. """
-        print "removing repository %s" % self.destination
+        print "*** Removing repository '%s'" % self.destination
         shutil.rmtree(self.destination)
         self.destination = None
