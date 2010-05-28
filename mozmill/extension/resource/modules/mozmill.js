@@ -44,7 +44,6 @@ var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
                         "getMsgComposeController", "getDownloadsController",
                         "Application", "MozMillAsyncTest", "cleanQuit",
                         "getPlacesController", 'isMac', 'isLinux', 'isWindows',
-                        "firePythonCallbackAfterRestart", "firePythonCallback",
                        ];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
