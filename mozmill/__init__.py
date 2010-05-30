@@ -37,14 +37,17 @@
 #
 # ***** END LICENSE BLOCK *****
 
-import os
-import sys
 import copy
-import socket
-import imp
-import traceback
-import threading
 from datetime import datetime, timedelta
+import httplib
+import imp
+import os
+import socket
+import sys
+import threading
+import traceback
+import urllib
+import urlparse
 
 try:
     import json
@@ -81,6 +84,7 @@ class ZombieDetector(object):
         self.doomsdayTimer = threading.Timer(1800, self.stopfunction)
         self.doomsdayTimer.start()
 
+
 class LoggerListener(object):
     cases = {
         'mozmill.pass':   lambda obj: logger.debug('Test Pass: '+repr(obj)),
@@ -99,8 +103,10 @@ class LoggerListener(object):
             self.cases[eName] = self.default(eName)
             self.cases[eName](obj)
 
+
 class TestsFailedException(Exception):
     pass
+
 
 class MozMill(object):
 
@@ -185,6 +191,8 @@ class MozMill(object):
         # Reset our Zombie Because we are still active
         #self.zombieDetector.resetTimer()
 
+        self.report_document = None
+
         frame = jsbridge.JSObject(self.bridge,
                                   "Components.utils.import('resource://mozmill/modules/frame.js')")
         sleep(sleeptime)
@@ -202,7 +210,7 @@ class MozMill(object):
 
         if report:
             results = self.get_report(test, starttime, endtime)
-            self.send_report(results, report)
+            self.report_document = self.send_report(results, report)
 
         # Give a second for any callbacks to finish.
         sleep(1)
@@ -269,12 +277,28 @@ class MozMill(object):
         return results
 
     def send_report(self, results, report_url):
+        """ Send a report of the results to a CouchdB instance. """
+
         try:
-            import httplib2
-            http = httplib2.Http()
-            response, content = http.request(report_url, 'POST', body=json.dumps(results))
-        except:
-            print "Sending results to '%s' failed." % report_url
+            # Parse URL fragments and send data
+            url_fragments = urlparse.urlparse(report_url)
+            connection = httplib.HTTPConnection(url_fragments.netloc)
+            connection.request("POST", url_fragments.path, json.dumps(results))
+        
+            # Get response which contains the id of the new document
+            response = connection.getresponse()
+            data = json.loads(response.read())
+            connection.close()
+
+            # Check if the report has been created
+            if not data['ok']:
+                print "Creating report document failed (%s)" % data
+
+            # Print document location to the console and return
+            print "Report document created at '%s%s'" % (report_url, data['id'])
+            return data
+        except Exception, e:
+            print "Sending results to '%s' failed (%s)." % (report_url, e)
 
     def stop(self, timeout=10):
         sleep(1)
@@ -430,6 +454,8 @@ class MozMillRestart(MozMill):
         # Zombie Counter Reset
         #self.zombieDetector.resetTimer()
 
+        self.report_document = None
+
         test_dirs = [d for d in os.listdir(os.path.abspath(os.path.expanduser(test_dir))) 
                      if d.startswith('test') and os.path.isdir(os.path.join(test_dir, d))]
         
@@ -454,7 +480,7 @@ class MozMillRestart(MozMill):
 
         if report:
             results = self.get_report(test_dir, starttime, endtime)
-            self.send_report(results, report)
+            self.report_document = self.send_report(results, report)
 
         # Set to None to avoid calling .stop
         self.runner = None
