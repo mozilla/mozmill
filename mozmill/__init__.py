@@ -191,8 +191,6 @@ class MozMill(object):
         # Reset our Zombie Because we are still active
         #self.zombieDetector.resetTimer()
 
-        self.report_document = None
-
         frame = jsbridge.JSObject(self.bridge,
                                   "Components.utils.import('resource://mozmill/modules/frame.js')")
         sleep(sleeptime)
@@ -208,13 +206,16 @@ class MozMill(object):
 
         endtime = datetime.utcnow().isoformat()
 
+        report_document = None
         if report:
             results = self.get_report(test, starttime, endtime)
-            self.report_document = self.send_report(results, report)
+            report_document = self.send_report(results, report)
 
         # Give a second for any callbacks to finish.
         sleep(1)
-        
+
+        return report_document
+
     def endTest_listener(self, test):
         # Reset our Zombie Counter because we are still active
         #self.zombieDetector.resetTimer()
@@ -478,9 +479,10 @@ class MozMillRestart(MozMill):
             def stop(self):
                 pass
 
+        report_document = None
         if report:
             results = self.get_report(test_dir, starttime, endtime)
-            self.report_document = self.send_report(results, report)
+            report_document = self.send_report(results, report)
 
         # Set to None to avoid calling .stop
         self.runner = None
@@ -489,6 +491,9 @@ class MozMillRestart(MozMill):
         print "Passed %d :: Failed %d :: Skipped %d" % (len(self.passes),
                                                         len(self.fails),
                                                         len(self.skipped))
+
+        return report_document
+
 
 class CLI(jsbridge.CLI):
     mozmill_class = MozMill
