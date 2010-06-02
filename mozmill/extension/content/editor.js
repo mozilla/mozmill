@@ -111,7 +111,7 @@ function editorTab(content, filename) {
       editor.switchTab();
     } // this function is invoked by the iframe
   }, true);
-  iframeElement.src = "editor/editor.html";
+  iframeElement.src = "resource://mozmill/editor/editor.html";
   document.getElementById("editors").appendChild(iframeElement);
 
   this.iframeElement = iframeElement;
