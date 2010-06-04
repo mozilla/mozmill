@@ -182,6 +182,7 @@ class MozMill(object):
         
         self.endRunnerCalled = False
         self.create_network()
+        self.appinfo = self.get_appinfo(self.bridge)
 
     def run_tests(self, test, report=False, sleeptime = 4):
         # Reset our Zombie Because we are still active
@@ -259,14 +260,13 @@ class MozMill(object):
         return sysinfo
 
     def get_report(self, test, starttime, endtime):
-        app_info = self.get_appinfo(self.bridge)
         results = {'type' : self.report_type,
                    'starttime' : starttime, 
                    'endtime' :endtime,
                    'testPath' : test,
                    'tests' : self.alltests
                   }
-        results.update(app_info)
+        results.update(self.appinfo)
         results['sysinfo'] = self.get_sysinfo()
         return results
 
