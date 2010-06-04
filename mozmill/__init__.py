@@ -104,7 +104,7 @@ class TestsFailedException(Exception):
 
 class MozMill(object):
 
-    test_type = 'mozmill-test'
+    report_type = 'mozmill-test'
 
     def __init__(self, runner_class=mozrunner.FirefoxRunner, 
                  profile_class=mozrunner.FirefoxProfile, jsbridge_port=24242):
@@ -259,9 +259,8 @@ class MozMill(object):
         return sysinfo
 
     def get_report(self, test, starttime, endtime):
-        print "get report"
         app_info = self.get_appinfo(self.bridge)
-        results = {'type' : self.test_type,
+        results = {'type' : self.report_type,
                    'starttime' : starttime, 
                    'endtime' :endtime,
                    'testPath' : test,
@@ -300,7 +299,7 @@ class MozMill(object):
 
 class MozMillRestart(MozMill):
 	
-    test_type = 'mozmill-restart-test'
+    report_type = 'mozmill-restart-test'
 
     def __init__(self, *args, **kwargs):
         super(MozMillRestart, self).__init__(*args, **kwargs)
