@@ -308,15 +308,21 @@ Collector.prototype.addHttpResource = function (directory, ns) {
   if (!this.httpd) {
     this.startHttpd();
   }
-  if (ns == undefined) {
-    ns = uuidgen.generateUUID().toString().replace('-', '').replace('{', '').replace('}','');
+
+  if (!ns) {
+    ns = '/';
+  } else {
+    ns = '/' + ns + '/';
   }
-  var lp = Components.classes["@mozilla.org/file/local;1"]
-             .createInstance(Components.interfaces.nsILocalFile);
+
+  var lp = Components.classes["@mozilla.org/file/local;1"].
+           createInstance(Components.interfaces.nsILocalFile);
   lp.initWithPath(os.abspath(directory, this.current_file));
-  this.httpd.registerDirectory('/'+ns+'/', lp);
-  return 'http://localhost:'+this.http_port+'/'+ns+'/'
+  this.httpd.registerDirectory(ns, lp);
+
+  return 'http://localhost:' + this.http_port + ns
 }
+
 Collector.prototype.initTestModule = function (filename) {
   var test_module = loadFile(filename, this);
   test_module.__tests__ = [];
