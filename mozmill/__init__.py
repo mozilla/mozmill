@@ -110,6 +110,8 @@ class TestsFailedException(Exception):
 
 class MozMill(object):
 
+    report_type = 'mozmill-test'
+
     def __init__(self, runner_class=mozrunner.FirefoxRunner, 
                  profile_class=mozrunner.FirefoxProfile, jsbridge_port=24242):
         self.runner_class = runner_class
@@ -186,6 +188,7 @@ class MozMill(object):
         
         self.endRunnerCalled = False
         self.create_network()
+        self.appinfo = self.get_appinfo(self.bridge)
 
     def run_tests(self, test, report=False, sleeptime = 4):
         # Reset our Zombie Because we are still active
@@ -266,14 +269,13 @@ class MozMill(object):
         return sysinfo
 
     def get_report(self, test, starttime, endtime):
-        app_info = self.get_appinfo(self.bridge)
-        results = {'type' : 'mozmill-test',
+        results = {'type' : self.report_type,
                    'starttime' : starttime, 
                    'endtime' :endtime,
                    'testPath' : test,
                    'tests' : self.alltests
                   }
-        results.update(app_info)
+        results.update(self.appinfo)
         results['sysinfo'] = self.get_sysinfo()
         return results
 
@@ -321,6 +323,8 @@ class MozMill(object):
             sys.exit(1)
 
 class MozMillRestart(MozMill):
+	
+    report_type = 'mozmill-restart-test'
 
     def __init__(self, *args, **kwargs):
         super(MozMillRestart, self).__init__(*args, **kwargs)
@@ -438,18 +442,6 @@ class MozMillRestart(MozMill):
         if extension_path not in profile.addons:
             profile.install_addon(extension_path)
         profile.set_preferences(profile.preferences)
-    
-    def get_report(self, test, starttime, endtime):
-        app_info = self.appinfo
-        results = {'type' : 'mozmill-restart-test',
-                   'starttime' : starttime, 
-                   'endtime' :endtime,
-                   'testPath' : test,
-                   'tests' : self.alltests
-                  }
-        results.update(app_info)
-        results['sysinfo'] = self.get_sysinfo()
-        return results
     
     def run_tests(self, test_dir, report=False, sleeptime=4):
         # Zombie Counter Reset
