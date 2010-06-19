@@ -613,6 +613,16 @@ MozMillController.prototype.select = function (el, indx, option, value) {
     try {
       EventUtils.synthesizeMouse(element, 1, 1, {}, item.ownerDocument.defaultView);
       this.sleep(0);
+
+      // Scroll down until item is visible
+      for (var i = s = element.selectedIndex; i < element.itemCount + s; ++i) {
+        var entry = element.getItemAtIndex(i % element.itemCount);
+        EventUtils.synthesizeKey("VK_DOWN", {}, element.ownerDocument.defaultView);
+        if (entry.label == item.label) {
+          break;
+        }
+      }
+
       EventUtils.synthesizeMouse(item, 1, 1, {}, item.ownerDocument.defaultView);
       this.sleep(0);
 
