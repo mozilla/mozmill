@@ -45,15 +45,16 @@ from threading import Thread
 
 try:
     import json as simplejson
-except:
+    from json.encoder import encode_basestring_ascii, encode_basestring
+except ImportError:
     import simplejson
-
+    from simplejson.encoder import encode_basestring_ascii, encode_basestring
 
 logger = logging.getLogger(__name__)
 
 class JavaScriptException(Exception): pass
 
-class Telnet(object, asyncore.dispatcher):
+class Telnet(asyncore.dispatcher):
     def __init__(self, host, port):
         self.host, self.port = host, port
         asyncore.dispatcher.__init__(self)
@@ -66,6 +67,7 @@ class Telnet(object, asyncore.dispatcher):
         self.close()
 
     def handle_close(self):
+        """override method of asyncore.dispatcher"""
         self.close()
 
     def handle_expt(self): self.close() # connection failed, shutdown
@@ -77,9 +79,6 @@ class Telnet(object, asyncore.dispatcher):
         sent = self.send(self.buffer)
         self.buffer = self.buffer[sent:]
         
-    def send(self, b):
-        asyncore.dispatcher.send(self, b)
-
     def read_all(self):
         import socket
         data = ''
@@ -96,11 +95,6 @@ class Telnet(object, asyncore.dispatcher):
     read_callback = lambda self, data: None
 
 decoder = simplejson.JSONDecoder()
-
-try:
-    from json.encoder import encode_basestring_ascii, encode_basestring
-except:
-    from simplejson.encoder import encode_basestring_ascii, encode_basestring
 
 class JSObjectEncoder(simplejson.JSONEncoder):
     """Encoder that supports jsobject references by name."""
@@ -155,8 +149,11 @@ class JSObjectEncoder(simplejson.JSONEncoder):
 
 encoder = JSObjectEncoder()
 
-class JSBridgeDisconnectError(Exception): pass
-        
+class JSBridgeDisconnectError(Exception): 
+    """exception raised when an unexpected disconect happens"""
+
+
+
 class Bridge(Telnet):
     
     trashes = []
@@ -169,25 +166,42 @@ class Bridge(Telnet):
     bridge_type = "bridge"
     
     registered = False
+    timeout_ctr = 0. # global timeout counter
     
-    def __init__(self, *args, **kwargs):
-        Telnet.__init__(self, *args, **kwargs)
+    def __init__(self, host, port, timeout=60.):
+        """
+        - timeout : failsafe timeout for each call to run in seconds
+        """
+        self.timeout = timeout
+        Telnet.__init__(self, host, port)
         sleep(.1)
-        self.connect(args)
+
+        # XXX we've actually already connected in Telnet
+        self.connect((host, port))
     
     def handle_connect(self):
         self.register()
 
     def run(self, _uuid, exec_string, interval=.2, raise_exeption=True):
+
+
         exec_string += '\r\n'
         self.send(exec_string)
-        
+
         while _uuid not in self.callbacks.keys():
+
+            Bridge.timeout_ctr += interval
+            if Bridge.timeout_ctr > self.timeout:
+                print 'Timeout: %s' % exec_string
+                raise JSBridgeDisconnectError("Connection timed out")
+            
             sleep(interval)
             try:
                 self.send('')
             except socket.error:
-                raise JSBridgeDisconnectError("Connected disconnected.")
+                raise JSBridgeDisconnectError("Connected disconnected")
+
+        Bridge.timeout_ctr = 0. # reset the counter
         
         callback = self.callbacks.pop(_uuid)
         if callback['result'] is False and raise_exeption is True:
@@ -244,8 +258,8 @@ class BackChannel(Bridge):
     
     bridge_type = "backchannel"
     
-    def __init__(self, *args, **kwargs):
-        super(BackChannel, self).__init__(*args, **kwargs)
+    def __init__(self, host, port):
+        Bridge.__init__(self, host, port)
         self.uuid_listener_index = {}
         self.event_listener_index = {}
         self.global_listeners = []
@@ -264,6 +278,7 @@ class BackChannel(Bridge):
         self.global_listeners.append(callback)
 
     def fire_event(self, eventType=None, uuid=None, result=None, exception=None):
+        Bridge.timeout_ctr = 0. # reset the counter
         event = eventType
         if uuid is not None and self.uuid_listener_index.has_key(uuid):
             for callback in self.uuid_listener_index[uuid]:
