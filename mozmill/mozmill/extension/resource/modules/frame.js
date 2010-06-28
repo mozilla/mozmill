@@ -492,7 +492,7 @@ Runner.prototype._runTestModule = function (module) {
       module[req] = this.collector.getModule(req);
     }
   }
-  
+
   var attrs = [];
   for (i in module) {
     attrs.push(i);
@@ -511,7 +511,10 @@ Runner.prototype._runTestModule = function (module) {
   if (setupModulePassed) {
     for (i in module.__tests__) {
       var test = module.__tests__[i];
-      test.registeredFunctions = registeredFunctions;
+      
+      // TODO: introduce per-test timeout:
+      // https://bugzilla.mozilla.org/show_bug.cgi?id=574871
+
       if (module.__setupTest__) { 
         events.setState('setupTest');
         events.setTest(module.__setupTest__);
@@ -535,6 +538,7 @@ Runner.prototype._runTestModule = function (module) {
         events.endTest(module.__teardownTest__);
         }
       events.endTest(test)
+
     }
   } else {
     for each(test in module.__tests__) {
