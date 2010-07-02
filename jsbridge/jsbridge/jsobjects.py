@@ -122,8 +122,7 @@ class JSFunction(JSObject):
         self._name_ = name
         self._description_ = description
     
-    def __call__(self, *args, **kwargs):
-        assert len(kwargs) is 0
+    def __call__(self, *args):
         response = self._bridge_.execFunction(self._name_, args)
         if response['data'] is not None:
             return create_jsobject(self._bridge_, response['data'], override_set=True)

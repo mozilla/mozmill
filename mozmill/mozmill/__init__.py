@@ -73,6 +73,9 @@ class ZombieDetector(object):
     """ Determines if the browser has stopped talking to us.  We assume that
         if this happens the browser is in a hung state and the test run
         should be terminated. """
+    # XXX currently unused ;
+    # see https://bugzilla.mozilla.org/show_bug.cgi?id=504440
+
     def __init__(self, stopfunction):
         self.stopfunction = stopfunction
         self.doomsdayTimer = threading.Timer(1800, stopfunction) # 30 minutes
@@ -112,11 +115,22 @@ class MozMill(object):
 
     report_type = 'mozmill-test'
 
-    def __init__(self, runner_class=mozrunner.FirefoxRunner, 
-                 profile_class=mozrunner.FirefoxProfile, jsbridge_port=24242):
+    def __init__(self,
+                 runner_class=mozrunner.FirefoxRunner, 
+                 profile_class=mozrunner.FirefoxProfile,
+                 jsbridge_port=24242,
+                 jsbridge_timeout=60):
+        """
+        - runner_class : which mozrunner class to use
+        - profile_class : which class to use to generate application profiles
+        - jsbridge_port : port jsbridge uses to connect to to the application
+        - jsbridge_timeout : how long to go without jsbridge communication
+        """
+        
         self.runner_class = runner_class
         self.profile_class = profile_class
         self.jsbridge_port = jsbridge_port
+        self.jsbridge_timeout = jsbridge_timeout
 
         self.passes = [] ; self.fails = [] ; self.skipped = []
         self.alltests = []
@@ -163,8 +177,14 @@ class MozMill(object):
         self.fire_python_callback(obj['method'], obj['arg'], python_callbacks_module)
 
     def create_network(self):
+
+        # get the bridge and the back-channel
         self.back_channel, self.bridge = jsbridge.wait_and_create_network("127.0.0.1",
                                                                           self.jsbridge_port)
+
+        # set a timeout on jsbridge actions in order to ensure termination
+        self.back_channel.timeout = self.bridge.timeout = self.jsbridge_timeout
+        
         # Assign listeners to the back channel
         for listener in self.listeners:
             self.back_channel.add_listener(listener[0], **listener[1])
@@ -456,7 +476,7 @@ class MozMillRestart(MozMill):
         self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
         # self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
 
-        if len(test_dirs) is 0:
+        if not len(test_dirs):
             test_dirs = [test_dir]
         
         starttime = datetime.utcnow().isoformat()        
@@ -467,10 +487,6 @@ class MozMillRestart(MozMill):
         profile = self.runner.profile
         profile.cleanup()
                 
-        class Blank(object):
-            def stop(self):
-                pass
-
         report_document = None
         if report:
             results = self.get_report(test_dir, starttime, endtime)
@@ -502,15 +518,19 @@ class CLI(jsbridge.CLI):
                                          help="Report the results. Requires url to results server.")
     parser_options[("--showall",)] = dict(dest="showall", default=False, action="store_true",
                                          help="Show all test output.")
+    parser_options[("--timeout",)] = dict(dest="timeout", type="float",
+                                          default=60., 
+                                          help="seconds before harness timeout if no communication is taking place")
 
     def __init__(self, *args, **kwargs):
         super(CLI, self).__init__(*args, **kwargs)
         self.mozmill = self.mozmill_class(runner_class=mozrunner.FirefoxRunner,
                                           profile_class=mozrunner.FirefoxProfile,
-                                          jsbridge_port=int(self.options.port))
+                                          jsbridge_port=int(self.options.port),
+                                          jsbridge_timeout=self.options.timeout
+                                          )
 
         self.mozmill.add_global_listener(LoggerListener())
-
 
     def get_profile(self, *args, **kwargs):
         profile = super(CLI, self).get_profile(*args, **kwargs)
@@ -519,6 +539,8 @@ class CLI(jsbridge.CLI):
 
     def _run(self):
         runner = self.create_runner()
+
+        # make sure the application starts in the foreground
         if '-foreground' not in runner.cmdargs:
             runner.cmdargs.append('-foreground')
 
@@ -550,8 +572,9 @@ class CLI(jsbridge.CLI):
                 self.mozmill.run_tests(os.path.abspath(os.path.expanduser(self.options.test)), 
                             self.options.report)
             except JSBridgeDisconnectError:
-                print 'Application unexpectedly closed'
+                print >> sys.stderr, 'Disconnect Error: Application unexpectedly closed'
                 if self.mozmill.runner is not None:
+                    self.mozmill.runner.kill()
                     self.mozmill.runner.profile.cleanup()
                 sys.exit(1)
             
