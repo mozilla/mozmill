@@ -1,3 +1,5 @@
+Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
+
 const nsIAppShellService    = Components.interfaces.nsIAppShellService;
 const nsISupports           = Components.interfaces.nsISupports;
 const nsICategoryManager    = Components.interfaces.nsICategoryManager;
@@ -42,12 +44,19 @@ function openWindow(aChromeURISpec, aArgument)
                 "chrome,menubar,toolbar,status,resizable,dialog=no",
                 aArgument);
 }
- 
+
 /**
  * The XPCOM component that implements nsICommandLineHandler.
  * It also implements nsIFactory to serve as its own singleton factory.
  */
-const jsbridgeHandler = {
+function jsbridgeHandler() {
+}
+jsbridgeHandler.prototype = {
+  classID: clh_CID,
+  contractID: clh_contractID,
+  classDescription: "jsbridgeHandler",
+  _xpcom_categories: [{category: "command-line-handler", entry: clh_category}],
+
   /* nsISupports */
   QueryInterface : function clh_QI(iid)
   {
@@ -66,12 +75,11 @@ const jsbridgeHandler = {
     try {
       var port = cmdLine.handleFlagWithParam("jsbridge", false);
       if (port) {
-        var server = {}; 
+        var server = {};
         Components.utils.import('resource://jsbridge/modules/server.js', server);
         server.startServer(parseInt(port));
-        // dump(port);
       } else {
-        var server = {}; 
+        var server = {};
         Components.utils.import('resource://jsbridge/modules/server.js', server);
         server.startServer(24242);
       }
@@ -107,66 +115,10 @@ const jsbridgeHandler = {
 };
 
 /**
- * The XPCOM glue that implements nsIModule
+ * XPCOMUtils.generateNSGetFactory was introduced in Mozilla 2 (Firefox 4).
+ * XPCOMUtils.generateNSGetModule is for Mozilla 1.9.1 (Firefox 3.5).
  */
-const jsbridgeHandlerModule = {
-  /* nsISupports */
-  QueryInterface : function mod_QI(iid)
-  {
-    if (iid.equals(nsIModule) ||
-        iid.equals(nsISupports))
-      return this;
-
-    throw Components.results.NS_ERROR_NO_INTERFACE;
-  },
-
-  /* nsIModule */
-  getClassObject : function mod_gch(compMgr, cid, iid)
-  {
-    if (cid.equals(clh_CID))
-      return jsbridgeHandler.QueryInterface(iid);
-
-    throw Components.results.NS_ERROR_NOT_REGISTERED;
-  },
-
-  registerSelf : function mod_regself(compMgr, fileSpec, location, type)
-  {
-    compMgr.QueryInterface(nsIComponentRegistrar);
-
-    compMgr.registerFactoryLocation(clh_CID,
-                                    "jsbridgeHandler",
-                                    clh_contractID,
-                                    fileSpec,
-                                    location,
-                                    type);
-
-    var catMan = Components.classes["@mozilla.org/categorymanager;1"].
-      getService(nsICategoryManager);
-    catMan.addCategoryEntry("command-line-handler",
-                            clh_category,
-                            clh_contractID, true, true);
-  },
-
-  unregisterSelf : function mod_unreg(compMgr, location, type)
-  {
-    compMgr.QueryInterface(nsIComponentRegistrar);
-    compMgr.unregisterFactoryLocation(clh_CID, location);
-
-    var catMan = Components.classes["@mozilla.org/categorymanager;1"].
-      getService(nsICategoryManager);
-    catMan.deleteCategoryEntry("command-line-handler", clh_category);
-  },
-
-  canUnload : function (compMgr)
-  {
-    return true;
-  }
-};
-
-/* The NSGetModule function is the magic entry point that XPCOM uses to find what XPCOM objects
- * this component provides
- */
-function NSGetModule(comMgr, fileSpec)
-{
-  return jsbridgeHandlerModule;
-}
+if (XPCOMUtils.generateNSGetFactory)
+  const NSGetFactory = XPCOMUtils.generateNSGetFactory([jsbridgeHandler]);
+else
+  const NSGetModule = XPCOMUtils.generateNSGetModule([jsbridgeHandler]);
