@@ -5122,8 +5122,10 @@ Request.prototype =
 
 
 // XPCOM trappings
-
-var NSGetFactory = XPCOMUtils.generateNSGetFactory([nsHttpServer]);
+if (XPCOMUtils.generateNSGetFactory)
+  var NSGetFactory = XPCOMUtils.generateNSGetFactory([nsHttpServer]);
+else
+  var NSGetModule = XPCOMUtils.generateNSGetModule([nsHttpServer]);
 
 /**
  * Creates a new HTTP server listening for loopback traffic on the given port,
