@@ -545,7 +545,7 @@ MozMillController.prototype.fireEvent = function (name, obj) {
 
 MozMillController.prototype.startUserShutdown = function (timeout, mode) {
   this.fireEvent('userShutdown', mode);
-  this.window.setTimeout(this.fireEvent, timeout, 'userShutdown', 0);
+  this.window.setTimeout(this.fireEvent, timeout, 'userShutdown', 1);
 }
 
 /* Select the specified option and trigger the relevant events of the element.*/

@@ -1,12 +1,14 @@
 var setupModule = function(module) {
-  controller = mozmill.getBrowserController();
+  module.controller = mozmill.getBrowserController();
 }
 
 /**
- * This test should fail
- * (Expected restart but none detected)
+ * This test should pass
  */
-var testNoExpectedRestart = function(){
-  controller.startUserShutdown(1000);
-  controller.sleep(2000);
+var testRestartBeforeTimeout = function() {
+  controller.startUserShutdown(4000, 2);
+  controller.click(new elementslib.ID(controller.window.document, "file-menu"));
+  controller.sleep(100);
+  controller.click(new elementslib.ID(controller.window.document, "menu_fileQuitItem"));
+  controller.window.alert("Should not see this");
 }
