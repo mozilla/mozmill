@@ -137,14 +137,19 @@ class MozMill(object):
 
         self.persisted = {}
         self.endRunnerCalled = False
+        self.shutdownModes = self.enum('default', 'user_shutdown', 'user_restart')
+        self.currentShutdownMode = self.shutdownModes.default
         self.userShutdownEnabled = False
-        self.isUserShutdown = False
         #self.zombieDetector = ZombieDetector(self.stop)
         self.global_listeners = []
         self.listeners = []
         self.add_listener(self.persist_listener, eventType="mozmill.persist")
         self.add_listener(self.endTest_listener, eventType='mozmill.endTest')
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
+
+    def enum(*sequential, **named):
+        enums = dict(zip(sequential, range(len(sequential))), **named)
+        return type('Enum', (), enums)
 
     def add_listener(self, callback, **kwargs):
         self.listeners.append((callback, kwargs,))
@@ -260,7 +265,6 @@ class MozMill(object):
                                                         len(self.fails),
                                                         len(self.skipped))
         self.endRunnerCalled = True
-
 
     def get_appinfo(self, bridge):
         mozmill = jsbridge.JSObject(bridge, mozmillModuleJs)
@@ -378,7 +382,7 @@ class MozMillRestart(MozMill):
         # Reset the zombie counter
         #self.zombieDetection.resetTimer()
 
-        if not self.isUserShutdown:
+        if self.currentShutdownMode != self.shutdownModes.user_restart:
             self.runner.start()
 
         self.create_network()
@@ -410,6 +414,8 @@ class MozMillRestart(MozMill):
         self.endRunnerCalled = True
 
     def userShutdown_listener(self, obj):
+        if obj in [self.shutdownModes.default, self.shutdownModes.user_restart, self.shutdownModes.user_shutdown]:
+            self.currentShutdownMode = obj
         self.userShutdownEnabled = not self.userShutdownEnabled
 
     def run_dir(self, test_dir, report=False, sleeptime=4):
@@ -437,13 +443,13 @@ class MozMillRestart(MozMill):
 
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
         self.add_listener(self.userShutdown_listener, eventType='mozmill.userShutdown')
-        
+
         if os.path.isfile(os.path.join(test_dir, 'callbacks.py')):
             self.python_callbacks_module = imp.load_source('callbacks', os.path.join(test_dir, 'callbacks.py'))
 
         for test in tests:
             frame = self.start_runner()
-            self.isUserShutdown = False
+            self.currentShutdownMode = self.shutdownModes.default
             self.endRunnerCalled = False
             sleep(sleeptime)
 
@@ -457,7 +463,6 @@ class MozMillRestart(MozMill):
             except JSBridgeDisconnectError:
                 if not self.userShutdownEnabled:
                     raise JSBridgeDisconnectError()
-                self.isUserShutdown = True
             self.userShutdownEnabled = False
 
             for callback in self.python_callbacks:
