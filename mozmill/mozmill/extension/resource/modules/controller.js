@@ -544,6 +544,7 @@ MozMillController.prototype.fireEvent = function (name, obj) {
 }
 
 MozMillController.prototype.startUserShutdown = function (timeout, restart) {
+  // 1 = default shutdown, 2 = user shutdown, 3 = user restart
   this.fireEvent('userShutdown', restart ? 3 : 2);
   this.window.setTimeout(this.fireEvent, timeout, 'userShutdown', 1);
 }
