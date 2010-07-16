@@ -419,7 +419,6 @@ class MozMillRestart(MozMill):
         self.userShutdownEnabled = not self.userShutdownEnabled
 
     def run_dir(self, test_dir, report=False, sleeptime=4):
-	#print "Run dir: " + test_dir
         # Reset our Zombie counter on each directory
         #self.zombieDetection.resetTimer()
 
@@ -495,7 +494,7 @@ class MozMillRestart(MozMill):
         
         #self.add_listener(self.endTest_listener, eventType='mozmill.endTest')
         self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
-        # self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
+        #self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
 
         if not len(test_dirs):
             test_dirs = [test_dir]
