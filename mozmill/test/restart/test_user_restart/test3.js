@@ -7,6 +7,6 @@ var setupModule = function(module) {
  * (Expected restart but none detected)
  */
 var testNoExpectedRestart = function(){
-  controller.startUserShutdown(1000, 3);
+  controller.startUserShutdown(1000, true);
   controller.sleep(2000);
 }

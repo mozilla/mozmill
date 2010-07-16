@@ -6,7 +6,7 @@ var setupModule = function(module) {
  * This test should fail and then exit with a 'Disconnect Error: Application Unexpectedly Closed'
  */
 var testRestartAfterTimeout = function(){
-  controller.startUserShutdown(1000, 3);
+  controller.startUserShutdown(1000, true);
   controller.sleep(2000);
   controller.window.Application.restart();
 }
