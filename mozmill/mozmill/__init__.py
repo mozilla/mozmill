@@ -48,6 +48,7 @@ import threading
 import traceback
 import urllib
 import urlparse
+import pdb
 
 try:
     import json
@@ -137,6 +138,8 @@ class MozMill(object):
 
         self.persisted = {}
         self.endRunnerCalled = False
+        self.userShutdownEnabled = False
+        self.isUserShutdown = False
         #self.zombieDetector = ZombieDetector(self.stop)
         self.global_listeners = []
         self.listeners = []
@@ -376,7 +379,8 @@ class MozMillRestart(MozMill):
         # Reset the zombie counter
         #self.zombieDetection.resetTimer()
 
-        self.runner.start()
+        if not self.isUserShutdown:
+            self.runner.start()
 
         self.create_network()
         self.appinfo = self.get_appinfo(self.bridge)
@@ -406,7 +410,11 @@ class MozMillRestart(MozMill):
     def endRunner_listener(self, obj):
         self.endRunnerCalled = True
 
+    def userShutdown_listener(self, obj):
+        self.userShutdownEnabled = not self.userShutdownEnabled
+
     def run_dir(self, test_dir, report=False, sleeptime=4):
+	#print "Run dir: " + test_dir
         # Reset our Zombie counter on each directory
         #self.zombieDetection.resetTimer()
 
@@ -429,21 +437,30 @@ class MozMillRestart(MozMill):
                 counter += 1
 
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
+        self.add_listener(self.userShutdown_listener, eventType='mozmill.userShutdown')
         
         if os.path.isfile(os.path.join(test_dir, 'callbacks.py')):
             self.python_callbacks_module = imp.load_source('callbacks', os.path.join(test_dir, 'callbacks.py'))
-        
+
         for test in tests:
             frame = self.start_runner()
+            self.isUserShutdown = False
             self.endRunnerCalled = False
             sleep(sleeptime)
 
             frame.persisted = self.persisted
-            frame.runTestFile(test)
-            while not self.endRunnerCalled:
-                sleep(.25)
-            self.stop_runner()
-            sleep(2)
+            try:
+                frame.runTestFile(test)
+                while not self.endRunnerCalled:
+                    sleep(.25)
+                self.stop_runner()
+                sleep(2)
+            except JSBridgeDisconnectError:
+                if not self.userShutdownEnabled:
+                    raise JSBridgeDisconnectError()
+                self.isUserShutdown = True
+            self.userShutdownEnabled = False
+
             for callback in self.python_callbacks:
                 self.fire_python_callback(callback['method'], callback['arg'], self.python_callbacks_module)
             self.python_callbacks = []
@@ -472,7 +489,7 @@ class MozMillRestart(MozMill):
         test_dirs = [d for d in os.listdir(os.path.abspath(os.path.expanduser(test_dir))) 
                      if d.startswith('test') and os.path.isdir(os.path.join(test_dir, d))]
         
-        self.add_listener(self.endTest_listener, eventType='mozmill.endTest')
+        #self.add_listener(self.endTest_listener, eventType='mozmill.endTest')
         self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
         # self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
 
