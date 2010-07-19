@@ -513,7 +513,6 @@ class MozMillRestart(MozMill):
         test_dirs = [d for d in os.listdir(os.path.abspath(os.path.expanduser(test_dir))) 
                      if d.startswith('test') and os.path.isdir(os.path.join(test_dir, d))]
         
-        #self.add_listener(self.endTest_listener, eventType='mozmill.endTest')
         self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
         #self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
 
