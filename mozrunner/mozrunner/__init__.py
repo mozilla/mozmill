@@ -143,12 +143,8 @@ def kill_process_by_name(name):
                 if len(get_pids(name)) is not 0:
                     logger.error('Could not kill process')
 
-def NaN(str):
-    try: int(str); return False;
-    except: return True
-
 def makedirs(name):
-    # from errno import EEXIST
+
     head, tail = os.path.split(name)
     if not tail:
         head, tail = os.path.split(head)
@@ -167,24 +163,29 @@ def makedirs(name):
 class Profile(object):
     """Handles all operations regarding profile. Created new profiles, installs extensions,
     sets preferences and handles cleanup."""
-    def __init__(self, binary=None, profile=None, create_new=True, addons=[], preferences={}):
-        self.addons_installed = []
-        self.profile = profile
-        self.binary = binary
-        self.create_new = create_new
-        self.addons = addons
-        if not hasattr(self, 'preferences'):
-            self.preferences = preferences
-        else:
-            self.preferences = copy.copy(self.preferences)
-            self.preferences.update(preferences)
 
-        if profile is not None and create_new is True:
-            raise Exception('You cannot set the profie location if you want mozrunner to create a new one for you.')
-        if create_new is False and profile is None:
-            raise Exception('If you set create_new to False you must provide the location of the profile you would like to run')
-        if create_new is True:
+    def __init__(self, binary=None, profile=None, addons=None,
+                 preferences=None):
+
+        self.binary = binary
+
+        self.create_new = not(bool(profile))
+        if profile:
+            self.profile = profile
+        else:
             self.profile = self.create_new_profile(self.binary)
+
+        self.addons_installed = []
+        self.addons = addons
+
+        ### set preferences from class preferences
+        prefereneces = preferences or {}
+        if hasattr(self.__class__, 'preferences'):
+            self.preferences = self.__class__.preferences.copy()
+        else:
+            self.preferences = {}
+        self.preferences.update(preferences)
+
         for addon in addons:
             self.install_addon(addon)
 
@@ -193,10 +194,6 @@ class Profile(object):
     def create_new_profile(self, binary):
         """Create a new clean profile in tmp which is a simple empty folder"""
         profile = tempfile.mkdtemp(suffix='.mozrunner')
-        if os.path.exists(profile) is True:
-            rmtree(profile)
-        makedirs(profile)
-
         return profile
 
     def install_addon(self, addon):
@@ -456,14 +453,9 @@ class CLI(object):
                                                 metavar=None, default=None),
                       ('-p', "--profile",): dict(dest="profile", help="Profile path.",
                                                  metavar=None, default=None),
-                      ('-a', "--addons",): dict(dest="addons",
+                      ('-a', "--addons",): dict(dest="addons", 
                                                 help="Addons paths to install.",
                                                 metavar=None, default=None),
-                      ("-n", "--no-new-profile",): dict(dest="create_new",
-                                                        action="store_false",
-                                                        help="Do not create new profile.",
-                                                        metavar="MOZRUNNER_NEW_PROFILE",
-                                                        default=True ),
                      }
 
     def __init__(self):
@@ -473,6 +465,7 @@ class CLI(object):
             self.parser.add_option(*names, **opts)
         (self.options, self.args) = self.parser.parse_args()
 
+        # XXX should use action='append' instead of rolling our own
         try:
             self.addons = self.options.addons.split(',')
         except:
@@ -483,7 +476,6 @@ class CLI(object):
         runner = self.get_runner(binary=self.options.binary)
         profile = self.get_profile(binary=runner.binary,
                                    profile=self.options.profile,
-                                   create_new=self.options.create_new,
                                    addons=self.addons)
         runner.profile = profile
         return runner
@@ -493,10 +485,11 @@ class CLI(object):
         the profile instance returned from self.get_profile()."""
         return self.runner_class(binary, profile)
 
-    def get_profile(self, binary=None, profile=None, create_new=None, addons=[],
-                    preferences={}):
+    def get_profile(self, binary=None, profile=None, addons=None, preferences=None):
         """Returns the profile instance for the given command line arguments."""
-        return self.profile_class(binary, profile, create_new, addons, preferences)
+        addons = addons or []
+        preferences = preferences or {}
+        return self.profile_class(binary, profile, addons, preferences)
 
     def run(self):
         runner = self.create_runner()
