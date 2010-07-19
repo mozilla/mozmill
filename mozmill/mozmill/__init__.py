@@ -137,7 +137,7 @@ class MozMill(object):
 
         self.persisted = {}
         self.endRunnerCalled = False
-        self.shutdownModes = self.enum('default', 'user_shutdown', 'user_restart')
+        self.shutdownModes = enum('default', 'user_shutdown', 'user_restart')
         self.currentShutdownMode = self.shutdownModes.default
         self.userShutdownEnabled = False
         #self.zombieDetector = ZombieDetector(self.stop)
@@ -146,10 +146,6 @@ class MozMill(object):
         self.add_listener(self.persist_listener, eventType="mozmill.persist")
         self.add_listener(self.endTest_listener, eventType='mozmill.endTest')
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
-
-    def enum(*sequential, **named):
-        enums = dict(zip(sequential, range(len(sequential))), **named)
-        return type('Enum', (), enums)
 
     def add_listener(self, callback, **kwargs):
         self.listeners.append((callback, kwargs,))
@@ -382,6 +378,7 @@ class MozMillRestart(MozMill):
         # Reset the zombie counter
         #self.zombieDetection.resetTimer()
 
+        # if user_restart we don't need to start the browser back up
         if self.currentShutdownMode != self.shutdownModes.user_restart:
             self.runner.start()
 
@@ -641,6 +638,10 @@ class RestartCLI(CLI):
 class ThunderbirdCLI(CLI):
     profile_class = mozrunner.ThunderbirdProfile
     runner_class = mozrunner.ThunderbirdRunner
+
+def enum(*sequential, **named):
+    enums = dict(zip(sequential, range(len(sequential))), **named)
+    return type('Enum', (), enums)
 
 def cli():
     CLI().run()
