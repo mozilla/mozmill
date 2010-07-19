@@ -4,7 +4,7 @@ var setupModule = function(module) {
 
 /**
  * This test should fail
- * (Expected restart but none detected)
+ * (Restart expected but none detected before timeout)
  */
 var testNoExpectedRestart = function(){
   controller.startUserShutdown(1000, true);
