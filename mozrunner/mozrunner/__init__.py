@@ -353,7 +353,7 @@ class Runner(object):
                 # assumes self.app_name is defined, as it should be for
                 # implementors
                 import _winreg
-                app_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\Mozilla\Mozilla %s" self.app_name)
+                app_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\Mozilla\Mozilla %s" % self.app_name)
                 version, _type = _winreg.QueryValueEx(app_key, "CurrentVersion")
                 version_key = _winreg.OpenKey(app_key, version + r"\Main")
                 path, _ = _winreg.QueryValueEx(version_key, "PathToExe")
