@@ -69,7 +69,7 @@ def wait_and_create_network(host, port, timeout=wait_to_create_timeout):
         sleep(.25)
         ttl += .25
     if ttl == timeout:
-        raise Exception("Sorry, cannot connect to jsbridge extension")
+        raise Exception("Sorry, cannot connect to jsbridge extension, port %s" % port)
     
     back_channel, bridge = create_network(host, port)
     sleep(.5)

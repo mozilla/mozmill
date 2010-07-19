@@ -54,6 +54,7 @@ try:
 except:
     import simplejson as json
 
+# setup logger
 import logging
 logger = logging.getLogger('mozmill')
 
@@ -90,21 +91,28 @@ class ZombieDetector(object):
 
 class LoggerListener(object):
     cases = {
-        'mozmill.pass':   lambda obj: logger.debug('Test Pass: '+repr(obj)),
-        'mozmill.fail':   lambda obj: logger.error('Test Failure: '+repr(obj)),
-        'mozmill.skip':   lambda obj: logger.info('Test Skipped: ' +repr(obj))
+        'mozmill.pass':   lambda string: logger.info('Step Pass: ' + string),
+        'mozmill.fail':   lambda string: logger.error('Test Failure: ' + string),
+        'mozmill.skip':   lambda string: logger.info('Test Skipped: ' + string)
     }
     
     class default(object):
         def __init__(self, eName): self.eName = eName
-        def __call__(self, obj): logger.info(self.eName+' :: '+repr(obj))
+        def __call__(self, string):
+            if string:
+                logger.debug(self.eName + ' | ' + string)
+            else:
+                logger.debug(self.eName)
     
     def __call__(self, eName, obj):
-        if self.cases.has_key(eName):
-            self.cases[eName](obj)
+        if obj == {}:
+            string = ''
         else:
+            string = json.dumps(obj)
+
+        if eName not in self.cases:
             self.cases[eName] = self.default(eName)
-            self.cases[eName](obj)
+        self.cases[eName](string)
 
 
 class TestsFailedException(Exception):
@@ -138,11 +146,14 @@ class MozMill(object):
         self.persisted = {}
         self.endRunnerCalled = False
         #self.zombieDetector = ZombieDetector(self.stop)
+
+        # setup event listeners
         self.global_listeners = []
         self.listeners = []
         self.add_listener(self.persist_listener, eventType="mozmill.persist")
         self.add_listener(self.endTest_listener, eventType='mozmill.endTest')
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
+        self.add_listener(self.startTest_listener, eventType='mozmill.setTest')
 
     def add_listener(self, callback, **kwargs):
         self.listeners.append((callback, kwargs,))
@@ -219,7 +230,7 @@ class MozMill(object):
         sleep(sleeptime)
         starttime = datetime.utcnow().isoformat()
 
-        ''' transfer persisted data '''
+        # transfer persisted data
         frame.persisted = self.persisted
 
         if os.path.isdir(test):
@@ -239,26 +250,33 @@ class MozMill(object):
 
         return report_document
 
+    def startTest_listener(self, test):
+        print "TEST-START | %s | %s" % (test['filename'], test['name'])
+
     def endTest_listener(self, test):
         # Reset our Zombie Counter because we are still active
         #self.zombieDetector.resetTimer()
 
         self.alltests.append(test)
         if test.get('skipped', False):
-            print "Test Skipped : %s | %s" % (test['name'], test.get('skipped_reason', ''))
+            print "WARNING | %s | (SKIP) %s" % (test['name'], test.get('skipped_reason', ''))
             self.skipped.append(test)
         elif test['failed'] > 0:
-            print "Test Failed : %s in %s" % (test['name'], test['filename'])
+            print "TEST-UNEXPECTED-FAIL | %s | %s" % (test['filename'], test['name'])
             self.fails.append(test)
         else:
+            print "TEST-PASS | %s | %s" % (test['filename'], test['name'])
             self.passes.append(test)
 
     def endRunner_listener(self, obj):
-        print "Passed %d :: Failed %d :: Skipped %d" % (len(self.passes),
-                                                        len(self.fails),
-                                                        len(self.skipped))
+        self.printStats()
         self.endRunnerCalled = True
 
+
+    def printStats(self):
+        print "INFO Passed: %d" % len(self.passes)
+        print "INFO Failed: %d" % len(self.fails)
+        print "INFO Skipped: %d" % len(self.skipped)
 
     def get_appinfo(self, bridge):
         mozmill = jsbridge.JSObject(bridge, mozmillModuleJs)
@@ -338,7 +356,7 @@ class MozMill(object):
             sleep(1);
             x += 1
         if timeout == x:
-            print "endRunner was never called. There must have been a failure in the framework."
+            print "WARNING | endRunner was never called. There must have been a failure in the framework."
             self.runner.profile.cleanup()
             sys.exit(1)
 
@@ -352,6 +370,7 @@ class MozMillRestart(MozMill):
 
     def add_listener(self, callback, **kwargs):
         self.listeners.append((callback, kwargs,))
+
     def add_global_listener(self, callback):
         self.global_listeners.append(callback)
     
@@ -410,6 +429,7 @@ class MozMillRestart(MozMill):
         # Reset our Zombie counter on each directory
         #self.zombieDetection.resetTimer()
 
+        # TODO:  document this behaviour!
         if os.path.isfile(os.path.join(test_dir, 'testPre.js')):   
             pre_test = os.path.join(test_dir, 'testPre.js')
             post_test = os.path.join(test_dir, 'testPost.js') 
@@ -469,6 +489,9 @@ class MozMillRestart(MozMill):
 
         self.report_document = None
 
+        # XXX this allows for only one sub-level of test directories
+        # is this a spec or a side-effect?
+        # If the former, it should be documented
         test_dirs = [d for d in os.listdir(os.path.abspath(os.path.expanduser(test_dir))) 
                      if d.startswith('test') and os.path.isdir(os.path.join(test_dir, d))]
         
@@ -496,9 +519,8 @@ class MozMillRestart(MozMill):
         self.runner = None
         sleep(1) # Give a second for any pending callbacks to finish
 
-        print "Passed %d :: Failed %d :: Skipped %d" % (len(self.passes),
-                                                        len(self.fails),
-                                                        len(self.skipped))
+        # print pass/failed/skipped statistics
+        self.printStats()
 
         return report_document
 
@@ -523,17 +545,36 @@ class CLI(jsbridge.CLI):
                                           help="seconds before harness timeout if no communication is taking place")
 
     def __init__(self, *args, **kwargs):
-        super(CLI, self).__init__(*args, **kwargs)
+        jsbridge.CLI.__init__(self, *args, **kwargs)
         self.mozmill = self.mozmill_class(runner_class=mozrunner.FirefoxRunner,
                                           profile_class=mozrunner.FirefoxProfile,
                                           jsbridge_port=int(self.options.port),
-                                          jsbridge_timeout=self.options.timeout
+                                          jsbridge_timeout=self.options.timeout,
                                           )
 
+        # expand user directory and check existence for the test
+        if self.options.test:
+            self.options.test = os.path.abspath(os.path.expanduser(self.options.test))
+            if ( ( not os.path.isdir(self.options.test) )
+                 and ( not os.path.isfile(self.options.test) ) ):
+                raise Exception("Not a valid test file/directory")
+
+        # setup log formatting
         self.mozmill.add_global_listener(LoggerListener())
+        log_options = { 'format': "%(levelname)s | %(message)s",
+                        'level': logging.CRITICAL }
+        if self.options.showerrors:
+            log_options['level'] = logging.ERROR
+        if self.options.logfile:
+            log_options['filename'] = self.options.logfile
+            log_options['filemode'] = 'w'
+            log_options['level'] = logging.DEBUG
+        if self.options.test and self.options.showall:
+            log_options['level'] = logging.DEBUG    
+        logging.basicConfig(**log_options)
 
     def get_profile(self, *args, **kwargs):
-        profile = super(CLI, self).get_profile(*args, **kwargs)
+        profile = jsbridge.CLI.get_profile(self, *args, **kwargs)
         profile.install_addon(extension_path)
         return profile
 
@@ -544,35 +585,13 @@ class CLI(jsbridge.CLI):
         if '-foreground' not in runner.cmdargs:
             runner.cmdargs.append('-foreground')
 
-        if self.options.test:
-            t = os.path.abspath(os.path.expanduser(self.options.test))
-            if ( not os.path.isdir(t) ) and ( not os.path.isfile(t) ):
-                raise Exception("Not a valid test file/directory")
-
         self.mozmill.start(runner=runner, profile=runner.profile)
-        if self.options.showerrors:
-            outs = logging.StreamHandler()
-            outs.setLevel(logging.ERROR)
-            formatter = logging.Formatter("%(levelname)s - %(message)s")
-            outs.setFormatter(formatter)
-            logger.addHandler(outs)
-        if self.options.logfile:
-            logging.basicConfig(filename=self.options.logfile, 
-                                filemode='w', level=logging.DEBUG)
-        if ( not self.options.showall) and (
-             not self.options.showerrors) and (
-             not self.options.logfile):
-            logging.basicConfig(level=logging.CRITICAL)
         
         if self.options.test:
-            if self.options.showall:
-                logging.basicConfig(level=logging.DEBUG)
-                self.options.showall = False
             try:
-                self.mozmill.run_tests(os.path.abspath(os.path.expanduser(self.options.test)), 
-                            self.options.report)
+                self.mozmill.run_tests(self.options.test, self.options.report)
             except JSBridgeDisconnectError:
-                print >> sys.stderr, 'Disconnect Error: Application unexpectedly closed'
+                print >> sys.stderr, 'TEST-UNEXPECTED-FAIL | Disconnect Error: Application unexpectedly closed'
                 if self.mozmill.runner is not None:
                     self.mozmill.runner.kill()
                     self.mozmill.runner.profile.cleanup()
@@ -616,7 +635,7 @@ class RestartCLI(CLI):
             print "Restart test CLI cannot be run without arguments, try --help for usage."
             sys.exit(1)
         else:
-            super(RestartCLI, self).run(*args, **kwargs)
+            CLI.run(self, *args, **kwargs)
 
 class ThunderbirdCLI(CLI):
     profile_class = mozrunner.ThunderbirdProfile
