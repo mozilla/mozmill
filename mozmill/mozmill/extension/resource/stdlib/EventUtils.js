@@ -29,9 +29,10 @@ function getKeyEvent(aWindow) {
  */
 
 /**
- * Send a mouse event to the node with id aTarget. The "event" passed in to
- * aEvent is just a JavaScript object with the properties set that the real
- * mouse event object should have. This includes the type of the mouse event.
+ * Send a mouse event to the node aTarget (aTarget can be an id, or an
+ * actual node) . The "event" passed in to aEvent is just a JavaScript
+ * object with the properties set that the real mouse event object should
+ * have. This includes the type of the mouse event.
  * E.g. to send an click event to the node with id 'node' you might do this:
  *
  * sendMouseEvent({type:'click'}, 'node');
@@ -43,6 +44,10 @@ function sendMouseEvent(aEvent, aTarget, aWindow) {
 
   if (!aWindow) {
     aWindow = window;
+  }
+
+  if (!(aTarget instanceof Element)) {
+    aTarget = aWindow.document.getElementById(aTarget);
   }
 
   var event = aWindow.document.createEvent('MouseEvent');
@@ -70,7 +75,7 @@ function sendMouseEvent(aEvent, aTarget, aWindow) {
                        ctrlKeyArg, altKeyArg, shiftKeyArg, metaKeyArg,
                        buttonArg, relatedTargetArg);
 
-  aWindow.document.getElementById(aTarget).dispatchEvent(event);
+  aTarget.dispatchEvent(event);
 }
 
 /**
@@ -431,6 +436,7 @@ function synthesizeKeyExpectEvent(key, aEvent, aExpectedTarget, aExpectedEvent,
   synthesizeKey(key, aEvent, aWindow);
   _checkExpectedEvent(aExpectedTarget, aExpectedEvent, eventHandler, aTestName);
 }
+
 /**
  * Emulate a dragstart event.
  *  element - element to fire the dragstart event on
@@ -439,6 +445,8 @@ function synthesizeKeyExpectEvent(key, aEvent, aExpectedTarget, aExpectedEvent,
  *                         [ [ {type: value, data: value, test: function}, ... ], ... ]
  *                     can be null
  *  aWindow - optional; defaults to the current window object.
+ *  x - optional; initial x coordinate
+ *  y - optional; initial y coordinate
  * Returns null if data matches.
  * Returns the event.dataTransfer if data does not match
  *
@@ -449,11 +457,13 @@ function synthesizeKeyExpectEvent(key, aEvent, aExpectedTarget, aExpectedEvent,
  * see bug 462172 for example of use
  *
  */
-
-function synthesizeDragStart(element, expectedDragData, aWindow)
+function synthesizeDragStart(element, expectedDragData, aWindow, x, y)
 {
   if (!aWindow)
     aWindow = window;
+  x = x || 2;
+  y = y || 2;
+  const step = 9;
 
   var result = "trapDrag was not called";
   var trapDrag = function(event) {
@@ -461,7 +471,7 @@ function synthesizeDragStart(element, expectedDragData, aWindow)
       var dataTransfer = event.dataTransfer;
       result = null;
       if (!dataTransfer)
-        throw  "no dataTransfer";
+        throw "no dataTransfer";
       if (expectedDragData == null ||
           dataTransfer.mozItemCount != expectedDragData.length)
         throw dataTransfer;
@@ -488,24 +498,31 @@ function synthesizeDragStart(element, expectedDragData, aWindow)
     event.stopPropagation();
   }
   aWindow.addEventListener("dragstart", trapDrag, false);
-  synthesizeMouse(element, 2, 2, { type: "mousedown" }, aWindow);
-  synthesizeMouse(element, 11, 11, { type: "mousemove" }, aWindow);
-  synthesizeMouse(element, 20, 20, { type: "mousemove" }, aWindow);
+  synthesizeMouse(element, x, y, { type: "mousedown" }, aWindow);
+  x += step; y += step;
+  synthesizeMouse(element, x, y, { type: "mousemove" }, aWindow);
+  x += step; y += step;
+  synthesizeMouse(element, x, y, { type: "mousemove" }, aWindow);
   aWindow.removeEventListener("dragstart", trapDrag, false);
-  synthesizeMouse(element, 20, 20, { type: "mouseup" }, aWindow);
+  synthesizeMouse(element, x, y, { type: "mouseup" }, aWindow);
   return result;
 }
+
 /**
  * Emulate a drop by emulating a dragstart and firing events dragenter, dragover, and drop.
- *  element - the element to fire the dragover, dragleave and drop events
- *  dropEffect - the drop effect to set during the dragstart event, or 'move' if null
+ *  srcElement - the element to use to start the drag, usually the same as destElement
+ *               but if destElement isn't suitable to start a drag on pass a suitable
+ *               element for srcElement
+ *  destElement - the element to fire the dragover, dragleave and drop events
  *  dragData - the data to supply for the data transfer
  *                     This data is in the format:
  *                       [ [ {type: value, data: value}, ...], ... ]
+ *  dropEffect - the drop effect to set during the dragstart event, or 'move' if null
+ *  aWindow - optional; defaults to the current window object.
  *
  * Returns the drop effect that was desired.
  */
-function synthesizeDrop(element, dragData, dropEffect, aWindow)
+function synthesizeDrop(srcElement, destElement, dragData, dropEffect, aWindow)
 {
   if (!aWindow)
     aWindow = window;
@@ -526,28 +543,28 @@ function synthesizeDrop(element, dragData, dropEffect, aWindow)
 
   // need to use real mouse action
   aWindow.addEventListener("dragstart", trapDrag, true);
-  synthesizeMouse(element, 2, 2, { type: "mousedown" }, aWindow);
-  synthesizeMouse(element, 11, 11, { type: "mousemove" }, aWindow);
-  synthesizeMouse(element, 20, 20, { type: "mousemove" }, aWindow);
+  synthesizeMouse(srcElement, 2, 2, { type: "mousedown" }, aWindow);
+  synthesizeMouse(srcElement, 11, 11, { type: "mousemove" }, aWindow);
+  synthesizeMouse(srcElement, 20, 20, { type: "mousemove" }, aWindow);
   aWindow.removeEventListener("dragstart", trapDrag, true);
 
   event = aWindow.document.createEvent("DragEvents");
   event.initDragEvent("dragenter", true, true, aWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null, dataTransfer);
-  element.dispatchEvent(event);
+  destElement.dispatchEvent(event);
 
   var event = aWindow.document.createEvent("DragEvents");
   event.initDragEvent("dragover", true, true, aWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null, dataTransfer);
-  if (element.dispatchEvent(event)) {
-    synthesizeMouse(element, 20, 20, { type: "mouseup" }, aWindow);
+  if (destElement.dispatchEvent(event)) {
+    synthesizeMouse(destElement, 20, 20, { type: "mouseup" }, aWindow);
     return "none";
   }
 
   if (dataTransfer.dropEffect != "none") {
     event = aWindow.document.createEvent("DragEvents");
     event.initDragEvent("drop", true, true, aWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null, dataTransfer);
-    element.dispatchEvent(event);
+    destElement.dispatchEvent(event);
   }
-  synthesizeMouse(element, 20, 20, { type: "mouseup" }, aWindow);
+  synthesizeMouse(destElement, 20, 20, { type: "mouseup" }, aWindow);
 
   return dataTransfer.dropEffect;
 }
