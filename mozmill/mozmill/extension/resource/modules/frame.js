@@ -140,12 +140,22 @@ var events = {
   'currentState' : null,
   'currentModule': null,
   'currentTest'  : null,
+  'userShutdown' : false,
   'listeners'    : {},
 }
 events.setState = function (v) {
    return stateChangeBase(['dependencies', 'setupModule', 'teardownModule', 
                            'setupTest', 'teardownTest', 'test', 'collection'], 
                            null, 'currentState', 'setState', v);
+}
+events.toggleUserShutdown = function (){
+  if (this.userShutdown) {
+    this.fail({'function':'frame.events.toggleUserShutdown', 'message':'Restart expected but none detected before timeout'});
+  }
+  this.userShutdown = (!this.userShutdown);
+}
+events.isUserShutdown = function () {
+  return this.userShutdown;
 }
 events.setTest = function (test, invokedFromIDE) {
   test.__passes__ = [];
@@ -481,8 +491,10 @@ Runner.prototype.wrapper = function (func, arg) {
               'name':func.__name__
              }
     }
-    events.fail({'exception':e, 'test':func})
-    Components.utils.reportError(e);
+    if (!events.isUserShutdown()) {
+      events.fail({'exception': e, 'test':func})
+      Components.utils.reportError(e);
+    }
   }
 }
 
@@ -536,7 +548,7 @@ Runner.prototype._runTestModule = function (module) {
         events.setTest(module.__teardownTest__);
         this.wrapper(module.__teardownTest__, test); 
         events.endTest(module.__teardownTest__);
-        }
+      }
       events.endTest(test)
 
     }

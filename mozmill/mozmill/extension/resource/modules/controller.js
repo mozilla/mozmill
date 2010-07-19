@@ -536,9 +536,21 @@ MozMillController.prototype.waitThenClick = function (elem, timeout, interval) {
   this.click(elem);
 }
 
+MozMillController.prototype.fireEvent = function (name, obj) {
+  if (name == "userShutdown") {
+    frame.events.toggleUserShutdown();
+  }
+  frame.events.fireEvent(name, obj);
+}
+
+MozMillController.prototype.startUserShutdown = function (timeout, restart) {
+  // 0 = default shutdown, 1 = user shutdown, 2 = user restart
+  this.fireEvent('userShutdown', restart ? 2 : 1);
+  this.window.setTimeout(this.fireEvent, timeout, 'userShutdown', 0);
+}
+
 /* Select the specified option and trigger the relevant events of the element.*/
 MozMillController.prototype.select = function (el, indx, option, value) {
-
   element = el.getNode();
   if (!element){
     throw new Error("Could not find element " + el.getInfo());
