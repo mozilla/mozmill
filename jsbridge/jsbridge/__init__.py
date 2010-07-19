@@ -109,7 +109,7 @@ class CLI(mozrunner.CLI):
         if self.options.debug:
             kwargs.setdefault('preferences', 
                               {}).update({'extensions.checkCompatibility':False})
-        profile = super(CLI, self).get_profile(*args, **kwargs)
+        profile = mozrunner.CLI.get_profile(self, *args, **kwargs)
         profile.install_addon(extension_path)
         if self.options.debug:
             for addon in self.debug_addons:
