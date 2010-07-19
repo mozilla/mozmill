@@ -63,9 +63,6 @@ logger = logging.getLogger(__name__)
 copytree = dir_util.copy_tree
 rmtree = dir_util.remove_tree
 
-if sys.platform != 'win32':
-    import pwd
-
 def findInPath(fileName, path=os.environ['PATH']):
     dirs = path.split(os.pathsep)
     for dir in dirs:
@@ -346,10 +343,25 @@ class Runner(object):
     def find_binary(self):
         """Finds the binary for self.names if one was not provided."""
         binary = None
-        if (sys.platform == 'linux2') or (sys.platform in ('sunos5', 'solaris')):
+        if sys.platform in ('linux2', 'sunos5', 'solaris'):
             for name in reversed(self.names):
                 binary = findInPath(name)
         elif os.name == 'nt' or sys.platform == 'cygwin':
+
+            # find the default executable from the windows registry
+            try:
+                # assumes self.app_name is defined, as it should be for
+                # implementors
+                import _winreg
+                app_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\Mozilla\Mozilla %s" self.app_name)
+                version, _type = _winreg.QueryValueEx(app_key, "CurrentVersion")
+                version_key = _winreg.OpenKey(app_key, version + r"\Main")
+                path, _ = _winreg.QueryValueEx(version_key, "PathToExe")
+                return path
+            except: # XXX not sure what type of exception this should be
+                pass
+
+            # search for the binary in the path            
             for name in reversed(self.names):
                 binary = findInPath(name)
                 if sys.platform == 'cygwin':
@@ -426,6 +438,7 @@ class Runner(object):
 class FirefoxRunner(Runner):
     """Specialized Runner subclass for running Firefox."""
 
+    app_name = 'Firefox'
     profile_class = FirefoxProfile
 
     @property
@@ -439,6 +452,8 @@ class FirefoxRunner(Runner):
 
 class ThunderbirdRunner(Runner):
     """Specialized Runner subclass for running Thunderbird"""
+
+    app_name = 'Thunderbird'
     profile_class = ThunderbirdProfile
 
     names = ["thunderbird", "shredder"]
