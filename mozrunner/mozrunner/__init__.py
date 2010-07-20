@@ -284,13 +284,22 @@ class Profile(object):
 
 class FirefoxProfile(Profile):
     """Specialized Profile subclass for Firefox"""
-    preferences = {'app.update.enabled' : False,
-                   'extensions.update.enabled'    : False,
-                   'extensions.update.notifyUser' : False,
-                   'browser.shell.checkDefaultBrowser' : False,
-                   'browser.tabs.warnOnClose' : False,
-                   'browser.warnOnQuit': False,
+    preferences = {# Don't automatically update the application
+                   'app.update.enabled' : False,
+                   # Don't restore the last open set of tabs if the browser has crashed
                    'browser.sessionstore.resume_from_crash': False,
+                   # Don't check for the default web browser
+                   'browser.shell.checkDefaultBrowser' : False,
+                   # Don't warn on exit when multiple tabs are open
+                   'browser.tabs.warnOnClose' : False,
+                   # Don't warn when exiting the browser
+                   'browser.warnOnQuit': False,
+                   # Don't install global add-ons
+                   'extensions.enabledScopes' : 0,
+                   # Don't automatically update add-ons
+                   'extensions.update.enabled'    : False,
+                   # Don't open a dialog to show available add-on updates
+                   'extensions.update.notifyUser' : False,
                    }
 
     @property
@@ -353,7 +362,7 @@ class Runner(object):
                 # assumes self.app_name is defined, as it should be for
                 # implementors
                 import _winreg
-                app_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\Mozilla\Mozilla %s" self.app_name)
+                app_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\Mozilla\Mozilla %s" % self.app_name)
                 version, _type = _winreg.QueryValueEx(app_key, "CurrentVersion")
                 version_key = _winreg.OpenKey(app_key, version + r"\Main")
                 path, _ = _winreg.QueryValueEx(version_key, "PathToExe")
