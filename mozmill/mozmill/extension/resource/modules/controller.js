@@ -148,44 +148,45 @@ function waitForElement(elem, timeout, interval) {
   return waitForEval('subject.exists()', timeout, interval, elem);
 }
 
-/**
- * Dynamically create hierarchy of available menu entries
- *
- * @param object aWindow
- *               Browser window to use
- * @param object aElements
- *               Array of menu or menuitem elements
- */
-var Menu = function (aWindow, aElements) {
-  for each (var node in aElements) {
-    var entry = null;
-
-    switch (node.tagName) {
-      case "menu":
-        var popup = node.getElementsByTagName("menupopup")[0];
-
-        // Fake a click onto the menu to add dynamic entries
-        if (popup) {
-          events.fakeOpenPopup(aWindow, popup);
-          entry = new Menu(aWindow, popup.childNodes);
-        }
-        break;
-      case "menuitem":
-        entry = node;
-        break;
-      default:
-        continue;
-    }
-
-    if (entry) {
-      var label = node.getAttribute("label");
-      this[label] = entry;
-
-      if (node.id)
-        this[node.id] = this[label];
+var Menu = function (elements, doc, window) {
+  this.doc = doc;
+  this.window = window;
+  for each(node in elements) {
+    if (node.tagName){
+      if (node.tagName == "menu") {
+        var label = node.getAttribute("label");
+        var id = node.id;
+        this[label] = new Menu(node.getElementsByTagName("menupopup")[0].childNodes);
+        this[id] = this[label];
+      } else if (node.tagName == "menuitem") {
+        this[node.getAttribute("label")] = node;
+        this[node.id] = node;
+      }
     }
   }
 };
+
+Menu.prototype.reload = function () {
+  var utils = this.window.QueryInterface(Components.interfaces.nsIInterfaceRequestor).
+              getInterface(Components.interfaces.nsIDOMWindowUtils);
+  utils.forceUpdateNativeMenuAt("4");
+  utils.activateNativeMenuItemAt("4|10");
+
+  var elements = this.doc.getElementsByTagName('menubar')[0].childNodes;
+  for each(node in elements) {
+    if (node.tagName){
+      if (node.tagName == "menu") {
+        var label = node.getAttribute("label");
+        var id = node.id;
+        this[label] = new Menu(node.getElementsByTagName("menupopup")[0].childNodes);
+        this[id] = this[label];
+      } else if (node.tagName == "menuitem") {
+        this[node.getAttribute("label")] = node;
+        this[node.id] = node;
+      }
+    }
+  }
+}
 
 var MozMillController = function (window) {
   // TODO: Check if window is loaded and block until it has if it hasn't.
@@ -514,13 +515,8 @@ MozMillController.prototype.__defineGetter__("waitForEvents", function() {
 });
 
 MozMillController.prototype.__defineGetter__("menus", function() {
-  var menu = null;
-
-  var menubar = this.window.document.getElementsByTagName('menubar');
-  if(menubar && menubar.length > 0) 
-    menu = new Menu(this.window, menubar[0].childNodes);
-
-  return menu;
+  if(this.window.document.getElementsByTagName('menubar').length > 0)
+    return new Menu(this.window.document.getElementsByTagName('menubar')[0].childNodes, this.window.document, this.window);
 });
 
 MozMillController.prototype.waitForImage = function (elem, timeout, interval) {

@@ -38,7 +38,7 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ["createEventObject", "triggerEvent", "getKeyCodeFromKeySequence",
-                        "triggerKeyEvent", "triggerMouseEvent", "fakeOpenPopup"];
+                        "triggerKeyEvent", "triggerMouseEvent"];
                         
 var EventUtils = {}; Components.utils.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
 
@@ -57,21 +57,6 @@ var createEventObject = function(element, controlKeyDown, altKeyDown, shiftKeyDo
   return evt;
 };
 
-/**
- * Fakes a click on a menupopup
- *
- * @param window aWindow
- *               Browser window to use
- * @param menupopup aPopup
- *                  Popup to fake the click for
- */
-function fakeOpenPopup(aWindow, aPopup) {
-  var popupEvent = aWindow.document.createEvent("MouseEvent");
-  popupEvent.initMouseEvent("popupshowing", true, true, aWindow, 0,
-                            0, 0, 0, 0, false, false, false, false,
-                            0, null);
-  aPopup.dispatchEvent(popupEvent);
-}
 
     /* Fire an event in a browser-compatible manner */
 var triggerEvent = function(element, eventType, canBubble, controlKeyDown, altKeyDown, shiftKeyDown, metaKeyDown) {
