@@ -116,7 +116,7 @@ class LoggerListener(object):
 
 
 class TestsFailedException(Exception):
-    pass
+    """exception to be raised when the tests fail"""
 
 
 class MozMill(object):
@@ -321,8 +321,24 @@ class MozMill(object):
         return results
 
     def send_report(self, results, report_url):
-        """ Send a report of the results to a CouchdB instance. """
+        """ Send a report of the results to a CouchdB instance or a file. """
 
+        # report to file or stdout
+        f = None
+        if report_url == '-': # stdout
+            f = sys.stdout
+        if report_url.startswith('file://'):
+            filename = report_url.split('file://', 1)[1]
+            try:
+                f = file(filename, 'w')
+            except Exception, e:
+                print "Printing results to '%s' failed (%s)." % (filename, e)
+                return
+        if f:
+            print >> f, json.dumps(results)
+            return
+
+        # report to CouchDB
         try:
             # Parse URL fragments and send data
             url_fragments = urlparse.urlparse(report_url)
@@ -554,7 +570,7 @@ class CLI(jsbridge.CLI):
                                               action="store_true",
                                               help="Print logger errors to the console.")
     parser_options[("--report",)] = dict(dest="report", default=False,
-                                         help="Report the results. Requires url to results server.")
+                                         help="Report the results. Requires url to results server. Use '-' for stdout.")
     parser_options[("--showall",)] = dict(dest="showall", default=False, action="store_true",
                                          help="Show all test output.")
     parser_options[("--timeout",)] = dict(dest="timeout", type="float",
