@@ -325,7 +325,7 @@ class MozMill(object):
 
         # report to file or stdout
         f = None
-        if report_url == '-': # stdout
+        if report_url == 'stdout': # stdout
             f = sys.stdout
         if report_url.startswith('file://'):
             filename = report_url.split('file://', 1)[1]
@@ -570,7 +570,7 @@ class CLI(jsbridge.CLI):
                                               action="store_true",
                                               help="Print logger errors to the console.")
     parser_options[("--report",)] = dict(dest="report", default=False,
-                                         help="Report the results. Requires url to results server. Use '-' for stdout.")
+                                         help="Report the results. Requires url to results server. Use 'stdout' for stdout.")
     parser_options[("--showall",)] = dict(dest="showall", default=False, action="store_true",
                                          help="Show all test output.")
     parser_options[("--timeout",)] = dict(dest="timeout", type="float",
