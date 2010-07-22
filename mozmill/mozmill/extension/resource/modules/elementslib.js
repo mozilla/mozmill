@@ -371,9 +371,7 @@ var _byAnonAttrib = function (_document, parent, attributes) {
   }  
   resultsForNodes(nodes)  
   if (results.length == 0) {
-    resultsForNodes([n for each (n in parent.childNodes) if (n.getAttribute)])
-    if (results.length == 0) {
-    }
+    resultsForNodes([n for each (n in parent.childNodes) if (n != undefined && n.getAttribute)])
   }
   return _returnResult(results)
 }
