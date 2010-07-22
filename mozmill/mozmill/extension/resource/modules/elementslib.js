@@ -371,18 +371,7 @@ var _byAnonAttrib = function (_document, parent, attributes) {
   }  
   resultsForNodes(nodes)  
   if (results.length == 0) {
-    nodes = [];
-    for (var i = 0; i < parent.childNodes.length; ++i) {
-      var n = parent.childNodes[i];
-      if (n != undefined && n.getAttribute){
-        nodes[nodes.length] = n ; 
-      }
-      else frame.events.fail({'function':'Error: parent.childNodes[' + i + '] is undefined or not a DOM object'});
-    }
-    resultsForNodes(nodes)
-    if (results.length == 0) {
-        frame.events.fail({'function':'Error: Invalid lookup expression'});
-    }
+    resultsForNodes([n for each (n in parent.childNodes) if (n != undefined && n.getAttribute)])
   }
   return _returnResult(results)
 }
