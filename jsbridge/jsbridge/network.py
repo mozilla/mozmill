@@ -153,7 +153,6 @@ class JSBridgeDisconnectError(Exception):
     """exception raised when an unexpected disconect happens"""
 
 
-
 class Bridge(Telnet):
     
     trashes = []
