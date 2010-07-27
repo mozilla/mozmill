@@ -1,1 +1,0 @@
-This is in the resource directory so that it can be loaded from a resource:// url. This is due to Bespin using localStorage and bug 495747 (https://bugzilla.mozilla.org/show_bug.cgi?id=495747)
