@@ -102,7 +102,9 @@ function editorTab(content, filename) {
 
   iframeElement.addEventListener("load", function() {
     var win = iframeElement.contentWindow;
+   alert('iframe load');
     win.onEditorLoad = function() {
+      alert("hi");
       editorObject.editorElement = win.document.getElementById("editor");
       editorObject.editor = win.editor;
       if(content)
@@ -111,7 +113,7 @@ function editorTab(content, filename) {
       editor.switchTab();
     } // this function is invoked by the iframe
   }, true);
-  iframeElement.src = "resource://mozmill/editor/editor.html";
+  iframeElement.src = "chrome://mozmill/content/editor/editor.html";
   document.getElementById("editors").appendChild(iframeElement);
 
   this.iframeElement = iframeElement;

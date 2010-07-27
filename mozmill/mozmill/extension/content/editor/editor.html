@@ -1,8 +1,9 @@
 <html>
 <head>
-<link id="bespin_base" href="BespinEmbedded-0.9a1">
+<link id="bespin_base" href="BespinEmbedded-0.9a1/prebuilt">
 <link href="BespinEmbedded-0.9a1/prebuilt/BespinEmbedded.css" type="text/css" rel="stylesheet">
 <script type="text/javascript" src="BespinEmbedded-0.9a1/prebuilt/BespinEmbedded.js"></script>
+
 <style>
   body {
     padding: 0px;
@@ -14,16 +15,17 @@
   }
 </style>
 <script>
-
-function init() {
+window.onBespinLoad = function() {
   editor = document.getElementById("editor").bespin;
-  onEditorLoad(); 
+ alert('bespin load')
+  onEditorLoad();
+ alert('editor load called')
 }
 
 </script>
 </head>
-<body onload="init()">
-  <div id="editor" class="bespin" data-bespinoptions='{ "settings": { "tabstop": 4 }, "syntax": "js", "stealFocus": true }'>Whee!
-  </div>
+<body>
+<div id="editor" class="bespin" data-bespinoptions='{ "settings": { "tabstop": 4 }, "syntax": "js", "stealFocus": true }'>
+</div>
 </body>
 </html>
