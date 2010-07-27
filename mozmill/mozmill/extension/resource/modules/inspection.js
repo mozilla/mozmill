@@ -329,11 +329,14 @@ var inspectElement = function(e){
   
   //Element highlighting
   try {
-      if (this.lastEvent){
-        this.lastEvent.target.style.outline = "";
-      }
-      this.lastEvent = e;
-      e.target.style.outline = "1px solid darkblue";
+    if (this.lastEvent)
+      this.lastEvent.target.style.outline = "";
+  } catch(err) {}
+  
+  this.lastEvent = e;
+  
+  try {
+     e.target.style.outline = "1px solid darkblue";
   } catch(err){}
 
   var _document = getDocument(target);

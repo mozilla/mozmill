@@ -1,0 +1,28 @@
+<html>
+<head>
+<link href="BespinEmbedded-DropIn-0.7.3/BespinEmbedded.compressed.css" type="text/css" rel="stylesheet">
+<script type="text/javascript" src="BespinEmbedded-DropIn-0.7.3/BespinEmbedded.compressed.js"></script>
+<style>
+  body {
+    padding: 0px;
+    margin: 0;
+  }
+  .bespin {
+    height: 100%;
+    width: 100%;
+  }
+</style>
+<script>
+
+function init() {
+  editor = document.getElementById("editor").bespin;
+  onEditorLoad(); 
+}
+
+</script>
+</head>
+<body onload="init()">
+  <div id="editor" class="bespin" data-bespinoptions='{ "settings": { "tabstop": 4 }, "syntax": "js", "stealFocus": true }'>
+  </div>
+</body>
+</html>

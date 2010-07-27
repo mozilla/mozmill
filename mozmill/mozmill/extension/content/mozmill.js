@@ -39,11 +39,6 @@
 var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 
-// var $ = function(id) {
-//    return document.getElementById(id);
-// };
-
-
 var updateOutput = function(){
   //get the checkboxes
   var pass = document.getElementById('outPass');
