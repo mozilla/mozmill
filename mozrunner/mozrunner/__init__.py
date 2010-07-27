@@ -47,6 +47,7 @@ import zipfile
 import optparse
 import killableprocess
 import subprocess
+import pkg_resources
 from xml.etree import ElementTree
 from distutils import dir_util
 from time import sleep
@@ -472,6 +473,7 @@ class CLI(object):
 
     runner_class = FirefoxRunner
     profile_class = FirefoxProfile
+    module = "mozrunner"
 
     parser_options = {("-b", "--binary",): dict(dest="binary", help="Binary path.",
                                                 metavar=None, default=None),
@@ -480,20 +482,45 @@ class CLI(object):
                       ('-a', "--addons",): dict(dest="addons", 
                                                 help="Addons paths to install.",
                                                 metavar=None, default=None),
+                      ("--info",): dict(dest="info", default=False,
+                                        action="store_true",
+                                        help="Print module information")
                      }
 
     def __init__(self):
         """ Setup command line parser and parse arguments """
-        self.parser = optparse.OptionParser()
+        self.metadata = self.get_metadata_from_egg()
+        self.parser = optparse.OptionParser(version="%prog " + self.metadata["Version"])
         for names, opts in self.parser_options.items():
             self.parser.add_option(*names, **opts)
         (self.options, self.args) = self.parser.parse_args()
 
+        if self.options.info:
+            self.print_metadata()
+            sys.exit(0)
+            
         # XXX should use action='append' instead of rolling our own
         try:
             self.addons = self.options.addons.split(',')
         except:
             self.addons = []
+            
+    def get_metadata_from_egg(self):
+        #ret = {}
+        dist = pkg_resources.get_distribution(self.module)
+        if dist.has_metadata("PKG-INFO"):
+            for line in dist.get_metadata_lines("PKG-INFO"):
+                key, value = line.split(':', 1)
+                ret[key] = value
+        if dist.has_metadata("requires.txt"):
+            ret["Dependencies"] = "\n" + dist.get_metadata("requires.txt")    
+        return ret
+        
+    def print_metadata(self, data=("Name", "Version", "Summary", "Home-page", 
+                                   "Author", "Author-email", "License", "Platform", "Dependencies")):
+        for key in data:
+            if key in self.metadata:
+                print key + ": " + self.metadata[key]
 
     def create_runner(self):
         """ Get the runner object """

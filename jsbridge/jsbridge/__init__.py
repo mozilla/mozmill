@@ -85,6 +85,8 @@ def wait_and_create_network(host, port, timeout=wait_to_create_timeout):
 
 class CLI(mozrunner.CLI):
     """Command line interface."""
+    
+    module = "jsbridge"
 
     parser_options = copy.copy(mozrunner.CLI.parser_options)
     parser_options[('-D', '--debug',)] = dict(dest="debug", 
