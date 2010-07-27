@@ -193,7 +193,11 @@ function Session (transport) {
   this.sandbox.bridge = new Bridge(this);
   this.sandbox.openPreferences = hwindow.openPreferences;
   try {
-      this.outstream = transport.openOutputStream(Ci.nsITransport.OPEN_BLOCKING , 0, 0);
+      this.outputstream = transport.openOutputStream(Ci.nsITransport.OPEN_BLOCKING, 0, 0);	
+      this.outstream = Cc['@mozilla.org/intl/converter-output-stream;1']
+                    .createInstance(Ci.nsIConverterOutputStream);
+      this.outstream.init(this.outputstream, 'UTF-8', 1024,
+                    Ci.nsIConverterOutputStream.DEFAULT_REPLACEMENT_CHARACTER);
       this.stream = transport.openInputStream(0, 0, 0);
       this.instream = Cc['@mozilla.org/intl/converter-input-stream;1']
           .createInstance(Ci.nsIConverterInputStream);
@@ -215,7 +219,8 @@ Session.prototype.onOutput = function(string) {
     throw "This is not a string"
   } 
   try {
-    this.outstream.write(string, string.length);
+    this.outstream.writeString(string);
+    this.outstream.flush();
   } catch (e) {
     throw "Why is this failing "+string
   }
