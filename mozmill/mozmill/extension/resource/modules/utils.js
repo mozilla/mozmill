@@ -412,8 +412,8 @@ function waitFor(callback, timeout, interval) {
   self = {counter: 0, result: callback()};
 
   function wait() {
-    self.counter += interval;
     self.result = callback();
+    self.counter += interval;
   }
 
   var timeoutInterval = hwindow.setInterval(wait, interval);
