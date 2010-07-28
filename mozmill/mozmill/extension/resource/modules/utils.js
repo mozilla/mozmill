@@ -41,7 +41,7 @@ var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler",
                         "getFile", "Copy", "getChromeWindow", "getWindows", "runEditor",
                         "runFile", "getWindowByTitle", "getWindowByType", "tempfile", 
                         "getMethodInWindows", "getPreference", "setPreference",
-                        "sleep"];
+                        "sleep", "waitFor", "waitForEval"];
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
               .getService(Components.interfaces.nsIAppShellService)
@@ -391,27 +391,59 @@ function setPreference(aName, aValue) {
 
 /**
  * Sleep for the given amount of milliseconds
- **/
-function sleep (milliseconds) {
-  var self = {};
+ */
+function sleep(milliseconds) {
+  var self = {init: false};
 
-  // We basically just call this once after the specified number of milliseconds
+  waitFor(function() {
+    var init = self.init;
+    self.init = !init;
+    return init;
+  }, undefined, milliseconds);
+}
+
+/**
+ * Waits for the callback evaluates to true
+ */
+function waitFor(callback, timeout, interval) {
+  timeout = timeout || 30000;
+  interval = interval || 100;
+
+  self = {counter: 0, result: callback()};
+
   function wait() {
-    self.timeup = true;
+    self.result = callback();
+    self.counter += interval;
   }
 
-  // Calls repeatedly every X milliseconds until clearInterval is called
-  var interval = hwindow.setInterval(wait, milliseconds);
+  var timeoutInterval = hwindow.setInterval(wait, interval);
+  var thread = Components.classes["@mozilla.org/thread-manager;1"].
+               getService().currentThread;
 
-  var thread = Components.classes["@mozilla.org/thread-manager;1"]
-            .getService()
-            .currentThread;
-  // This blocks execution until our while loop condition is invalidated.  Note
-  // that you must use a simple boolean expression for the loop, a function call
-  // will not work.
-  while(!self.timeup)
+  while((self.result != true) && (self.counter < timeout))  {
     thread.processNextEvent(true);
-  hwindow.clearInterval(interval);
+  }
+
+  hwindow.clearInterval(timeoutInterval);
+
+  if (self.counter >= timeout) {
+    throw new Error(arguments.callee.name + ": Timeout exceeded for '" + callback + "'");
+  }
+
+  return true;
+}
+
+/**
+ * Waits until the expression evaluates to true
+ */
+function waitForEval(expression, timeout, interval, subject) {
+  try {
+    waitFor(function() {
+      return eval(expression);
+    }, timeout, interval);
+  } catch (ex) {
+    throw new Error(arguments.callee.name + ": Timeout exceeded for '" + expression + "'");
+  }
 
   return true;
 }

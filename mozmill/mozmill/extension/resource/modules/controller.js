@@ -53,99 +53,54 @@ var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
 var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
      getService(Components.interfaces.nsIConsoleService);
 
-function waitForEval (expression, timeout, interval, subject) {
-  if (interval == undefined) {
-    interval = 100;
-  }
-  if (timeout == undefined) {
-    timeout = 30000;
-  }
+// Declare most used utils functions in the controller namespace
+var sleep = utils.sleep;
+var waitFor = utils.waitFor;
+var waitForEval = utils.waitForEval;
 
-  var self = {};
-  self.counter = 0;
-  self.result = eval(expression);
-
-  function wait(){
-    self.result = eval(expression);
-    self.counter += interval;
-  }
-
-  var timeoutInterval = hwindow.setInterval(wait, interval);
-
-  var thread = Components.classes["@mozilla.org/thread-manager;1"]
-            .getService()
-            .currentThread;
-
-  while((self.result != true) && (self.counter < timeout))  {
-    thread.processNextEvent(true);
-  }
-  if (self.counter < timeout) { var r = true; }
-  else { var r = false; }
-
-  hwindow.clearInterval(timeoutInterval);
-
-  return r;
-}
 
 waitForEvents = function() {}
+
 waitForEvents.prototype = {
   /**
    *  Initialize list of events for given node
    */
-  init : function waitForEvents_init(node, events)
-{
-  if (node.getNode != undefined)
-    node = node.getNode();
-
-  this.events = events;
-  this.node = node;
-  node.firedEvents = {};
-  this.registry = {};
-
-  for each(e in events) {
-    var listener = function(event) {
-      this.firedEvents[event.type] = true;
+  init : function waitForEvents_init(node, events) {
+    if (node.getNode != undefined)
+      node = node.getNode();
+  
+    this.events = events;
+    this.node = node;
+    node.firedEvents = {};
+    this.registry = {};
+  
+    for each(e in events) {
+      var listener = function(event) {
+        this.firedEvents[event.type] = true;
+      }
+      this.registry[e] = listener;
+      this.registry[e].result = false;
+      this.node.addEventListener(e, this.registry[e], true);
     }
-    this.registry[e] = listener;
-    this.registry[e].result = false;
-    this.node.addEventListener(e, this.registry[e], true);
-  }
   },
 
   /**
    * Wait until all assigned events have been fired
    */
   wait : function waitForEvents_wait(timeout, interval)
-{
-  for (e in this.registry) {
-      var r = waitForEval("subject['" + e + "'] == true",
-                          timeout, interval, this.node.firedEvents)
-    if (!r)
-        throw new Error("Timeout happened before event '" + e +"' was fired.");
-
-    this.node.removeEventListener(e, this.registry[e], true);
+  {
+    for (e in this.registry) {
+      try {
+        utils.waitFor(function() {
+          return this.node.firedEvents[e] == true;
+        }, timeout, interval);
+      } catch (ex) {
+        throw new Error("Timeout happened before event '" + ex +"' was fired.");
+      }
+  
+      this.node.removeEventListener(e, this.registry[e], true);
+    }
   }
-}
-}
-
-function waitForImage(elem, timeout, interval) {
-  if (interval == undefined) {
-    interval = 100;
-  }
-  if (timeout == undefined) {
-    timeout = 30000;
-  }
-  return waitForEval('subject.complete == true', timeout, interval, elem.getNode());
-}
-
-function waitForElement(elem, timeout, interval) {
-  if (interval == undefined) {
-    interval = 100;
-  }
-  if (timeout == undefined) {
-    timeout = 30000;
-  }
-  return waitForEval('subject.exists()', timeout, interval, elem);
 }
 
 var Menu = function (elements, doc, window) {
@@ -189,14 +144,18 @@ Menu.prototype.reload = function () {
 }
 
 var MozMillController = function (window) {
-  // TODO: Check if window is loaded and block until it has if it hasn't.
   this.window = window;
 
   this.mozmillModule = {};
   Components.utils.import('resource://mozmill/modules/mozmill.js', this.mozmillModule);
 
-  waitForEval("try { subject != null; } catch(err){}", 5000, undefined, window)
-  waitForEval("try { subject.documentLoaded != undefined; } catch(err){}", 5000, undefined, window)
+  try {
+    utils.waitFor(function() {
+      return window != null && (window.documentLoaded != undefined);
+    }, 5000, 100);
+  } catch (e) {
+    throw new Error(arguments.callee.name + ": Window could not be initialized.");
+  }
 
   if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined ) {
     this.prototype = new utils.Copy(this.prototype);
@@ -204,6 +163,8 @@ var MozMillController = function (window) {
     this.windowtype = window.document.documentElement.getAttribute('windowtype');
   }
 }
+
+MozMillController.prototype.sleep = utils.sleep;
 
 MozMillController.prototype.keypress = function(el, aKey, modifiers) {
   var element = (el == null) ? this.window : el.getNode();
@@ -461,7 +422,10 @@ MozMillController.prototype.check = function(el, state) {
   state = (typeof(state) == "boolean") ? state : false;
   if (state != element.checked) {
     this.click(el);
-    this.waitForEval("subject.checked == " + state, 500, 100, element);
+    this.waitFor(function() {
+      return element.checked == state;
+    }, timeout, interval);
+
     result = true;
   }
 
@@ -481,30 +445,33 @@ MozMillController.prototype.radio = function(el)
   }
 
   this.click(el);
-  this.waitForEval("subject.selected == true", 500, 100, element);
+  this.waitFor(function() {
+    return element.selected == true;
+  }, timeout, interval);
 
   frame.events.pass({'function':'Controller.radio(' + el.getInfo() + ')'});
   return true;
 }
 
-// The global sleep function has been moved to utils.js. Leave this symbol
-// for compatibility reasons
-var sleep = utils.sleep;
+MozMillController.prototype.waitFor = function(callback, timeout, interval) {
+  utils.waitFor(callback, timeout, interval);
 
-MozMillController.prototype.sleep = utils.sleep;
-
-MozMillController.prototype.waitForEval = function (expression, timeout, interval, subject) {
-  var r = waitForEval(expression, timeout, interval, subject);
-  if (!r) {
-    throw new Error("timeout exceeded for waitForEval('"+expression+"')");
-  }
+  frame.events.pass({'function':'controller.waitFor()'});
 }
 
-MozMillController.prototype.waitForElement = function (elem, timeout, interval) {
-  var r = waitForElement(elem, timeout, interval);
-  if (!r) {
-    throw new Error("timeout exceeded for waitForElement "+elem.getInfo());
-  }
+MozMillController.prototype.waitForEval = function(expression, timeout, interval, subject) {
+  waitFor(function() {
+    return eval(expression);
+  }, timeout, interval);
+
+  frame.events.pass({'function':'controller.waitForEval()'});
+}
+
+MozMillController.prototype.waitForElement = function(elem, timeout, interval) {
+  this.waitFor(function() {
+    return elem.exists();
+  }, timeout, interval);
+
   frame.events.pass({'function':'Controller.waitForElement()'});
 }
 
@@ -520,10 +487,14 @@ MozMillController.prototype.__defineGetter__("menus", function() {
 });
 
 MozMillController.prototype.waitForImage = function (elem, timeout, interval) {
-  var r = waitForImage(elem, timeout, interval);
-  if (!r) {
-    throw new Error("timeout exceeded for waitForImage "+elem.getInfo());
+  try {
+    this.waitFor(function() {
+      return elem.getNode().complete == true;
+    }, timeout, interval);
+  } catch (e) {
+    throw new Error("timeout exceeded for waitForImage " + elem.getInfo());
   }
+
   frame.events.pass({'function':'Controller.waitForImage()'});
 }
 
@@ -974,7 +945,7 @@ function browserAdditions( controller ) {
     //if a user tries to do waitForPageLoad(2000), this will assign the interval the first arg
     //which is most likely what they were expecting
     if (typeof(_document) == "number"){
-      var timeout = _document;
+      timeout = _document;
     }
     //incase they pass null
     if (_document == null){
@@ -982,22 +953,16 @@ function browserAdditions( controller ) {
     }
     //if _document isn't a document object
     if (typeof(_document) != "object") {
-      var _document = controller.tabs.activeTab;
+      _document = controller.tabs.activeTab;
     }
 
-    if (interval == undefined) {
-      var interval = 100;
-    }
-    if (timeout == undefined) {
-      var timeout = 30000;
-    }
+    waitFor(function() {
+      return _document.defaultView.documentLoaded == true;
+    }, timeout, interval);
 
-    var win = _document.defaultView;
-
-    waitForEval("subject.documentLoaded == true", timeout, interval, win);
     //Once the object is available it's somewhere between 1 and 3 seconds before the DOM
     //Actually becomes available to us
-    utils.sleep(1);
+    sleep(1);
     frame.events.pass({'function':'Controller.waitForPageLoad()'});
   }
 }
@@ -1026,13 +991,17 @@ MozMillAsyncTest.prototype.run = function () {
     }
   }
 
-  var r = waitForEval("subject._done == true", this.timeout, undefined, this);
-  if (r == true) {
-    return true;
-  } else {
-    throw new Error("MozMillAsyncTest did not finish properly: timed out. Done is " + this._done);
+  try {
+    utils.waitFor(function() {
+      return this._done == true;
+    }, timeout, interval);
+  } catch (e) {
+    throw new Error("MozMillAsyncTest timed out. Done is " + this._done);
   }
+
+  return true;
 }
+
 MozMillAsyncTest.prototype.finish = function () {
   this._done = true;
 }
