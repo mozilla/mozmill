@@ -553,8 +553,9 @@ class MozMillRestart(MozMill):
                 frame.runTestFile(test)
                 while not self.endRunnerCalled:
                     sleep(.25)
+                self.currentShutdownMode = self.shutdownModes.default
                 self.stop_runner()
-                sleep(2) # TODO: document hard-coded constants
+                sleep(2) # Give mozrunner some time to shutdown the browser
             except JSBridgeDisconnectError:
                 if not self.userShutdownEnabled:
                     raise JSBridgeDisconnectError()
