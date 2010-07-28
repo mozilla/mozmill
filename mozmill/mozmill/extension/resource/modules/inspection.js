@@ -156,7 +156,7 @@ var attributeToIgnore = ['focus', 'focused', 'selected', 'select', 'flex', // Ge
                          ];
 
 var getUniqueAttributesReduction = function (attributes, node) {
-  for (i in attributes) {
+  for (var i in attributes) {
     if ( node.getAttribute(i) == attributes[i] || arrays.inArray(attributeToIgnore, i) || arrays.inArray(attributeToIgnore, attributes[i]) || i == 'id') {
       delete attributes[i];
     } 

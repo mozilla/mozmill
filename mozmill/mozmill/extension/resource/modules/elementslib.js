@@ -81,7 +81,7 @@ var smartSplit = function (str) {
   
   var split = str.split('/');
   var rindex = 0;
-  for (i in split) {
+  for (var i in split) {
     while (split[i].indexOf('%$^') != -1) {
       var s = split[i];
       var si = rindex;
@@ -290,7 +290,7 @@ var _returnResult = function (results) {
 var _forChildren = function (element, name, value) {
   var results = [];
   var nodes = [e for each (e in element.childNodes) if (e)]
-  for (i in nodes) {
+  for (var i in nodes) {
     var n = nodes[i];
     if (n[name] == value) {
       results.push(n);
@@ -301,7 +301,7 @@ var _forChildren = function (element, name, value) {
 var _forAnonChildren = function (_document, element, name, value) {
   var results = [];
   var nodes = [e for each (e in _document.getAnoymousNodes(element)) if (e)];
-  for (i in nodes ) {
+  for (var i in nodes ) {
     var n = nodes[i];
     if (n[name] == value) {
       results.push(n);
@@ -319,11 +319,11 @@ var _byAttrib = function (parent, attributes) {
   var results = [];
 
   var nodes = parent.childNodes;
-  for (i in nodes) {
+  for (var i in nodes) {
     var n = nodes[i];
     requirementPass = 0;
     requirementLength = 0;
-    for (a in attributes) {
+    for (var a in attributes) {
       requirementLength++;
       try {
         if (n.getAttribute(a) == attributes[a]) {
@@ -345,7 +345,7 @@ var _byAnonAttrib = function (_document, parent, attributes) {
   var results = [];
   
   if (objects.getLength(attributes) == 1) {
-    for (i in attributes) {var k = i; var v = attributes[i]; }
+    for (var i in attributes) {var k = i; var v = attributes[i]; }
     var result = _document.getAnonymousElementByAttribute(parent, k, v)
     if (result) {
       return result;
@@ -354,11 +354,11 @@ var _byAnonAttrib = function (_document, parent, attributes) {
   }
   var nodes = [n for each (n in _document.getAnonymousNodes(parent)) if (n.getAttribute)];
   function resultsForNodes (nodes) {
-    for (i in nodes) {
+    for (var i in nodes) {
       var n = nodes[i];
       requirementPass = 0;
       requirementLength = 0;
-      for (a in attributes) {
+      for (var a in attributes) {
         requirementLength++;
         if (n.getAttribute(a) == attributes[a]) {
           requirementPass++;
@@ -434,7 +434,7 @@ Lookup.prototype.getNode = function () {
       return r;
     }
     
-    for (c in cases) {
+    for (var c in cases) {
       if (withs.startsWith(exp, c)) {
         try {
           var obj = json2.JSON.parse(strings.vslice(exp, '(', ')'))

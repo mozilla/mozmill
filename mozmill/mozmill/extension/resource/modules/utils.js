@@ -54,7 +54,7 @@ var uuidgen = Components.classes["@mozilla.org/uuid-generator;1"]
     .getService(Components.interfaces.nsIUUIDGenerator);
 
 function Copy (obj) {
-  for (n in obj) {
+  for (var n in obj) {
     this[n] = obj[n];
   }
 }
