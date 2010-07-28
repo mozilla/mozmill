@@ -141,6 +141,7 @@ var events = {
   'currentModule': null,
   'currentTest'  : null,
   'userShutdown' : false,
+  'appQuit'      : false,
   'listeners'    : {},
 }
 events.setState = function (v) {
@@ -150,7 +151,7 @@ events.setState = function (v) {
 }
 events.toggleUserShutdown = function (){
   if (this.userShutdown) {
-    this.fail({'function':'frame.events.toggleUserShutdown', 'message':'Restart expected but none detected before timeout'});
+    this.fail({'function':'frame.events.toggleUserShutdown', 'message':'Shutdown expected but none detected before timeout'});
   }
   this.userShutdown = (!this.userShutdown);
 }
@@ -412,6 +413,28 @@ Collector.prototype.initTestDirectory = function (directory) {
   }
   recursiveModuleLoader(os.getFileForPath(directory));
 }
+  
+  
+// Observer which gets notified when the application quits
+function AppQuitObserver() {
+  this.register();
+}
+AppQuitObserver.prototype = {
+  observe: function(subject, topic, data) {
+    events.appQuit = true;
+  },
+  register: function() {
+    var obsService = Components.classes["@mozilla.org/observer-service;1"]
+                     .getService(Components.interfaces.nsIObserverService);
+    obsService.addObserver(this, "quit-application", false);
+  },
+  unregister: function() {
+    var obsService = Components.classes["@mozilla.org/observer-service;1"]
+                     .getService(Components.interfaces.nsIObserverService);
+    obsService.removeObserver(this, "quit-application");
+  }
+}
+
 
 function Runner (collector, invokedFromIDE) {
   this.collector = collector;
@@ -490,6 +513,10 @@ Runner.prototype.wrapper = function (func, arg) {
         func();
       }
     }
+    // If a shutdown was expected but the application hasn't quit, throw a failure
+    if (events.isUserShutdown() && !events.appQuit) {
+      events.fail({'function':'Runner.wrapper', 'message':'Shutdown expected but none detected before end of test'});
+    }
   } catch (e) {
     if (func._mozmillasynctest == true) {
       func = {
@@ -497,6 +524,7 @@ Runner.prototype.wrapper = function (func, arg) {
               'name':func.__name__
              }
     }
+    // Allow the exception if a user shutdown was expected
     if (!events.isUserShutdown()) {
       events.fail({'exception': e, 'test':func})
       Components.utils.reportError(e);
@@ -527,7 +555,9 @@ Runner.prototype._runTestModule = function (module) {
     var setupModulePassed = true;
   }
   if (setupModulePassed) {
+    var observer = new AppQuitObserver();
     for (var i in module.__tests__) {
+      events.appQuit = false;
       var test = module.__tests__[i];
       
       // TODO: introduce per-test timeout:
@@ -556,8 +586,8 @@ Runner.prototype._runTestModule = function (module) {
         events.endTest(module.__teardownTest__);
       }
       events.endTest(test)
-
     }
+    observer.unregister();
   } else {
     for each(var test in module.__tests__) {
       events.setTest(test);
