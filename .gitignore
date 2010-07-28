@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 *.pyc
 *.pyo
 *.egg-info
@@ -7,6 +6,4 @@ dist
 *~
 #*
 .DS_Store
-=======
-*~
->>>>>>> bfe18158d5009b376ed340086ccd11d08815d0f6
+
