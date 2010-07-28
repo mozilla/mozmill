@@ -89,7 +89,7 @@ waitForEvents.prototype = {
    */
   wait : function waitForEvents_wait(timeout, interval)
   {
-    for (e in this.registry) {
+    for (var e in this.registry) {
       try {
         utils.waitFor(function() {
           return this.node.firedEvents[e] == true;
@@ -916,7 +916,7 @@ Tabs.prototype.selectTab = function(index) {
   // GO in to tab manager and grab the tab by index and call focus.
 }
 Tabs.prototype.findWindow = function (doc) {
-  for (i=0;i<=(this.controller.window.frames.length-1);i++) {
+  for (var i = 0; i <= (this.controller.window.frames.length - 1); i++) {
     if (this.controller.window.frames[i].document == doc) {
       return this.controller.window.frames[i];
     }
@@ -985,7 +985,7 @@ MozMillAsyncTest = function (timeout) {
 }
 
 MozMillAsyncTest.prototype.run = function () {
-  for (i in this) {
+  for (var i in this) {
     if (withs.startsWith(i, 'test') && typeof(this[i]) == 'function') {
       this[i]();
     }
