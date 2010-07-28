@@ -459,13 +459,9 @@ MozMillController.prototype.waitFor = function(callback, timeout, interval) {
 }
 
 MozMillController.prototype.waitForEval = function(expression, timeout, interval, subject) {
-  try {
-    waitFor(function() {
-      return eval(expression);
-    }, timeout, interval);
-  } catch (ex) {
-    throw new Error(arguments.callee.name + ": Timeout exceeded for '" + expression + "'");
-  }
+  waitFor(function() {
+    return eval(expression);
+  }, timeout, interval);
 
   frame.events.pass({'function':'controller.waitForEval()'});
 }
@@ -950,28 +946,22 @@ Tabs.prototype.selectTabIndex = function(i) {
 function browserAdditions( controller ) {
   controller.tabs = new Tabs(controller);
   controller.waitForPageLoad = function(_document, timeout, interval) {
-    // if a user tries to do waitForPageLoad(2000), this will assign the
-    // interval the first arg which is most likely what they were expecting
+    //if a user tries to do waitForPageLoad(2000), this will assign the interval the first arg
+    //which is most likely what they were expecting
     if (typeof(_document) == "number"){
       timeout = _document;
     }
-
-    // in case they pass null
+    //incase they pass null
     if (_document == null){
       _document = 0;
     }
-
-    // if _document isn't a document object
+    //if _document isn't a document object
     if (typeof(_document) != "object") {
       _document = controller.tabs.activeTab;
     }
 
-    // Cache the default view. Otherwise we will fail for waitForPageLoad on
-    // blank or error pages.
-    var win = _document.defaultView;
-
     waitFor(function() {
-      return win.documentLoaded == true;
+      return _document.defaultView.documentLoaded == true;
     }, timeout, interval);
 
     //Once the object is available it's somewhere between 1 and 3 seconds before the DOM
