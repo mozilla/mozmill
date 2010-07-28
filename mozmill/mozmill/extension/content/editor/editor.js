@@ -5,10 +5,6 @@ var editor = {
 
   currentTab : null,
 
-  width : 500,
-  
-  height : 700,
-
   tempCount : 0,
 
   resize : function(width, height) {
@@ -18,14 +14,15 @@ var editor = {
       this.height = height;
 
     if(this.currentTab) {
-      this.currentTab.iframeElement.style.width = this.width + "px";
-      this.currentTab.iframeElement.style.height = this.height + "px";
+      this.currentTab.editorElement.style.width = this.width + "px";
+      this.currentTab.editorElement.style.height = this.height + "px";
+      this.currentTab.editorEnv.dimensionsChanged();
     }
   },
 
   switchTab : function(index) {
-    if(index == undefined) {
-      index = this.tabs.length - 1;}
+    if(index == undefined)
+      index = this.tabs.length - 1;
     if(index < 0)
       return;
 
@@ -33,11 +30,11 @@ var editor = {
     tabSelect.selectedIndex = index;
 
     if(this.currentTab)
-      this.currentTab.iframeElement.style.display = "none";
+      this.currentTab.editorElement.style.display = "none";
     this.index = index;
     this.currentTab = this.tabs[index];
     this.resize();
-    this.currentTab.iframeElement.style.display = "block";
+    this.currentTab.editorElement.style.display = "block";
   },
 
   closeCurrentTab : function() {
@@ -69,8 +66,8 @@ var editor = {
 
     var newTab = new editorTab(content, filename);
     this.tabs.push(newTab);
-
-    // will switch to new tab when the iframe has loaded
+ 
+    // will switch to tab when it has loaded
   },
 
   getContent : function() {
@@ -96,27 +93,27 @@ var editor = {
 
 
 function editorTab(content, filename) {
-  var iframeElement = document.createElement("iframe");
-  iframeElement.className = "editor-frame";
+  var bespinElement = document.createElement("div");
+  bespinElement.id = "editor-" + Math.random();
+  bespinElement.className = "bespin";
+  document.getElementById("editors").appendChild(bespinElement);
+
   var editorObject = this;
 
-  iframeElement.addEventListener("load", function() {
-    var win = iframeElement.contentWindow;
-   alert('iframe load');
-    win.onEditorLoad = function() {
-      alert("hi");
-      editorObject.editorElement = win.document.getElementById("editor");
-      editorObject.editor = win.editor;
-      if(content)
-        win.editor.value = content;
-      editor.resize();
-      editor.switchTab();
-    } // this function is invoked by the iframe
-  }, true);
-  iframeElement.src = "chrome://mozmill/content/editor/editor.html";
-  document.getElementById("editors").appendChild(iframeElement);
+  bespin.useBespin(bespinElement, {
+    settings: {"tabstop": 4},
+    syntax: "js", 
+    stealFocus: true})
+  .then(function(env) {
+    editorObject.editorEnv = env;
+    editorObject.editor = env.editor;
+    if(content)
+      env.editor.value = content;
+    editor.switchTab();
+    env.settings.set("fontsize", 13);
+  });
 
-  this.iframeElement = iframeElement;
+  this.editorElement = bespinElement;
   this.filename = filename;
 }
 
@@ -130,6 +127,6 @@ editorTab.prototype = {
   },
 
   destroy : function() {
-    this.iframeElement.parentNode.removeChild(this.iframeElement);
+    this.editorElement.parentNode.removeChild(this.editorElement);
   }
 }

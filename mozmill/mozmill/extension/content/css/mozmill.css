@@ -6,7 +6,12 @@ body{ font: 11px Corbel, Verdana, Helvetica, arial, sans-serif; background-color
   font-size: 12px;
 }
 
-.editor-frame { border: none;}
+.bespin {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  width: 100%;
+}
 
 #fileMenuButton {
   float: left;

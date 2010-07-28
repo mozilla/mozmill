@@ -11,6 +11,10 @@
   <link type="text/css" href="css/smoothness/jquery-ui-1.7.1.custom.css" rel="Stylesheet" />
   <link type="text/css" href="css/mozmill.css" rel="Stylesheet" />
   <link type="text/css" href="css/fg.menu.css" rel="Stylesheet"/>
+
+  <link id="bespin_base" href="editor/bespin">
+  <link href="editor/bespin/BespinEmbedded.css" type="text/css" rel="stylesheet">
+  <script type="text/javascript" src="editor/bespin/BespinEmbedded.js"></script>
 	
   <script src="mozmill.js"></script>
   <script src="output.js"></script>
@@ -32,16 +36,16 @@
   	    $('#tabs')[0].style.height = window.innerHeight - 8 + "px";
         $('#resOut')[0].style.height = window.innerHeight - 150 + "px";
         $('#shellOutput')[0].style.height = window.innerHeight - 200 + "px";
-        editor.resize(window.innerWidth - 38, window.innerHeight - 100);
+        editor.resize(window.innerWidth - 40, window.innerHeight - 108);
   	}
 
     window.onresize = function(){ syncHeights(); }
-  	
+  	window.onBespinLoad = function() { newTemplate(); }
+
   	$(function() {
       $("#tabs").tabs();
 
       syncHeights();
-      newTemplate();
 
       $('#tabs').bind('tabsshow', function(event, ui) {
          syncHeights();
