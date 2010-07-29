@@ -380,6 +380,19 @@ function sleep(milliseconds) {
 }
 
 /**
+ * Check if the callback function evaluates to true
+ */
+function assert(callback) {
+  var result = callback();
+
+  if (!result) {
+    throw new Error(arguments.callee.name + ": Failed for '" + callback + "'");
+  }
+
+  return true;
+}
+
+/**
  * Waits for the callback evaluates to true
  */
 function waitFor(callback, timeout, interval) {
