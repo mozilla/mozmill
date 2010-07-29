@@ -612,6 +612,7 @@ class MozMillRestart(MozMill):
 
 class CLI(jsbridge.CLI):
     mozmill_class = MozMill
+    module = "mozmill"
 
     parser_options = copy.copy(jsbridge.CLI.parser_options)
     parser_options[("-t", "--test",)] = dict(dest="test", default=False, 
