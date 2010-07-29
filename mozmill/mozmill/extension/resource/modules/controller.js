@@ -55,6 +55,7 @@ var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
 
 // Declare most used utils functions in the controller namespace
 var sleep = utils.sleep;
+var assert = utils.assert;
 var waitFor = utils.waitFor;
 var waitForEval = utils.waitForEval;
 
@@ -701,18 +702,24 @@ MozMillController.prototype.assertValue = function (el, value) {
   return false;
 };
 
+/**
+ * Check if the callback function evaluates to true
+ */
+MozMillController.prototype.assert = function(callback)
+{
+  utils.assert(callback);
+
+  frame.events.pass({'function': ": controller.assert('" + callback + "')"});
+  return true;
+}
+
 // Assert that the result of a Javascript expression is true
 MozMillController.prototype.assertJS = function(expression, subject)
 {
-  var desc = 'Controller.assertJS("' + expression + '")';
-  var result = eval(expression);
+  assert(function() { return eval(expression)});
 
-  if (result)
-    frame.events.pass({'function': desc});
-  else
-    throw new Error(desc);
-
-  return result; 
+  frame.events.pass({'function': "controller.assertJS('" + expression + "')"});
+  return true;
 }
 
 //Assert that a provided value is selected in a select element
