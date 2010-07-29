@@ -48,17 +48,13 @@ DomInspectorConnector.prototype.grab = function(){
   var disp = $('dxDisplay').textContent;
   var dispArr = disp.split(': ');
   $('editorInput').value += 'new elementslib.'+dispArr[0].toUpperCase()+"('"+dispArr[1]+"')\n";
-}  
+}
 
 DomInspectorConnector.prototype.changeClick = function(e) {
   if (this.on){
     this.dxOff()
     this.dxOn();
   }
-  else {
-    this.dxOff();
-  }
-
 }
 
 DomInspectorConnector.prototype.evtDispatch = function(e) {
@@ -93,40 +89,31 @@ DomInspectorConnector.prototype.evtDispatch = function(e) {
   return dxE;
 }
 DomInspectorConnector.prototype.dxToggle = function(){
-  if (this.on){
+  if (this.on)
     this.dxOff();
-    $("#inspectDialog").dialog().parents(".ui-dialog:first").find(".ui-dialog-buttonpane button")[2].innerHTML = "Start";
-  }
-  else{
+  else
     this.dxOn();
-    $("#inspectDialog").dialog().parents(".ui-dialog:first").find(".ui-dialog-buttonpane button")[2].innerHTML = "Stop";
-  }
 }
 //Turn on the recorder
 //Since the click event does things like firing twice when a double click goes also
 //and can be obnoxious im enabling it to be turned off and on with a toggle check box
 DomInspectorConnector.prototype.dxOn = function() {
   this.on = true;
-  $("#inspectDialog").dialog().parents(".ui-dialog:first").find(".ui-dialog-buttonpane button")[2].innerHTML = "Stop";
-  document.getElementById('eventsOut').value = "";
-  //document.getElementById('inspectClickSelection').disabled = true;
-  //$('domExplorer').setAttribute('label', 'Disable Inspector');
+  $("#dxToggle").text("Stop");
+
   //defined the click method, default to dblclick
   var clickMethod = "dblclick";
   if (document.getElementById('inspectSingle').checked){
     clickMethod = 'click';
   }
-  //document.getElementById('dxContainer').style.display = "block";
-  //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
+
   var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"]
                      .getService(Components.interfaces.nsIWindowMediator)
                      .getEnumerator("");
   while(enumerator.hasMoreElements()) {
     var win = enumerator.getNext();
-    //if (win.title != 'Error Console' && win.title != 'MozMill IDE'){
     if (win.document.title != 'MozMill IDE'){
       this.dxRecursiveBind(win, clickMethod);
-      //win.focus();
     }
   }
 
@@ -151,25 +138,14 @@ DomInspectorConnector.prototype.observer = {
 
 DomInspectorConnector.prototype.dxOff = function() {
   this.on = false;
-  $("#inspectDialog").dialog().parents(".ui-dialog:first").find(".ui-dialog-buttonpane button")[2].innerHTML = "Start";
-  //document.getElementById('inspectClickSelection').disabled = false;
+  $("#dxToggle").text("Start");
+  $("#dxCopy").show();
 
   //try to cleanup left over outlines
   if (this.lastEvent){
-    this.lastEvent.target.style.border = "";
+    this.lastEvent.target.style.outline = "";
   }
   
-  //defined the click method, default to dblclick
-  var clickMethod = "dblclick";
-  if (document.getElementById('inspectSingle').checked){
-    clickMethod = 'click';
-  }
-  
-  //because they share this box
-  var copyOutputBox = $('copyout');
-  //$('domExplorer').setAttribute('label', 'Enable Inspector');
-  //$('dxContainer').style.display = "none";
-  //var w = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('');
   for each(win in utils.getWindows()) {
     this.dxRecursiveUnBind(win, 'click');
   }
@@ -178,7 +154,6 @@ DomInspectorConnector.prototype.dxOff = function() {
     this.dxRecursiveUnBind(win, 'dblclick');
   }
   
-
   var observerService =
     Components.classes["@mozilla.org/observer-service;1"]
       .getService(Components.interfaces.nsIObserverService);
@@ -186,12 +161,11 @@ DomInspectorConnector.prototype.dxOff = function() {
   try { 
     observerService.removeObserver(this.observer, "toplevel-window-ready");
   } catch(err){}
-
 };
 
 DomInspectorConnector.prototype.getFoc = function(e){
-  MozMilldx.dxToggle();
-  e.target.style.border = "";
+  MozMilldx.dxOff();
+  e.target.style.outline = "";
   e.stopPropagation();
   e.preventDefault();
   window.focus();
@@ -209,41 +183,10 @@ DomInspectorConnector.prototype.clipCopy = function(e){
    else if (e.altKey && e.shiftKey && (e.charCode == 199)){
      copyToClipboard($('#dxElement')[0].innerHTML + ' '+$('#dxValidation')[0].innerHTML + ' ' + $('#dxController')[0].innerHTML);
    }
-   else {
-     window.document.getElementById('eventsOut').value += "-----\n";
-     window.document.getElementById('eventsOut').value += "Shift Key: "+ e.shiftKey + "\n";
-     window.document.getElementById('eventsOut').value += "Control Key: "+ e.ctrlKey + "\n";
-     window.document.getElementById('eventsOut').value += "Alt Key: "+ e.altKey + "\n";
-     window.document.getElementById('eventsOut').value += "Meta Key: "+ e.metaKey + "\n\n";
-     
-     //we need some code here to map keyCodes to the desired mozilla VK_WHATEVER
-     //and substituting that in for e.charCode in the following concat.
-     
-     var ctrlString = "";
-     ctrlString += MozMilldx.evtDispatch(e);
-     ctrlString += "\nController: controller.keypress(element,"+e.charCode+",";
-     ctrlString += "{";
-     if (e.ctrlKey){
-       ctrlString += "ctrlKey:"+e.ctrlKey.toString()+",";
-     }
-     if (e.altKey){
-       ctrlString += "altKey:"+e.altKey.toString()+",";
-     }
-     if (e.shiftKey){
-       ctrlString += "shiftKey:"+e.shiftKey.toString()+",";
-     }
-     if (e.metaKey){
-       ctrlString += "metaKey:"+e.metaKey.toString();
-     }
-     ctrlString += "});\n";
-     ctrlString = ctrlString.replace(/undefined/g, "false");         
-     document.getElementById('eventsOut').value += ctrlString;
-   }
 }
+
 //Recursively bind to all the iframes and frames within
 DomInspectorConnector.prototype.dxRecursiveBind = function(frame, clickMethod) {
-  //Make sure we haven't already bound anything to this frame yet
-  this.dxRecursiveUnBind(frame, clickMethod);
   
   frame.addEventListener('mouseover', this.evtDispatch, true);
   frame.addEventListener('mouseout', this.evtDispatch, true);
@@ -255,49 +198,26 @@ DomInspectorConnector.prototype.dxRecursiveBind = function(frame, clickMethod) {
   var iframeArray = frame.window.frames;
 
   for (var i = 0; i < iframeCount; i++)
-  {
-      try {
-        iframeArray[i].addEventListener('mouseover', this.evtDispatch, true);
-        iframeArray[i].addEventListener('mouseout', this.evtDispatch, true);
-        iframeArray[i].addEventListener(clickMethod, this.getFoc, true);
-        iframeArray[i].addEventListener('keypress', this.clipCopy, true);
-        
-
-        this.dxRecursiveBind(iframeArray[i], clickMethod);
-      }
-      catch(error) {
-          //mozmill.results.writeResult('There was a problem binding to one of your iframes, is it cross domain?' + 
-          //'Binding to all others.' + error);
-
-      }
-  }
+    this.dxRecursiveBind(iframeArray[i], clickMethod);
 }
+
 //Recursively bind to all the iframes and frames within
 DomInspectorConnector.prototype.dxRecursiveUnBind = function(frame, clickMethod) {
-  frame.removeEventListener('mouseover', this.evtDispatch, true);
-  frame.removeEventListener('mouseout', this.evtDispatch, true);
-  frame.removeEventListener(clickMethod, this.getFoc, true);
-  frame.removeEventListener('keypress', this.clipCopy, true);
-  
+  try {
+    frame.removeEventListener('mouseover', this.evtDispatch, true);
+    frame.removeEventListener('mouseout', this.evtDispatch, true);
+    frame.removeEventListener(clickMethod, this.getFoc, true);
+    frame.removeEventListener('keypress', this.clipCopy, true);
+  }
+  catch(e) {
+    // don't want to prevent the rest of the frames from removing listeners
+  }
   
   var iframeCount = frame.window.frames.length;
   var iframeArray = frame.window.frames;
 
   for (var i = 0; i < iframeCount; i++)
-  {
-      try {
-        iframeArray[i].removeEventListener('mouseover', this.evtDispatch, true);
-        iframeArray[i].removeEventListener('mouseout', this.evtDispatch, true);
-        iframeArray[i].removeEventListener(clickMethod, this.getFoc, true);
-        iframeArray[i].removeEventListener('keypress', this.clipCopy, true);
-
-        this.dxRecursiveUnBind(iframeArray[i], clickMethod);
-      }
-      catch(error) {
-          //mozmill.results.writeResult('There was a problem binding to one of your iframes, is it cross domain?' + 
-          //'Binding to all others.' + error);
-      }
-  }
+    this.dxRecursiveUnBind(iframeArray[i], clickMethod);
 }
 
 var MozMilldx = new DomInspectorConnector();

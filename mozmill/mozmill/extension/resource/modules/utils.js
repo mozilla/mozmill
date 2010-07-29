@@ -47,9 +47,6 @@ var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
               .getService(Components.interfaces.nsIAppShellService)
               .hiddenDOMWindow;
 
-
-// var jstest = {}; 
-// Components.utils.import('resource://mozmill/modules/jstest.js', jstest);
 var uuidgen = Components.classes["@mozilla.org/uuid-generator;1"]
     .getService(Components.interfaces.nsIUUIDGenerator);
 
@@ -133,6 +130,7 @@ var checkChrome = function() {
    if (/^chrome:\/\//.test(loc)) { return true; } 
    else { return false; }
 }
+
 /*var openFile = function(){
  const nsIFilePicker = Components.interfaces.nsIFilePicker;
 
@@ -166,16 +164,6 @@ var checkChrome = function() {
    mozmill.MozMillController.commands.jsTests(paramObj);
  }*/
  
- var genBoiler = function(w){
-   var value = "var setupModule = function(module) {\n" +
-   "  module.controller = mozmill.getBrowserController();\n" +
-   "}\n" +
-   "\n" +
-   "var testFoo = function(){\n" +
-   "  controller.open('http://www.google.com');\n" +
-   "}\n"
-   w.editAreaLoader.setValue('editorInput', value);
- }
  var runFile = function(w){
    //define the interface
    var nsIFilePicker = Components.interfaces.nsIFilePicker;
@@ -200,20 +188,12 @@ var checkChrome = function() {
    }
  };
  
- var runEditor = function(w){
-   var data = w.document.getElementById('editorInput').value;
-   //Move focus to output tab
-   //w.document.getElementById('mmtabs').setAttribute("selectedIndex", 2);
-   //send it into the JS test framework to run the file   
-   // jstest.runFromString(data);
- };
-
- var saveFile = function(w){
+ var saveFile = function(w, content, filename){
    //define the file interface
    var file = Components.classes["@mozilla.org/file/local;1"]
                         .createInstance(Components.interfaces.nsILocalFile);
    //point it at the file we want to get at
-   file.initWithPath(w.openFn);
+   file.initWithPath(filename);
    
    // file is nsIFile, data is a string
    var foStream = Components.classes["@mozilla.org/network/file-output-stream;1"]
@@ -224,13 +204,12 @@ var checkChrome = function() {
    // write, create, truncate
    // In a c file operation, we have no need to set file mode with or operation,
    // directly using "r" or "w" usually.
-   var data = w.editAreaLoader.getValue('editorInput');
    
-   foStream.write(data, data.length);
+   foStream.write(content, content.length);
    foStream.close();
  };
  
-  var saveAsFile = function(w){
+  var saveAsFile = function(w, content){
      //define the interface
      var nsIFilePicker = Components.interfaces.nsIFilePicker;
      var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
@@ -262,10 +241,8 @@ var checkChrome = function() {
        // write, create, truncate
        // In a c file operation, we have no need to set file mode with or operation,
        // directly using "r" or "w" usually.
-       var data = w.editAreaLoader.getValue('editorInput');
-       foStream.write(data, data.length);
+       foStream.write(content, content.length);
        foStream.close();
-       w.editAreaLoader.closeFile('editorInput', w.openFn);
        return thefile.path;
      }
   };
