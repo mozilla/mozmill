@@ -38,23 +38,15 @@ window.onkeypress = function(e){
       break;
       case 'f':
         e.preventDefault();
-        showFileDialog();
+        showFileMenu();
       break;
       case 't':
         e.preventDefault();
-        showTestDialog();
+        showRunMenu();
       break;
       case 'p':
         e.preventDefault();
         showOptionDialog();
-      break;
-      case 'i':
-        e.preventDefault();
-        showInspectDialog();
-      break;
-      case 'd':
-        e.preventDefault();
-        showRecordDialog();
       break;
       case 'o':
         e.preventDefault();
@@ -64,11 +56,15 @@ window.onkeypress = function(e){
         e.preventDefault();
         newFile();
       break;
-      case 'r':
+      case 'e':
         e.preventDefault();
         runEditor();
       break;
-      case 'e':
+      case 'r':
+        e.preventDefault();
+        MozMillrec.toggle();
+      break;
+      case 'a':
         e.preventDefault();
         saveAsFile();
       break;
@@ -76,7 +72,7 @@ window.onkeypress = function(e){
         e.preventDefault();
         saveFile();
       break;
-      case 'w':
+      case 'c':
         e.preventDefault();
         closeFile();
       break;

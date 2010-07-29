@@ -205,13 +205,10 @@ var RecorderConnector = function() {
 }
 
 RecorderConnector.prototype.toggle = function(){
-  if (this.ison){
+  if (this.ison)
     this.off();
-    $("#recordDialog").dialog().parents(".ui-dialog:first").find(".ui-dialog-buttonpane button")[1].innerHTML = "Start";
-  } else { 
-    this.on(); 
-    $("#recordDialog").dialog().parents(".ui-dialog:first").find(".ui-dialog-buttonpane button")[1].innerHTML = "Stop";
-  }
+  else
+    this.on();
 };
 
 RecorderConnector.prototype.dispatch = function(evt){
@@ -225,28 +222,16 @@ RecorderConnector.prototype.dispatch = function(evt){
 
 //Recursively bind to all the iframes and frames within
 RecorderConnector.prototype.bindListeners = function(frame) {
-  //Make sure we haven't already bound anything to this frame yet
-  this.unbindListeners(frame);
-  
   frame.addEventListener('click', this.dispatch, false);
   frame.addEventListener('dblclick', this.dispatch, false);
   frame.addEventListener('change', this.dispatch, false);
   frame.addEventListener('keypress', this.dispatch, false);
-  
+
   var iframeCount = frame.window.frames.length;
   var iframeArray = frame.window.frames;
 
   for (var i = 0; i < iframeCount; i++)
-  {
-      try {
-        iframeArray[i].addEventListener('click', this.dispatch, false);
-        iframeArray[i].addEventListener('dblclick', this.dispatch, false);
-        iframeArray[i].addEventListener('change', this.dispatch, false);
-        iframeArray[i].addEventListener('keypress', this.dispatch, false);
-        this.bindListeners(iframeArray[i]);
-      }
-      catch(error) {}
-  }
+    this.bindListeners(iframeArray[i]);
 }
 
 //Recursively bind to all the iframes and frames within
@@ -263,16 +248,7 @@ RecorderConnector.prototype.unbindListeners = function(frame) {
   var iframeArray = frame.window.frames;
 
   for (var i = 0; i < iframeCount; i++)
-  {
-      try {
-        iframeArray[i].removeEventListener('click', this.dispatch, false);
-        iframeArray[i].removeEventListener('dblclick', this.dispatch, false);
-        iframeArray[i].removeEventListener('change', this.dispatch, false);
-        iframeArray[i].removeEventListener('keypress', this.dispatch, false);
-        this.unbindListeners(iframeArray[i]);
-      }
-      catch(error) {}
-  }
+    this.unbindListeners(iframeArray[i]);
 }
 
 //When a new win dom window gets opened
@@ -288,19 +264,12 @@ RecorderConnector.prototype.observer = {
 
 RecorderConnector.prototype.on = function() {
   this.ison = true;
-  //Bind
-  // if (($('saveMenu').getAttribute("disabled") != "true" && 
-  //       window.document.getElementById('editorInput').value != '') || (
-  //       window.document.getElementById('editorInput').value != '' &&
-  //       window.openFn == null)){
-  //     var confirmation = confirm('You have unsaved code in the test editor. The Recorder will replace the test you currently have in the test editor if you decide to continue. Would you like to continue regardless?');
-  //   } else {
-  //     var confirmation = true;
-  //   }
-  //   
-  //   if (!confirmation) { return false;}
-  //$('saveMenu').setAttribute("disabled", "true"); 
-//  $('editorMessage').innerHTML = "Use the 'File' menu to open a test, or generate and save a new one..";
+
+  // update UI
+  $("#recordToggle").text("Stop Recording");
+  $("#recordToggle").addClass("ui-state-highlight");
+  $("#recordToggle").addClass("ui-priority-primary");
+
   window.openFn = utils.tempfile().path;
   editAreaLoader.openFile('editorInput', {text:'',title:getFileName(window.openFn),id:window.openFn});
   window.openFn = null;
@@ -310,8 +279,7 @@ RecorderConnector.prototype.on = function() {
       this.bindListeners(win);
     }
   }
-  //Update UI
-  //$('recorder').setAttribute('label', 'Stop');
+
   var mmWindows = utils.getWindows('navigator:browser');
   if (mmWindows.length != 0){
     mmWindows[0].focus();
@@ -325,19 +293,23 @@ RecorderConnector.prototype.on = function() {
   observerService.addObserver(this.observer, "toplevel-window-ready", false);
   
   currentRecorderArray = [];
-  //window.document.getElementById('editorInput').value = '';
   editAreaLoader.setValue('editorInput', '');
 };
 
 RecorderConnector.prototype.off = function() {
   this.ison = false;
-  //Bind
+
+  //update UI
+  $("#recordToggle").text("Record");
+  $("#recordToggle").removeClass("ui-state-highlight");
+  $("#recordToggle").removeClass("ui-priority-primary");
+
+  
   for each(win in utils.getWindows()) {
     this.unbindListeners(win);
   }
-  //$('recorder').setAttribute('label', 'Record');
   var r = getRecordedScript(currentRecorderArray);
-  //window.document.getElementById('editorInput').value = r;
+
   editAreaLoader.closeFile('editorInput',  editAreaLoader.getCurrentFile('editorInput').id);
   newFile();
   editAreaLoader.setValue('editorInput', r);

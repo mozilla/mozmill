@@ -1,211 +1,229 @@
-<?xml version="1.0"?>
-<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ***** BEGIN LICENSE BLOCK *****
+  -   Version: MPL 1.1/GPL 2.0/LGPL 2.1
+  -
+  - The contents of this file are subject to the Mozilla Public License Version
+  - 1.1 (the "License"); you may not use this file except in compliance with
+  - the License. You may obtain a copy of the License at
+  - http://www.mozilla.org/MPL/
+  - 
+  - Software distributed under the License is distributed on an "AS IS" basis,
+  - WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+  - for the specific language governing rights and limitations under the
+  - License.
+  -
+  - The Original Code is Rainbow.
+  -
+  - The Initial Developer of the Original Code is
+  - Heather Arthur.
+  - Portions created by the Initial Developer are Copyright (C) 2009
+  - the Initial Developer. All Rights Reserved.
+  -
+  - Contributor(s):
+  -
+  - Alternatively, the contents of this file may be used under the terms of
+  - either the GNU General Public License Version 2 or later (the "GPL"), or
+  - the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+  - in which case the provisions of the GPL or the LGPL are applicable instead
+  - of those above. If you wish to allow use of your version of this file only
+  - under the terms of either the GPL or the LGPL, and not to allow others to
+  - use your version of this file under the terms of the MPL, indicate your
+  - decision by deleting the provisions above and replace them with the notice
+  - and other provisions required by the GPL or the LGPL. If you do not delete
+  - the provisions above, a recipient may use your version of this file under
+  - the terms of any one of the MPL, the GPL or the LGPL.
+  - 
+  - ***** t END LICENSE BLOCK ***** -->
+<?xml-stylesheet href="css/smoothness/jquery-ui-1.7.1.custom.css" type="text/css"?>
 <?xml-stylesheet href="css/mozmill.css" type="text/css"?>
+<?xml-stylesheet href="css/fg.menu.css" type="text/css"?>
 
-<!DOCTYPE window SYSTEM "chrome://mozmill/locale/mozmill.dtd">
+<xul:window id="rainbow-picker-window" 
+        title="MozMill IDE"
+        windowtype="mozmill:ide"
+        xmlns="http://www.w3.org/1999/xhtml"
+        xmlns:xul="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        persist="width height screenX screenY"
+        onunload="cleanUp();">
+	
+  <script src="mozmill.js"></script>
+  <script src="output.js"></script>
+  <script src="dx.js"></script>
+  <script src="rec.js"></script>
+  <script src="menus.js"></script>
+  <script src="shell.js"></script>
+  <script src="editor.js"></script>
 
-<window id="main"
-        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
-        xmlns:html="http://www.w3.org/1999/xhtml"
-        title="&title.label;"
-        windowtype="Extension:Mozmill"
-        persist="screenX screenY width height sizemode">
+  <script src="jquery/jquery-1.3.2.min.js"></script>
+  <script src="jquery/jquery-ui-1.7.1.custom.min.js"></script>
+  <script src="ui.js"></script>
+  <script src="editarea/edit_area/edit_area_loader.js"></script>
 
-<script src="mozmill.js"/>
-<script src="output.js"/>
-<script src="dx.js"/>
-<script src="rec.js"/>
-<script src="menus.js"/>
+  <script src="jquery/fg.menu.js"></script>
+  <script src="shortcuts.js"></script>
+  <script type="text/javascript">
+  	var syncHeights = function(){
+  	    $('#tabs')[0].style.height = window.innerHeight - 90 + "px";
+        if ($('#editorInput')[0].style.height != window.innerHeight - 180 + "px"){
+          if ( $('#tabs').tabs("option","selected") == 0 ){
+            editAreaLoader.toggle("editorInput");
+            $('#editorInput')[0].style.height = window.innerHeight - 180 + "px";
+            editAreaLoader.toggle("editorInput");
+          }
+        }
+        $('#editorInput')[0].style.height = window.innerHeight - 180 + "px";
+        $('#resOut')[0].style.height = window.innerHeight - 170 + "px";
+        $('#shellOutput')[0].style.height = window.innerHeight - 220 + "px";
+  	}
+  	
+  	$(function() {
+      $("#tabs").tabs();
+      $('#tabs').bind('tabsshow', function(event, ui) {
+         syncHeights();
+         if ( $('#tabs').tabs("option","selected") == 0 ){
+           editAreaLoader.toggle("editorInput");
+           $('#editorInput')[0].style.height = window.innerHeight - 170 + "px";
+           editAreaLoader.toggle("editorInput");
+         }
+      });
 
-<keyset>
-  <key id="open-key" modifiers="accel" key="o" oncommand="openFile();"/>
-  <key id="run-editor" modifiers="accel" key="r" oncommand="runEditor();"/>
-  <key id="save-as" modifiers="accel" key="a" oncommand="saveAsFile();"/>
-  <key id="save-file" modifiers="accel" key="s" oncommand="saveFile();"/>
-  <key id="copy-inspector" modifiers="alt shift" key="c" oncommand="MozMilldx.clipCopy(true);"/>
-  <key id="copy-output" modifiers="alt shift" key="o" oncommand="accessOutput();"/>
-  <key id="reset-output" modifiers="alt shift" key="r" oncommand="logicalClear();"/>
-  <key id="new-window" modifiers="accel" key="n" oncommand="openNewWindow();"/>
-</keyset>
+     $('#fileMenu').menu({ 
+        content: $('#fileMenulist').html(), // grab content from this page
+        showSpeed: 200 
+     });
 
- <menubar id="windowlist-menubar">
- <menu id="file-menu" label="File">
-    <menupopup id="file-popup">
-      <menuitem label="New Window" key="new-window"/>
-    </menupopup>
-  </menu>
-  <menu label="Window" oncommand="switchFocus(event.target);">
-   <menupopup id="window-menu" datasources="rdf:window-mediator" ref="NC:WindowMediatorRoot">
-    <template>
-     <rule>
-      <menuitem uri="rdf:*" label="rdf:http://home.netscape.com/NC-rdf#Name"/>
-     </rule>
-    </template>
-   </menupopup>
-  </menu>
-  <menu id="help-menu" label="Help">
-     <menupopup id="help-popup">
-       <menuitem label="About MozMill"/>
-     </menupopup>
-   </menu>
- </menubar>
+     $('#runMenu').menu({ 
+        content: $('#runMenulist').html(), // grab content from this page
+        showSpeed: 200 
+     });
+    
+      $("#optionDialog").dialog({
+  		  autoOpen: false,
+        height: 250,
+        width: 400,
+        modal:true,
+        resizable:false,
+        overlay: { 
+            opacity: 0.5, 
+            background: "black" 
+        },
+        buttons: { 
+         "Close": function() { 
+             jQuery(this).dialog("close"); 
+         } 
+        }
+      });
+    
+	});
+  </script>
 
-<script>
-function switchFocus(elem)
-{
-  var mediator = Components.classes["@mozilla.org/rdf/datasource;1?name=window-mediator"].getService();
-  mediator.QueryInterface(Components.interfaces.nsIWindowDataSource);
+    <div style="position:absolute;width:98%;height:98%;overflow:hidden;">
+      <div id="topBox">
+      <a href="https://developer.mozilla.org/en/Mozmill"  style="float:right; margin-right: 8px; margin-bottom: 6px;">
+         <image id="mozmillImage" src="img/wmIcon40.png" style="border:none;"/>
+      </a>
+      <div id="statusMessage" style="height:40px;" >
+        <span><strong>Status:</strong></span>
+        <span id="runningStatus">Ready...</span>
+      </div>
+      <div class="ui-helper-hidden" style="width:100%;text-align:right;font-size:12px;">
+        <span style="cursor:pointer" onclick="showOptionDialog();">O<u>p</u>tions</span> |
+        <a style="cursor:pointer" href="https://developer.mozilla.org/en/Mozmill">Help</a>
+      </div>
+     </div>
+      <div id="tabs" style="position:relative;width:98%;height:90%">
+      	<ul>
+      		<li><a id="editorTab" href="#tabs-1">Editor</a></li>
+      		<li><a id="outputTab" href="#tabs-2">Output</a></li>
+      		<li><a id="eventsTab" href="#tabs-3">Inspector</a></li>
+      		<li><a id="shellTab" href="#tabs-4">Shell</a></li>
+      	</ul>
+      	<div id="tabs-1">
 
-  var resource = elem.getAttribute('id');
-  switchwindow = mediator.getWindowForResource(resource);
+          <span tabindex="0" class="menu" id="fileMenu"><u>F</u>ile</span>
+          <div style="display:none;">
+            <ul id="fileMenulist">
+              <li class="menuitem"><a href="#" onclick="openFile();"><u>O</u>pen</a></li>
+              <li class="menuitem"><a href="#" onclick="newFile();"><u>N</u>ew</a></li>
+              <li class="menuitem"><a href="#" onclick="genBoiler();">New from Te<u>m</u>plate</a></li>
+              <li class="menuitem"><a href="#" onclick="saveFile();"><u>S</u>ave</a></li>
+              <li class="menuitem"><a href="#" onclick="saveAsFile();">Save <u>A</u>s</a></li>
+              <li class="menuitem"><a href="#" onclick="closeFile();"><u>C</u>lose Current File</a></li>
+              </ul>
+            </div>
+          <span tabindex="0" class="menu" id="runMenu"><u>T</u>est</span>
+          <div style="display:none;">
+            <ul id="runMenulist">
+              <li class="menuitem"><a href="#" onclick="runEditor();">Run <u>E</u>ditor</a></li>
+              <li class="menuitem"><a href="#" onclick="runFile();">Run <u>F</u>ile</a></li>
+              <li class="menuitem"><a href="#" onclick="runDirectory();">Run <u>D</u>irectory</a></li>
+              </ul>
+            </div><span style="float:right;">
+          <button id="runButton"  class="ui-state-default ui-corner-all" onclick="runEditor();">Run</button>
+          <button id="recordToggle"  class="ui-state-default ui-corner-all" onclick="MozMillrec.toggle();"><u>R</u>ecord</button>
+          </span>
+          <textarea id="editorInput" value="" style="font-family:monospace;font-size:12px;width:100%"></textarea>
+      	</div>
+      	<div id="tabs-2">
+          <div id="outOptions" >
+            <span id="outToggles">
+              Pass:<input id="outPass" label="Pass" type="checkbox" checked="true" onchange="updateOutput();"></input>
+              Fail:<input id="outFail" label="Fail" type="checkbox" checked="true" onchange="updateOutput();"></input>
+              Test:<input id="outTest" label="Test" type="checkbox" checked="true" onchange="updateOutput();"></input>
+            </span>
+           <button id="outClear" style="float:right;" class="ui-state-default ui-corner-all" onclick="logicalClear();">C<u>l</u>ear</button></div>
+          <p>
+            <div id="resOut" style="overflow:auto;position:absolute;height:90%;width:98%"></div>
+      	  </p>
+      	</div>
+      	<div id="tabs-3">
+      	    <div id="dxOptions" style="float:right;">
+      	        Double Click: <input id="inspectDouble" type="radio" name="inspectClickSelection" value="double" onclick="MozMilldx.changeClick();" checked="true"></input>
+                Single Click: <input id="inspectSingle" type="radio" name="inspectClickSelection" onclick="MozMilldx.changeClick();" value="single"></input>
+      	    </div>
+      	  <div id="dxContainer"><div id="elementStr">
+            <strong>Element</strong>:
+            <span ondblclick="copyToClipboard(this.textContent);" id="dxElement"></span></div>
+            
+            <span id="controllerStr"><strong>Controller</strong>:
+            <span ondblclick="copyToClipboard(this.textContent);" id="dxController"></span></span>
+            <br></br> <div class="ui-helper-hidden">
+            <strong>Validation</strong>:
+            <span ondblclick="copyToClipboard(this.textContent);" id="dxValidation"></span> </div>
+          </div>
+          <div id="dxButtons">
+            <button id="dxToggle" class="ui-state-default ui-corner-all ui-priority-primary" onclick="MozMilldx.dxToggle();">Start</button>
+            <button id="dxCopy" class="ui-state-default ui-corner-all ui-helper-hidden" onclick="copyInspector();">Send To Clipboard</button>
+          </div>
+      	</p>
+      	</div>
+      	<div id="tabs-4">
+      		<p>
+            <textarea id="shellInput">Type commands here...</textarea>
+              <div id="shellOutput">
+              </div>
+      		</p>
+      	</div>
+      </div>
 
-  if (switchwindow){
-    switchwindow.focus();
-  }
-}
-</script>
+      <div id="inspectDialog" title="Inspector">  	
+      </div>
+      
+      <div id="fileDialog" title="File Options">
+      </div>
+      
+      <div id="testDialog" title="Test Options">
 
-<toolbox>
-  <toolbar id="nav-toolbar">
-    <button type="menu" id="fileMenu" label="File">
-      <menupopup id="action-popup">
-        <menuitem id="open-key" key="open-key" label="Open" oncommand="openFile();"/>
-        <menuseparator/>
-        <menuitem id="saveMenu" key="save-file" label="Save" disabled="true" oncommand="saveFile();"/>
-        <menuitem label="Save As" key="save-as" oncommand="saveAsFile();"/>
-        <menuseparator/>
-        <menuitem id="closeMenu"  label="Close" disabled="true" oncommand="closeFile();"/>
-        <menuseparator/>
-      	<menuitem id="exitMenu" label="Exit Mozmill" oncommand="close();"/>
-
-      </menupopup>
-    </button>
-    <button type="menu" id="testMenu" label="Tests">
-      <menupopup id="action-popup">
-        <menuitem label="Run Test File" oncommand="runFile();"/>
-        <menuitem label="Run Test Directory" oncommand="runDirectory();"/>
-        <menuseparator/>
-        <menuitem key="run-editor" label="Run Editor" oncommand="runEditor();"/>
-        <menuseparator/>
-        <menuitem label="New Test Template" oncommand="genBoiler();"/>
-      </menupopup>
-    </button>
-      <button type="menu" id="optionsMenu" label="Options">
-        <menupopup id="options-popup">
-        <menu label="Inspector">
-          <menupopup>
-            <menuitem key="copy-inspector" label="Copy to Clipboard" oncommand="MozMilldx.clipCopy(true);"/>
-            <menu label="Tools" disabled="true">
-              <menupopup>
-                <menuitem class="inspectorOption" id="lookupId" label="ID Enabled" type="checkbox" checked="true"/>
-                <menuitem class="inspectorOption" id="lookupName" label="Name Enabled" type="checkbox" checked="true"/>
-                <menuitem class="inspectorOption" id="lookupXPath" label="XPath Enabled" type="checkbox" checked="true"/>
-                <menuitem class="inspectorOption" id="lookupLookup" label="Lookup Enabled" type="checkbox" checked="true"/>
-
-                  <menu label="Lookup Options" disabled="true">
-                    <menupopup>
-                      <menuitem class="lookupOption" id="lookupById" label="By Id" type="checkbox" checked="true"/>
-                      <menuitem class="lookupOption" id="lookupByAttributes" label="By Attributes"
-                        type="checkbox" checked="true"/>
-                      <menuitem class="lookupOption" id="lookupPositionally" label="Positionally" type="checkbox"
-                        checked="true" />
-                    </menupopup>
-                  </menu>
-              </menupopup>
-            </menu>
-          </menupopup>
-         </menu>
-           <menu label="Output">
-              <menupopup>
-                <menu label="Display">
-                   <menupopup>
-                     <menuitem id="outPass" label="Pass" type="checkbox" checked="true" oncommand="updateOutput();"/>
-                     <menuitem id="outFail" label="Fail" type="checkbox" checked="true" oncommand="updateOutput();"/>
-                     <menuitem id="outTest" label="Test" type="checkbox" checked="true" oncommand="updateOutput();"/>
-                   </menupopup>
-                </menu>
-                <menu label="Tools">
-                  <menupopup>
-                    <menuitem key="copy-output" id="copyout" label="Copy to Clipboard" oncommand="accessOutput();"/>
-                    <menuitem key="reset-output" id="resetOutput" label="Reset Tab Contents" oncommand="logicalClear();"/>
-                  </menupopup>
-                </menu>
-              </menupopup>
-            </menu>       
-        </menupopup>
-      </button>
-	<toolbarseparator/>
-	<button id="domExplorer" label="Enable Inspector" oncommand="MozMilldx.dxToggle();"/>
-	<radiogroup id="inspectClickSelection">
-	  <radio id="inspectDouble" label="Double Click" value="double"/>
-	  <radio id="inspectSingle" label="Single Click" value="single"/>
-	</radiogroup>
-	<toolbarseparator/>
-	<button id="recorder" label="Record" oncommand="MozMillrec.toggle();"/>
-  </toolbar>
-</toolbox>
-
-<hbox class="h">
-  <image src="img/wmIcon.png"/>
-  <html:div id="statusMessage">
-    <html:span><html:strong>Status:</html:strong></html:span>
-    <html:span id="runningStatus">
-     Ready...
-     </html:span>
-  </html:div>
-</hbox>
-<html:div id="dxContainer" class="dx" style="padding:3px;">
-  <html:strong>Element</html:strong>::
-  <description ondblclick="copyToClipboard(this.textContent);" id="dxElement" style="-moz-user-select: text;"></description>
-  <html:br></html:br>
-  <html:strong>Controller</html:strong>::
-  <description ondblclick="copyToClipboard(this.textContent);" id="dxController" style="-moz-user-select: text;"></description>
-  <html:br></html:br>
-  <html:strong>Validation</html:strong>::
-  <description ondblclick="copyToClipboard(this.textContent);" id="dxValidation" style="-moz-user-select: text;"></description>
-  <html:br></html:br>
-  <html:input type="button" value="Close" style="position:relative;left:90%"
-    onclick="this.parentNode.style.display = 'none';"/>
-</html:div>
-
-<hbox flex="1" style="overflow:none;display:block;background:white;padding:2px;">
-  <html:div id="editorMessage" style="font-weight:bold;padding:5px;">
-    Use the 'File' menu to open a test, or write a new one..
-  </html:div>
-  <html:div id="tabHeads">
-    <html:span id="editorHead" class="tabHead" style="background:white">
-      <html:span onclick="swapTabs('editor')">Editor</html:span>
-    </html:span>
-    <html:span id="outputHead" class="tabHead">
-      <html:span onclick="swapTabs('output')">Output</html:span>
-    </html:span>
-    <html:span id="eventsHead" class="tabHead">
-      <html:span onclick="swapTabs('events')">Events</html:span>
-    </html:span>
-    <html:span id="shellHead" class="tabHead">
-      <html:span onclick="swapTabs('shell');$('shellInput').focus();">Shell</html:span>
-    </html:span>
-  </html:div>
-
-  <html:div id="tabContainer">
-    <html:div id="editorTab" class="tabDiv" style="display:block">
-      <html:textarea id="editorInput" value="" style="width:100%;height:100%" onkeypress="changeEditor()"/>
-    </html:div>
-    <html:div id="outputTab" class="tabDiv" style="overflow:auto;">
-      <html:div id="resOut" style="overflow:auto;display:block;position:absolute;width:95%"/>
-    </html:div>
-    <html:div id="eventsTab" class="tabDiv">
-      <html:textarea id="eventsOut" value="" style="width:100%;height:100%"/>
-    </html:div>
-    <html:div id="shellTab" class="tabDiv">
-      <html:textarea id="shellInput" value="" style="width:100%;height:50px">Type commands here...</html:textarea>
-      <html:div id="shellOutput" style="overflow:auto;height:500px;width:100%;border:1px solid #aaa"></html:div>
-    </html:div>
-  </html:div>
-</hbox>
-
-<hbox>
-</hbox>
-
-<script src="shell.js"/>
+      </div>
+      
+      <div id="optionDialog" title="Options">
+      	<p>
+      	    <button class="ui-state-default ui-corner-all" onclick="align();">Ali<b>g</b>n Windows</button>
+      	</p>
+      </div>
+      
+      <div id="recordDialog" title="Recorder">
+      </div>
+      
+    </div>
 </window>
