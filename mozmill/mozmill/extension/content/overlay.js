@@ -75,7 +75,7 @@ window.addEventListener("load", function(e) { MozMill.onLoad(e); }, false);
 
  
 function mozMillTestWindow() {
-  window.open("chrome://mozmill/content/testwindow.html", "", "chrome, resizable");
+  window.openDialog("chrome://mozmill/content/testwindow.html", "_blank", "chrome,dialog=no, resizable");
 }
 
 //adding a mozmill keyboard shortcut
