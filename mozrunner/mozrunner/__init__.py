@@ -409,6 +409,28 @@ class Runner(object):
         """Returns the command list to run."""
         return [self.binary, '-profile', self.profile.profile]
 
+    def get_repositoryInfo(self):
+        """Read repository information from application.ini and platform.ini."""
+        import ConfigParser
+
+        config = ConfigParser.RawConfigParser()
+        dirname = os.path.dirname(self.binary)
+        repository = { }
+
+        for entry in [['application', 'App'], ['platform', 'Build']]:
+            (file, section) = entry
+            config.read(os.path.join(dirname, '%s.ini' % file))
+
+            for entry in [['SourceRepository', 'repository'], ['SourceStamp', 'changeset']]:
+                (key, id) = entry
+
+                try:
+                    repository['%s_%s' % (file, id)] = config.get(section, key);
+                except:
+                    repository['%s_%s' % (file, id)] = None
+
+        return repository
+
     def start(self):
         """Run self.command in the proper environment."""
         if self.profile is None:
