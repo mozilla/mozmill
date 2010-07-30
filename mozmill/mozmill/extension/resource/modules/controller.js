@@ -122,7 +122,9 @@ var Menu = function (aWindow, aElements) {
 
         // Fake a click onto the menu to add dynamic entries
         if (popup) {
-          events.fakeOpenPopup(aWindow, popup);
+          if (popup.allowevents) {
+            events.fakeOpenPopup(aWindow, popup);
+          }
           entry = new Menu(aWindow, popup.childNodes);
         }
         break;
