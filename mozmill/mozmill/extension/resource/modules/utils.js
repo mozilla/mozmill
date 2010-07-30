@@ -422,7 +422,7 @@ function waitFor(callback, timeout, interval) {
   timeout = timeout || 30000;
   interval = interval || 100;
 
-  self = {counter: 0, result: callback()};
+  var self = {counter: 0, result: callback()};
 
   function wait() {
     self.counter += interval;
