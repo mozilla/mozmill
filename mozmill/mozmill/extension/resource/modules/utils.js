@@ -41,7 +41,7 @@ var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler",
                         "getFile", "Copy", "getChromeWindow", "getWindows", "runEditor",
                         "runFile", "getWindowByTitle", "getWindowByType", "tempfile", 
                         "getMethodInWindows", "getPreference", "setPreference",
-                        "sleep", "waitFor", "waitForEval"];
+                        "sleep", "assert", "waitFor", "waitForEval"];
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
               .getService(Components.interfaces.nsIAppShellService)
@@ -377,6 +377,19 @@ function sleep(milliseconds) {
     self.init = !init;
     return init;
   }, undefined, milliseconds);
+}
+
+/**
+ * Check if the callback function evaluates to true
+ */
+function assert(callback) {
+  var result = callback();
+
+  if (!result) {
+    throw new Error(arguments.callee.name + ": Failed for '" + callback + "'");
+  }
+
+  return true;
 }
 
 /**

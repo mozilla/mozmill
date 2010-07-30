@@ -1,0 +1,15 @@
+<html>
+<head>
+<script>
+function populate() {
+  var testarea = document.getElementById("testarea");
+  for(var i = 30000; i < 30400; i++) {
+    testarea.value += "https://bugzilla.mozilla.org/show_bug.cgi?id=" + i + "\n";
+  }
+}
+</script>
+</head>
+<body onload="populate();">
+<textarea id="testarea" style="height: 800px; width: 400px;"></textarea>
+</body>
+</html>

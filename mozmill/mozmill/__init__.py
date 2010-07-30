@@ -611,6 +611,7 @@ class MozMillRestart(MozMill):
 
 class CLI(jsbridge.CLI):
     mozmill_class = MozMill
+    module = "mozmill"
 
     parser_options = copy.copy(jsbridge.CLI.parser_options)
     parser_options[("-t", "--test",)] = dict(dest="test", default=False, 
@@ -661,7 +662,7 @@ class CLI(jsbridge.CLI):
         profile = jsbridge.CLI.get_profile(self, *args, **kwargs)
         profile.install_addon(extension_path)
         return profile
-
+        
     def run(self):
         # XXX this is a complicated function that should probably be broken up
 

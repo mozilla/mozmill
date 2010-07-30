@@ -75,6 +75,41 @@ body{ font: 11px Corbel, Verdana, Helvetica, arial, sans-serif; background-color
   border: 1px solid #aaa;
 }
 
+#mozmillIcon { margin-right: 6px; margin-bottom: 6px;}
+
+#dxContainer {margin-top: 16px; height: 160px;}
+
+#inspectOptions {margin-right: 10px;}
+
+#dxToggle {font-size: 12px;}
+
+#outClear {margin-left: 20px;}
+
+#runButton { position: relative; top: -3px; font-size: 12px;}
+
+#elementStr { margin-bottom: 8px;}
+
+#recordToggle { margin-left: 4px; position: relative; top: -3px; font-size: 12px;}
+
+#outClear { position: relative; top: -3px;}
+
+.menu { width:100%;font-size:12px; cursor: pointer; padding-top: 2px; padding-left: 4px; padding-right: 4px;}
+
+.menuitem { cursor: pointer; padding-top: 2px; font-size: 12px; padding-bottom: 2px;}
+
+.menuitem:hover { background-color: #E7E7E7;}
+
+#shellInput {
+  width: 99%;
+  height: 50px;
+}
+
+#shellOutput {
+  overflow: auto;
+  width: 99%;
+  border: 1px solid #aaa;
+}
+
 .log,
 .logger,
 .pass,
