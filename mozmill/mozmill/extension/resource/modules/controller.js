@@ -425,7 +425,7 @@ MozMillController.prototype.check = function(el, state) {
     this.click(el);
     this.waitFor(function() {
       return element.checked == state;
-    }, timeout, interval);
+    }, 500, 100);
 
     result = true;
   }
@@ -448,7 +448,7 @@ MozMillController.prototype.radio = function(el)
   this.click(el);
   this.waitFor(function() {
     return element.selected == true;
-  }, timeout, interval);
+  }, 500, 100);
 
   frame.events.pass({'function':'Controller.radio(' + el.getInfo() + ')'});
   return true;
@@ -1011,7 +1011,7 @@ MozMillAsyncTest.prototype.run = function () {
   try {
     utils.waitFor(function() {
       return this._done == true;
-    }, timeout, interval);
+    }, 500, 100);
   } catch (e) {
     throw new Error("MozMillAsyncTest timed out. Done is " + this._done);
   }
