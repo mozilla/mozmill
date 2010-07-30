@@ -243,7 +243,7 @@ class MozMill(object):
 
         # set the starttime for the tests
         # XXX assumes run_tests will be called soon after (currently true)
-        self.starttime = datetime.utcnow().isoformat()        
+        self.starttime = datetime.utcnow()
 
     def run_tests(self, test, sleeptime=4):
         """
@@ -303,53 +303,100 @@ class MozMill(object):
         print "INFO Skipped: %d" % len(self.skipped)
 
     def get_appinfo(self, bridge):
+        """ Collect application specific information """
+
         mozmill = jsbridge.JSObject(bridge, mozmillModuleJs)
         appInfo = mozmill.appInfo
-        results = {'app.name' : appInfo.name,
-                   'app.id' : str(appInfo.ID),
-                   'app.version' : str(appInfo.version),
-                   'app.buildID' : str(appInfo.appBuildID),
-                   'platform.version' : str(appInfo.platformVersion),
-                   'platform.buildID' : str(appInfo.platformBuildID),
-                   'uploaded' : datetime.now().isoformat(),
-                   'locale' : mozmill.locale,
-                  }
-        return results
-    
-    def get_sysinfo(self):
-        import platform
-        (system, node, release, version, machine, processor) = platform.uname()
-        sysinfo = {'os.name' : system, 'hostname' : node, 'os.version.number' : version,
-                   'os.version.string' : release, 'arch' : machine}
-        if system == 'Darwin':
-            sysinfo['os.name'] = "Mac OS X"
-            sysinfo['os.version.number'] = platform.mac_ver()[0]
-            sysinfo['os.version.string'] = platform.mac_ver()[0]
-        elif (system == 'linux2') or (system in ('sunos5', 'solaris')):
 
-            # XXX mispelling of key; can this be fixed?
-            sysinfo['linux_distrobution'] = platform.linux_distribution()
-            
-            sysinfo['libc_ver'] = platform.libc_ver()        
-        return sysinfo
+        results = {'application_id': str(appInfo.ID),
+                   'application_name': str(appInfo.name),
+                   'application_version': str(appInfo.version),
+                   'application_locale': str(mozmill.locale),
+                   'platform_buildid': str(appInfo.platformBuildID),
+                   'platform_version': str(appInfo.platformVersion),
+                  }
+
+        return results
+
+    def get_platform_information(self):
+        """ Retrieves platform information for test reports. Parts of that code
+            come from the dirtyharry application:
+            http://github.com/harthur/dirtyharry/blob/master/dirtyutils.py """
+
+        import platform
+        import re
+
+        (system, node, release, version, machine, processor) = platform.uname()
+        (bits, linkage) = platform.architecture()
+        service_pack = ''
+
+        if system in ["Microsoft", "Windows"]:
+            # There is a Python bug on Windows to determine platform values
+            # http://bugs.python.org/issue7860
+            if "PROCESSOR_ARCHITEW6432" in os.environ:
+              processor = os.environ.get("PROCESSOR_ARCHITEW6432", processor)
+            else:
+              processor = os.environ.get('PROCESSOR_ARCHITECTURE', processor)
+            system = os.environ.get("OS", system).replace('_', ' ')
+            service_pack = os.sys.getwindowsversion()[4]
+        elif system == "Linux":
+            (distro, version, codename) = platform.linux_distribution()
+            version = distro + " " + version
+            if not processor:
+                processor = machine
+        elif system == "Darwin":
+            system = "Mac"
+            (release, versioninfo, machine) = platform.mac_ver()
+            version = "OS X " + release
+
+        if processor in ["i386", "i686"]:
+            if bits == "32bit":
+                processor = "x86"
+            elif bits == "64bit":
+                processor = "x86_64"
+        elif processor == "AMD64":
+            bits = "64bit"
+            processor = "x86_64"
+        elif processor == "Power Macintosh":
+            processor = "ppc"
+
+        bits = re.search('(\d+)bit', bits).group(1)
+
+        platform = {'hostname': node,
+                    'system': system,
+                    'version': version,
+                    'service_pack': service_pack,
+                    'processor': processor,
+                    'bits': bits
+                   }
+
+        return platform
 
     def get_report(self):
         """get the report results"""
+        format = "%Y-%m-%dT%H:%M:%S"
 
         assert self.test, 'run_tests not called'
         assert self.starttime, 'starttime not set; have you started the tests?'
         if not self.endtime:
-            self.endtime = datetime.utcnow().isoformat()
-        
-        results = {'type' : self.report_type,
-                   'starttime' : self.starttime, 
-                   'endtime' : self.endtime,
-                   'testPath' : self.test,
-                   'tests' : self.alltests
-                  }
-        results.update(self.appinfo)
-        results['sysinfo'] = self.get_sysinfo()
-        return results
+            self.endtime = datetime.utcnow()
+
+        report = {'report_type': self.report_type,
+                  'time_start': self.starttime.strftime(format),
+                  'time_end': self.endtime.strftime(format),
+                  'time_upload': 'n/a',
+                  'root_path': self.test,
+                  'tests_passed': len(self.passes),
+                  'tests_failed': len(self.fails),
+                  'tests_skipped': len(self.skipped),
+                  'results': self.alltests
+                 }
+
+        report.update(self.appinfo)
+        report.update(self.runner.get_repositoryInfo())
+        report['system_info'] = self.get_platform_information()
+
+        return report
 
     def send_report(self, results, report_url):
         """ Send a report of the results to a CouchdB instance or a file. """
@@ -371,6 +418,10 @@ class MozMill(object):
 
         # report to CouchDB
         try:
+            # Set the upload time of the report
+            now = datetime.utcnow()
+            results['time_upload'] = now.strftime("%Y-%m-%dT%H:%M:%S")
+
             # Parse URL fragments and send data
             url_fragments = urlparse.urlparse(report_url)
             connection = httplib.HTTPConnection(url_fragments.netloc)
@@ -411,9 +462,9 @@ class MozMill(object):
             pass
 
         if not close_bridge:
-            starttime = datetime.now()
+            starttime = datetime.utcnow()
             self.runner.wait(timeout=timeout)
-            endtime = datetime.now()
+            endtime = datetime.utcnow()
             if ( endtime - starttime ) > timedelta(seconds=timeout):
                 try:
                     self.runner.stop()
@@ -457,7 +508,7 @@ class MozMill(object):
                 pass # assume profile is already cleaned up
 
 class MozMillRestart(MozMill):
-	
+
     report_type = 'mozmill-restart-test'
 
     def __init__(self, *args, **kwargs):
@@ -485,7 +536,7 @@ class MozMillRestart(MozMill):
 
         # set the starttime for the tests
         # XXX assumes run_tests will be called soon after (currently true)
-        self.starttime = datetime.utcnow().isoformat()
+        self.starttime = datetime.utcnow()
      
     def firePythonCallback_listener(self, obj):
         if obj['fire_now']:
@@ -504,7 +555,7 @@ class MozMillRestart(MozMill):
         frame = jsbridge.JSObject(self.bridge,
                                   "Components.utils.import('resource://mozmill/modules/frame.js')")
         return frame
-    
+
     def userShutdown_listener(self, obj):
         if obj in [self.shutdownModes.default, self.shutdownModes.user_restart, self.shutdownModes.user_shutdown]:
             self.currentShutdownMode = obj
@@ -594,7 +645,7 @@ class MozMillRestart(MozMill):
         self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
         if not len(test_dirs):
             test_dirs = [test_dir]
-        
+
         for d in test_dirs:
             d = os.path.abspath(os.path.join(test_dir, d))
             self.run_dir(d, sleeptime)
