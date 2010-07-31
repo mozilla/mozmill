@@ -6,55 +6,25 @@ function isAccel(e){
   var isMac = (plat.indexOf('Mac') != -1);
   var modifiers = e.altKey;
   
-  if ((isMac) && (!modifiers) && (e.metaKey) && (!e.ctrlKey) && (!e.shiftKey)){
+  if ((isMac) && (!modifiers) && (e.metaKey) && (!e.ctrlKey) && (!e.shiftKey))
     return true;
-  }
-  else if ((!isMac) && (!modifiers) && (e.ctrlKey) && (e.shiftKey) && (!e.metaKey)){
-    
+  else if ((!isMac) && (!modifiers) && (e.ctrlKey) && (e.shiftKey) && (!e.metaKey))
     return true;
-  }
   return false;
 };
 
 //window onkeypress handler for various keyboard
 //shortcuts
-window.onkeypress = function(e){
-  //if a test is in the middle of running, don't allow shortcuts to go through
-  if ($("#runningStatus")[0].innerHTML.indexOf("Running") != -1){
-    return;
-  }
-  if (isAccel(e)){ 
+function onkeypress(e){
+  if (isAccel(e)){
     switch(String.fromCharCode(e.charCode).toLowerCase()){
-      case 'z':
-         var node = window.frames['frame_editorInput'].document.getElementById('tab_file_'+encodeURIComponent(window.openFn));
-         var disp = node.getElementsByTagName("strong")[0].style.display;
-         if (disp != "inline"){
-           return false;
-         }
+      case 'a':
+        showFileMenu();
+        e.preventDefault();
       break;
       case 'g':
         e.preventDefault();
         align();
-      break;
-      case 'f':
-        e.preventDefault();
-        showFileDialog();
-      break;
-      case 't':
-        e.preventDefault();
-        showTestDialog();
-      break;
-      case 'p':
-        e.preventDefault();
-        showOptionDialog();
-      break;
-      case 'i':
-        e.preventDefault();
-        showInspectDialog();
-      break;
-      case 'd':
-        e.preventDefault();
-        showRecordDialog();
       break;
       case 'o':
         e.preventDefault();
@@ -68,6 +38,10 @@ window.onkeypress = function(e){
         e.preventDefault();
         runEditor();
       break;
+      case 'd':
+        e.preventDefault();
+        MozMillrec.toggle();
+      break;
       case 'e':
         e.preventDefault();
         saveAsFile();
@@ -76,24 +50,21 @@ window.onkeypress = function(e){
         e.preventDefault();
         saveFile();
       break;
-      case 'w':
+      case 'u':
         e.preventDefault();
         closeFile();
       break;
       case 'n':
         e.preventDefault();
-        openNewWindow();
+        newTemplate();
+      break;
+      case 't':
+        e.preventDefault();
+        runDirectory();
       break;
       case 'l':
         e.preventDefault();
         logicalClear();
-      break;
-      case 'm':
-        e.preventDefault();
-        genBoiler();
-      break;
-      case 'k':
-        toggleHideEditor();
       break;
       case '1':
         e.preventDefault();

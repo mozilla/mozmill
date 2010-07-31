@@ -66,7 +66,7 @@ var MozMill = {
       
       var paramString = "chrome,resizable,height=" + height +
                                ",width=" + width + ",left="+left+",top="+top;
-      var w = window.open("chrome://mozmill/content/mozmill.html", "", paramString);
+      var w = window.open("chrome://mozmill/content/mozmill.xul", "", paramString);
     } else { mmWindows[0].focus(); }
   }
 };
@@ -75,7 +75,7 @@ window.addEventListener("load", function(e) { MozMill.onLoad(e); }, false);
 
  
 function mozMillTestWindow() {
-  window.open("chrome://mozmill/content/testwindow.html", "", "chrome, resizable");
+  window.openDialog("chrome://mozmill/content/testwindow.html", "_blank", "chrome,dialog=no, resizable");
 }
 
 //adding a mozmill keyboard shortcut
