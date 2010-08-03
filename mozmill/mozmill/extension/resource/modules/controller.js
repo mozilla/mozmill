@@ -156,7 +156,7 @@ var MozMillController = function (window) {
       return window != null && (window.documentLoaded != undefined);
     }, 5000, 100);
   } catch (e) {
-    throw new Error(arguments.callee.name + ": Window could not be initialized.");
+    throw new Error("controller(): Window could not be initialized.");
   }
 
   if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined ) {
@@ -467,7 +467,7 @@ MozMillController.prototype.waitForEval = function(expression, timeout, interval
       return eval(expression);
     }, timeout, interval);
   } catch (ex) {
-    throw new Error(arguments.callee.name + ": Timeout exceeded for '" + expression + "'");
+    throw new Error("controller.waitForEval: Timeout exceeded for '" + expression + "'");
   }
 
   frame.events.pass({'function':'controller.waitForEval()'});
@@ -720,9 +720,12 @@ MozMillController.prototype.assert = function(callback)
 }
 
 // Assert that the result of a Javascript expression is true
-MozMillController.prototype.assertJS = function(expression, subject)
-{
-  assert(function() { return eval(expression)});
+MozMillController.prototype.assertJS = function(expression, subject) {
+  try {
+    assert(function() { return eval(expression)});
+  } catch (ex) {
+    throw new Error("controller.assertJS: Failed for '" + expression + "'");
+  }
 
   frame.events.pass({'function': "controller.assertJS('" + expression + "')"});
   return true;
