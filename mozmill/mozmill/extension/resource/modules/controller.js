@@ -779,29 +779,40 @@ MozMillController.prototype.assertProperty = function(el, attrib, val) {
     return false;
   }
   var value = eval('element.' + attrib + ';');
-  var res = (String(value) == String(val));
+  var res = (element.hasAttribute(attrib) && (val == undefined ? true : String(value) == String(val)));
   if (res) {
     frame.events.pass({'function':'Controller.assertProperty("' + el.getInfo() + '") : ' + val});
   } else {
-    throw new Error("Controller.assertProperty(" + el.getInfo() + ") : " + val + " == " + value);
+    throw new Error("Controller.assertProperty(" + el.getInfo() + ") : " + 
+                     (val == undefined ? "property '" + attrib + "' doesn't exist" : val + " == " + value));
   }
 
   return res;
 };
 
-// Assert that an element's property does not exist
-MozMillController.prototype.assertPropertyNotExist = function(el, attrib) {
+// Assert that an element's property doesn't have a particular value
+MozMillController.prototype.assertNotProperty = function(el, attrib, val) {
   var element = el.getNode();
-  if (!element) {
+  if (!element){
     throw new Error("could not find element " + el.getInfo());
-	return false;
+    return false;
   }
-  if (!element.hasAttribute(attrib)) {
-    frame.events.pass({'function':'Controller.assertPropertyNotExist()'});
-    return true;
+  var value = eval('element.' + attrib + ';');
+  var res = (val == undefined ? !element.hasAttribute(attrib) : String(value) != String(val));
+  if (res) {
+    frame.events.pass({'function':'Controller.assertNotProperty("' + el.getInfo() + '") : ' + val});
+  } else {
+    throw new Error("Controller.assertProperty(" + el.getInfo() + ") : " +
+                     (val == undefined ? "property '" + attrib + "' exists" : val + " != " + value));
   }
-  throw new Error("assert failed for checked element " + el.getInfo());
-  return false;
+
+  return res;
+};
+
+// deprecated - Use assertNotProperty instead
+MozMillController.prototype.assertPropertyNotExist = function(el, attrib) {
+  frame.log({function:'assertPropertyNotExist(el, attrib) - Deprecation Warning', message:'use assertNotProperty(el, attrib) instead'});
+  return this.assertNotProperty(el, attrib);
 };
 
 // Assert that a specified image has actually loaded
