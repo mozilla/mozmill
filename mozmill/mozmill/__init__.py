@@ -660,6 +660,21 @@ class MozMillRestart(MozMill):
     def stop(self, fatal=False):
         """MozmillRestart doesn't need to do cleanup as this is already done per directory"""
 
+        # XXX this is a one-off to fix bug 581733
+        # really, the entire shutdown sequence should be reconsidered and
+        # made more robust. 
+        # See https://bugzilla.mozilla.org/show_bug.cgi?id=581733#c20
+        # This will *NOT* work with all edge cases and it shouldn't be
+        # expected that adding on more kills() for each edge case will ever
+        # be able to fix a systematic issue by patching holes
+        if fatal:
+            try:
+                self.runner.kill()
+                self.runner.profile.cleanup()
+            except:
+                pass
+                    
+
 
 class CLI(jsbridge.CLI):
     mozmill_class = MozMill
