@@ -774,37 +774,117 @@ MozMillController.prototype.assertNotChecked = function (el) {
   return false;
 };
 
-// Assert that an element's property has a particular value
-MozMillController.prototype.assertProperty = function(el, attrib, val) {
+/** 
+ * Assert that an element's javascript property exists or has a particular value
+ *
+ * if val is undefined, will return true if the property exists.
+ * if val is specified, will return true if the property exists and has the correct value
+ */
+MozMillController.prototype.assertJSProperty = function(el, attrib, val) {
   var element = el.getNode();
   if (!element){
     throw new Error("could not find element " + el.getInfo());
     return false;
   }
-  var value = eval('element.' + attrib + ';');
-  var res = (String(value) == String(val));
+  var value = element[attrib];
+  var res = (value !== undefined && (val === undefined ? true : String(value) == String(val)));
   if (res) {
-    frame.events.pass({'function':'Controller.assertProperty("' + el.getInfo() + '") : ' + val});
+    frame.events.pass({'function':'Controller.assertJSProperty("' + el.getInfo() + '") : ' + val});
   } else {
-    throw new Error("Controller.assertProperty(" + el.getInfo() + ") : " + val + " == " + value);
+    throw new Error("Controller.assertJSProperty(" + el.getInfo() + ") : " + 
+                     (val === undefined ? "property '" + attrib + "' doesn't exist" : val + " == " + value));
   }
-
   return res;
 };
 
-// Assert that an element's property does not exist
-MozMillController.prototype.assertPropertyNotExist = function(el, attrib) {
+/** 
+ * Assert that an element's javascript property doesn't exist or doesn't have a particular value
+ *
+ * if val is undefined, will return true if the property doesn't exist.
+ * if val is specified, will return true if the property doesn't exist or doesn't have the specified value
+ */
+MozMillController.prototype.assertNotJSProperty = function(el, attrib, val) {
   var element = el.getNode();
-  if (!element) {
+  if (!element){
     throw new Error("could not find element " + el.getInfo());
-	return false;
+    return false;
   }
-  if (!element.hasAttribute(attrib)) {
-    frame.events.pass({'function':'Controller.assertPropertyNotExist()'});
-    return true;
+  var value = element[attrib];
+  var res = (val === undefined ? value === undefined : String(value) != String(val));
+  if (res) {
+    frame.events.pass({'function':'Controller.assertNotProperty("' + el.getInfo() + '") : ' + val});
+  } else {
+    throw new Error("Controller.assertNotJSProperty(" + el.getInfo() + ") : " +
+                     (val === undefined ? "property '" + attrib + "' exists" : val + " != " + value));
   }
-  throw new Error("assert failed for checked element " + el.getInfo());
-  return false;
+  return res;
+};
+
+/** 
+ * Assert that an element's dom property exists or has a particular value
+ *
+ * if val is undefined, will return true if the property exists.
+ * if val is specified, will return true if the property exists and has the correct value
+ */
+MozMillController.prototype.assertDOMProperty = function(el, attrib, val) {
+  var element = el.getNode();
+  if (!element){
+    throw new Error("could not find element " + el.getInfo());
+    return false;
+  }
+  var value, res = element.hasAttribute(attrib);
+  if (res && val !== undefined) {
+    value = element.getAttribute(attrib);
+    res = (String(value) == String(val));
+  }   
+ 
+  if (res) {
+    frame.events.pass({'function':'Controller.assertDOMProperty("' + el.getInfo() + '") : ' + val});
+  } else {
+    throw new Error("Controller.assertDOMProperty(" + el.getInfo() + ") : " + 
+                     (val === undefined ? "property '" + attrib + "' doesn't exist" : val + " == " + value));
+  }
+  return res;
+};
+
+/** 
+ * Assert that an element's dom property doesn't exist or doesn't have a particular value
+ *
+ * if val is undefined, will return true if the property doesn't exist.
+ * if val is specified, will return true if the property doesn't exist or doesn't have the specified value
+ */
+MozMillController.prototype.assertNotDOMProperty = function(el, attrib, val) {
+  var element = el.getNode();
+  if (!element){
+    throw new Error("could not find element " + el.getInfo());
+    return false;
+  }
+  var value, res = element.hasAttribute(attrib);
+  if (res && val !== undefined) {
+    value = element.getAttribute(attrib);
+    res = (String(value) == String(val));
+  }   
+  if (!res) {
+    frame.events.pass({'function':'Controller.assertNotDOMProperty("' + el.getInfo() + '") : ' + val});
+  } else {
+    throw new Error("Controller.assertNotDOMProperty(" + el.getInfo() + ") : " + 
+                     (val == undefined ? "property '" + attrib + "' exists" : val + " == " + value));
+  }
+  return !res;
+};
+
+// deprecated - Use assertNotJSProperty or assertNotDOMProperty instead
+MozMillController.prototype.assertProperty = function(el, attrib, val) {
+  frame.events.fail({'function':'controller.assertProperty() - DEPRECATED', 
+                      'message':'assertProperty(el, attrib, val) is deprecated. Use assertJSProperty(el, attrib, val) or assertDOMProperty(el, attrib, val) instead'});
+  return this.assertJSProperty(el, attrib, val);
+};
+
+// deprecated - Use assertNotJSProperty or assertNotDOMProperty instead
+MozMillController.prototype.assertPropertyNotExist = function(el, attrib) {
+  frame.events.fail({'function':'controller.assertPropertyNotExist() - DEPRECATED',
+                   'message':'assertPropertyNotExist(el, attrib) is deprecated. Use assertNotJSProperty(el, attrib) or assertNotDOMProperty(el, attrib) instead'});
+  return this.assertNotJSProperty(el, attrib);
 };
 
 // Assert that a specified image has actually loaded
