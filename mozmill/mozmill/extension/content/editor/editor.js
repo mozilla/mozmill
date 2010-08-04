@@ -14,8 +14,8 @@ var editor = {
       this.height = height;
 
     if(this.currentTab) {
-      this.currentTab.editorElement.style.width = this.width + "px";
-      this.currentTab.editorElement.style.height = this.height + "px";
+      $(this.currentTab.editorElement).width(this.width);
+      $(this.currentTab.editorElement).height(this.height);
       this.currentTab.editorEnv.dimensionsChanged();
     }
   },
@@ -30,11 +30,11 @@ var editor = {
     tabSelect.selectedIndex = index;
 
     if(this.currentTab)
-      this.currentTab.editorElement.style.display = "none";
+      $(this.currentTab.editorElement).hide();
     this.index = index;
     this.currentTab = this.tabs[index];
     this.resize();
-    this.currentTab.editorElement.style.display = "block";
+    $(this.currentTab.editorElement).show();
   },
 
   closeCurrentTab : function() {
@@ -56,17 +56,14 @@ var editor = {
       var tabName = "temp " + this.tempCount;
     }
     else
-      var tabName = getFileName(filename);
+      var tabName = getBasename(filename);
 
-    var tabSelect = document.getElementById("editor-tab-select");
-    var option = document.createElement("option");
-    option.value = this.tabs.length - 1;
-    option.innerHTML = tabName;
-    tabSelect.appendChild(option);
+    var option = $('<option></option>').val(this.tabs.length - 1).html(tabName);
+    $("#editor-tab-select").append(option);
 
     var newTab = new editorTab(content, filename);
     this.tabs.push(newTab);
- 
+
     // will switch to tab when it has loaded
   },
 
@@ -82,22 +79,33 @@ var editor = {
     return this.currentTab.filename;
   },
 
+  showFilename : function(filename) {
+    $("#editor-tab-select option").eq(editor.index).html(filename);
+  },
+
   changeFilename : function(filename) {
     this.currentTab.filename = filename;
+    this.showFilename(getBasename(filename));	
+  },
 
-    var tabSelect = document.getElementById("editor-tab-select");
-    var option = tabSelect.getElementsByTagName("option")[this.index];
-    option.innerHTML = getFileName(filename);
+  onFileChanged : function() {
+    var selected = $("#editor-tab-select :selected");
+    selected.html(selected.html().replace("*", "")).append("*");
+
+    // remove listener until saving to prevent typing slow down
+    editor.currentTab.editor.textChanged.remove(editor.onFileChanged);
+  },
+
+  onFileSaved : function() {
+    var selected = $("#editor-tab-select :selected");
+    selected.html(selected.html().replace("*", ""));
+    editor.currentTab.editor.textChanged.add(editor.onFileChanged);
   }
 }
 
 
 function editorTab(content, filename) {
-  var bespinElement = document.createElement("div");
-  bespinElement.id = "editor-" + Math.random();
-  bespinElement.className = "bespin";
-  document.getElementById("editors").appendChild(bespinElement);
-
+  var bespinElement = $("<div></div>").addClass("bespin").appendTo("#editors").get(0);
   var editorObject = this;
 
   bespin.useBespin(bespinElement, {
@@ -109,6 +117,7 @@ function editorTab(content, filename) {
     editorObject.editor = env.editor;
     if(content)
       env.editor.value = content;
+    env.editor.textChanged.add(editor.onFileChanged);
     editor.switchTab();
     env.settings.set("fontsize", 13);
   });

@@ -25,7 +25,11 @@ body{ font: 11px Corbel, Verdana, Helvetica, arial, sans-serif; background-color
 }
 
 
-#editor-tab-select { min-width: 70px; padding-left: 8px; padding-right: 10px;} 
+#editor-tab-select {
+  min-width: 70px;
+  padding-left: 8px;
+  padding-right: 10px;
+}
 
 .menu {
   font-size: 12px;
