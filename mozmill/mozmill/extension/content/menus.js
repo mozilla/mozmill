@@ -39,7 +39,7 @@
 var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
 
 
-function getFileName(path){
+function getBasename(path){
   var splt = "/"
   if (navigator.platform.indexOf("Win") != -1){
     splt = "\\";
@@ -59,10 +59,10 @@ function openFile(){
 function saveAsFile() {
   var content = editor.getContent();
   var filename = utils.saveAsFile(window, content);
-  if (filename){
+  if (filename) {
     $("#tabs").tabs("select", 0);
     editor.changeFilename(filename);
-    saveFile();
+    saveToFile();
     return true;
   }
   return false;
@@ -72,6 +72,7 @@ function saveToFile() {
   var filename = editor.getFilename();
   var content = editor.getContent();
   utils.saveFile(window, content, filename);
+  editor.onFileSaved();
 }
 
 function saveFile() {
