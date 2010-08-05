@@ -44,6 +44,7 @@ var os = {};      Components.utils.import('resource://mozmill/stdlib/os.js', os)
 var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js', strings);
 var arrays = {};  Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var withs = {};   Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
+var utils = {};   Components.utils.import('resource://mozmill/modules/utils.js', utils);
 
 var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
      getService(Components.interfaces.nsIConsoleService);
@@ -514,8 +515,11 @@ Runner.prototype.wrapper = function (func, arg) {
       }
     }
     // If a shutdown was expected but the application hasn't quit, throw a failure
-    if (events.isUserShutdown() && !events.appQuit) {
-      events.fail({'function':'Runner.wrapper', 'message':'Shutdown expected but none detected before end of test'});
+    if (events.isUserShutdown()) {
+      utils.sleep(500);  // Prevents race condition between mozrunner hard process kill and normal FFx shutdown
+      if (!events.appQuit) {
+        events.fail({'function':'Runner.wrapper', 'message':'Shutdown expected but none detected before end of test'});
+      }
     }
   } catch (e) {
     if (func._mozmillasynctest == true) {
