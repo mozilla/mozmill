@@ -105,8 +105,9 @@ class CLI(mozrunner.CLI):
     parser_options[('-P', '--port')] = dict(dest="port", default="24242",
                                             help="TCP port to run jsbridge on.")
     
-    debug_addons = [os.path.join(parent, 'xpi', 'xush-0.2-fx.xpi')]
-    
+    debug_addons = [os.path.join(parent,'xpi', x) for x
+                     in os.listdir(os.path.join(parent,'xpi'))]
+
     def get_profile(self, *args, **kwargs):
         if self.options.debug:
             kwargs.setdefault('preferences', 
