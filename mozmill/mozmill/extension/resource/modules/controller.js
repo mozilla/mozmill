@@ -1039,37 +1039,53 @@ Tabs.prototype.selectTabIndex = function(i) {
   this.controller.window.gBrowser.selectTabAtIndex(i);
 }
 
-function browserAdditions( controller ) {
+function browserAdditions (controller) {
   controller.tabs = new Tabs(controller);
-  controller.waitForPageLoad = function(_document, timeout, interval) {
-    // if a user tries to do waitForPageLoad(2000), this will assign the
+
+  controller.waitForPageLoad = function(aTabDocument, aTimeout, aInterval) {
+    var self = {loaded: false};
+    var tab = null;
+
+    // If a user tries to do waitForPageLoad(2000), this will assign the
     // interval the first arg which is most likely what they were expecting
-    if (typeof(_document) == "number"){
-      timeout = _document;
+    if (typeof(aTabDocument) == "number"){
+      aTimeout = aTabDocument;
     }
 
-    // in case they pass null
-    if (_document == null){
-      _document = 0;
+    // Find the browser element for the given aTabDocument
+    if (typeof(aTabDocument) == "object") {
+      for each (var browser in this.window.gBrowser) {
+        if (browser && browser.contentDocument === aTabDocument) {
+          tab = browser;
+          break;
+        }
+      }
     }
 
-    // if _document isn't a document object
-    if (typeof(_document) != "object") {
-      _document = controller.tabs.activeTab;
+    // Fallback to selected browser
+    tab = tab || this.window.gBrowser.selectedBrowser;
+
+    // Add event listener for "DOMContentLoaded" which will fire once the
+    // content has been loaded and the DOM is ready. We cannot use the "load"
+    // event, because that makes it impossible to detect page loads for error pages.
+    function pageLoaded() {
+      tab.removeEventListener("DOMContentLoaded", pageLoaded, true);
+      self.loaded = true;
     }
+    tab.addEventListener("DOMContentLoaded", pageLoaded, true);
 
-    // Cache the default view. Otherwise we will fail for waitForPageLoad on
-    // blank or error pages.
-    var win = _document.defaultView;
+    try {
+      // Wait until the page has been loaded
+      this.waitFor(function() { return self.loaded; }, aTimeout, aInterval);
+      this.sleep(1000);
 
-    waitFor(function() {
-      return win.documentLoaded == true;
-    }, timeout, interval);
+      frame.events.pass({'function':'controller.waitForPageLoad()'});
+    } catch (ex) {
+      // If a timeout happens the listener has to be removed manually
+      tab.removeEventListener("DOMContentLoaded", pageLoaded, true);
 
-    //Once the object is available it's somewhere between 1 and 3 seconds before the DOM
-    //Actually becomes available to us
-    sleep(1);
-    frame.events.pass({'function':'Controller.waitForPageLoad()'});
+      throw new Error("controller.waitForPageLoad(): Timeout waiting for page loaded.");
+    }
   }
 }
 
