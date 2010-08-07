@@ -875,14 +875,14 @@ MozMillController.prototype.assertNotDOMProperty = function(el, attrib, val) {
 
 // deprecated - Use assertNotJSProperty or assertNotDOMProperty instead
 MozMillController.prototype.assertProperty = function(el, attrib, val) {
-  frame.events.fail({'function':'controller.assertProperty() - DEPRECATED', 
+  frame.log({'function':'controller.assertProperty() - DEPRECATED', 
                       'message':'assertProperty(el, attrib, val) is deprecated. Use assertJSProperty(el, attrib, val) or assertDOMProperty(el, attrib, val) instead'});
   return this.assertJSProperty(el, attrib, val);
 };
 
 // deprecated - Use assertNotJSProperty or assertNotDOMProperty instead
 MozMillController.prototype.assertPropertyNotExist = function(el, attrib) {
-  frame.events.fail({'function':'controller.assertPropertyNotExist() - DEPRECATED',
+  frame.log({'function':'controller.assertPropertyNotExist() - DEPRECATED',
                    'message':'assertPropertyNotExist(el, attrib) is deprecated. Use assertNotJSProperty(el, attrib) or assertNotDOMProperty(el, attrib) instead'});
   return this.assertNotJSProperty(el, attrib);
 };
