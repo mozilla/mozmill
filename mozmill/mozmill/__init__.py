@@ -172,6 +172,7 @@ class MozMill(object):
         self.add_listener(self.endTest_listener, eventType='mozmill.endTest')
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
         self.add_listener(self.startTest_listener, eventType='mozmill.setTest')
+        self.add_listener(self.userShutdown_listener, eventType='mozmill.userShutdown')
 
     def add_listener(self, callback, **kwargs):
         self.listeners.append((callback, kwargs,))
@@ -293,6 +294,11 @@ class MozMill(object):
 
     def endRunner_listener(self, obj):
         self.endRunnerCalled = True
+        
+    def userShutdown_listener(self, obj):
+        if obj in [self.shutdownModes.default, self.shutdownModes.user_restart, self.shutdownModes.user_shutdown]:
+            self.currentShutdownMode = obj
+        self.userShutdownEnabled = not self.userShutdownEnabled        
 
     ### methods for reporting
 
@@ -556,11 +562,6 @@ class MozMillRestart(MozMill):
                                   "Components.utils.import('resource://mozmill/modules/frame.js')")
         return frame
 
-    def userShutdown_listener(self, obj):
-        if obj in [self.shutdownModes.default, self.shutdownModes.user_restart, self.shutdownModes.user_shutdown]:
-            self.currentShutdownMode = obj
-        self.userShutdownEnabled = not self.userShutdownEnabled
-
     def run_dir(self, test_dir, sleeptime=4):
         """run a directory of restart tests resetting the profile per directory"""
 
@@ -587,7 +588,6 @@ class MozMillRestart(MozMill):
                 counter += 1
 
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
-        self.add_listener(self.userShutdown_listener, eventType='mozmill.userShutdown')
 
         if os.path.isfile(os.path.join(test_dir, 'callbacks.py')):
             self.python_callbacks_module = imp.load_source('callbacks', os.path.join(test_dir, 'callbacks.py'))
@@ -749,7 +749,8 @@ class CLI(jsbridge.CLI):
                 self.mozmill.run_tests(self.options.test)
             except JSBridgeDisconnectError:
                 disconnected = True
-                print 'TEST-UNEXPECTED-FAIL | Disconnect Error: Application unexpectedly closed'
+                if not self.mozmill.userShutdownEnabled:                    
+                    print 'TEST-UNEXPECTED-FAIL | Disconnect Error: Application unexpectedly closed'
 
             # print statistics and send the JSON report
             self.mozmill.report(self.options.report)
