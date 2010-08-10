@@ -105,7 +105,9 @@ var editor = {
 
 
 function editorTab(content, filename) {
-  var bespinElement = $("<div></div>").addClass("bespin").appendTo("#editors").get(0);
+  var elem = $("<div></div>").addClass("bespin").appendTo("#editors");
+  elem.text(content);
+  var bespinElement = elem.get(0);
   var editorObject = this;
 
   bespin.useBespin(bespinElement, {
@@ -115,8 +117,6 @@ function editorTab(content, filename) {
   .then(function(env) {
     editorObject.editorEnv = env;
     editorObject.editor = env.editor;
-    if(content)
-      env.editor.value = content;
     env.editor.textChanged.add(editor.onFileChanged);
     editor.switchTab();
     env.settings.set("fontsize", 13);
