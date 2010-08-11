@@ -52,6 +52,14 @@ var editor = {
     this.switchTab();
   },
 
+  getTabForFile : function(filename) {
+    for(var i = 0; i < this.tabs.length; i++) {
+      if(this.tabs[i].filename == filename)
+        return i;
+    }
+    return -1;
+  },
+
   openNew : function(content, filename) {
     if(!filename) {
       this.tempCount++;
@@ -88,7 +96,7 @@ var editor = {
 
   changeFilename : function(filename) {
     this.currentTab.filename = filename;
-    this.showFilename(getBasename(filename));	
+    this.showFilename(getBasename(filename));
   },
 
   onFileChanged : function() {
