@@ -31,10 +31,13 @@ var editor = {
 
     if(this.currentTab)
       $(this.currentTab.editorElement).hide();
+
     this.index = index;
     this.currentTab = this.tabs[index];
     this.resize();
     $(this.currentTab.editorElement).show();
+    this.currentTab.editor.focus = true;
+    this.currentTab.editorEnv.dimensionsChanged()
   },
 
   closeCurrentTab : function() {
