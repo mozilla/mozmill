@@ -52,7 +52,11 @@ function openFile(){
   var openObj = utils.openFile(window);
   if (openObj) {
     $("#tabs").tabs("select", 0);
-    editor.openNew(openObj.data, openObj.path);
+    var index = editor.getTabForFile(openObj.path);
+    if(index != -1)
+      editor.switchTab(index);
+    else
+      editor.openNew(openObj.data, openObj.path);
   }
 }
 
