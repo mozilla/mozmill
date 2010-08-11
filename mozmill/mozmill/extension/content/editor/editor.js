@@ -105,8 +105,8 @@ var editor = {
 
 
 function editorTab(content, filename) {
-  var elem = $("<div></div>").addClass("bespin").appendTo("#editors");
-  elem.text(content);
+  var elem = $("<pre></pre>").addClass("bespin").appendTo("#editors");
+  elem.val(content);
   var bespinElement = elem.get(0);
   var editorObject = this;
 
