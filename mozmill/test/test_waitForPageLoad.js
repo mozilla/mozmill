@@ -84,7 +84,7 @@ var testWaitForPageLoad = function() {
    * PART III - Check that we correctly handle timeouts for waitForPageLoad
    */
   try {
-    controller.open(location.url);
+    controller.open(LOCATIONS[0].url);
     controller.waitForPageLoad(0);
   
     throw new Error("controller.waitForPageLoad() not timed out for timeout=0.");
@@ -102,5 +102,13 @@ var testWaitForPageLoad = function() {
 
   var target = new elementslib.Name(controller.tabs.activeTab, "area");
   controller.waitForElement(target, 1000);
+
+  /**
+   * PART V - When waitForPageLoad is called when the page has already been loaded
+   * we shouldn't fail
+   */
+  controller.open(LOCATIONS[0].url);
+  controller.waitForPageLoad();
+  controller.waitForPageLoad(500);
 }
 
