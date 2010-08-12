@@ -91,13 +91,9 @@ waitForEvents.prototype = {
   wait : function waitForEvents_wait(timeout, interval)
   {
     for (var e in this.registry) {
-      try {
-        utils.waitFor(function() {
-          return this.node.firedEvents[e] == true;
-        }, timeout, interval);
-      } catch (ex) {
-        throw new Error("Timeout happened before event '" + ex +"' was fired.");
-      }
+      utils.waitFor(function() {
+        return this.node.firedEvents[e] == true;
+      }, timeout, interval, "Timeout happened before event '" + ex +"' was fired.");
   
       this.node.removeEventListener(e, this.registry[e], true);
     }
@@ -151,13 +147,9 @@ var MozMillController = function (window) {
   this.mozmillModule = {};
   Components.utils.import('resource://mozmill/modules/mozmill.js', this.mozmillModule);
 
-  try {
-    utils.waitFor(function() {
-      return window != null && (window.documentLoaded != undefined);
-    }, 5000, 100);
-  } catch (e) {
-    throw new Error("controller(): Window could not be initialized.");
-  }
+  utils.waitFor(function() {
+    return window != null && (window.documentLoaded != undefined);
+  }, 5000, 100, "controller(): Window could not be initialized.");
 
   if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined ) {
     this.prototype = new utils.Copy(this.prototype);
@@ -426,7 +418,7 @@ MozMillController.prototype.check = function(el, state) {
     this.click(el);
     this.waitFor(function() {
       return element.checked == state;
-    }, 500, 100);
+    }, 500, 100, "Checkbox " + el.getInfo() + " could not be checked/unchecked");
 
     result = true;
   }
@@ -449,26 +441,22 @@ MozMillController.prototype.radio = function(el)
   this.click(el);
   this.waitFor(function() {
     return element.selected == true;
-  }, 500, 100);
+  }, 500, 100, "Radio button " + el.getInfo() + " could not be selected");
 
   frame.events.pass({'function':'Controller.radio(' + el.getInfo() + ')'});
   return true;
 }
 
-MozMillController.prototype.waitFor = function(callback, timeout, interval) {
-  utils.waitFor(callback, timeout, interval);
+MozMillController.prototype.waitFor = function(callback, timeout, interval, message) {
+  utils.waitFor(callback, timeout, interval, message);
 
   frame.events.pass({'function':'controller.waitFor()'});
 }
 
 MozMillController.prototype.waitForEval = function(expression, timeout, interval, subject) {
-  try {
-    waitFor(function() {
-      return eval(expression);
-    }, timeout, interval);
-  } catch (ex) {
-    throw new Error("controller.waitForEval: Timeout exceeded for '" + expression + "'");
-  }
+  waitFor(function() {
+    return eval(expression);
+  }, timeout, interval, "controller.waitForEval: Timeout exceeded for '" + expression + "'");
 
   frame.events.pass({'function':'controller.waitForEval()'});
 }
@@ -476,7 +464,7 @@ MozMillController.prototype.waitForEval = function(expression, timeout, interval
 MozMillController.prototype.waitForElement = function(elem, timeout, interval) {
   this.waitFor(function() {
     return elem.exists();
-  }, timeout, interval);
+  }, timeout, interval, "Timeout exceeded for waitForElement " + elem.getInfo());
 
   frame.events.pass({'function':'Controller.waitForElement()'});
 }
@@ -498,13 +486,9 @@ MozMillController.prototype.__defineGetter__("menus", function() {
 });
 
 MozMillController.prototype.waitForImage = function (elem, timeout, interval) {
-  try {
-    this.waitFor(function() {
-      return elem.getNode().complete == true;
-    }, timeout, interval);
-  } catch (e) {
-    throw new Error("timeout exceeded for waitForImage " + elem.getInfo());
-  }
+  this.waitFor(function() {
+    return elem.getNode().complete == true;
+  }, timeout, interval, "timeout exceeded for waitForImage " + elem.getInfo());
 
   frame.events.pass({'function':'Controller.waitForImage()'});
 }
@@ -1121,13 +1105,9 @@ MozMillAsyncTest.prototype.run = function () {
     }
   }
 
-  try {
-    utils.waitFor(function() {
-      return this._done == true;
-    }, 500, 100);
-  } catch (e) {
-    throw new Error("MozMillAsyncTest timed out. Done is " + this._done);
-  }
+  utils.waitFor(function() {
+    return this._done == true;
+  }, 500, 100, "MozMillAsyncTest timed out. Done is " + this._done); 
 
   return true;
 }
