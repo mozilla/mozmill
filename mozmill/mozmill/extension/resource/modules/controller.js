@@ -1065,6 +1065,14 @@ function browserAdditions (controller) {
     // Fallback to selected browser
     tab = tab || this.window.gBrowser.selectedBrowser;
 
+    // If the page has already been loaded we have to return earlier. Otherwise
+    // we end up in a timeout when waiting for the DOMContentLoaded event
+    // Note: It will not fix the problem for error pages
+    if (tab.contentDocument.defaultView.documentLoaded) {
+      frame.events.pass({'function':'controller.waitForPageLoad()'});
+      return;
+    }
+
     // Add event listener for "DOMContentLoaded" which will fire once the
     // content has been loaded and the DOM is ready. We cannot use the "load"
     // event, because that makes it impossible to detect page loads for error pages.
