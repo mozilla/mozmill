@@ -695,9 +695,9 @@ MozMillController.prototype.assertValue = function (el, value) {
 /**
  * Check if the callback function evaluates to true
  */
-MozMillController.prototype.assert = function(callback)
+MozMillController.prototype.assert = function(callback, message)
 {
-  utils.assert(callback);
+  utils.assert(callback, message);
 
   frame.events.pass({'function': ": controller.assert('" + callback + "')"});
   return true;
@@ -705,11 +705,9 @@ MozMillController.prototype.assert = function(callback)
 
 // Assert that the result of a Javascript expression is true
 MozMillController.prototype.assertJS = function(expression, subject) {
-  try {
-    assert(function() { return eval(expression)});
-  } catch (ex) {
-    throw new Error("controller.assertJS: Failed for '" + expression + "'");
-  }
+  assert(function() {
+    return eval(expression)
+  }, "controller.assertJS: Failed for '" + expression + "'");
 
   frame.events.pass({'function': "controller.assertJS('" + expression + "')"});
   return true;

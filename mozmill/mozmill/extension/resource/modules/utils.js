@@ -382,11 +382,11 @@ function sleep(milliseconds) {
 /**
  * Check if the callback function evaluates to true
  */
-function assert(callback) {
+function assert(callback, message) {
   var result = callback();
 
   if (!result) {
-    throw new Error(arguments.callee.name + ": Failed for '" + callback + "'");
+    throw new Error(message || arguments.callee.name + ": Failed for '" + callback + "'");
   }
 
   return true;
