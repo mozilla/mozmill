@@ -376,7 +376,7 @@ function sleep(milliseconds) {
     var init = self.init;
     self.init = !init;
     return init;
-  }, undefined, milliseconds);
+  }, undefined, milliseconds, "Sleep for " + milliseconds + " failed, timeout exceeded");
 }
 
 /**
@@ -395,7 +395,7 @@ function assert(callback) {
 /**
  * Waits for the callback evaluates to true
  */
-function waitFor(callback, timeout, interval) {
+function waitFor(callback, timeout, interval, message) {
   timeout = timeout || 30000;
   interval = interval || 100;
 
@@ -417,7 +417,8 @@ function waitFor(callback, timeout, interval) {
   hwindow.clearInterval(timeoutInterval);
 
   if (self.counter >= timeout) {
-    throw new Error(arguments.callee.name + ": Timeout exceeded for '" + callback + "'");
+    message = message || arguments.callee.name + ": Timeout exceeded for '" + callback + "'";
+    throw new Error(message);
   }
 
   return true;
@@ -427,13 +428,10 @@ function waitFor(callback, timeout, interval) {
  * Waits until the expression evaluates to true
  */
 function waitForEval(expression, timeout, interval, subject) {
-  try {
-    waitFor(function() {
-      return eval(expression);
-    }, timeout, interval);
-  } catch (ex) {
-    throw new Error(arguments.callee.name + ": Timeout exceeded for '" + expression + "'");
-  }
+  waitFor(function() {
+    return eval(expression);
+  }, timeout, interval,
+  arguments.callee.name + ": Timeout exceeded for '" + expression + "'");
 
   return true;
 }
