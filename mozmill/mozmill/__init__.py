@@ -432,7 +432,8 @@ class MozMill(object):
             # Parse URL fragments and send data
             url_fragments = urlparse.urlparse(report_url)
             connection = httplib.HTTPConnection(url_fragments.netloc)
-            connection.request("POST", url_fragments.path, json.dumps(results))
+            connection.request("POST", url_fragments.path, json.dumps(results),
+                               {"Content-type": "application/json"})
         
             # Get response which contains the id of the new document
             response = connection.getresponse()
