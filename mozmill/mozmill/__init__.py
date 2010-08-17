@@ -275,6 +275,7 @@ class MozMill(object):
         sleep(1)
 
     def startTest_listener(self, test):
+        self.current_test = test
         print "TEST-START | %s | %s" % (test['filename'], test['name'])
 
     def endTest_listener(self, test):
@@ -307,6 +308,12 @@ class MozMill(object):
         print "INFO Passed: %d" % len(self.passes)
         print "INFO Failed: %d" % len(self.fails)
         print "INFO Skipped: %d" % len(self.skipped)
+        
+    def report_disconnect(self):
+        test = self.current_test
+        test['fails'] = [{'exception' : 'Disconnect Error: Application unexpectedly closed'}]
+        self.alltests.append(test)
+        self.fails.append(test)
 
     def get_appinfo(self, bridge):
         """ Collect application specific information """
@@ -750,7 +757,8 @@ class CLI(jsbridge.CLI):
                 self.mozmill.run_tests(self.options.test)
             except JSBridgeDisconnectError:
                 disconnected = True
-                if not self.mozmill.userShutdownEnabled:                    
+                if not self.mozmill.userShutdownEnabled:
+                    self.mozmill.report_disconnect()               
                     print 'TEST-UNEXPECTED-FAIL | Disconnect Error: Application unexpectedly closed'
 
             # print statistics and send the JSON report
