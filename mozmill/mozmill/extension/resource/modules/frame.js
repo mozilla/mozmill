@@ -45,6 +45,8 @@ var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js'
 var arrays = {};  Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var withs = {};   Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
 var utils = {};   Components.utils.import('resource://mozmill/modules/utils.js', utils);
+var securableModule = {};
+  Components.utils.import('resource://mozmill/modules/securable-module.js', securableModule);
 
 var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
      getService(Components.interfaces.nsIConsoleService);
@@ -95,6 +97,17 @@ var loadFile = function(path, collector) {
   module.Cc = Components.classes;
   module.Ci = Components.interfaces;
   module.Cu = Components.utils;
+  module.require = function (mod) {
+    var loader = new securableModule.Loader({
+      rootPaths: [ios.newFileURI(file.parent).spec],
+      defaultPrincipal: "system",
+      globals : { Cc: Components.classes,
+                  Ci: Components.interfaces,
+                  Cu: Components.utils }
+    });
+    return loader.require(mod);
+  }
+
   if (collector != undefined) {
     collector.current_file = file;
     collector.current_path = path;
@@ -286,19 +299,12 @@ var http_server = httpd.getServer(43336);
 
 function Collector () {
   this.test_modules_by_filename = {};
-  this.test_modules_by_name = {};
-  this.requirements_run = {};
-  this.all_requirements = [];
   this.loaded_directories = [];
   this.testing = [];
   this.httpd_started = false;
   this.http_port = 43336;
   // var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
   // this.logger = new logging.Logger('Collector');
-}
-
-Collector.prototype.getModule = function (name) {
-  return this.test_modules_by_name[name];
 }
 
 Collector.prototype.startHttpd = function () {
@@ -365,23 +371,6 @@ Collector.prototype.initTestModule = function (filename) {
                test_module[i]._mozmillasynctest == true) {
         test_module[i].__name__ = i;
         test_module.__tests__.push(test_module[i]);
-    }
-    if (i == "RELATIVE_ROOT") {
-      test_module.__root_path__ = os.abspath(test_module[i], os.getFileForPath(filename));
-    }
-    if (i == "MODULE_REQUIRES") {
-      test_module.__requirements__ = test_module[i];
-      this.all_requirements.push.apply(backstage, test_module[i]);
-    }
-    if (i == "MODULE_NAME") {
-      test_module.__module_name__ = test_module[i];
-      this.test_modules_by_name[test_module[i]] = test_module;
-    }
-  }
-  
-  if (test_module.MODULE_REQUIRES != undefined && test_module.RELATIVE_ROOT == undefined) {
-    for each(var t in test_module.__tests__) {
-      t.__force_skip__ = "RELATIVE ROOT is not defined and test requires another module.";
     }
   }
   
@@ -457,9 +446,6 @@ Runner.prototype.runTestDirectory = function (directory) {
   }
 }
 Runner.prototype.runTestFile = function (filename) {
-  // if ( !arrays.inArray(this.test_modules_by_filename, directory) ) {
-  //   this.collector.initTestModule(directory);
-  // }
   this.collector.initTestModule(filename);
   this.runTestModule(this.collector.test_modules_by_filename[filename]);
 }
@@ -470,23 +456,6 @@ Runner.prototype.end = function () {
     events.fireEvent('error', "persist serialization failed.");
   }
   events.fireEvent('endRunner', true);
-}
-Runner.prototype.getDependencies = function (module) {
-  events.setState('dependencies');
-  var alldeps = [];
-  function recursiveGetDeps (mod) {
-    for (var i in mod.__dependencies__) {
-      var m = mod.dependencies[i];
-      if ( !arrays.inArray(this.test_modules_by_name, m) ) {
-        // TODO: Raise Error that this dependency cannot be resolved.
-      } else {
-        recursiveGetDeps(this.test_modules_by_name[m]);
-        alldeps.push(m);
-      }
-    }
-  }
-
-  return alldeps;
 }
 
 Runner.prototype.wrapper = function (func, arg) {
@@ -537,12 +506,6 @@ Runner.prototype.wrapper = function (func, arg) {
 }
 
 Runner.prototype._runTestModule = function (module) {
-  if (module.__requirements__ != undefined && module.__force_skip__ == undefined) {
-    for each(var req in module.__requirements__) {
-      module[req] = this.collector.getModule(req);
-    }
-  }
-
   var attrs = [];
   for (var i in module) {
     attrs.push(i);
@@ -608,20 +571,6 @@ Runner.prototype._runTestModule = function (module) {
   module.__status__ = 'done';
 }
 Runner.prototype.runTestModule = function (module) {
-  if (module.__requirements__ != undefined && module.__force_skip__ == undefined) {
-    if (!arrays.inArray(this.collector.loaded_directories, module.__root_path__)) {
-      if (module.__root_path__ != undefined) {
-        this.collector.initTestDirectory(module.__root_path__);
-      }
-    }
-    var deps = this.getDependencies(module);
-    for (var i in deps) {
-      var dep = deps[i];
-      if (dep.status != 'done') {
-        this._runTestModule(dep);
-      }
-    }
-  }
   this._runTestModule(module);
 }
 
