@@ -311,7 +311,14 @@ class MozMill(object):
         
     def report_disconnect(self):
         test = self.current_test
-        test['fails'] = [{'exception' : 'Disconnect Error: Application unexpectedly closed'}]
+        test['passes'] = []
+        test['fails'] = [{
+          'exception' : {
+            'message': 'Disconnect Error: Application unexpectedly closed'
+          }
+        }]
+        test['passed'] = 0
+        test['failed'] = 1
         self.alltests.append(test)
         self.fails.append(test)
 
