@@ -380,6 +380,9 @@ class Runner(object):
 
                 if binary is None:
                     for bin in [(program_files, 'Mozilla Firefox', 'firefox.exe'),
+                                (os.environ.get("ProgramFiles(x86)"),'Mozilla Firefox', 'firefox.exe'),
+                                (program_files,'Minefield', 'firefox.exe'),
+                                (os.environ.get("ProgramFiles(x86)"),'Minefield', 'firefox.exe')
                                 ]:
                         path = os.path.join(*bin)
                         if os.path.isfile(path):
