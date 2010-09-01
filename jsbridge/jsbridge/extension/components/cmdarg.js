@@ -72,22 +72,18 @@ jsbridgeHandler.prototype = {
 
   handle : function clh_handle(cmdLine)
   {
+    var port = cmdLine.handleFlagWithParam("jsbridge", false);
+    var server = {};
     try {
-      var port = cmdLine.handleFlagWithParam("jsbridge", false);
-      if (port) {
-        var server = {};
-        Components.utils.import('resource://jsbridge/modules/server.js', server);
-        server.startServer(parseInt(port));
-      } else {
-        var server = {};
-        Components.utils.import('resource://jsbridge/modules/server.js', server);
-        server.startServer(24242);
-      }
+      // use NSPR sockets to get offline+localhost support - needs recent js-ctypes
+      Components.utils.import('resource://jsbridge/modules/nspr-server.js', server);
     }
-    catch (e) {
-      Components.utils.reportError("incorrect parameter passed to -jsbridge on the command line.");
+    catch(e) {
+      dump("jsbridge can't use NSPR sockets, falling back to nsIServerSocket - " +
+           "OFFLINE TESTS WILL FAIL\n");
+      Components.utils.import('resource://jsbridge/modules/server.js', server);
     }
-
+    server.startServer(parseInt(port) || 24242)
   },
 
   // CHANGEME: change the help info as appropriate, but
