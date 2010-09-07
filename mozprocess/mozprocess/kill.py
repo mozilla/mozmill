@@ -15,11 +15,13 @@
 #
 # The Initial Developer of the Original Code is
 # Mikeal Rogers.
-# Portions created by the Initial Developer are Copyright (C) 2008
+# Portions created by the Initial Developer are Copyright (C) 2008-2009
 # the Initial Developer. All Rights Reserved.
 #
 # Contributor(s):
 #  Mikeal Rogers <mikeal.rogers@gmail.com>
+#  Clint Talbert <ctalbert@mozilla.com>
+#  Henrik Skupin <hskupin@mozilla.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -35,37 +37,29 @@
 #
 # ***** END LICENSE BLOCK *****
 
-from setuptools import setup, find_packages
-import sys
+from pid import get_pids
 
-desc = """Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)"""
-summ = """Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)"""
+def kill_process_by_name(name):
+    """Find and kill all processes containing a certain name"""
+    # XXX https://bugzilla.mozilla.org/show_bug.cgi?id=592750
 
-PACKAGE_NAME = "mozrunner"
-PACKAGE_VERSION = "2.4.4b1"
+    pids = get_pids(name)
 
-deps = ['mozprocess', 'mozprofile']
+    if os.name == 'nt' or sys.platform == 'cygwin':
+        for p in pids:
+            import wpk
+            wpk.kill_pid(p)
 
-setup(name=PACKAGE_NAME,
-      version=PACKAGE_VERSION,
-      description=desc,
-      long_description=summ,
-      author='Mikeal Rogers, Mozilla',
-      author_email='mikeal.rogers@gmail.com',
-      url='http://github.com/mozautomation/mozmill',
-      license='MPL 1.1/GPL 2.0/LGPL 2.1',
-      packages=find_packages(exclude=['legacy']),
-      entry_points="""
-          [console_scripts]
-          mozrunner = mozrunner:cli
-        """,
-      platforms =['Any'],
-      install_requires = deps,
-      classifiers=['Development Status :: 4 - Beta',
-                   'Environment :: Console',
-                   'Intended Audience :: Developers',
-                   'License :: OSI Approved :: Mozilla Public License 1.1 (MPL 1.1)',
-                   'Operating System :: OS Independent',
-                   'Topic :: Software Development :: Libraries :: Python Modules',
-                  ]
-     )
+    else:
+        for pid in pids:
+            try:
+                os.kill(pid, signal.SIGTERM)
+            except OSError: pass
+            sleep(.5)
+            if len(get_pids(name)) is not 0:
+                try:
+                    os.kill(pid, signal.SIGKILL)
+                except OSError: pass
+                sleep(.5)
+                if len(get_pids(name)) is not 0:
+                    raise Exception('Could not kill process')

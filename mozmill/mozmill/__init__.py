@@ -61,6 +61,7 @@ logger = logging.getLogger('mozmill')
 import jsbridge
 from jsbridge.network import JSBridgeDisconnectError
 import mozrunner
+import mozprofile
 
 from time import sleep
 
@@ -136,7 +137,7 @@ class MozMill(object):
 
     def __init__(self,
                  runner_class=mozrunner.FirefoxRunner, 
-                 profile_class=mozrunner.FirefoxProfile,
+                 profile_class=mozprofile.FirefoxProfile,
                  jsbridge_port=24242,
                  jsbridge_timeout=60):
         """
@@ -713,7 +714,7 @@ class CLI(jsbridge.CLI):
     def __init__(self, *args, **kwargs):
         jsbridge.CLI.__init__(self, *args, **kwargs)
         self.mozmill = self.mozmill_class(runner_class=mozrunner.FirefoxRunner,
-                                          profile_class=mozrunner.FirefoxProfile,
+                                          profile_class=mozprofile.FirefoxProfile,
                                           jsbridge_port=int(self.options.port),
                                           jsbridge_timeout=self.options.timeout,
                                           )
@@ -797,7 +798,7 @@ class RestartCLI(CLI):
 
 
 class ThunderbirdCLI(CLI):
-    profile_class = mozrunner.ThunderbirdProfile
+    profile_class = mozprofile.ThunderbirdProfile
     runner_class = mozrunner.ThunderbirdRunner
 
 
