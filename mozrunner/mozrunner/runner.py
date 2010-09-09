@@ -225,35 +225,44 @@ class CLI(object):
     profile_class = FirefoxProfile
     module = "mozrunner"
 
-    parser_options = {("-b", "--binary",): dict(dest="binary", help="Binary path.",
-                                                metavar=None, default=None),
-                      ('-p', "--profile",): dict(dest="profile", help="Profile path.",
-                                                 metavar=None, default=None),
-                      ('-a', "--addons",): dict(dest="addons", 
-                                                help="Addons paths to install.",
-                                                metavar=None, default=None),
-                      ("--info",): dict(dest="info", default=False,
-                                        action="store_true",
-                                        help="Print module information")
-                     }
 
-    def __init__(self):
-        """ Setup command line parser and parse arguments """
+    def __init__(self, args=sys.argv[1:]):
+        """
+        Setup command line parser and parse arguments
+        - args : command line arguments
+        """
         self.metadata = self.get_metadata_from_egg()
         self.parser = optparse.OptionParser(version="%prog " + self.metadata["Version"])
-        for names, opts in self.parser_options.items():
-            self.parser.add_option(*names, **opts)
-        (self.options, self.args) = self.parser.parse_args()
+        self.add_options(self.parser)
+        (self.options, self.args) = self.parser.parse_args(args)
+
+        # XXX temporary hack
+        self.addons = self.options.addons
 
         if self.options.info:
             self.print_metadata()
             sys.exit(0)
             
-        # XXX should use action='append' instead of rolling our own
-        try:
-            self.addons = self.options.addons.split(',')
-        except:
-            self.addons = []
+    def add_options(self, parser):
+        """add options to the parser"""
+        
+        parser.add_option('-b', "--binary",
+                          dest="binary", help="Binary path.",
+                          metavar=None, default=None)
+        
+        parser.add_option('-p', "--profile",
+                         dest="profile", help="Profile path.",
+                         metavar=None, default=None)
+        
+        parser.add_option('-a', "--addon", dest="addons",
+                         action='append',
+                         help="Addons paths to install",
+                         metavar=None, default=[])
+        
+        parser.add_option("--info", dest="info", default=False,
+                          action="store_true",
+                          help="Print module information")
+        
             
     def get_metadata_from_egg(self):
         import pkg_resources
@@ -309,5 +318,8 @@ class CLI(object):
             runner.stop()
 
 
-def cli():
+def cli(args=sys.argv[1:]):
     CLI().run()
+
+if __name__ == '__main__':
+    cli()

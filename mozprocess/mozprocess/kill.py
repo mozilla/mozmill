@@ -37,6 +37,8 @@
 #
 # ***** END LICENSE BLOCK *****
 
+import os
+import sys
 from pid import get_pids
 
 def kill_process_by_name(name):

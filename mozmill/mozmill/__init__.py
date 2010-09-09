@@ -37,7 +37,6 @@
 #
 # ***** END LICENSE BLOCK *****
 
-import copy
 from datetime import datetime, timedelta
 import httplib
 import imp
@@ -54,14 +53,13 @@ try:
 except:
     import simplejson as json
 
-# setup logger
-import logging
-logger = logging.getLogger('mozmill')
 
 import jsbridge
 from jsbridge.network import JSBridgeDisconnectError
 import mozrunner
 import mozprofile
+
+import handlers
 
 from time import sleep
 
@@ -90,32 +88,6 @@ class ZombieDetector(object):
         self.doomsdayTimer.start()
 
 
-class LoggerListener(object):
-    cases = {
-        'mozmill.pass':   lambda string: logger.info('Step Pass: ' + string),
-        'mozmill.fail':   lambda string: logger.error('Test Failure: ' + string),
-        'mozmill.skip':   lambda string: logger.info('Test Skipped: ' + string)
-    }
-    
-    class default(object):
-        def __init__(self, eName): self.eName = eName
-        def __call__(self, string):
-            if string:
-                logger.debug(self.eName + ' | ' + string)
-            else:
-                logger.debug(self.eName)
-    
-    def __call__(self, eName, obj):
-        if obj == {}:
-            string = ''
-        else:
-            string = json.dumps(obj)
-
-        if eName not in self.cases:
-            self.cases[eName] = self.default(eName)
-        self.cases[eName](string)
-
-
 class TestsFailedException(Exception):
     """exception to be raised when the tests fail"""
     # XXX unused
@@ -139,12 +111,14 @@ class MozMill(object):
                  runner_class=mozrunner.FirefoxRunner, 
                  profile_class=mozprofile.FirefoxProfile,
                  jsbridge_port=24242,
-                 jsbridge_timeout=60):
+                 jsbridge_timeout=60,
+                 handlers=()):
         """
         - runner_class : which mozrunner class to use
         - profile_class : which class to use to generate application profiles
         - jsbridge_port : port jsbridge uses to connect to to the application
         - jsbridge_timeout : how long to go without jsbridge communication
+        - handlers : pluggable event handler
         """
         
         self.runner_class = runner_class
@@ -174,6 +148,14 @@ class MozMill(object):
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
         self.add_listener(self.startTest_listener, eventType='mozmill.setTest')
         self.add_listener(self.userShutdown_listener, eventType='mozmill.userShutdown')
+
+        self.handlers = handlers
+        for handler in self.handlers:
+            handler.mozmill = self # XXX bad touch
+            for event, method in handler.events().items():
+                self.add_listener(method, eventType=event)
+            if hasattr(handler, '__call__'):
+                self.add_global_listener(handler)
 
     def add_listener(self, callback, **kwargs):
         self.listeners.append((callback, kwargs,))
@@ -277,7 +259,7 @@ class MozMill(object):
 
     def startTest_listener(self, test):
         self.current_test = test
-        print "TEST-START | %s | %s" % (test['filename'], test['name'])
+
 
     def endTest_listener(self, test):
         # Reset our Zombie Counter because we are still active
@@ -285,13 +267,10 @@ class MozMill(object):
 
         self.alltests.append(test)
         if test.get('skipped', False):
-            print "WARNING | %s | (SKIP) %s" % (test['name'], test.get('skipped_reason', ''))
             self.skipped.append(test)
         elif test['failed'] > 0:
-            print "TEST-UNEXPECTED-FAIL | %s | %s" % (test['filename'], test['name'])
             self.fails.append(test)
         else:
-            print "TEST-PASS | %s | %s" % (test['filename'], test['name'])
             self.passes.append(test)
 
     def endRunner_listener(self, obj):
@@ -304,12 +283,6 @@ class MozMill(object):
 
     ### methods for reporting
 
-    def printStats(self):
-        """print pass/failed/skipped statistics"""
-        print "INFO Passed: %d" % len(self.passes)
-        print "INFO Failed: %d" % len(self.fails)
-        print "INFO Skipped: %d" % len(self.skipped)
-        
     def report_disconnect(self):
         test = self.current_test
         test['passes'] = []
@@ -325,6 +298,9 @@ class MozMill(object):
 
     def get_appinfo(self, bridge):
         """ Collect application specific information """
+
+        # XXX this code should be extracted out to an additional package
+        # to gather information (mozinfo?)
 
         mozmill = jsbridge.JSObject(bridge, mozmillModuleJs)
         appInfo = mozmill.appInfo
@@ -343,6 +319,8 @@ class MozMill(object):
         """ Retrieves platform information for test reports. Parts of that code
             come from the dirtyharry application:
             http://github.com/harthur/dirtyharry/blob/master/dirtyutils.py """
+        # XXX this code should be extracted out to an additional package
+        # to gather information (mozinfo?)
 
         import platform
         import re
@@ -467,7 +445,6 @@ class MozMill(object):
 
     def report(self, report_url):
         """print statistics and send the JSON report"""
-        self.printStats()
 
         if report_url:
             results = self.get_report()
@@ -512,13 +489,18 @@ class MozMill(object):
                 x += 1
             else:
                 print "WARNING | endRunner was never called. There must have been a failure in the framework."
-                self.runner.kill()
+                self.runner.stop()
                 self.runner.profile.cleanup()
                 sys.exit(1)
 
     def stop(self, fatal=False):
         """cleanup"""
 
+        # handle stop events
+        for handler in self.handlers:
+            if hasattr(handler, 'stop'):
+                handler.stop(fatal)
+                
         # stop the runner
         self.stop_runner(timeout=10, close_bridge=True, hard=fatal)
 
@@ -695,28 +677,24 @@ class CLI(jsbridge.CLI):
     mozmill_class = MozMill
     module = "mozmill"
 
-    parser_options = copy.copy(jsbridge.CLI.parser_options)
-    parser_options[("-t", "--test",)] = dict(dest="test", default=False, 
-                                             help="Run test file or directory.")
-    parser_options[("-l", "--logfile",)] = dict(dest="logfile", default=None,
-                                                help="Log all events to file.")
-    parser_options[("--show-errors",)] = dict(dest="showerrors", default=False, 
-                                              action="store_true",
-                                              help="Print logger errors to the console.")
-    parser_options[("--report",)] = dict(dest="report", default=False,
-                                         help="Report the results. Requires url to results server. Use 'stdout' for stdout.")
-    parser_options[("--showall",)] = dict(dest="showall", default=False, action="store_true",
-                                         help="Show all test output.")
-    parser_options[("--timeout",)] = dict(dest="timeout", type="float",
-                                          default=60., 
-                                          help="seconds before harness timeout if no communication is taking place")
+    test_help = 'Run test file or directory'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs):            
+        
         jsbridge.CLI.__init__(self, *args, **kwargs)
+
+        # TODO: instantiate plugins
+        event_handlers = []
+        for cls in handlers.handlers():
+            handler = handlers.instantiate_handler(cls, self.options)
+            if handler is not None:
+                event_handlers.append(handler)
+
         self.mozmill = self.mozmill_class(runner_class=mozrunner.FirefoxRunner,
                                           profile_class=mozprofile.FirefoxProfile,
                                           jsbridge_port=int(self.options.port),
                                           jsbridge_timeout=self.options.timeout,
+                                          handlers=event_handlers
                                           )
 
         # expand user directory and check existence for the test
@@ -726,19 +704,21 @@ class CLI(jsbridge.CLI):
                  and ( not os.path.isfile(self.options.test) ) ):
                 raise Exception("Not a valid test file/directory")
 
-        # setup log formatting
-        self.mozmill.add_global_listener(LoggerListener())
-        log_options = { 'format': "%(levelname)s | %(message)s",
-                        'level': logging.CRITICAL }
-        if self.options.showerrors:
-            log_options['level'] = logging.ERROR
-        if self.options.logfile:
-            log_options['filename'] = self.options.logfile
-            log_options['filemode'] = 'w'
-            log_options['level'] = logging.DEBUG
-        if self.options.test and self.options.showall:
-            log_options['level'] = logging.DEBUG    
-        logging.basicConfig(**log_options)
+    def add_options(self, parser):
+        jsbridge.CLI.add_options(self, parser)
+
+        parser.add_option("-t", "--test", dest="test", default=None, 
+                          help=self.test_help)
+        parser.add_option("--report", dest="report", default=None,
+                          help="Report the results. Requires url to results server. Use 'stdout' for stdout.")
+        parser.add_option("--timeout", dest="timeout", type="float",
+                          default=60., 
+                          help="seconds before harness timeout if no communication is taking place")
+
+        for cls in handlers.handlers():
+            cls.add_options(parser)
+            
+        
 
     def get_profile(self, *args, **kwargs):
         profile = jsbridge.CLI.get_profile(self, *args, **kwargs)
@@ -759,9 +739,14 @@ class CLI(jsbridge.CLI):
 
         if self.options.test:
 
+            # this entire section should be about 2 lines:
+            # status = self(?).mozmill.run_tests() (or maybe just .run())
+            # sys.exit(status)
+
             # run the tests
             disconnected = False
             try:
+                # TODO: this should go to the mozmill class
                 self.mozmill.run_tests(self.options.test)
             except JSBridgeDisconnectError:
                 disconnected = True
@@ -770,6 +755,7 @@ class CLI(jsbridge.CLI):
                     print 'TEST-UNEXPECTED-FAIL | Disconnect Error: Application unexpectedly closed'
 
             # print statistics and send the JSON report
+            # XXX should go into the harness code (MozMill.stop())
             self.mozmill.report(self.options.report)
             
             # shutdown the test harness
@@ -777,6 +763,8 @@ class CLI(jsbridge.CLI):
             if self.mozmill.fails or disconnected:
                 sys.exit(1)
         else:
+            # TODO: document use case
+            # probably take out of this function entirely
             if self.options.shell:
                 self.start_shell(runner)
             else:
@@ -792,9 +780,7 @@ class CLI(jsbridge.CLI):
     
 class RestartCLI(CLI):
     mozmill_class = MozMillRestart
-    parser_options = copy.copy(CLI.parser_options)
-    parser_options[("-t", "--test",)] = dict(dest="test", default=False, 
-                                             help="Run test directory.")
+    test_help = "Run test directory"    
 
 
 class ThunderbirdCLI(CLI):
@@ -803,8 +789,11 @@ class ThunderbirdCLI(CLI):
 
 
 def enum(*sequential, **named):
+    # XXX to deprecate
     enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
+
+# TODO: argument passing
 
 def cli():
     CLI().run()
