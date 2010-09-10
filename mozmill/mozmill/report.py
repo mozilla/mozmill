@@ -38,6 +38,7 @@
 # ***** END LICENSE BLOCK *****
 
 import httplib
+import sys
 import urllib
 import urlparse
 
@@ -46,7 +47,7 @@ try:
 except:
   import simplejson as json
 
-from platform import get_platform_information
+from info import get_platform_information
 
 class Report(object):
 
@@ -76,7 +77,7 @@ class Report(object):
   def get_report(self):
     """get the report results"""
 
-    report = {'report_type': self.report_type,
+    report = {'report_type': self.report_type(),
               'time_start': self.mozmill.starttime.strftime(self.date_format),
               'time_end': self.mozmill.endtime.strftime(self.date_format),
               'time_upload': 'n/a',
