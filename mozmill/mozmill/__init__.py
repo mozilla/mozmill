@@ -263,8 +263,10 @@ class MozMill(object):
                 self.report_disconnect()               
             
         # shutdown the test harness
-        self.mozmill.stop(fatal=disconnected)
-        if self.mozmill.fails or disconnected:
+        self.stop(fatal=disconnected)
+
+        # exit (could be moved up to CLI)
+        if self.fails or disconnected:
             sys.exit(1)
 
 
@@ -587,7 +589,7 @@ class CLI(jsbridge.CLI):
         self.mozmill.start(runner=runner, profile=runner.profile)
 
         if self.options.test:
-            mozmill.run(self.options.test)
+            self.mozmill.run(self.options.test)
         else:
             # TODO: document use case
             # probably take out of this function entirely

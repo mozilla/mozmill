@@ -64,37 +64,27 @@ class Report(object):
     parser.add_option("--report", dest="report", default=None,
                       help="Report the results. Requires url to results server. Use 'stdout' for stdout.")
 
-  def stop(self):
+  def stop(self, fatal):
     results = self.get_report()
     return self.send_report(results, self.report)
 
   def report_type(self):
-    # XXX this is a really horrible mapping used to provide backwards compatability
-    # one of the reason that software becomes hard to maintain is pointless name
-    # mappings that now you have to cross-reference in so many places
-    # is it firefox or mozilla-central?  is it win or win32?
-    # while choosing consistent naming conventions is one of the least
-    # glorious parts of programming, it saves a lot of work later,
-    # particularly when different things are referenced by completely
-    # disparate pieces of code in different databases.  Note:  the point of the
-    # Report class is to send raw JSON data to a couch DB.  It is NOT to format
-    # it for user display.  That is done on the display end.  So why not just send
-    # the class name instead of having Yet Another Mapping? </rant>
     mapping = {'MozMill': 'mozmill-test',
                'MozMillRestart': 'mozmill-restart-test',}
+    return mapping[self.mozmill.__class__.__name__]
 
   def get_report(self):
     """get the report results"""
 
-    report = {'report_type': self.report_type, # TO FIX
-              'time_start': self.starttime.strftime(self.date_format), # TO FIX
-              'time_end': self.endtime.strftime(self.date_format), # TO FIX
+    report = {'report_type': self.report_type,
+              'time_start': self.mozmill.starttime.strftime(self.date_format),
+              'time_end': self.mozmill.endtime.strftime(self.date_format),
               'time_upload': 'n/a',
-              'root_path': self.test,
-              'tests_passed': len(self.passes),
-              'tests_failed': len(self.fails),
-              'tests_skipped': len(self.skipped),
-              'results': self.alltests
+              'root_path': self.mozmill.test,
+              'tests_passed': len(self.mozmill.passes),
+              'tests_failed': len(self.mozmill.fails),
+              'tests_skipped': len(self.mozmill.skipped),
+              'results': self.mozmill.alltests
               }
 
     report.update(self.mozmill.appinfo)
@@ -128,7 +118,7 @@ class Report(object):
     try:
         # Set the upload time of the report
         now = datetime.utcnow()
-        results['time_upload'] = now.strftime("%Y-%m-%dT%H:%M:%S")
+        results['time_upload'] = now.strftime(self.date_format)
 
         # Parse URL fragments and send data
         url_fragments = urlparse.urlparse(report_url)

@@ -41,7 +41,7 @@ import platform
 import re
 
 
-def get_platform_information(self):
+def get_platform_information():
   """
   Retrieves platform information for test reports. Parts of that code
   come from the dirtyharry application:
@@ -84,14 +84,14 @@ def get_platform_information(self):
   elif processor == "Power Macintosh":
     processor = "ppc"
 
-    bits = re.search('(\d+)bit', bits).group(1)
+  bits = re.search('(\d+)bit', bits).group(1)
 
-  platform = {'hostname': node,
-              'system': system,
-              'version': version,
-              'service_pack': service_pack,
-              'processor': processor,
-              'bits': bits
-              }
+  _platform = {'hostname': node,
+               'system': system,
+               'version': version,
+               'service_pack': service_pack,
+               'processor': processor,
+               'bits': bits
+               }
   
-  return platform
+  return _platform
