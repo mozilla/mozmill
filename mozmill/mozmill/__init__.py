@@ -513,17 +513,12 @@ class MozMill(object):
 
 class MozMillRestart(MozMill):
 
+    # hack, needs to go
     report_type = 'mozmill-restart-test'
 
     def __init__(self, *args, **kwargs):
         MozMill.__init__(self, *args, **kwargs)
         self.python_callbacks = []
-
-    def add_listener(self, callback, **kwargs):
-        self.listeners.append((callback, kwargs,))
-
-    def add_global_listener(self, callback):
-        self.global_listeners.append(callback)
     
     def start(self, runner=None, profile=None):
         
