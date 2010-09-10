@@ -173,17 +173,17 @@ class Profile(object):
             self.profile = self.create_new_profile(self.binary)
 
         self.addons_installed = []
-        self.addons = addons
+        self.addons = addons or []
 
         ### set preferences from class preferences
-        prefereneces = preferences or {}
+        preferences = preferences or {}
         if hasattr(self.__class__, 'preferences'):
             self.preferences = self.__class__.preferences.copy()
         else:
             self.preferences = {}
         self.preferences.update(preferences)
 
-        for addon in addons:
+        for addon in self.addons:
             self.install_addon(addon)
 
         self.set_preferences(self.preferences)
