@@ -58,6 +58,10 @@ class LoggerListener(object):
 
   def stop(self, fatal):
     """print pass/failed/skipped statistics"""
+
+    if fatal:
+      print 'TEST-UNEXPECTED-FAIL | Disconnect Error: Application unexpectedly closed'
+    
     print "INFO Passed: %d" % len(self.mozmill.passes)
     print "INFO Failed: %d" % len(self.mozmill.fails)
     print "INFO Skipped: %d" % len(self.mozmill.skipped)

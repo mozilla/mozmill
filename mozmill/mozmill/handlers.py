@@ -17,7 +17,6 @@ class EventHandler(object):
   @classmethod
   def add_options(cls, parser):
     """add options to the parser"""
-    # XXX should this be a clas method?
 
 def instantiate_handler(handler, options):
   """instantiate a handler based on a set of options"""

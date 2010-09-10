@@ -62,6 +62,7 @@ setup(name=PACKAGE_NAME,
 
           [mozmill.event_handlers]
           logging = mozmill.logger:LoggerListener
+          report = mozmill.report:Report
         """,
       platforms =['Any'],
       install_requires = ['jsbridge >= 2.3.7b1', 'mozrunner >= 2.4.4b1'],

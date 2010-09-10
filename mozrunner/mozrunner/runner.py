@@ -319,7 +319,7 @@ class CLI(object):
 
 
 def cli(args=sys.argv[1:]):
-    CLI().run()
+    CLI(args).run()
 
 if __name__ == '__main__':
     cli()
