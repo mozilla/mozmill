@@ -334,9 +334,15 @@ class Runner(object):
         else:
             self.binary = binary
 
-
         if not os.path.exists(self.binary):
             raise Exception("Binary path does not exist "+self.binary)
+
+        if sys.platform == 'linux2' and self.binary.endswith('-bin'):
+            dirname = os.path.dirname(self.binary)
+            if os.environ.get('LD_LIBRARY_PATH', None):
+                os.environ['LD_LIBRARY_PATH'] = '%s:%s' % (os.environ['LD_LIBRARY_PATH'], dirname)
+            else:
+                os.environ['LD_LIBRARY_PATH'] = dirname
 
         self.profile = profile
 
