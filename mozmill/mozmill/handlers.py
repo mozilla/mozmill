@@ -18,6 +18,12 @@ class EventHandler(object):
   def add_options(cls, parser):
     """add options to the parser"""
 
+class HandlerMatchException:
+  """
+  to be raised when inappropriate arguments are passed in to a handler;
+  non-fatal command-line mismatch
+  """
+
 def instantiate_handler(handler, options):
   """instantiate a handler based on a set of options"""
   import inspect
@@ -36,7 +42,10 @@ def instantiate_handler(handler, options):
   if not mandatory.issubset(kw.keys()):
     return None
 
-  return handler(**kw)
+  try:
+    return handler(**kw)
+  except HandlerMatchException:
+    return None
 
 
 def handlers():

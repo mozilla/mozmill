@@ -48,10 +48,13 @@ except:
   import simplejson as json
 
 from info import get_platform_information
+from handlers import HandlerMatchException
 
 class Report(object):
 
   def __init__(self, report, date_format="%Y-%m-%dT%H:%M:%S"):
+    if not isinstance(report, basestring):
+      raise HandlerMatchException
     self.report = report
     self.date_format = date_format
 
