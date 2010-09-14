@@ -195,8 +195,8 @@ class FirefoxProfile(Profile):
                    'browser.tabs.warnOnClose' : False,
                    # Don't warn when exiting the browser
                    'browser.warnOnQuit': False,
-                   # Don't install global add-ons
-                   'extensions.enabledScopes' : 0,
+                   # Only install add-ons from the profile and the app folder
+                   'extensions.enabledScopes' : 5,
                    # Don't automatically update add-ons
                    'extensions.update.enabled'    : False,
                    # Don't open a dialog to show available add-on updates
