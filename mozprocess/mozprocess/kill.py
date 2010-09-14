@@ -38,6 +38,8 @@
 # ***** END LICENSE BLOCK *****
 
 from pid import get_pids
+import os
+import sys
 
 def kill_process_by_name(name):
     """Find and kill all processes containing a certain name"""
