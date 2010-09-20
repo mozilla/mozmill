@@ -57,14 +57,14 @@ class Runner(object):
 
     def __init__(self, binary=None, profile=None, cmdargs=[], env=None,
                  aggressively_kill=['crashreporter'], kp_kwargs={}):
+
+        # determine the binary
         if binary is None:
             self.binary = self.find_binary()
         elif sys.platform == 'darwin':
             self.binary = os.path.join(binary, 'Contents/MacOS/%s-bin' % self.names[0])
         else:
             self.binary = binary
-
-
         if not os.path.exists(self.binary):
             raise Exception("Binary path does not exist "+self.binary)
 
