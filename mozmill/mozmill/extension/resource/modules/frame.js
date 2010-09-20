@@ -45,6 +45,8 @@ var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js'
 var arrays = {};  Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var withs = {};   Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
 var utils = {};   Components.utils.import('resource://mozmill/modules/utils.js', utils);
+var securableModule = {};
+  Components.utils.import('resource://mozmill/stdlib/securable-module.js', securableModule);
 
 var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
      getService(Components.interfaces.nsIConsoleService);
@@ -95,6 +97,17 @@ var loadFile = function(path, collector) {
   module.Cc = Components.classes;
   module.Ci = Components.interfaces;
   module.Cu = Components.utils;
+  module.require = function (mod) {
+    var loader = new securableModule.Loader({
+      rootPaths: [ios.newFileURI(file.parent).spec],
+      defaultPrincipal: "system",
+      globals : { Cc: Components.classes,
+                  Ci: Components.interfaces,
+                  Cu: Components.utils }
+    });
+    return loader.require(mod);
+  }
+  
   if (collector != undefined) {
     collector.current_file = file;
     collector.current_path = path;
