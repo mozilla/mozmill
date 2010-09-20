@@ -46,7 +46,7 @@ var arrays = {};  Components.utils.import('resource://mozmill/stdlib/arrays.js',
 var withs = {};   Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
 var utils = {};   Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var securableModule = {};
-  Components.utils.import('resource://mozmill/modules/securable-module.js', securableModule);
+  Components.utils.import('resource://mozmill/stdlib/securable-module.js', securableModule);
 
 var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
      getService(Components.interfaces.nsIConsoleService);
