@@ -204,15 +204,15 @@ class Runner(object):
 class FirefoxRunner(Runner):
     """Specialized Runner subclass for running Firefox."""
     app_name = 'Firefox'
-    @property
-    def names(self):
-        if sys.platform == 'darwin':
-            return ['firefox', 'minefield', 'shiretoko']
-        if (sys.platform == 'linux2') or (sys.platform in ('sunos5', 'solaris')):
-            return ['firefox', 'mozilla-firefox', 'iceweasel']
-        if os.name == 'nt' or sys.platform == 'cygwin':
-            return ['firefox']
-        
+
+    if sys.platform == 'darwin':
+        names = ['firefox', 'minefield', 'shiretoko']
+    elif (sys.platform == 'linux2') or (sys.platform in ('sunos5', 'solaris')):
+        names = ['firefox', 'mozilla-firefox', 'iceweasel']
+    elif os.name == 'nt' or sys.platform == 'cygwin':
+        names =['firefox']
+    else:
+        raise AssertionError("I don't know what platform you're on")
 
 class ThunderbirdRunner(Runner):
     """Specialized Runner subclass for running Thunderbird"""
