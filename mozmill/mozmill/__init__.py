@@ -360,7 +360,7 @@ class MozMillRestart(MozMill):
         MozMill.__init__(self, *args, **kwargs)
         self.python_callbacks = [] # why is this here? please record intent
     
-    def start(self, runner)
+    def start(self, runner):
 
         # XXX note that this block is duplicated *EXACTLY* from MozMill.start
         self.runner = runner
