@@ -79,12 +79,7 @@ class MozMill(object):
     run different sets of tests, create a new instantiation of MozMill
     """
 
-    def __init__(self,
-                 runner_class=mozrunner.FirefoxRunner, 
-                 profile_class=mozprofile.FirefoxProfile,
-                 jsbridge_port=24242,
-                 jsbridge_timeout=60,
-                 handlers=()):
+    def __init__(self, jsbridge_port=24242, jsbridge_timeout=60, handlers=()):
         """
         - runner_class : which mozrunner class to use
         - profile_class : which class to use to generate application profiles
@@ -93,11 +88,12 @@ class MozMill(object):
         - handlers : pluggable event handler
         """
         
-        self.runner_class = runner_class
-        self.profile_class = profile_class
+
+        # jsbridge parameters
         self.jsbridge_port = jsbridge_port
         self.jsbridge_timeout = jsbridge_timeout
 
+        # test parameters: filled in from event system
         self.passes = [] ; self.fails = [] ; self.skipped = []
         self.alltests = []
 
@@ -204,16 +200,11 @@ class MozMill(object):
         for global_listener in self.global_listeners:
             self.back_channel.add_global_listener(global_listener)
 
-    def start(self, profile=None, runner=None):
+    def start(self, runner):
 
-        if not profile:
-            profile = self.profile_class(addons=[jsbridge.extension_path, extension_path])
-        if not runner:
-            runner = self.runner_class(profile=profile, 
-                                       cmdargs=["-jsbridge", str(self.jsbridge_port)])
-
-        self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
         self.runner = runner
+        self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
+
         self.endRunnerCalled = False
         
         self.runner.start()
@@ -369,15 +360,9 @@ class MozMillRestart(MozMill):
         MozMill.__init__(self, *args, **kwargs)
         self.python_callbacks = [] # why is this here? please record intent
     
-    def start(self, runner=None, profile=None):
+    def start(self, runner)
 
         # XXX note that this block is duplicated *EXACTLY* from MozMill.start
-        # DRY
-        if not profile:
-            profile = self.profile_class(addons=[jsbridge.extension_path, extension_path])
-        if not runner:
-            runner = self.runner_class(profile=profile, 
-                                       cmdargs=["-jsbridge", str(self.jsbridge_port)])
         self.runner = runner
         self.endRunnerCalled = False
 
@@ -472,9 +457,6 @@ class MozMillRestart(MozMill):
 
         self.test = test_dir
         
-        # Zombie Counter Reset
-        #self.zombieDetector.resetTimer()
-
         # XXX this allows for only one sub-level of test directories
         # is this a spec or a side-effect?
         # If the former, it should be documented
@@ -519,14 +501,20 @@ class MozMillRestart(MozMill):
 
 
 class CLI(jsbridge.CLI):
-    mozmill_class = MozMill
     module = "mozmill"
 
     test_help = 'Run test file or directory'
 
     def __init__(self, args):
-        
+
+        # add and parse options
         jsbridge.CLI.__init__(self, args)
+
+        # decide whether we're running in restart mode or not
+        if self.options.restart:
+            self.mozmill_class = MozMillRestart
+        else:
+            self.mozmill_class = MozMill
 
         # instantiate plugins
         event_handlers = []
@@ -536,12 +524,8 @@ class CLI(jsbridge.CLI):
                 event_handlers.append(handler)
 
         # create a mozmill
-        # TODO: instead of recording mozmill_class and profile
-        # in each CLI method, use --restart or
-        # --thunderbird to invoke the alternate modes
-        self.mozmill = self.mozmill_class(runner_class=mozrunner.FirefoxRunner,
-                                          profile_class=mozprofile.FirefoxProfile,
-                                          jsbridge_port=int(self.options.port),
+        self.mozmill = self.mozmill_class(jsbridge_port=int(self.options.port),
+                                          
                                           jsbridge_timeout=self.options.timeout,
                                           handlers=event_handlers
                                           )
@@ -561,6 +545,9 @@ class CLI(jsbridge.CLI):
         parser.add_option("--timeout", dest="timeout", type="float",
                           default=60., 
                           help="seconds before harness timeout if no communication is taking place")
+        parser.add_option("--restart", dest=restart, action='store_true',
+                          default=False,
+                          help="operate in restart mode")
 
         for cls in handlers.handlers():
             cls.add_options(parser)
@@ -602,15 +589,7 @@ class CLI(jsbridge.CLI):
 
             if self.mozmill.runner is not None:
                 self.mozmill.runner.profile.cleanup()
-
-# XXX again, these should go away and be controlled by switches
-class RestartCLI(CLI):
-    mozmill_class = MozMillRestart
-    test_help = "Run test directory"    
-class ThunderbirdCLI(CLI):
-    profile_class = mozprofile.ThunderbirdProfile
-    runner_class = mozrunner.ThunderbirdRunner
-
+                
 
 def enum(*sequential, **named):
     # XXX to deprecate
@@ -620,9 +599,5 @@ def enum(*sequential, **named):
 def cli(args=sys.argv[1:]):
     CLI(args).run()
 
-def tbird_cli(args=sys.argv[1:]):
-    ThunderbirdCLI(args).run()
-
-def restart_cli(args=sys.argv[1:]):
-    RestartCLI(args).run()
-
+if __name__ == '__main__':
+    cli()

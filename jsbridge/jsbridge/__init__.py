@@ -85,8 +85,7 @@ def wait_and_create_network(host, port, timeout=wait_to_create_timeout):
 
 class CLI(mozrunner.CLI):
     """Command line interface."""
-    
-    module = "jsbridge"    
+        module = "jsbridge"    
     debug_addons = [os.path.join(parent,'xpi', x) for x
                      in os.listdir(os.path.join(parent,'xpi'))]
 
@@ -112,27 +111,23 @@ class CLI(mozrunner.CLI):
         parser.add_option('-P', '--port', dest="port", default="24242",
                           help="TCP port to run jsbridge on.")
 
-
-    def get_profile(self, *args, **kwargs):
-        if self.options.debug:
-            kwargs.setdefault('preferences', 
-                              {}).update({'extensions.checkCompatibility':False})
-        profile = mozrunner.CLI.get_profile(self, *args, **kwargs)
-        profile.install_addon(extension_path)
-        if self.options.debug:
-            for addon in self.debug_addons:
-                profile.install_addon(addon)
-        return profile
-        
-    def get_runner(self, *args, **kwargs):
-        runner = mozrunner.CLI.get_runner(self, *args, **kwargs)
-        if self.options.debug:
-            runner.cmdargs.append('-jsconsole')
-        runner.cmdargs += ['-jsbridge', self.options.port]
-        return runner
         
     def run(self):
-        runner = self.create_runner()
+
+        profile_args = dict(addons=self.options.addons)
+        if self.options.debug:
+            cmdpargs = [ '-jsconsole' ]
+            profile_args['preferences'] = {'extensions.checkCompatibility':False}
+        else:
+            cmdargs = []
+        cmdargs += ['-jsbridge', self.options.port]
+        runner_args = dict(cmdargs=cmdargs)
+                            
+        runner = self.create_runner(self.profile_class,
+                                    self.runner_class,
+                                    self.options.binary,
+                                    profile_args,
+                                    runner_args)
         runner.start()
         self.start_jsbridge_network()
         if self.options.shell:

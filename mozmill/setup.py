@@ -57,8 +57,6 @@ setup(name=PACKAGE_NAME,
       entry_points="""
           [console_scripts]
           mozmill = mozmill:cli
-          mozmill-thunderbird = mozmill:tbird_cli
-          mozmill-restart = mozmill:restart_cli
 
           [mozmill.event_handlers]
           logging = mozmill.logger:LoggerListener

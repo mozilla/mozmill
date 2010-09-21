@@ -45,6 +45,7 @@ import os
 import sys
 import signal
 import optparse
+import ConfigParser
 
 from utils import findInPath
 from mozprocess import killableprocess
@@ -58,13 +59,7 @@ class Runner(object):
     def __init__(self, profile, binary=None, cmdargs=None, env=None,
                  aggressively_kill=('crashreporter',), kp_kwargs=None):
 
-        # determine the binary
-        if binary is None:
-            self.binary = self.find_binary()
-        elif sys.platform == 'darwin':
-            self.binary = os.path.join(binary, 'Contents/MacOS/%s-bin' % self.names[0])
-        else:
-            self.binary = binary
+        self.binary = Runner.get_binary(binary)
         if not os.path.exists(self.binary):
             raise Exception("Binary path does not exist "+self.binary)
 
@@ -80,20 +75,32 @@ class Runner(object):
         self.aggressively_kill = aggressively_kill
         self.kp_kwargs = kp_kwargs or {}
 
-    def find_binary(self):
-        """Finds the binary for self.names if one was not provided."""
+    @classmethod
+    def get_binary(cls, binary=None):
+        """determine the binary"""
+        if binary is None:
+            return self.find_binary()
+        elif sys.platform == 'darwin':
+            # XXX FIX ME!!!
+            return os.path.join(binary, 'Contents/MacOS/%s-bin' % self.names[0])
+        else:
+            return binary
+        
+    @classmethod
+    def find_binary(cls):
+        """Finds the binary for class names if one was not provided."""
         binary = None
         if sys.platform in ('linux2', 'sunos5', 'solaris'):
-            for name in reversed(self.names):
+            for name in reversed(cls.names):
                 binary = findInPath(name)
         elif os.name == 'nt' or sys.platform == 'cygwin':
 
             # find the default executable from the windows registry
             try:
-                # assumes self.app_name is defined, as it should be for
+                # assumes cls.app_name is defined, as it should be for
                 # implementors
                 import _winreg
-                app_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\Mozilla\Mozilla %s" % self.app_name)
+                app_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\Mozilla\Mozilla %s" % cls.app_name)
                 version, _type = _winreg.QueryValueEx(app_key, "CurrentVersion")
                 version_key = _winreg.OpenKey(app_key, version + r"\Main")
                 path, _ = _winreg.QueryValueEx(version_key, "PathToExe")
@@ -102,7 +109,7 @@ class Runner(object):
                 pass
 
             # search for the binary in the path            
-            for name in reversed(self.names):
+            for name in reversed(cls.names):
                 binary = findInPath(name)
                 if sys.platform == 'cygwin':
                     program_files = os.environ['PROGRAMFILES']
@@ -120,7 +127,7 @@ class Runner(object):
                             binary = path
                             break
         elif sys.platform == 'darwin':
-            for name in reversed(self.names):
+            for name in reversed(cls.names):
                 appdir = os.path.join('Applications', name.capitalize()+'.app')
                 if os.path.isdir(os.path.join(os.path.expanduser('~/'), appdir)):
                     binary = os.path.join(os.path.expanduser('~/'), appdir,
@@ -144,7 +151,6 @@ class Runner(object):
 
     def get_repositoryInfo(self):
         """Read repository information from application.ini and platform.ini."""
-        import ConfigParser
 
         config = ConfigParser.RawConfigParser()
         dirname = os.path.dirname(self.binary)
@@ -213,6 +219,18 @@ class ThunderbirdRunner(Runner):
     app_name = 'Thunderbird'
     names = ["thunderbird", "shredder"]
 
+
+def create_runner(profile_class, runner_class,
+                  binary=None, profile_args=None, runner_args=None):
+    """Get the runner object, a not-very-abstract factory"""
+    binary = runner_class.get_binary(binary)
+    profile = profile_class(binary=binary,
+                            **profile_args)
+    runner = runner_class(binary=binary,
+                          profile=profile,
+                          **runner_args)
+    return runner
+    
 
 class CLI(object):
     """Command line interface."""
@@ -285,29 +303,15 @@ class CLI(object):
 
     ### methods for running
 
-    def create_runner(self):
-        """ Get the runner object """
-        runner = self.get_runner(binary=self.options.binary)
-        profile = self.get_profile(binary=runner.binary,
-                                   profile=self.options.profile,
-                                   addons=self.options.addons)
-        runner.profile = profile
-        return runner
-
-    def get_runner(self, binary=None, profile=None):
-        """Returns the runner instance for the given command line binary argument
-        the profile instance returned from self.get_profile()."""
-        return self.runner_class(binary, profile)
-
-    def get_profile(self, binary=None, profile=None, addons=None, preferences=None):
-        """Returns the profile instance for the given command line arguments."""
-        addons = addons or []
-        preferences = preferences or {}
-        return self.profile_class(binary, profile, addons, preferences)
 
     def run(self):
-        runner = self.create_runner()
+        runner = create_runner(self.options.binary,
+                               dict(profile=self.options.profile,
+                                    addons=self.options.addons))
         self.start(runner)
+        
+        # XXX should be runner.cleanup,
+        # and other runner cleanup code should go in there
         runner.profile.cleanup()
 
     def start(self, runner):
