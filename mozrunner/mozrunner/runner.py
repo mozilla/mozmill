@@ -55,8 +55,8 @@ from mozprofile import *
 class Runner(object):
     """Handles all running operations. Finds bins, runs and kills the process."""
 
-    def __init__(self, binary=None, profile=None, cmdargs=[], env=None,
-                 aggressively_kill=['crashreporter'], kp_kwargs=None):
+    def __init__(self, profile, binary=None, cmdargs=None, env=None,
+                 aggressively_kill=('crashreporter',), kp_kwargs=None):
 
         # determine the binary
         if binary is None:
@@ -70,7 +70,8 @@ class Runner(object):
 
         self.profile = profile
 
-        self.cmdargs = cmdargs
+        self.cmdargs = cmdargs or None
+        
         if env is None:
             self.env = os.environ.copy()
             self.env.update({'MOZ_NO_REMOTE':"1",})
@@ -164,8 +165,6 @@ class Runner(object):
 
     def start(self):
         """Run self.command in the proper environment."""
-        if self.profile is None:
-            self.profile = self.profile_class()
         self.process_handler = killableprocess.runCommand(self.command+self.cmdargs, env=self.env, **self.kp_kwargs)
 
     def wait(self, timeout=None):
@@ -198,10 +197,7 @@ class Runner(object):
 
 class FirefoxRunner(Runner):
     """Specialized Runner subclass for running Firefox."""
-
     app_name = 'Firefox'
-    profile_class = FirefoxProfile
-
     @property
     def names(self):
         if sys.platform == 'darwin':
@@ -210,22 +206,18 @@ class FirefoxRunner(Runner):
             return ['firefox', 'mozilla-firefox', 'iceweasel']
         if os.name == 'nt' or sys.platform == 'cygwin':
             return ['firefox']
+        
 
 class ThunderbirdRunner(Runner):
     """Specialized Runner subclass for running Thunderbird"""
-
     app_name = 'Thunderbird'
-    profile_class = ThunderbirdProfile
-
     names = ["thunderbird", "shredder"]
+
 
 class CLI(object):
     """Command line interface."""
 
-    runner_class = FirefoxRunner
-    profile_class = FirefoxProfile
     module = "mozrunner"
-
 
     def __init__(self, args=sys.argv[1:]):
         """
@@ -240,6 +232,14 @@ class CLI(object):
         if self.options.info:
             self.print_metadata()
             sys.exit(0)
+
+        if self.options.app == 'firefox':
+            self.runner_class = FirefoxRunner
+            self.profile_class = FirefoxProfile
+        elif self.options.app == 'thunderbird':
+            self.runner_class = ThunderbirdRunner
+            self.profile_class = ThunderbirdProfile          
+    
             
     def add_options(self, parser):
         """add options to the parser"""
@@ -260,7 +260,10 @@ class CLI(object):
         parser.add_option("--info", dest="info", default=False,
                           action="store_true",
                           help="Print module information")
-        
+        parser.add_option('--app', dest='app', default='firefox',
+                          help="Application to use")
+
+    ### methods regarding introspecting data
             
     def get_metadata_from_egg(self):
         import pkg_resources
@@ -279,6 +282,8 @@ class CLI(object):
         for key in data:
             if key in self.metadata:
                 print key + ": " + self.metadata[key]
+
+    ### methods for running
 
     def create_runner(self):
         """ Get the runner object """
