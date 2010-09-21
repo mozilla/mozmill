@@ -111,23 +111,23 @@ class CLI(mozrunner.CLI):
         parser.add_option('-P', '--port', dest="port", default="24242",
                           help="TCP port to run jsbridge on.")
 
-        
-    def run(self):
 
-        profile_args = dict(addons=self.options.addons)
+    def profile_args(self):
+        profile_args = mozrunner.CLI.profile_args(self)
         if self.options.debug:
-            cmdpargs = [ '-jsconsole' ]
             profile_args['preferences'] = {'extensions.checkCompatibility':False}
+        return profile_args
+
+    def runner_args(self):
+        if self.options.debug:
+            cmdargs = [ '-jsconsole' ]
         else:
             cmdargs = []
         cmdargs += ['-jsbridge', self.options.port]
-        runner_args = dict(cmdargs=cmdargs)
-                            
-        runner = self.create_runner(self.profile_class,
-                                    self.runner_class,
-                                    self.options.binary,
-                                    profile_args,
-                                    runner_args)
+        return dict(cmdargs=cmdargs)
+        
+    def run(self):
+        runner = self.create_runner()
         runner.start()
         self.start_jsbridge_network()
         if self.options.shell:
