@@ -114,6 +114,7 @@ class CLI(mozrunner.CLI):
 
     def profile_args(self):
         profile_args = mozrunner.CLI.profile_args(self)
+        profile_args['addons'].append(extension_path)
         if self.options.debug:
             profile_args['preferences'] = {'extensions.checkCompatibility':False}
         return profile_args

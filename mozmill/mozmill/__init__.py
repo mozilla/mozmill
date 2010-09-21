@@ -501,8 +501,6 @@ class MozMillRestart(MozMill):
 class CLI(jsbridge.CLI):
     module = "mozmill"
 
-    test_help = 'Run test file or directory'
-
     def __init__(self, args):
 
         # add and parse options
@@ -539,7 +537,7 @@ class CLI(jsbridge.CLI):
         jsbridge.CLI.add_options(self, parser)
 
         parser.add_option("-t", "--test", dest="test", default=None, 
-                          help=self.test_help)
+                          help='Run test file or directory')
         parser.add_option("--timeout", dest="timeout", type="float",
                           default=60., 
                           help="seconds before harness timeout if no communication is taking place")
@@ -563,21 +561,23 @@ class CLI(jsbridge.CLI):
         return arguments needed to make a profile object from
         this command-line interface
         """
-        
-        
+        profile_args = jsbridge.CLI.profile_args()
+        profile_args['addons'].append(extension_path)
+        return profile_args
+
+    def runner_args(self):
+        runner args = jsbridge.CLI.runner_args()
+        if '-foreground' not in runner_args['cmdargs']:
+            runner_args['cmdargs'].append('-foreground')
+        return runner_args
         
     def run(self):
-        # XXX this is a complicated function that should probably be broken up
 
         # create a Mozrunner
-        runner = mozrunner.create_runner(self.profile_class, self.runner_class)
-        # make sure the application starts in the foreground
-        # XXX BAD; cleanup!
-        if '-foreground' not in runner.cmdargs:
-            runner.cmdargs.append('-foreground')
-            
-        self.mozmill.start(runner=runner)
+        runner = self.create_runner()
 
+        # start your mozmill
+        self.mozmill.start(runner=runner)
         if self.options.test:
             self.mozmill.run(self.options.test)
         else:
