@@ -220,9 +220,6 @@ class MozMill(object):
         - sleeptime : initial time to sleep [s] (not sure why the default is 4)
         """
 
-        # Reset our Zombie Because we are still active
-        #self.zombieDetector.resetTimer()
-
         self.test = test
 
         frame = jsbridge.JSObject(self.bridge,
