@@ -56,7 +56,7 @@ class Runner(object):
     """Handles all running operations. Finds bins, runs and kills the process."""
 
     def __init__(self, binary=None, profile=None, cmdargs=[], env=None,
-                 aggressively_kill=['crashreporter'], kp_kwargs={}):
+                 aggressively_kill=['crashreporter'], kp_kwargs=None):
 
         # determine the binary
         if binary is None:
@@ -77,7 +77,7 @@ class Runner(object):
         else:
             self.env = env
         self.aggressively_kill = aggressively_kill
-        self.kp_kwargs = kp_kwargs
+        self.kp_kwargs = kp_kwargs or {}
 
     def find_binary(self):
         """Finds the binary for self.names if one was not provided."""
@@ -149,12 +149,11 @@ class Runner(object):
         dirname = os.path.dirname(self.binary)
         repository = { }
 
-        for entry in [['application', 'App'], ['platform', 'Build']]:
-            (file, section) = entry
+        for file, section in [('application', 'App'), ('platform', 'Build')]:
             config.read(os.path.join(dirname, '%s.ini' % file))
 
-            for entry in [['SourceRepository', 'repository'], ['SourceStamp', 'changeset']]:
-                (key, id) = entry
+            for key, id in [('SourceRepository', 'repository'),
+                          ('SourceStamp', 'changeset')]:
 
                 try:
                     repository['%s_%s' % (file, id)] = config.get(section, key);
