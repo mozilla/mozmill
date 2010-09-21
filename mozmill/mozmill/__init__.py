@@ -564,8 +564,7 @@ class CLI(jsbridge.CLI):
         # XXX this is a complicated function that should probably be broken up
 
         # create a Mozrunner
-        runner = create_runner()
-
+        runner = mozrunner.create_runner(self.profile_class, self.runner_class)
         # make sure the application starts in the foreground
         if '-foreground' not in runner.cmdargs:
             runner.cmdargs.append('-foreground')
