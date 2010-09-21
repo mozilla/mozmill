@@ -545,7 +545,7 @@ class CLI(jsbridge.CLI):
         parser.add_option("--timeout", dest="timeout", type="float",
                           default=60., 
                           help="seconds before harness timeout if no communication is taking place")
-        parser.add_option("--restart", dest=restart, action='store_true',
+        parser.add_option("--restart", dest='restart', action='store_true',
                           default=False,
                           help="operate in restart mode")
 
