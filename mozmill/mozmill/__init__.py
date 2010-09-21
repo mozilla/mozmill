@@ -351,6 +351,7 @@ class MozMill(object):
             except OSError:
                 pass # assume profile is already cleaned up
 
+
 class MozMillRestart(MozMill):
 
     def __init__(self, *args, **kwargs):
