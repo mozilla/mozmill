@@ -561,12 +561,12 @@ class CLI(jsbridge.CLI):
         return arguments needed to make a profile object from
         this command-line interface
         """
-        profile_args = jsbridge.CLI.profile_args()
+        profile_args = jsbridge.CLI.profile_args(self)
         profile_args['addons'].append(extension_path)
         return profile_args
 
     def runner_args(self):
-        runner_args = jsbridge.CLI.runner_args()
+        runner_args = jsbridge.CLI.runner_args(self)
         if '-foreground' not in runner_args['cmdargs']:
             runner_args['cmdargs'].append('-foreground')
         return runner_args
