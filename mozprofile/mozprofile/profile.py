@@ -65,29 +65,27 @@ class Profile(object):
     def __init__(self, binary=None, profile=None, addons=None,
                  preferences=None):
 
+        # handle profile creation
         self.binary = binary
-
         self.create_new = not(bool(profile))
         if profile:
             self.profile = profile
         else:
             self.profile = self.create_new_profile(self.binary)
 
-        self.addons_installed = []
-        self.addons = addons or []
-
         ### set preferences from class preferences
-        preferences = preferences or {}
         if hasattr(self.__class__, 'preferences'):
             self.preferences = self.__class__.preferences.copy()
         else:
             self.preferences = {}
-        self.preferences.update(preferences)
+        self.preferences.update(preferences or {})
+        self.set_preferences(self.preferences)
 
+        # handle addon installation
+        self.addons_installed = []
+        self.addons = addons or []
         for addon in self.addons:
             self.install_addon(addon)
-
-        self.set_preferences(self.preferences)
 
     def create_new_profile(self, binary):
         """Create a new clean profile in tmp which is a simple empty folder"""
