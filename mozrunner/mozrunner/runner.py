@@ -65,7 +65,7 @@ class Runner(object):
 
         self.profile = profile
 
-        self.cmdargs = cmdargs or None
+        self.cmdargs = cmdargs or []
         
         if env is None:
             self.env = os.environ.copy()
