@@ -237,9 +237,6 @@ class CLI(object):
         self.add_options(self.parser)
         (self.options, self.args) = self.parser.parse_args(args)
 
-        # XXX temporary hack
-        self.addons = self.options.addons
-
         if self.options.info:
             self.print_metadata()
             sys.exit(0)
@@ -288,7 +285,7 @@ class CLI(object):
         runner = self.get_runner(binary=self.options.binary)
         profile = self.get_profile(binary=runner.binary,
                                    profile=self.options.profile,
-                                   addons=self.addons)
+                                   addons=self.options.addons)
         runner.profile = profile
         return runner
 

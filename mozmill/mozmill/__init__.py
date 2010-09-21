@@ -208,10 +208,8 @@ class MozMill(object):
 
         if not profile:
             profile = self.profile_class(addons=[jsbridge.extension_path, extension_path])
-        self.profile = profile
-        
         if not runner:
-            runner = self.runner_class(profile=self.profile, 
+            runner = self.runner_class(profile=profile, 
                                        cmdargs=["-jsbridge", str(self.jsbridge_port)])
 
         self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
@@ -377,9 +375,8 @@ class MozMillRestart(MozMill):
         # DRY
         if not profile:
             profile = self.profile_class(addons=[jsbridge.extension_path, extension_path])
-        self.profile = profile
         if not runner:
-            runner = self.runner_class(profile=self.profile, 
+            runner = self.runner_class(profile=profile, 
                                        cmdargs=["-jsbridge", str(self.jsbridge_port)])
         self.runner = runner
         self.endRunnerCalled = False
