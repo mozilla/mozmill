@@ -69,7 +69,7 @@ class Runner(object):
         
         if env is None:
             self.env = os.environ.copy()
-            self.env.update({'MOZ_NO_REMOTE':"1",})
+            self.env.update({'MOZ_NO_REMOTE': '1'})
         else:
             self.env = env
         self.aggressively_kill = aggressively_kill
