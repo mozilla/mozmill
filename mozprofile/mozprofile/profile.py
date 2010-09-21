@@ -109,8 +109,6 @@ class Profile(object):
             addon = tmpdir
 
         tree = ElementTree.ElementTree(file=os.path.join(addon, 'install.rdf'))
-        # description_element =
-        # tree.find('.//{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description/')
 
         desc = tree.find('.//{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description')
         apps = desc.findall('.//{http://www.mozilla.org/2004/em-rdf#}targetApplication')
