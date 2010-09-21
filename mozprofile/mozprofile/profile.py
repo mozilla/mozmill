@@ -198,14 +198,6 @@ class FirefoxProfile(Profile):
                    'extensions.update.notifyUser' : False,
                    }
 
-    @property
-    def names(self):
-        if sys.platform == 'darwin':
-            return ['firefox', 'minefield', 'shiretoko']
-        if (sys.platform == 'linux2') or (sys.platform in ('sunos5', 'solaris')):
-            return ['firefox', 'mozilla-firefox', 'iceweasel']
-        if os.name == 'nt' or sys.platform == 'cygwin':
-            return ['firefox']
 
 class ThunderbirdProfile(Profile):
     preferences = {'extensions.update.enabled'    : False,
@@ -215,6 +207,5 @@ class ThunderbirdProfile(Profile):
                    'browser.warnOnQuit': False,
                    'browser.sessionstore.resume_from_crash': False,
                    }
-    names = ["thunderbird", "shredder"]
 
 
