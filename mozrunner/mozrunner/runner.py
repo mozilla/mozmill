@@ -39,7 +39,8 @@
 #
 # ***** END LICENSE BLOCK *****
 
-__all__ = ['Runner', 'ThunderbirdRunner', 'FirefoxRunner', 'CLI', 'cli']
+__all__ = ['Runner', 'ThunderbirdRunner', 'FirefoxRunner', 'create_runner',
+           'CLI', 'cli']
 
 import os
 import sys
@@ -308,13 +309,24 @@ class CLI(object):
 
     ### methods for running
 
+    def profile_args(self):
+        """arguments to instantiate the profile class"""
+        return dict(profile=self.options.profile,
+                    addons=self.options.addons)
+
+    def runner_args(self):
+        """arguments to instantiate the runner class"""
+
+
+    def create_runner(self):
+        return create_runner(self.profile_class,
+                             self.runner_class,
+                             self.options.binary,
+                             self.profile_args(),
+                             self.runner_args())
 
     def run(self):
-        runner = create_runner(self.profile_class,
-                               self.runner_class,
-                               self.options.binary,
-                               dict(profile=self.options.profile,
-                                    addons=self.options.addons))
+        runner = self.create_runner()
         self.start(runner)
         
         # XXX should be runner.cleanup,

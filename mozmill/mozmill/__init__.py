@@ -559,6 +559,14 @@ class CLI(jsbridge.CLI):
         profile = jsbridge.CLI.get_profile(self, *args, **kwargs)
         profile.install_addon(extension_path)
         return profile
+
+    def profile_args(self):
+        """
+        return arguments needed to make a profile object from
+        this command-line interface
+        """
+        
+        
         
     def run(self):
         # XXX this is a complicated function that should probably be broken up
@@ -566,6 +574,7 @@ class CLI(jsbridge.CLI):
         # create a Mozrunner
         runner = mozrunner.create_runner(self.profile_class, self.runner_class)
         # make sure the application starts in the foreground
+        # XXX BAD; cleanup!
         if '-foreground' not in runner.cmdargs:
             runner.cmdargs.append('-foreground')
             
