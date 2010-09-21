@@ -566,7 +566,7 @@ class CLI(jsbridge.CLI):
         return profile_args
 
     def runner_args(self):
-        runner args = jsbridge.CLI.runner_args()
+        runner_args = jsbridge.CLI.runner_args()
         if '-foreground' not in runner_args['cmdargs']:
             runner_args['cmdargs'].append('-foreground')
         return runner_args
