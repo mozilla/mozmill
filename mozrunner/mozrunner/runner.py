@@ -310,6 +310,7 @@ class CLI(object):
     def run(self):
         runner = create_runner(self.profile_class,
                                self.runner_class,
+                               self.options.binary,
                                dict(profile=self.options.profile,
                                     addons=self.options.addons))
         self.start(runner)
