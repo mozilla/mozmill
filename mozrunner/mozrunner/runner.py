@@ -223,6 +223,8 @@ class ThunderbirdRunner(Runner):
 def create_runner(profile_class, runner_class,
                   binary=None, profile_args=None, runner_args=None):
     """Get the runner object, a not-very-abstract factory"""
+    profile_args = profile_args or {}
+    runner_args = runner_args or {}
     binary = runner_class.get_binary(binary)
     profile = profile_class(binary=binary,
                             **profile_args)
