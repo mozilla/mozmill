@@ -251,12 +251,15 @@ class CLI(object):
             self.print_metadata()
             sys.exit(0)
 
+        # choose appropriate runner and profile classes
         if self.options.app == 'firefox':
             self.runner_class = FirefoxRunner
             self.profile_class = FirefoxProfile
         elif self.options.app == 'thunderbird':
             self.runner_class = ThunderbirdRunner
-            self.profile_class = ThunderbirdProfile          
+            self.profile_class = ThunderbirdProfile
+        else:
+            self.parser.error('Application "%s" unknown (should be one of "firefox" or "thunderbird"' % self.options.app)
     
             
     def add_options(self, parser):
@@ -305,7 +308,8 @@ class CLI(object):
 
 
     def run(self):
-        runner = create_runner(self.options.binary,
+        runner = create_runner(self.profile_class,
+                               self.runner_class,
                                dict(profile=self.options.profile,
                                     addons=self.options.addons))
         self.start(runner)
