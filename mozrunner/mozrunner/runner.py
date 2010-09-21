@@ -79,10 +79,10 @@ class Runner(object):
     def get_binary(cls, binary=None):
         """determine the binary"""
         if binary is None:
-            return self.find_binary()
+            return cls.find_binary()
         elif sys.platform == 'darwin':
             # XXX FIX ME!!!
-            return os.path.join(binary, 'Contents/MacOS/%s-bin' % self.names[0])
+            return os.path.join(binary, 'Contents/MacOS/%s-bin' % cls.names[0])
         else:
             return binary
         
