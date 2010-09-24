@@ -53,7 +53,7 @@
 
       $('#fileMenu').menu({
         content: $('#fileMenulist').html(),
-        showSpeed: 120 
+        showSpeed: 120
       });
 	});
   </script>
@@ -75,8 +75,9 @@
               <li class="menuitem" onclick="closeFile();"><a href="#" >Close C<u>u</u>rrent File</a></li>
               <li class="menuitem" onclick="runFile();"><a href="#">Run <u>F</u>ile</a></li>
               <li class="menuitem" onclick="runDirectory();"><a href="#">Run Direc<u>t</u>ory</a></li>
-              </ul>
-            </div> 
+              <li class="menuitem" onclick="openHelp();"><a href="#"><u>H</u>elp</a></li>
+            </ul>
+          </div>
          <span id="openTabs"><span id="openTabsLabel">Open Files: </span><select id="editor-tab-select" onchange="tabSelected(this);"></select></span>
          <span style="float:right;">
           <button id="runButton"  class="ui-state-default ui-corner-all" onclick="runEditor();"><u>R</u>un</button>
