@@ -705,7 +705,7 @@ class CLI(jsbridge.CLI):
                                               help="Print logger errors to the console.")
     parser_options[("--report",)] = dict(dest="report", default=False,
                                          help="Report the results. Requires url to results server. Use 'stdout' for stdout.")
-    parser_options[("--showall",)] = dict(dest="showall", default=False, action="store_true",
+    parser_options[("--show-all",)] = dict(dest="showall", default=False, action="store_true",
                                          help="Show all test output.")
     parser_options[("--timeout",)] = dict(dest="timeout", type="float",
                                           default=60., 
