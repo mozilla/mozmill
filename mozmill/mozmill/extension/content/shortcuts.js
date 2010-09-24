@@ -62,6 +62,10 @@ function onkeypress(e){
         e.preventDefault();
         runDirectory();
       break;
+      case 'h':
+        e.preventDefault();
+        openHelp();
+      break;
       case 'l':
         e.preventDefault();
         logicalClear();
