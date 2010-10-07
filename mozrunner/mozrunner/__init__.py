@@ -193,53 +193,58 @@ class Profile(object):
         profile = tempfile.mkdtemp(suffix='.mozrunner')
         return profile
 
-    def install_addon(self, addon):
-        """Installs the given addon in the profile."""
-        tmpdir = None
-        if addon.endswith('.xpi'):
-            tmpdir = tempfile.mkdtemp(suffix = "." + os.path.split(addon)[-1])
-            compressed_file = zipfile.ZipFile(addon, "r")
-            for name in compressed_file.namelist():
-                if name.endswith('/'):
-                    makedirs(os.path.join(tmpdir, name))
-                else:
-                    if not os.path.isdir(os.path.dirname(os.path.join(tmpdir, name))):
-                        makedirs(os.path.dirname(os.path.join(tmpdir, name)))
-                    data = compressed_file.read(name)
-                    f = open(os.path.join(tmpdir, name), 'wb')
-                    f.write(data) ; f.close()
-            addon = tmpdir
+    def install_addon(self, path):
+        """Installs the given addon or directory of addons in the profile."""
+        addons = [path]
+        if not path.endswith('.xpi') and not os.path.exists(os.path.join(path, 'install.rdf')):
+            addons = [os.path.join(path, x) for x in os.listdir(path)]
 
-        tree = ElementTree.ElementTree(file=os.path.join(addon, 'install.rdf'))
-        # description_element =
-        # tree.find('.//{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description/')
+        for addon in addons:
+            tmpdir = None
+            if addon.endswith('.xpi'):
+                tmpdir = tempfile.mkdtemp(suffix = "." + os.path.split(addon)[-1])
+                compressed_file = zipfile.ZipFile(addon, "r")
+                for name in compressed_file.namelist():
+                    if name.endswith('/'):
+                        makedirs(os.path.join(tmpdir, name))
+                    else:
+                        if not os.path.isdir(os.path.dirname(os.path.join(tmpdir, name))):
+                            makedirs(os.path.dirname(os.path.join(tmpdir, name)))
+                        data = compressed_file.read(name)
+                        f = open(os.path.join(tmpdir, name), 'wb')
+                        f.write(data) ; f.close()
+                addon = tmpdir
 
-        desc = tree.find('.//{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description')
-        apps = desc.findall('.//{http://www.mozilla.org/2004/em-rdf#}targetApplication')
-        for app in apps:
-          desc.remove(app)
-        if desc and desc.attrib.has_key('{http://www.mozilla.org/2004/em-rdf#}id'):
-            addon_id = desc.attrib['{http://www.mozilla.org/2004/em-rdf#}id']
-        elif desc and desc.find('.//{http://www.mozilla.org/2004/em-rdf#}id') is not None:
-            addon_id = desc.find('.//{http://www.mozilla.org/2004/em-rdf#}id').text
-        else:
-            about = [e for e in tree.findall(
-                        './/{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description') if
-                         e.get('{http://www.w3.org/1999/02/22-rdf-syntax-ns#}about') ==
-                         'urn:mozilla:install-manifest'
-                    ]
+            tree = ElementTree.ElementTree(file=os.path.join(addon, 'install.rdf'))
+            # description_element =
+            # tree.find('.//{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description/')
 
-            x = e.find('.//{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description')
-
-            if len(about) is 0:
-                addon_element = tree.find('.//{http://www.mozilla.org/2004/em-rdf#}id')
-                addon_id = addon_element.text
+            desc = tree.find('.//{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description')
+            apps = desc.findall('.//{http://www.mozilla.org/2004/em-rdf#}targetApplication')
+            for app in apps:
+              desc.remove(app)
+            if desc and desc.attrib.has_key('{http://www.mozilla.org/2004/em-rdf#}id'):
+                addon_id = desc.attrib['{http://www.mozilla.org/2004/em-rdf#}id']
+            elif desc and desc.find('.//{http://www.mozilla.org/2004/em-rdf#}id') is not None:
+                addon_id = desc.find('.//{http://www.mozilla.org/2004/em-rdf#}id').text
             else:
-                addon_id = about[0].get('{http://www.mozilla.org/2004/em-rdf#}id')
+                about = [e for e in tree.findall(
+                            './/{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description') if
+                             e.get('{http://www.w3.org/1999/02/22-rdf-syntax-ns#}about') ==
+                             'urn:mozilla:install-manifest'
+                        ]
 
-        addon_path = os.path.join(self.profile, 'extensions', addon_id)
-        copytree(addon, addon_path, preserve_symlinks=1)
-        self.addons_installed.append(addon_path)
+                x = e.find('.//{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description')
+
+                if len(about) is 0:
+                    addon_element = tree.find('.//{http://www.mozilla.org/2004/em-rdf#}id')
+                    addon_id = addon_element.text
+                else:
+                    addon_id = about[0].get('{http://www.mozilla.org/2004/em-rdf#}id')
+
+            addon_path = os.path.join(self.profile, 'extensions', addon_id)
+            copytree(addon, addon_path, preserve_symlinks=1)
+            self.addons_installed.append(addon_path)
 
     def set_preferences(self, preferences):
         """Adds preferences dict to profile preferences"""
