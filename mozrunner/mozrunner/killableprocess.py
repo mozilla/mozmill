@@ -109,6 +109,9 @@ class Popen(subprocess.Popen):
                            errread, errwrite):
             if not isinstance(args, types.StringTypes):
                 args = subprocess.list2cmdline(args)
+            
+            # Always or in the create new process group
+            creationflags |= winprocess.CREATE_NEW_PROCESS_GROUP
 
             if startupinfo is None:
                 startupinfo = winprocess.STARTUPINFO()
@@ -125,13 +128,16 @@ class Popen(subprocess.Popen):
                 comspec = os.environ.get("COMSPEC", "cmd.exe")
                 args = comspec + " /c " + args
 
-            # We create a new job for this process, so that we can kill
-            # the process and any sub-processes 
-            self._job = winprocess.CreateJobObject()
+            # determine if we can create create a job
+            canCreateJob = winprocess.CanCreateJobObject()
 
+            # set process creation flags
             creationflags |= winprocess.CREATE_SUSPENDED
             creationflags |= winprocess.CREATE_UNICODE_ENVIRONMENT
+            if canCreateJob:
+                creationflags |= winprocess.CREATE_BREAKAWAY_FROM_JOB
 
+            # create the process
             hp, ht, pid, tid = winprocess.CreateProcess(
                 executable, args,
                 None, None, # No special security
@@ -139,15 +145,22 @@ class Popen(subprocess.Popen):
                 creationflags,
                 winprocess.EnvironmentBlock(env),
                 cwd, startupinfo)
-            
             self._child_created = True
             self._handle = hp
             self._thread = ht
             self.pid = pid
             self.tid = tid
 
-            winprocess.AssignProcessToJobObject(self._job, hp)
-            winprocess.ResumeThread(ht)
+            if canCreateJob:
+                # We create a new job for this process, so that we can kill
+                # the process and any sub-processes 
+                self._job = winprocess.CreateJobObject()
+                winprocess.AssignProcessToJobObject(self._job, int(hp))
+            else:
+                self._job = None
+                    
+            winprocess.ResumeThread(int(ht))
+            ht.Close()
 
             if p2cread is not None:
                 p2cread.Close()
@@ -161,10 +174,14 @@ class Popen(subprocess.Popen):
         """Kill the process. If group=True, all sub-processes will also be killed."""
         self.kill_called = True
         if mswindows:
-            if group:
+            if group and self._job:
                 winprocess.TerminateJobObject(self._job, 127)
             else:
-                winprocess.TerminateProcess(self._handle, 127)
+                try:
+                    winprocess.TerminateProcess(self._handle, 127)
+                except:
+                    # TODO: better error handling here
+                    pass
             self.returncode = 127    
         else:
             if group:
@@ -194,8 +211,14 @@ class Popen(subprocess.Popen):
                 timeout = -1
             rc = winprocess.WaitForSingleObject(self._handle, timeout)
             
-            if rc != winprocess.WAIT_TIMEOUT: 
-                while (starttime - datetime.datetime.now()).microseconds < timeout or ( winprocess.QueryInformationJobObject(self._job, 8)['BasicInfo']['ActiveProcesses'] > 0 ):
+            if rc != winprocess.WAIT_TIMEOUT:
+                def check():
+                    if (starttime - datetime.datetime.now()).microseconds < timeout:
+                        return True
+                    if self._job and (winprocess.QueryInformationJobObject(self._job, 8)['BasicInfo']['ActiveProcesses'] > 0):
+                        return True
+                    return False
+                while check():
                     time.sleep(.5)            
             
             if (starttime - datetime.datetime.now()).microseconds > timeout:
