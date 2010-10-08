@@ -1047,33 +1047,26 @@ function browserAdditions (controller) {
     // Fallback to selected browser
     tab = tab || this.window.gBrowser.selectedBrowser;
 
-    // If the page has already been loaded we have to return earlier. Otherwise
-    // we end up in a timeout when waiting for the DOMContentLoaded event
-    // Note: It will not fix the problem for error pages
-    if (tab.contentDocument.defaultView.documentLoaded) {
-      frame.events.pass({'function':'controller.waitForPageLoad()'});
-      return;
-    }
-
-    // Add event listener for "DOMContentLoaded" which will fire once the
-    // content has been loaded and the DOM is ready. We cannot use the "load"
-    // event, because that makes it impossible to detect page loads for error pages.
-    function pageLoaded() {
-      tab.removeEventListener("DOMContentLoaded", pageLoaded, true);
-      self.loaded = true;
-    }
-    tab.addEventListener("DOMContentLoaded", pageLoaded, true);
-
     try {
-      // Wait until the page has been loaded
-      this.waitFor(function() { return self.loaded; }, aTimeout, aInterval);
-      this.sleep(1000);
+      var errorRegex = /about:.+(error)|(blocked)\?/;
+      this.waitFor(function() {
+        // Note: Error pages will never reach a documentLoaded state. For those we
+        // have to wait for readyState set to "interactive". That's the final
+        // state. Error pages will always have an baseURI starting with
+        // "about:" followed by "error" or "blocked".
+        if (errorRegex.exec(tab.contentDocument.baseURI) &&
+            tab.contentDocument.readyState == "interactive") {
+
+          // We have to wait a second until the DOM is ready
+          this.sleep(1000);
+          return true;
+        } else {
+          return tab.contentDocument.defaultView.documentLoaded;
+        }
+      }, aTimeout, aInterval);
 
       frame.events.pass({'function':'controller.waitForPageLoad()'});
     } catch (ex) {
-      // If a timeout happens the listener has to be removed manually
-      tab.removeEventListener("DOMContentLoaded", pageLoaded, true);
-
       throw new Error("controller.waitForPageLoad(): Timeout waiting for page loaded.");
     }
   }
