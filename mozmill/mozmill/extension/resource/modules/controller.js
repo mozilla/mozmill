@@ -100,28 +100,187 @@ waitForEvents.prototype = {
   }
 }
 
+
 /**
- * Dynamically create hierarchy of available menu entries
+ * Class to handle menus and context menus
  *
- * @param object aWindow
- *               Browser window to use
- * @param object aElements
- *               Array of menu or menuitem elements
+ * @constructor
+ * @param {MozMillController} controller
+ *        Mozmill controller of the window under test
+ * @param {string} menuSelector
+ *        jQuery like selector string of the element
+ * @param {object} document
+ *        Document to use for finding the menu
+ *        [optional - default: aController.window.document]
  */
-var Menu = function (aWindow, aElements) {
-  for each (var node in aElements) {
+var Menu = function(controller, menuSelector, document) {
+  this._controller = controller;
+  this._menu = null;
+
+  document = document || controller.window.document;
+  var node = document.querySelector(menuSelector);
+  if (node) {
+    // We don't unwrap nodes automatically yet (Bug 573185)
+    node = node.wrappedJSObject || node;
+    this._menu = new elementslib.Elem(node);
+  }
+  else {
+    throw new Error("Menu element '" + menuSelector + "' not found.");
+  }
+}
+
+Menu.prototype = {
+
+  /**
+   * Open and populate the menu
+   *
+   * @param {ElemBase} contextElement
+   *        Element whose context menu has to be opened
+   * @returns {Menu} The Menu instance
+   */
+  open : function(contextElement) {
+    // We have to open the context menu
+    var menu = this._menu.getNode();
+    if (menu.localName == "menupopup" &&
+        contextElement && contextElement.exists()) {
+      this._controller.rightClick(contextElement);
+      this._controller.waitFor(function() {
+        return menu.state == "open";
+      }, 5000, 100, "Context menu has been opened.");
+    }
+
+    // Run through the entire menu and populate with dynamic entries
+    this._buildMenu(this._controller, menu);
+
+    return this;
+  },
+
+  /**
+   * Close the menu
+   *
+   * @returns {Menu} The Menu instance
+   */
+  close : function() {
+    var menu = this._menu.getNode();
+
+    this._controller.keypress(this._menu, "VK_ESCAPE", {});
+    this._controller.waitFor(function() {
+      return menu.state == "closed";
+    }, 5000, 100, "Context menu has been closed.");
+
+    return this;
+  },
+
+  /**
+   * Retrieve the specified menu entry
+   *
+   * @param {string} itemSelector
+   *        jQuery like selector string of the menu item
+   * @returns {ElemBase} Menu element
+   * @throws Error If menu element has not been found
+   */
+  getItem : function(itemSelector) {
+    var node = this._menu.getNode().querySelector(itemSelector);
+
+    if (!node) {
+      throw new Error("Menu entry '" + itemSelector + "' not found.");
+    }
+
+    return new elementslib.Elem(node);
+  },
+
+  /**
+   * Click the specified menu entry
+   *
+   * @param {string} itemSelector
+   *        jQuery like selector string of the menu item
+   *
+   * @returns {Menu} The Menu instance
+   */
+  click : function(itemSelector) {
+    this._controller.click(this.getItem(itemSelector));
+
+    return this;
+  },
+
+  /**
+   * Synthesize a keypress against the menu
+   *
+   * @param {string} key
+   *        Key to press
+   * @param {object} modifier
+   *        Key modifiers
+   * @see MozMillController#keypress
+   *
+   * @returns {Menu} The Menu instance
+   */
+  keypress : function(key, modifier) {
+    this._controller.keypress(this._menu, key, modifier);
+
+    return this;
+  },
+
+  /**
+   * Opens the context menu, click the specified entry and
+   * make sure that the menu has been closed.
+   *
+   * @param {string} itemSelector
+   *        jQuery like selector string of the element
+   * @param {ElemBase} contextElement
+   *        Element whose context menu has to be opened
+   *
+   * @returns {Menu} The Menu instance
+   */
+  select : function(itemSelector, contextElement) {
+    this.open(contextElement);
+    this.click(itemSelector);
+    this.close();
+  },
+
+  /**
+   * Recursive function which iterates through all menu elements and
+   * populates the menus with dynamic menu entries.
+   *
+   * @param {node} menu
+   *        Top menu node whose elements have to be populated
+   */
+  _buildMenu : function(menu) {
+    var items = menu ? menu.childNodes : null;
+
+    Array.forEach(items, function(item) {
+      // When we have a menu node, fake a click onto it to populate
+      // the sub menu with dynamic entries
+      if (item.tagName == "menu") {
+        var popup = item.querySelector("menupopup");
+        if (popup) {
+          if (popup.allowevents) {
+            events.fakeOpenPopup(this._controller.window, popup);
+          }
+          this._buildMenu(popup);
+        }
+      }
+    }, this);
+  }
+};
+
+/**
+ * Deprecated - Has to be removed with Mozmill 2.0
+ */
+var MenuTree = function(aWindow, aMenu) {
+  var items = aMenu ? aMenu.childNodes : null;
+
+  for each (var node in items) {
     var entry = null;
 
     switch (node.tagName) {
       case "menu":
-        var popup = node.getElementsByTagName("menupopup")[0];
-
         // Fake a click onto the menu to add dynamic entries
+        var popup = node.querySelector("menupopup");
         if (popup) {
           if (popup.allowevents) {
             events.fakeOpenPopup(aWindow, popup);
           }
-          entry = new Menu(aWindow, popup.childNodes);
+          entry = new MenuTree(aWindow, popup);
         }
         break;
       case "menuitem":
@@ -475,14 +634,24 @@ MozMillController.prototype.__defineGetter__("waitForEvents", function() {
   return this._waitForEvents;
 });
 
+/**
+ * Wrapper function to create a new instance of a menu
+ * @see Menu
+ */
+MozMillController.prototype.getMenu = function (menuSelector, document) {
+  return new Menu(this, menuSelector, document);
+};
+
+MozMillController.prototype.__defineGetter__("mainMenu", function() {
+  return this.getMenu("menubar");
+});
+
 MozMillController.prototype.__defineGetter__("menus", function() {
-  var menu = null;
+  frame.log({'property': 'controller.menus - DEPRECATED',
+             'message': 'Use controller.mainMenu instead.'});
 
-  var menubar = this.window.document.getElementsByTagName('menubar');
-  if(menubar && menubar.length > 0) 
-    menu = new Menu(this.window, menubar[0].childNodes);
-
-  return menu;
+  var menubar = this.window.document.querySelector("menubar");
+  return new MenuTree(this.window, menubar);
 });
 
 MozMillController.prototype.waitForImage = function (elem, timeout, interval) {
