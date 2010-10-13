@@ -22,6 +22,7 @@
 //  Adam Christian <adam.christian@gmail.com>
 //  Mikeal Rogers <mikeal.rogers@gmail.com>
 //  Henrik Skupin <hskupin@mozilla.com>
+//  Siddharth Agarwal <sid.bugzilla@gmail.com>
 //
 // Alternatively, the contents of this file may be used under the terms of
 // either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -218,8 +219,9 @@ MozMillController.prototype.click = function(elem, left, top)
     return true;
   }
 
-  if (isNaN(left)) { left = 1; }
-  if (isNaN(top)) { top = 1; }
+  var rect = element.getBoundingClientRect();
+  if (isNaN(left)) { left = rect.width / 2; }
+  if (isNaN(top)) { top = rect.height / 2; }
 
   // Scroll element into view otherwise the click will fail
   if (element.scrollIntoView)
@@ -240,8 +242,9 @@ MozMillController.prototype.doubleClick = function(elem, left, top)
     return false;
   }
 
-  if (isNaN(left)) { left = 1; }
-  if (isNaN(top)) { top = 1; }
+  var rect = element.getBoundingClientRect();
+  if (isNaN(left)) { left = rect.width / 2; }
+  if (isNaN(top)) { top = rect.height / 2; }
 
   // Scroll element into view before initiating a double click
   if (element.scrollIntoView)
@@ -263,8 +266,9 @@ MozMillController.prototype.mouseDown = function (elem, button, left, top)
     return false;
   }
 
-  if (isNaN(left)) { left = 1; }
-  if (isNaN(top)) { top = 1; }
+  var rect = element.getBoundingClientRect();
+  if (isNaN(left)) { left = rect.width / 2; }
+  if (isNaN(top)) { top = rect.height / 2; }
 
   // Scroll element into view before initiating a mouse down
   if (element.scrollIntoView)
@@ -286,8 +290,9 @@ MozMillController.prototype.mouseOut = function (elem, button, left, top)
     return false;
   }
 
-  if (isNaN(left)) { left = 1; }
-  if (isNaN(top)) { top = 1; }
+  var rect = element.getBoundingClientRect();
+  if (isNaN(left)) { left = rect.width / 2; }
+  if (isNaN(top)) { top = rect.height / 2; }
 
   // Scroll element into view before initiating a mouse down
   if (element.scrollIntoView)
@@ -309,8 +314,9 @@ MozMillController.prototype.mouseOver = function (elem, button, left, top)
     return false;
   }
 
-  if (isNaN(left)) { left = 1; }
-  if (isNaN(top)) { top = 1; }
+  var rect = element.getBoundingClientRect();
+  if (isNaN(left)) { left = rect.width / 2; }
+  if (isNaN(top)) { top = rect.height / 2; }
 
   // Scroll element into view before initiating a mouse down
   if (element.scrollIntoView)
@@ -332,8 +338,9 @@ MozMillController.prototype.mouseUp = function (elem, button, left, top)
     return false;
   }
 
-  if (isNaN(left)) { left = 1; }
-  if (isNaN(top)) { top = 1; }
+  var rect = element.getBoundingClientRect();
+  if (isNaN(left)) { left = rect.width / 2; }
+  if (isNaN(top)) { top = rect.height / 2; }
 
   // Scroll element into view before initiating a mouse down
   if (element.scrollIntoView)
@@ -355,8 +362,9 @@ MozMillController.prototype.middleClick = function(elem, left, top)
       return false;
     }
 
-    if (isNaN(left)) { left = 1; }
-    if (isNaN(top)) { top = 1; }
+  var rect = element.getBoundingClientRect();
+  if (isNaN(left)) { left = rect.width / 2; }
+  if (isNaN(top)) { top = rect.height / 2; }
 
   // Scroll element into view before initiating a right click
   if (element.scrollIntoView)
@@ -379,8 +387,9 @@ MozMillController.prototype.rightClick = function(elem, left, top)
       return false;
     }
 
-    if (isNaN(left)) { left = 1; }
-    if (isNaN(top)) { top = 1; }
+  var rect = element.getBoundingClientRect();
+  if (isNaN(left)) { left = rect.width / 2; }
+  if (isNaN(top)) { top = rect.height / 2; }
 
   // Scroll element into view before initiating a right click
   if (element.scrollIntoView)
