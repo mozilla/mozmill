@@ -598,7 +598,10 @@ MozMillController.prototype.select = function (el, indx, option, value) {
 
     // Click the item
     try {
-      EventUtils.synthesizeMouse(element, 1, 1, {}, item.ownerDocument.defaultView);
+      var elementRect = element.getBoundingClientRect();
+      EventUtils.synthesizeMouse(element, elementRect.width / 2,
+                                 elementRect.height / 2, {},
+                                 item.ownerDocument.defaultView);
       this.sleep(0);
 
       // Scroll down until item is visible
@@ -611,7 +614,9 @@ MozMillController.prototype.select = function (el, indx, option, value) {
         else if (entry.label == "") i += 1;
       }
 
-      EventUtils.synthesizeMouse(item, 1, 1, {}, item.ownerDocument.defaultView);
+      var itemRect = item.getBoundingClientRect();
+      EventUtils.synthesizeMouse(item, itemRect.width / 2, itemRect.height / 2,
+                                 {}, item.ownerDocument.defaultView);
       this.sleep(0);
 
    frame.events.pass({'function':'Controller.select()'});
