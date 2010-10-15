@@ -36,10 +36,10 @@
 # 
 # ***** END LICENSE BLOCK *****
 
+import asyncore
 import socket
 import os
 import copy
-import asyncore
 
 from time import sleep
 from network import Bridge, BackChannel, create_network
@@ -87,8 +87,9 @@ class CLI(mozrunner.CLI):
     """Command line interface."""
     
     module = "jsbridge"
-
-    parser_options = copy.copy(mozrunner.CLI.parser_options)
+    def add_options(self, parser)
+        mozrunner.CLI.add_options(self, parser)
+        
     parser_options[('-D', '--debug',)] = dict(dest="debug", 
                                              action="store_true",
                                              help="Debug mode", 
@@ -105,22 +106,20 @@ class CLI(mozrunner.CLI):
     parser_options[('-P', '--port')] = dict(dest="port", default="24242",
                                             help="TCP port to run jsbridge on.")
 
-    def get_profile(self, *args, **kwargs):
+    def profile_args(self):
+        profile_args = mozrunner.CLI.profile_args(self)
+        profile_args['addons'].append(extension_path)
         if self.options.debug:
-            kwargs.setdefault('preferences', {}).update({
-              'extensions.checkCompatibility':False,
-              'devtools.errorconsole.enabled':True
-            })
-        profile = mozrunner.CLI.get_profile(self, *args, **kwargs)
-        profile.install_addon(extension_path)
-        return profile
-        
-    def get_runner(self, *args, **kwargs):
-        runner = super(CLI, self).get_runner(*args, **kwargs)
+            profile_args['preferences'] = {'extensions.checkCompatibility':False}
+        return profile_args
+
+    def runner_args(self):
         if self.options.debug:
-            runner.cmdargs.append('-jsconsole')
-        runner.cmdargs += ['-jsbridge', self.options.port]
-        return runner
+            cmdargs = [ '-jsconsole' ]
+        else:
+            cmdargs = []
+        cmdargs += ['-jsbridge', self.options.port]
+        return dict(cmdargs=cmdargs)
         
     def run(self):
         runner = self.create_runner()
@@ -163,15 +162,11 @@ class CLI(mozrunner.CLI):
         host = '127.0.0.1'
         self.back_channel, self.bridge = wait_and_create_network(host, port, timeout)
 
-def cli():
-    CLI().run()
+def cli(args=sys.argv[1:]):
+    CLI(args).run()
 
 def getBrowserWindow(bridge):
     return JSObject(bridge, "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')")
-    
 
-
-
-
-
-
+if __name__ == '__main__':
+    cli()

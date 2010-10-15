@@ -57,8 +57,10 @@ setup(name=PACKAGE_NAME,
       entry_points="""
           [console_scripts]
           mozmill = mozmill:cli
-          mozmill-thunderbird = mozmill:tbird_cli
-          mozmill-restart = mozmill:restart_cli
+
+          [mozmill.event_handlers]
+          logging = mozmill.logger:LoggerListener
+          report = mozmill.report:Report
         """,
       platforms =['Any'],
       install_requires = ['jsbridge >= 2.3.7b1', 'mozrunner >= 2.4.4b1'],

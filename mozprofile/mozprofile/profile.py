@@ -64,30 +64,28 @@ class Profile(object):
 
     def __init__(self, binary=None, profile=None, addons=None,
                  preferences=None):
-
+        # Handle profile creation
         self.binary = binary
-
         self.create_new = not(bool(profile))
         if profile:
             self.profile = profile
         else:
             self.profile = self.create_new_profile(self.binary)
 
-        self.addons_installed = []
-        self.addons = addons or []
-
         ### set preferences from class preferences
-        preferences = preferences or {}
         if hasattr(self.__class__, 'preferences'):
             self.preferences = self.__class__.preferences.copy()
         else:
             self.preferences = {}
-        self.preferences.update(preferences)
+        self.preferences.update(preferences or {})
+        self.set_preferences(self.preferences)
+ 
+        # handle addon installation
+        self.addons_installed = []
+        self.addons = addons or []
 
         for addon in self.addons:
             self.install_addon(addon)
-
-        self.set_preferences(self.preferences)
 
     def create_new_profile(self, binary):
         """Create a new clean profile in tmp which is a simple empty folder"""
@@ -101,7 +99,6 @@ class Profile(object):
             addons = [os.path.join(path, x) for x in os.listdir(path)]
            
         for addon in addons:
-            tmpdir = None
             if addon.endswith('.xpi'):
                 tmpdir = tempfile.mkdtemp(suffix = "." + os.path.split(addon)[-1])
                 compressed_file = zipfile.ZipFile(addon, "r")
@@ -117,8 +114,6 @@ class Profile(object):
                 addon = tmpdir
 
             tree = ElementTree.ElementTree(file=os.path.join(addon, 'install.rdf'))
-            # description_element =
-            # tree.find('.//{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description/')
 
             desc = tree.find('.//{http://www.w3.org/1999/02/22-rdf-syntax-ns#}Description')
             apps = desc.findall('.//{http://www.mozilla.org/2004/em-rdf#}targetApplication')
@@ -208,15 +203,6 @@ class FirefoxProfile(Profile):
                    'extensions.update.notifyUser' : False,
                    }
 
-    @property
-    def names(self):
-        if sys.platform == 'darwin':
-            return ['firefox', 'minefield', 'shiretoko']
-        if (sys.platform == 'linux2') or (sys.platform in ('sunos5', 'solaris')):
-            return ['firefox', 'mozilla-firefox', 'iceweasel']
-        if os.name == 'nt' or sys.platform == 'cygwin':
-            return ['firefox']
-
 class ThunderbirdProfile(Profile):
     preferences = {'extensions.update.enabled'    : False,
                    'extensions.update.notifyUser' : False,
@@ -225,6 +211,3 @@ class ThunderbirdProfile(Profile):
                    'browser.warnOnQuit': False,
                    'browser.sessionstore.resume_from_crash': False,
                    }
-    names = ["thunderbird", "shredder"]
-
-

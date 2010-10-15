@@ -37,32 +37,20 @@
 #
 # ***** END LICENSE BLOCK *****
 
-import copy
-from datetime import datetime, timedelta
-import httplib
 import imp
 import os
 import socket
 import sys
 import threading
 import traceback
-import urllib
-import urlparse
-
-try:
-    import json
-except:
-    import simplejson as json
-
-# setup logger
-import logging
-logger = logging.getLogger('mozmill')
 
 import jsbridge
 from jsbridge.network import JSBridgeDisconnectError
 import mozrunner
 import mozprofile
+import handlers
 
+from datetime import datetime, timedelta
 from time import sleep
 
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -70,51 +58,6 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 extension_path = os.path.join(basedir, 'extension')
 
 mozmillModuleJs = "Components.utils.import('resource://mozmill/modules/mozmill.js')"
-
-class ZombieDetector(object):
-    """ Determines if the browser has stopped talking to us.  We assume that
-        if this happens the browser is in a hung state and the test run
-        should be terminated. """
-    # XXX currently unused ;
-    # see https://bugzilla.mozilla.org/show_bug.cgi?id=504440
-
-    def __init__(self, stopfunction):
-        self.stopfunction = stopfunction
-        self.doomsdayTimer = threading.Timer(1800, stopfunction) # 30 minutes
-        self.doomsdayTimer.start()
-
-    def resetTimer(self):
-        # Reset that timer
-        self.doomsdayTimer.cancel()
-        self.doomsdayTimer = threading.Timer(1800, self.stopfunction)
-        self.doomsdayTimer.start()
-
-
-class LoggerListener(object):
-    cases = {
-        'mozmill.pass':   lambda string: logger.info('Step Pass: ' + string),
-        'mozmill.fail':   lambda string: logger.error('Test Failure: ' + string),
-        'mozmill.skip':   lambda string: logger.info('Test Skipped: ' + string)
-    }
-    
-    class default(object):
-        def __init__(self, eName): self.eName = eName
-        def __call__(self, string):
-            if string:
-                logger.debug(self.eName + ' | ' + string)
-            else:
-                logger.debug(self.eName)
-    
-    def __call__(self, eName, obj):
-        if obj == {}:
-            string = ''
-        else:
-            string = json.dumps(obj)
-
-        if eName not in self.cases:
-            self.cases[eName] = self.default(eName)
-        self.cases[eName](string)
-
 
 class TestsFailedException(Exception):
     """exception to be raised when the tests fail"""
@@ -133,25 +76,18 @@ class MozMill(object):
     run different sets of tests, create a new instantiation of MozMill
     """
 
-    report_type = 'mozmill-test'
-
-    def __init__(self,
-                 runner_class=mozrunner.FirefoxRunner, 
-                 profile_class=mozprofile.FirefoxProfile,
-                 jsbridge_port=24242,
-                 jsbridge_timeout=60):
+    def __init__(self, jsbridge_port=24242, jsbridge_timeout=60, handlers=()):
         """
-        - runner_class : which mozrunner class to use
-        - profile_class : which class to use to generate application profiles
         - jsbridge_port : port jsbridge uses to connect to to the application
         - jsbridge_timeout : how long to go without jsbridge communication
+        - handlers : pluggable event handler
         """
-        
-        self.runner_class = runner_class
-        self.profile_class = profile_class
+
+        # jsbridge parameters
         self.jsbridge_port = jsbridge_port
         self.jsbridge_timeout = jsbridge_timeout
 
+        # test parameters: filled in from event system
         self.passes = [] ; self.fails = [] ; self.skipped = []
         self.alltests = []
 
@@ -161,7 +97,6 @@ class MozMill(object):
         self.currentShutdownMode = self.shutdownModes.default
         self.userShutdownEnabled = False
         self.test = None
-        #self.zombieDetector = ZombieDetector(self.stop)
 
         # test time
         self.starttime = self.endtime = None
@@ -175,6 +110,17 @@ class MozMill(object):
         self.add_listener(self.startTest_listener, eventType='mozmill.setTest')
         self.add_listener(self.userShutdown_listener, eventType='mozmill.userShutdown')
 
+        # add listeners for event handlers
+        # XXX should be done in a better way
+        self.handlers = handlers
+        for handler in self.handlers:
+            handler.mozmill = self # XXX bad touch
+            for event, method in handler.events().items():
+                self.add_listener(method, eventType=event)
+            if hasattr(handler, '__call__'):
+                self.add_global_listener(handler)
+
+    ### methods for listeners
     def add_listener(self, callback, **kwargs):
         self.listeners.append((callback, kwargs,))
 
@@ -183,6 +129,25 @@ class MozMill(object):
 
     def persist_listener(self, obj):
         self.persisted = obj
+    def startTest_listener(self, test):
+        self.current_test = test
+
+    def endTest_listener(self, test):
+        self.alltests.append(test)
+        if test.get('skipped', False):
+            self.skipped.append(test)
+        elif test['failed'] > 0:
+            self.fails.append(test)
+        else:
+            self.passes.append(test)
+
+    def endRunner_listener(self, obj):
+        self.endRunnerCalled = True
+        
+    def userShutdown_listener(self, obj):
+        if obj in [self.shutdownModes.default, self.shutdownModes.user_restart, self.shutdownModes.user_shutdown]:
+            self.currentShutdownMode = obj
+        self.userShutdownEnabled = not self.userShutdownEnabled        
 
     def fire_python_callback(self, method, arg, python_callbacks_module):
         meth = getattr(python_callbacks_module, method)
@@ -207,6 +172,7 @@ class MozMill(object):
             raise Exception("No valid callback file")
         self.fire_python_callback(obj['method'], obj['arg'], python_callbacks_module)
 
+    ### methods for startup
     def create_network(self):
 
         # get the bridge and the back-channel
@@ -222,29 +188,15 @@ class MozMill(object):
         for global_listener in self.global_listeners:
             self.back_channel.add_global_listener(global_listener)
 
-    def start(self, profile=None, runner=None):
-
-        # Reset our Zombie counter
-        #self.zombieDetector.resetTimer()
-
-        if not profile:
-            profile = self.profile_class(addons=[jsbridge.extension_path, extension_path])
-        self.profile = profile
-        
-        if not runner:
-            runner = self.runner_class(profile=self.profile, 
-                                       cmdargs=["-jsbridge", str(self.jsbridge_port)])
-
-        self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
+    def start(self, runner):
         self.runner = runner
+        self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
         self.endRunnerCalled = False
         
         self.runner.start()
         self.create_network()
         self.appinfo = self.get_appinfo(self.bridge)
 
-        # set the starttime for the tests
-        # XXX assumes run_tests will be called soon after (currently true)
         self.starttime = datetime.utcnow()
 
     def run_tests(self, test, sleeptime=4):
@@ -253,9 +205,6 @@ class MozMill(object):
         - test : test file or directory to run
         - sleeptime : initial time to sleep [s] (not sure why the default is 4)
         """
-
-        # Reset our Zombie Because we are still active
-        #self.zombieDetector.resetTimer()
 
         self.test = test
 
@@ -274,54 +223,22 @@ class MozMill(object):
 
         # Give a second for any callbacks to finish.
         sleep(1)
+    def run(self, test):
+        """run the tests"""
+        disconnected = False
+        try:
+            self.run_tests(test)
+        except JSBridgeDisconnectError:
+            disconnected = True
+            if not self.userShutdownEnabled:
+                self.report_disconnect()               
+            
+        # shutdown the test harness
+        self.stop(fatal=disconnected)
 
-    def startTest_listener(self, test):
-        self.current_test = test
-        print "TEST-START | %s | %s" % (test['filename'], test['name'])
-
-    def endTest_listener(self, test):
-        # Reset our Zombie Counter because we are still active
-        #self.zombieDetector.resetTimer()
-
-        self.alltests.append(test)
-        if test.get('skipped', False):
-            print "WARNING | %s | (SKIP) %s" % (test['name'], test.get('skipped_reason', ''))
-            self.skipped.append(test)
-        elif test['failed'] > 0:
-            print "TEST-UNEXPECTED-FAIL | %s | %s" % (test['filename'], test['name'])
-            self.fails.append(test)
-        else:
-            print "TEST-PASS | %s | %s" % (test['filename'], test['name'])
-            self.passes.append(test)
-
-    def endRunner_listener(self, obj):
-        self.endRunnerCalled = True
-        
-    def userShutdown_listener(self, obj):
-        if obj in [self.shutdownModes.default, self.shutdownModes.user_restart, self.shutdownModes.user_shutdown]:
-            self.currentShutdownMode = obj
-        self.userShutdownEnabled = not self.userShutdownEnabled        
-
-    ### methods for reporting
-
-    def printStats(self):
-        """print pass/failed/skipped statistics"""
-        print "INFO Passed: %d" % len(self.passes)
-        print "INFO Failed: %d" % len(self.fails)
-        print "INFO Skipped: %d" % len(self.skipped)
-        
-    def report_disconnect(self):
-        test = self.current_test
-        test['passes'] = []
-        test['fails'] = [{
-          'exception' : {
-            'message': 'Disconnect Error: Application unexpectedly closed'
-          }
-        }]
-        test['passed'] = 0
-        test['failed'] = 1
-        self.alltests.append(test)
-        self.fails.append(test)
+        # exit (could be moved up to CLI)
+        if self.fails or disconnected:
+            sys.exit(1)
 
     def get_appinfo(self, bridge):
         """ Collect application specific information """
@@ -339,141 +256,19 @@ class MozMill(object):
 
         return results
 
-    def get_platform_information(self):
-        """ Retrieves platform information for test reports. Parts of that code
-            come from the dirtyharry application:
-            http://github.com/harthur/dirtyharry/blob/master/dirtyutils.py """
-
-        import platform
-        import re
-
-        (system, node, release, version, machine, processor) = platform.uname()
-        (bits, linkage) = platform.architecture()
-        service_pack = ''
-
-        if system in ["Microsoft", "Windows"]:
-            # There is a Python bug on Windows to determine platform values
-            # http://bugs.python.org/issue7860
-            if "PROCESSOR_ARCHITEW6432" in os.environ:
-              processor = os.environ.get("PROCESSOR_ARCHITEW6432", processor)
-            else:
-              processor = os.environ.get('PROCESSOR_ARCHITECTURE', processor)
-            system = os.environ.get("OS", system).replace('_', ' ')
-            service_pack = os.sys.getwindowsversion()[4]
-        elif system == "Linux":
-            (distro, version, codename) = platform.linux_distribution()
-            version = distro + " " + version
-            if not processor:
-                processor = machine
-        elif system == "Darwin":
-            system = "Mac"
-            (release, versioninfo, machine) = platform.mac_ver()
-            version = "OS X " + release
-
-        if processor in ["i386", "i686"]:
-            if bits == "32bit":
-                processor = "x86"
-            elif bits == "64bit":
-                processor = "x86_64"
-        elif processor == "AMD64":
-            bits = "64bit"
-            processor = "x86_64"
-        elif processor == "Power Macintosh":
-            processor = "ppc"
-
-        bits = re.search('(\d+)bit', bits).group(1)
-
-        platform = {'hostname': node,
-                    'system': system,
-                    'version': version,
-                    'service_pack': service_pack,
-                    'processor': processor,
-                    'bits': bits
-                   }
-
-        return platform
-
-    def get_report(self):
-        """get the report results"""
-        format = "%Y-%m-%dT%H:%M:%S"
-
-        assert self.test, 'run_tests not called'
-        assert self.starttime, 'starttime not set; have you started the tests?'
-        if not self.endtime:
-            self.endtime = datetime.utcnow()
-
-        report = {'report_type': self.report_type,
-                  'time_start': self.starttime.strftime(format),
-                  'time_end': self.endtime.strftime(format),
-                  'time_upload': 'n/a',
-                  'root_path': self.test,
-                  'tests_passed': len(self.passes),
-                  'tests_failed': len(self.fails),
-                  'tests_skipped': len(self.skipped),
-                  'results': self.alltests
-                 }
-
-        report.update(self.appinfo)
-        report.update(self.runner.get_repositoryInfo())
-        report['system_info'] = self.get_platform_information()
-
-        return report
-
-    def send_report(self, results, report_url):
-        """ Send a report of the results to a CouchdB instance or a file. """
-
-        # report to file or stdout
-        f = None
-        if report_url == 'stdout': # stdout
-            f = sys.stdout
-        if report_url.startswith('file://'):
-            filename = report_url.split('file://', 1)[1]
-            try:
-                f = file(filename, 'w')
-            except Exception, e:
-                print "Printing results to '%s' failed (%s)." % (filename, e)
-                return
-        if f:
-            print >> f, json.dumps(results)
-            return
-
-        # report to CouchDB
-        try:
-            # Set the upload time of the report
-            now = datetime.utcnow()
-            results['time_upload'] = now.strftime("%Y-%m-%dT%H:%M:%S")
-
-            # Parse URL fragments and send data
-            url_fragments = urlparse.urlparse(report_url)
-            connection = httplib.HTTPConnection(url_fragments.netloc)
-            connection.request("POST", url_fragments.path, json.dumps(results),
-                               {"Content-type": "application/json"})
-        
-            # Get response which contains the id of the new document
-            response = connection.getresponse()
-            data = json.loads(response.read())
-            connection.close()
-
-            # Check if the report has been created
-            if not data['ok']:
-                print "Creating report document failed (%s)" % data
-                return data
-
-            # Print document location to the console and return
-            print "Report document created at '%s%s'" % (report_url, data['id'])
-            return data
-        except Exception, e:
-            print "Sending results to '%s' failed (%s)." % (report_url, e)
-
-    def report(self, report_url):
-        """print statistics and send the JSON report"""
-        self.printStats()
-
-        if report_url:
-            results = self.get_report()
-            return self.send_report(results, report_url)
-
     ### methods for shutting down and cleanup
+    def report_disconnect(self):
+        test = self.current_test
+        test['passes'] = []
+        test['fails'] = [{
+          'exception' : {
+            'message': 'Disconnect Error: Application unexpectedly closed'
+          }
+        }]
+        test['passed'] = 0
+        test['failed'] = 1
+        self.alltests.append(test)
+        self.fails.append(test)
 
     def stop_runner(self, timeout=30, close_bridge=False, hard=False):
         sleep(1)
@@ -512,12 +307,19 @@ class MozMill(object):
                 x += 1
             else:
                 print "WARNING | endRunner was never called. There must have been a failure in the framework."
-                self.runner.kill()
+                self.runner.stop()
                 self.runner.profile.cleanup()
                 sys.exit(1)
 
     def stop(self, fatal=False):
         """cleanup"""
+        # record test end time
+        self.endtime = datetime.utcnow()
+
+        # handle stop events
+        for handler in self.handlers:
+            if hasattr(handler, 'stop'):
+                handler.stop(fatal)
 
         # stop the runner
         self.stop_runner(timeout=10, close_bridge=True, hard=fatal)
@@ -531,33 +333,16 @@ class MozMill(object):
 
 class MozMillRestart(MozMill):
 
-    report_type = 'mozmill-restart-test'
-
     def __init__(self, *args, **kwargs):
         MozMill.__init__(self, *args, **kwargs)
-        self.python_callbacks = []
-
-    def add_listener(self, callback, **kwargs):
-        self.listeners.append((callback, kwargs,))
-
-    def add_global_listener(self, callback):
-        self.global_listeners.append(callback)
+        self.python_callbacks = [] # TODO: why do we reset this?
     
-    def start(self, runner=None, profile=None):
-        
-        if not profile:
-            profile = self.profile_class(addons=[jsbridge.extension_path, extension_path])
-        self.profile = profile
-        
-        if not runner:
-            runner = self.runner_class(profile=self.profile, 
-                                       cmdargs=["-jsbridge", str(self.jsbridge_port)])
+    def start(self, runner):
+        # XXX note that this block is duplicated *EXACTLY* from MozMill.start
         self.runner = runner
         self.endRunnerCalled = False
         self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
 
-        # set the starttime for the tests
-        # XXX assumes run_tests will be called soon after (currently true)
         self.starttime = datetime.utcnow()
      
     def firePythonCallback_listener(self, obj):
@@ -580,9 +365,6 @@ class MozMillRestart(MozMill):
 
     def run_dir(self, test_dir, sleeptime=4):
         """run a directory of restart tests resetting the profile per directory"""
-
-        # Reset our Zombie counter on each directory
-        #self.zombieDetection.resetTimer()
 
         # TODO:  document this behaviour!
         if os.path.isfile(os.path.join(test_dir, 'testPre.js')):   
@@ -649,9 +431,6 @@ class MozMillRestart(MozMill):
     def run_tests(self, test_dir, sleeptime=4):
 
         self.test = test_dir
-        
-        # Zombie Counter Reset
-        #self.zombieDetector.resetTimer()
 
         # XXX this allows for only one sub-level of test directories
         # is this a spec or a side-effect?
@@ -688,35 +467,37 @@ class MozMillRestart(MozMill):
                 self.runner.profile.cleanup()
             except:
                 pass
+        # and, note, we're already paying for it!
+        # now I need to call Mozmill.stop but of course I can't
+        # and since cut + paste is evil I'll actually have to figure
+        # out what we should be doing here
                     
 
 
 class CLI(jsbridge.CLI):
-    mozmill_class = MozMill
     module = "mozmill"
 
-    parser_options = copy.copy(jsbridge.CLI.parser_options)
-    parser_options[("-t", "--test",)] = dict(dest="test", default=False, 
-                                             help="Run test file or directory.")
-    parser_options[("-l", "--logfile",)] = dict(dest="logfile", default=None,
-                                                help="Log all events to file.")
-    parser_options[("--show-errors",)] = dict(dest="showerrors", default=False, 
-                                              action="store_true",
-                                              help="Print logger errors to the console.")
-    parser_options[("--report",)] = dict(dest="report", default=False,
-                                         help="Report the results. Requires url to results server. Use 'stdout' for stdout.")
-    parser_options[("--showall",)] = dict(dest="showall", default=False, action="store_true",
-                                         help="Show all test output.")
-    parser_options[("--timeout",)] = dict(dest="timeout", type="float",
-                                          default=60., 
-                                          help="seconds before harness timeout if no communication is taking place")
+    def __init__(self, args):
+        # add and parse options
+        jsbridge.CLI.__init__(self, args)
 
-    def __init__(self, *args, **kwargs):
-        jsbridge.CLI.__init__(self, *args, **kwargs)
-        self.mozmill = self.mozmill_class(runner_class=mozrunner.FirefoxRunner,
-                                          profile_class=mozprofile.FirefoxProfile,
-                                          jsbridge_port=int(self.options.port),
+        # decide whether we're running in restart mode or not
+        if self.options.restart:
+            self.mozmill_class = MozMillRestart
+        else:
+            self.mozmill_class = MozMill
+
+        # instantiate plugins
+        event_handlers = []
+        for cls in handlers.handlers():
+            handler = handlers.instantiate_handler(cls, self.options)
+            if handler is not None:
+                event_handlers.append(handler)
+
+        # create a mozmill
+        self.mozmill = self.mozmill_class(jsbridge_port=int(self.options.port),                                  
                                           jsbridge_timeout=self.options.timeout,
+                                          handlers=event_handlers
                                           )
 
         # expand user directory and check existence for the test
@@ -726,57 +507,55 @@ class CLI(jsbridge.CLI):
                  and ( not os.path.isfile(self.options.test) ) ):
                 raise Exception("Not a valid test file/directory")
 
-        # setup log formatting
-        self.mozmill.add_global_listener(LoggerListener())
-        log_options = { 'format': "%(levelname)s | %(message)s",
-                        'level': logging.CRITICAL }
-        if self.options.showerrors:
-            log_options['level'] = logging.ERROR
-        if self.options.logfile:
-            log_options['filename'] = self.options.logfile
-            log_options['filemode'] = 'w'
-            log_options['level'] = logging.DEBUG
-        if self.options.test and self.options.showall:
-            log_options['level'] = logging.DEBUG    
-        logging.basicConfig(**log_options)
+    def add_options(self, parser):
+        jsbridge.CLI.add_options(self, parser)
+
+        parser.add_option("-t", "--test", dest="test", default=None, 
+                          help='Run test file or directory')
+        parser.add_option("--timeout", dest="timeout", type="float",
+                          default=60., 
+                          help="seconds before harness timeout if no communication is taking place")
+        parser.add_option("--restart", dest='restart', action='store_true',
+                          default=False,
+                          help="operate in restart mode")
+
+        for cls in handlers.handlers():
+            cls.add_options(parser)
 
     def get_profile(self, *args, **kwargs):
+        # XXX to refactor; the slots should be smart enough to
+        # make this unnecessary
         profile = jsbridge.CLI.get_profile(self, *args, **kwargs)
         profile.install_addon(extension_path)
         return profile
+
+    def profile_args(self):
+        """
+        return arguments needed to make a profile object from
+        this command-line interface
+        """
+        profile_args = jsbridge.CLI.profile_args(self)
+        profile_args['addons'].append(extension_path)
+        return profile_args
+
+    def runner_args(self):
+        runner_args = jsbridge.CLI.runner_args(self)
+        if '-foreground' not in runner_args['cmdargs']:
+            runner_args['cmdargs'].append('-foreground')
+        return runner_args
         
     def run(self):
-        # XXX this is a complicated function that should probably be broken up
-
         # create a Mozrunner
         runner = self.create_runner()
 
-        # make sure the application starts in the foreground
-        if '-foreground' not in runner.cmdargs:
-            runner.cmdargs.append('-foreground')
-            
-        self.mozmill.start(runner=runner, profile=runner.profile)
+        # start your mozmill
+        self.mozmill.start(runner=runner)
 
         if self.options.test:
-
-            # run the tests
-            disconnected = False
-            try:
-                self.mozmill.run_tests(self.options.test)
-            except JSBridgeDisconnectError:
-                disconnected = True
-                if not self.mozmill.userShutdownEnabled:
-                    self.mozmill.report_disconnect()               
-                    print 'TEST-UNEXPECTED-FAIL | Disconnect Error: Application unexpectedly closed'
-
-            # print statistics and send the JSON report
-            self.mozmill.report(self.options.report)
-            
-            # shutdown the test harness
-            self.mozmill.stop(fatal=disconnected)
-            if self.mozmill.fails or disconnected:
-                sys.exit(1)
+            self.mozmill.run(self.options.test)
         else:
+            # TODO: document use case
+            # probably take out of this function entirely
             if self.options.shell:
                 self.start_shell(runner)
             else:
@@ -790,27 +569,13 @@ class CLI(jsbridge.CLI):
             if self.mozmill.runner is not None:
                 self.mozmill.runner.profile.cleanup()
     
-class RestartCLI(CLI):
-    mozmill_class = MozMillRestart
-    parser_options = copy.copy(CLI.parser_options)
-    parser_options[("-t", "--test",)] = dict(dest="test", default=False, 
-                                             help="Run test directory.")
-
-
-class ThunderbirdCLI(CLI):
-    profile_class = mozprofile.ThunderbirdProfile
-    runner_class = mozrunner.ThunderbirdRunner
-
-
 def enum(*sequential, **named):
+    # XXX to deprecate
     enums = dict(zip(sequential, range(len(sequential))), **named)
     return type('Enum', (), enums)
 
-def cli():
-    CLI().run()
+def cli(args=sys.argv[1:]):
+    CLI(args).run()
 
-def tbird_cli():
-    ThunderbirdCLI().run()
-
-def restart_cli():
-    RestartCLI().run()
+if __name__ == '__main__':
+    cli()
