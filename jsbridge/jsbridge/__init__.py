@@ -40,6 +40,7 @@ import asyncore
 import socket
 import os
 import copy
+import sys
 
 from time import sleep
 from network import Bridge, BackChannel, create_network
@@ -87,24 +88,27 @@ class CLI(mozrunner.CLI):
     """Command line interface."""
     
     module = "jsbridge"
-    def add_options(self, parser)
+    def add_options(self, parser):
         mozrunner.CLI.add_options(self, parser)
         
-    parser_options[('-D', '--debug',)] = dict(dest="debug", 
-                                             action="store_true",
-                                             help="Debug mode", 
-                                             metavar="JSBRIDGE_DEBUG",
-                                             default=False )
-    parser_options[('-s', '--shell',)] = dict(dest="shell", 
-                                             action="store_true",
-                                             help="Start a Python shell",
-                                             metavar="JSBRIDGE_SHELL",
-                                             default=False )
-    parser_options[('-u', '--usecode',)] = dict(dest="usecode", action="store_true",
-                                               help="Use code module instead of iPython",
-                                               default=False)
-    parser_options[('-P', '--port')] = dict(dest="port", default="24242",
-                                            help="TCP port to run jsbridge on.")
+        parser.add_option('-D', '--debug', dest="debug", 
+                          action="store_true",
+                          help="Install debugging addons.", 
+                          metavar="JSBRIDGE_DEBUG",
+                          default=False )
+        
+        parser.add_option('-s', '--shell', dest="shell", 
+                          action="store_true",
+                          help="Start a Python shell",
+                          metavar="JSBRIDGE_SHELL",
+                          default=False )
+        parser.add_option('-u', '--usecode',
+                          dest="usecode", action="store_true",
+                          help="Use code module instead of iPython",
+                          default=False)
+        
+        parser.add_option('-P', '--port', dest="port", default="24242",
+                          help="TCP port to run jsbridge on.")
 
     def profile_args(self):
         profile_args = mozrunner.CLI.profile_args(self)

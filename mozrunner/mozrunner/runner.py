@@ -326,7 +326,7 @@ class CLI(object):
         self.start(runner)
         # XXX should be runner.cleanup,
         # and other runner cleanup code should go in there
-         runner.profile.cleanup()
+        runner.profile.cleanup()
 
     def start(self, runner):
         """Starts the runner and waits for Firefox to exitor Keyboard Interrupt.
