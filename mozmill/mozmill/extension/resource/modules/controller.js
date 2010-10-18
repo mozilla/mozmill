@@ -93,7 +93,7 @@ waitForEvents.prototype = {
     for (var e in this.registry) {
       utils.waitFor(function() {
         return this.node.firedEvents[e] == true;
-      }, timeout, interval, "Timeout happened before event '" + ex +"' was fired.");
+      }, "Timeout happened before event '" + ex +"' was fired.", timeout, interval);
   
       this.node.removeEventListener(e, this.registry[e], true);
     }
@@ -146,7 +146,7 @@ Menu.prototype = {
       this._controller.rightClick(contextElement);
       this._controller.waitFor(function() {
         return menu.state == "open";
-      }, 5000, 100, "Context menu has been opened.");
+      }, "Context menu has been opened.");
     }
 
     // Run through the entire menu and populate with dynamic entries
@@ -166,7 +166,7 @@ Menu.prototype = {
     this._controller.keypress(this._menu, "VK_ESCAPE", {});
     this._controller.waitFor(function() {
       return menu.state == "closed";
-    }, 5000, 100, "Context menu has been closed.");
+    }, "Context menu has been closed.");
 
     return this;
   },
@@ -308,7 +308,7 @@ var MozMillController = function (window) {
 
   utils.waitFor(function() {
     return window != null && (window.documentLoaded != undefined);
-  }, 5000, 100, "controller(): Window could not be initialized.");
+  }, "controller(): Window could not be initialized.");
 
   if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined ) {
     this.prototype = new utils.Copy(this.prototype);
@@ -592,7 +592,7 @@ MozMillController.prototype.check = function(el, state) {
     this.click(el);
     this.waitFor(function() {
       return element.checked == state;
-    }, 500, 100, "Checkbox " + el.getInfo() + " could not be checked/unchecked");
+    }, "Checkbox " + el.getInfo() + " could not be checked/unchecked", 500);
 
     result = true;
   }
@@ -615,14 +615,15 @@ MozMillController.prototype.radio = function(el)
   this.click(el);
   this.waitFor(function() {
     return element.selected == true;
-  }, 500, 100, "Radio button " + el.getInfo() + " could not be selected");
+  }, "Radio button " + el.getInfo() + " could not be selected", 500);
 
   frame.events.pass({'function':'Controller.radio(' + el.getInfo() + ')'});
   return true;
 }
 
-MozMillController.prototype.waitFor = function(callback, timeout, interval, message) {
-  utils.waitFor(callback, timeout, interval, message);
+MozMillController.prototype.waitFor = function(callback, message, timeout,
+                                               interval, thisObject) {
+  utils.waitFor(callback, message, timeout, interval, thisObject);
 
   frame.events.pass({'function':'controller.waitFor()'});
 }
@@ -630,7 +631,7 @@ MozMillController.prototype.waitFor = function(callback, timeout, interval, mess
 MozMillController.prototype.waitForEval = function(expression, timeout, interval, subject) {
   waitFor(function() {
     return eval(expression);
-  }, timeout, interval, "controller.waitForEval: Timeout exceeded for '" + expression + "'");
+  }, "controller.waitForEval: Timeout exceeded for '" + expression + "'", timeout, interval);
 
   frame.events.pass({'function':'controller.waitForEval()'});
 }
@@ -638,7 +639,7 @@ MozMillController.prototype.waitForEval = function(expression, timeout, interval
 MozMillController.prototype.waitForElement = function(elem, timeout, interval) {
   this.waitFor(function() {
     return elem.exists();
-  }, timeout, interval, "Timeout exceeded for waitForElement " + elem.getInfo());
+  }, "Timeout exceeded for waitForElement " + elem.getInfo(), timeout, interval);
 
   frame.events.pass({'function':'Controller.waitForElement()'});
 }
@@ -672,7 +673,7 @@ MozMillController.prototype.__defineGetter__("menus", function() {
 MozMillController.prototype.waitForImage = function (elem, timeout, interval) {
   this.waitFor(function() {
     return elem.getNode().complete == true;
-  }, timeout, interval, "timeout exceeded for waitForImage " + elem.getInfo());
+  }, "timeout exceeded for waitForImage " + elem.getInfo(), timeout, interval);
 
   frame.events.pass({'function':'Controller.waitForImage()'});
 }
@@ -879,9 +880,9 @@ MozMillController.prototype.assertValue = function (el, value) {
 /**
  * Check if the callback function evaluates to true
  */
-MozMillController.prototype.assert = function(callback, message)
+MozMillController.prototype.assert = function(callback, message, thisObject)
 {
-  utils.assert(callback, message);
+  utils.assert(callback, message, thisObject);
 
   frame.events.pass({'function': ": controller.assert('" + callback + "')"});
   return true;
@@ -1210,12 +1211,13 @@ function browserAdditions (controller) {
 
   controller.waitForPageLoad = function(aTabDocument, aTimeout, aInterval) {
     var self = {loaded: false};
+    var timeout = aTimeout || 30000;
     var tab = null;
 
     // If a user tries to do waitForPageLoad(2000), this will assign the
     // interval the first arg which is most likely what they were expecting
     if (typeof(aTabDocument) == "number"){
-      aTimeout = aTabDocument;
+      timeout = aTabDocument;
     }
 
     // Find the browser element for the given aTabDocument
@@ -1231,28 +1233,24 @@ function browserAdditions (controller) {
     // Fallback to selected browser
     tab = tab || this.window.gBrowser.selectedBrowser;
 
-    try {
-      var errorRegex = /about:.+(error)|(blocked)\?/;
-      this.waitFor(function() {
-        // Note: Error pages will never reach a documentLoaded state. For those we
-        // have to wait for readyState set to "interactive". That's the final
-        // state. Error pages will always have an baseURI starting with
-        // "about:" followed by "error" or "blocked".
-        if (errorRegex.exec(tab.contentDocument.baseURI) &&
-            tab.contentDocument.readyState == "interactive") {
+    var errorRegex = /about:.+(error)|(blocked)\?/;
+    this.waitFor(function() {
+      // Note: Error pages will never reach a documentLoaded state. For those we
+      // have to wait for readyState set to "interactive". That's the final
+      // state. Error pages will always have an baseURI starting with
+      // "about:" followed by "error" or "blocked".
+      if (errorRegex.exec(tab.contentDocument.baseURI) &&
+          tab.contentDocument.readyState == "interactive") {
 
-          // We have to wait a second until the DOM is ready
-          this.sleep(1000);
-          return true;
-        } else {
-          return tab.contentDocument.defaultView.documentLoaded;
-        }
-      }, aTimeout, aInterval);
+        // We have to wait a second until the DOM is ready
+        this.sleep(1000);
+        return true;
+      } else {
+        return tab.contentDocument.defaultView.documentLoaded;
+      }
+    }, "Timeout waiting for page loaded.", timeout, aInterval);
 
-      frame.events.pass({'function':'controller.waitForPageLoad()'});
-    } catch (ex) {
-      throw new Error("controller.waitForPageLoad(): Timeout waiting for page loaded.");
-    }
+    frame.events.pass({'function':'controller.waitForPageLoad()'});
   }
 }
 
@@ -1282,7 +1280,7 @@ MozMillAsyncTest.prototype.run = function () {
 
   utils.waitFor(function() {
     return this._done == true;
-  }, 500, 100, "MozMillAsyncTest timed out. Done is " + this._done); 
+  }, "MozMillAsyncTest timed out. Done is " + this._done, 500, 100); 
 
   return true;
 }
