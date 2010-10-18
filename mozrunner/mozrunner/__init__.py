@@ -425,8 +425,9 @@ class Runner(object):
         # On i386 OS X machines, i386+x86_64 universal binaries need to be told
         # to run as i386 binaries.  If we're not running a i386+x86_64 universal
         # binary, then this command modification is harmless.
-        if hasattr(platform, 'mac_ver') and platform.mac_ver()[2] == 'i386':
-            cmd = ['arch', '-i386'] + cmd
+        if sys.platform == 'darwin':
+            if hasattr(platform, 'architecture') and platform.architecture()[0] == '32bit':
+                cmd = ['arch', '-i386'] + cmd
         return cmd
 
     def get_repositoryInfo(self):
