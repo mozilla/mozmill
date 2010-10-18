@@ -199,6 +199,7 @@ class Popen(subprocess.Popen):
         time out."""
         
         if timeout is not None:
+            # timeout is now in milliseconds
             timeout = timeout * 1000
 
         if self.returncode is not None:
@@ -213,15 +214,21 @@ class Popen(subprocess.Popen):
             
             if rc != winprocess.WAIT_TIMEOUT:
                 def check():
-                    if (starttime - datetime.datetime.now()).microseconds < timeout:
-                        return True
-                    if self._job and (winprocess.QueryInformationJobObject(self._job, 8)['BasicInfo']['ActiveProcesses'] > 0):
-                        return True
+                    now = datetime.datetime.now()
+                    diff = now - starttime
+                    if (diff.seconds * 1000 * 1000 + diff.microseconds) < (timeout * 1000):
+                        if self._job:
+                            if (winprocess.QueryInformationJobObject(self._job, 8)['BasicInfo']['ActiveProcesses'] > 0):
+                                return True
+                        else:
+                            return True
                     return False
                 while check():
-                    time.sleep(.5)            
+                    time.sleep(.5)
             
-            if (starttime - datetime.datetime.now()).microseconds > timeout:
+            now = datetime.datetime.now()
+            diff = now - starttime
+            if (diff.seconds * 1000 * 1000 + diff.microseconds) > (timeout * 1000):
                 self.kill(group)
             else:
                 self.returncode = winprocess.GetExitCodeProcess(self._handle)
@@ -238,13 +245,14 @@ class Popen(subprocess.Popen):
                     try:
                         count = 0
                         if timeout is None and self.kill_called:
-                            timeout = 10 # Have to set some kind of timeout or else this could go on forever                
+                            timeout = 10 # Have to set some kind of timeout or else this could go on forever
                         if timeout is None:
                             while 1:
                                 os.killpg(self.pid, signal.SIG_DFL)
                         while ((count * 2) <= timeout):
                             os.killpg(self.pid, signal.SIG_DFL)
-                            time.sleep(.5); count += .5
+                            # count is increased by 500ms for every 0.5s of sleep
+                            time.sleep(.5); count += 500
                     except exceptions.OSError:
                         return self.returncode
                         
@@ -257,14 +265,18 @@ class Popen(subprocess.Popen):
 
             returncode = False
 
-            while (starttime - datetime.datetime.now()).microseconds < timeout or ( returncode is False ):
+            now = datetime.datetime.now()
+            diff = now - starttime
+            while (diff.seconds * 1000 * 1000 + diff.microseconds) < (timeout * 1000) and ( returncode is False ):
                 if group is True:
                     return group_wait(timeout)
                 else:
                     if subprocess.poll() is not None:
                         returncode = self.returncode
                 time.sleep(.5)
-            return self.returncode        
+                now = datetime.datetime.now()
+                diff = now - starttime
+            return self.returncode
                 
         return self.returncode
     # We get random maxint errors from subprocesses __del__
