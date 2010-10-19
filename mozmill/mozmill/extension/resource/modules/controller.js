@@ -1224,7 +1224,7 @@ function browserAdditions (controller) {
     // Wait until the content in the tab has been loaded
     this.waitFor(function() {
       return tab.contentDocument.documentLoaded;
-    }, "controller.waitForPageLoad(): Timeout waiting for page loaded.", aTimeout, aInterval);
+    }, "controller.waitForPageLoad(): Timeout waiting for page loaded.", timeout, aInterval);
 
     frame.events.pass({'function':'controller.waitForPageLoad()'});
   }
