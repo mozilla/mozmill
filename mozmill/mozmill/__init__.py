@@ -395,7 +395,7 @@ class MozMill(object):
 
     def get_report(self):
         """get the report results"""
-        format = "%Y-%m-%dT%H:%M:%S"
+        format = "%Y-%m-%dT%H:%M:%SZ"
 
         assert self.test, 'run_tests not called'
         assert self.starttime, 'starttime not set; have you started the tests?'
@@ -441,7 +441,7 @@ class MozMill(object):
         try:
             # Set the upload time of the report
             now = datetime.utcnow()
-            results['time_upload'] = now.strftime("%Y-%m-%dT%H:%M:%S")
+            results['time_upload'] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
             # Parse URL fragments and send data
             url_fragments = urlparse.urlparse(report_url)
