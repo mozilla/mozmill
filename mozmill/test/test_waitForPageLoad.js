@@ -1,31 +1,29 @@
 const LOCATIONS = [
   // Normal pages
-  {url : "http://www.google.de", timeout : undefined, type: "id", value : "logo"},
-  {url : "https://addons.mozilla.org", timeout : undefined, type: "id", value : "query"},
-  {url : "http://addons.mozilla.org", timeout : undefined, type: "id", value : "query"},
+  {url : "http://www.google.de", type: "id", value : "logo"},
+  {url : "https://addons.mozilla.org/en-US/firefox/?browse=featured", type: "id", value : "query"},
+  {url : "http://addons.mozilla.org", type: "id", value : "query"},
 
   // FTP pages
-  {url : "ftp://ftp.mozilla.org/pub/", timeout : undefined, type : "link", value : "firefox" },
+  {url : "ftp://ftp.mozilla.org/pub/", type : "link", value : "firefox" },
 
   // Error pages
-  {url : "https://mur.at", timeout : 1000, type: "id", value : "cert_domain_link"},
-  {url : "http://www.mozilla.com/firefox/its-a-trap.html", timeout : 1000, type: "id", value : "ignoreWarningButton"},
-  {url : "https://mozilla.org/", timeout : 1000, type: "id", value : "getMeOutOfHereButton"}
+ {url : "https://mur.at", type: "id", value : "cert_domain_link"},
+ {url : "http://www.mozilla.com/firefox/its-a-trap.html", type: "id", value : "ignoreWarningButton"},
+ //{url : "https://mozilla.org/", type: "id", value : "getMeOutOfHereButton"}
 ];
-
 var setupTest = function() {
   controller = mozmill.getBrowserController();
 }
 
 var testWaitForPageLoad = function() {
-  var tab = controller.tabs.activeTab;
 
   /**
    * PART I - Check different types of pages
    */
   for each (var location in LOCATIONS) {
     controller.open(location.url);
-    controller.waitForPageLoad(location.timeout);
+    controller.waitForPageLoad();
   
     // Check that the expected element exists
     if (location.type) {
@@ -33,18 +31,18 @@ var testWaitForPageLoad = function() {
   
       switch (location.type) {
         case "link":
-          elem = new elementslib.Link(tab, location.value);
+          elem = new elementslib.Link(controller.tabs.activeTab, location.value);
           break;
         case "name":
-          elem = new elementslib.Name(tab, location.value);
+          elem = new elementslib.Name(controller.tabs.activeTab, location.value);
           break;
         case "id":
-          elem = new elementslib.ID(tab, location.value);
+          elem = new elementslib.ID(controller.tabs.activeTab, location.value);
           break;
         default:
       }
   
-      controller.assertJS("subject.localName != undefined", elem.getNode());
+      controller.assertNode(elem);
     }
   }
   
@@ -57,25 +55,25 @@ var testWaitForPageLoad = function() {
   
     switch (i) {
       case 0:
-        controller.waitForPageLoad(tab, location.timeout);
+        controller.waitForPageLoad(controller.tabs.activeTab);
         break;
       case 1:
-        controller.waitForPageLoad(tab, location.timeout, 10);
+        controller.waitForPageLoad(controller.tabs.activeTab, undefined, 10);
         break;
       case 2:
-        controller.waitForPageLoad(tab, "invalid");
+        controller.waitForPageLoad(controller.tabs.activeTab, "invalid");
         break;
       case 3:
-        controller.waitForPageLoad(undefined, location.timeout, 100);
+        controller.waitForPageLoad(undefined, null, 100);
         break;
       case 4:
-        controller.waitForPageLoad(null, location.timeout, 100);
+        controller.waitForPageLoad(null, undefined, 100);
         break;
       case 5:
-        controller.waitForPageLoad("invalid", location.timeout);
+        controller.waitForPageLoad("invalid", undefined);
         break;
       case 6:
-        controller.waitForPageLoad(location.timeout, "invalid");
+        controller.waitForPageLoad(undefined, "invalid");
         break;
     }
   }
@@ -110,5 +108,19 @@ var testWaitForPageLoad = function() {
   controller.open(LOCATIONS[0].url);
   controller.waitForPageLoad();
   controller.waitForPageLoad(500);
+
+ 
+  /**
+   * PART VI - Loading a page in another tab should wait for its completion
+   */
+  controller.open(LOCATIONS[1].url);
+ 
+  controller.keypress(null, "t", {accelKey: true});
+  controller.open(LOCATIONS[0].url);
+ 
+  var firstTab = controller.tabs.getTab(0);
+  var element = new elementslib.ID(firstTab, LOCATIONS[1].value);
+  controller.waitForPageLoad(firstTab);
+  controller.assertNode(element);
 }
 

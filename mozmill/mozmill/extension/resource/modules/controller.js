@@ -1195,7 +1195,6 @@ function browserAdditions (controller) {
   controller.tabs = new Tabs(controller);
 
   controller.waitForPageLoad = function(aTabDocument, aTimeout, aInterval) {
-    var self = {loaded: false};
     var timeout = aTimeout || 30000;
     var tab = null;
 
@@ -1206,34 +1205,26 @@ function browserAdditions (controller) {
     }
 
     // Find the browser element for the given aTabDocument
-    if (typeof(aTabDocument) == "object") {
-      for each (var browser in this.window.gBrowser) {
-        if (browser && browser.contentDocument === aTabDocument) {
+    if (aTabDocument && typeof(aTabDocument) == "object") {
+      for each (var browser in this.window.gBrowser.browsers) {
+        if (browser.contentDocument == aTabDocument) {
           tab = browser;
           break;
         }
       }
+
+      if (!tab) {
+        throw new Error("controller.waitForPageLoad(): Specified tab hasn't been found.");
+      }
     }
 
-    // Fallback to selected browser
-    tab = tab || this.window.gBrowser.selectedBrowser;
+    // If tab hasn't been specified, fallback to selected browser
+    tab = this.window.gBrowser.selectedBrowser;
 
-    var errorRegex = /about:.+(error)|(blocked)\?/;
+    // Wait until the content in the tab has been loaded
     this.waitFor(function() {
-      // Note: Error pages will never reach a documentLoaded state. For those we
-      // have to wait for readyState set to "interactive". That's the final
-      // state. Error pages will always have an baseURI starting with
-      // "about:" followed by "error" or "blocked".
-      if (errorRegex.exec(tab.contentDocument.baseURI) &&
-          tab.contentDocument.readyState == "interactive") {
-
-        // We have to wait a second until the DOM is ready
-        this.sleep(1000);
-        return true;
-      } else {
-        return tab.contentDocument.defaultView.documentLoaded;
-      }
-    }, "Timeout waiting for page loaded.", timeout, aInterval);
+      return tab.contentDocument.documentLoaded;
+    }, "controller.waitForPageLoad(): Timeout waiting for page loaded.", aTimeout, aInterval);
 
     frame.events.pass({'function':'controller.waitForPageLoad()'});
   }
