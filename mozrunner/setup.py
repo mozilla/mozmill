@@ -46,6 +46,15 @@ PACKAGE_VERSION = "2.4.4b1"
 
 deps = ['mozprocess', 'mozprofile']
 
+# we only support python 2 right now
+assert sys.version_info[0] == 2
+
+# version-dependent dependencies
+if not sys.version_info[1] < 6:
+    deps.append('simplejson')
+if not sys.version_info[1] < 5:
+    deps.append('elementtree')
+
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
       description=desc,

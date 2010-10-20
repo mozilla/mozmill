@@ -49,10 +49,15 @@ import optparse
 import killableprocess
 import subprocess
 import platform
-from xml.etree import ElementTree
+
 from distutils import dir_util
 from time import sleep
 
+# conditional (version-dependent) imports
+try:
+    from xml.etree import ElementTree
+except ImportError:
+    from elementtree import ElementTree
 try:
     import simplejson
 except ImportError:
