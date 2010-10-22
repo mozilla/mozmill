@@ -34,7 +34,7 @@ class LoggerListener(object):
   def add_options(cls, parser):
     parser.add_option("-l", "--logfile", dest="logfile", default=None,
                       help="Log all events to file.")
-    parser.add_option("--showall", dest="showall", default=False,
+    parser.add_option("--show-all", dest="showall", default=False,
                       action="store_true",
                       help="Show all test output.")
     parser.add_option("--show-errors", dest="showerrors", default=False, 
