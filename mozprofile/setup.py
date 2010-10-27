@@ -38,7 +38,7 @@
 from setuptools import setup, find_packages
 import sys
 
-version = '0.1'
+version = '0.1a'
 
 deps = []
 if not sys.version.startswith('2.6'):
