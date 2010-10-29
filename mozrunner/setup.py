@@ -50,9 +50,9 @@ deps = []
 assert sys.version_info[0] == 2
 
 # version-dependent dependencies
-if not sys.version_info[1] < 6:
+if sys.version_info[1] < 6:
     deps.append('simplejson')
-if not sys.version_info[1] < 5:
+if sys.version_info[1] < 5:
     deps.append('elementtree')
 
 setup(name=PACKAGE_NAME,
