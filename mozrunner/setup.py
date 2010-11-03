@@ -39,7 +39,7 @@ from setuptools import setup, find_packages
 import sys
 
 desc = """Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)"""
-summ = """Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)"""
+
 
 PACKAGE_NAME = "mozrunner"
 PACKAGE_VERSION = "3.0a"
@@ -52,13 +52,11 @@ assert sys.version_info[0] == 2
 # version-dependent dependencies
 if not sys.version_info[1] < 6:
     deps.append('simplejson')
-if not sys.version_info[1] < 5:
-    deps.append('elementtree')
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
       description=desc,
-      long_description=summ,
+      long_description=desc,
       author='Mikeal Rogers, Mozilla',
       author_email='mikeal.rogers@gmail.com',
       url='http://github.com/mozautomation/mozmill',

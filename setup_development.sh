@@ -1,5 +1,5 @@
 #!/bin/bash
-for i in jsbridge  mozmill  mozprocess  mozprofile  mozrunner
+for i in mozprocess mozprofile mozrunner jsbridge mozmill 
 do 
     cd $i
     python setup.py develop

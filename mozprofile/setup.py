@@ -40,8 +40,12 @@ import sys
 
 version = '0.1a'
 
+# we only support python 2 right now
+assert sys.version_info[0] == 2
+
 deps = []
-if not sys.version.startswith('2.6'):
+# version-dependent dependencies
+if sys.version_info[1] < 6:
     deps.append('simplejson')
 
 setup(name='mozprofile',
@@ -61,5 +65,8 @@ setup(name='mozprofile',
       install_requires=deps,
       entry_points="""
       # -*- Entry points: -*-
+      
+      [console_scripts]
+      addon_id = mozprofile:print_addon_ids
       """,
       )
