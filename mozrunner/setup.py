@@ -49,10 +49,6 @@ deps = ['mozprocess', 'mozprofile']
 # we only support python 2 right now
 assert sys.version_info[0] == 2
 
-# version-dependent dependencies
-if not sys.version_info[1] < 6:
-    deps.append('simplejson')
-
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
       description=desc,
