@@ -112,13 +112,13 @@ var getKeyCodeFromKeySequence = function(keySequence) {
   }
   // mozmill.results.writeResult("invalid keySequence");
 }
-    
-var triggerKeyEvent = function(element, eventType, aKey, modifiers) {
+
+var triggerKeyEvent = function(element, eventType, aKey, modifiers, expectedEvent) {
   // get the window and send focus event
   var win = element.ownerDocument ? element.ownerDocument.defaultView : element;
   win.focus();
   utils.sleep(5);
-  
+
   // If we have an element check if it needs to be focused
   if (element.ownerDocument) {
     var focusedElement = utils.getChromeWindow(win).document.commandDispatcher.focusedElement;
@@ -130,10 +130,23 @@ var triggerKeyEvent = function(element, eventType, aKey, modifiers) {
       element.focus();
   }
 
-  try {
-      EventUtils.synthesizeKey(aKey, modifiers, win);
-  } catch(e) {
-    throw new Error("Synthesizing key event failed. \n"+e)
+  if (expectedEvent) {
+    // The expected event type has to be set
+    if (!expectedEvent.type)
+      throw new Error(arguments.callee.name + ": Expected event type not specified");
+
+    // If no target has been specified use the specified element
+    var target = expectedEvent.target ? expectedEvent.target.getNode() : element;
+    if (!target) {
+      throw new Error(arguments.callee.name + ": could not find element " +
+                      expectedEvent.target.getInfo());
+    }
+
+    EventUtils.synthesizeKeyExpectEvent(aKey, modifiers, target,
+                                        expectedEvent.type,
+                                        "events.triggerKeyEvent()", win);
+  } else {
+    EventUtils.synthesizeKey(aKey, modifiers, win);
   }
 }
 

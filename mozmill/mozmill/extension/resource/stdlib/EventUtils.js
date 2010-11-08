@@ -1,15 +1,13 @@
 // Export all available functions for Mozmill
 var EXPORTED_SYMBOLS = ["sendMouseEvent", "sendChar", "sendString", "sendKey",
-                         "__doEventDispatch", "_parseModifiers", "synthesizeMouse",
-                         "synthesizeMouseScroll", "synthesizeKey", "_expectEvent",
-                         "_checkExpectedEvent", "synthesizeMouseExpectEvent",
-                         "synthesizeDragStart", "synthesizeDrop",
-                         "disableNonTestMouseEvents", "_getDOMWindowUtils",
-                         "synthesizeComposition", "synthesizeText",
-                         "synthesizeQuerySelectedText", "synthesizeQueryTextContent",
-                         "synthesizeQueryCaretRect", "synthesizeQueryTextRect",
-                         "synthesizeQueryEditorRect", "synthesizeCharAtPoint",
-                         "synthesizeSelectionSet"];
+                        "synthesizeMouse", "synthesizeMouseScroll", "synthesizeKey",
+                        "synthesizeMouseExpectEvent", "synthesizeKeyExpectEvent",
+                        "synthesizeDragStart", "synthesizeDrop", "synthesizeText",
+                        "disableNonTestMouseEvents", "synthesizeComposition", 
+                        "synthesizeQuerySelectedText", "synthesizeQueryTextContent",
+                        "synthesizeQueryCaretRect", "synthesizeQueryTextRect",
+                        "synthesizeQueryEditorRect", "synthesizeCharAtPoint",
+                        "synthesizeSelectionSet"];
 
 /**
  * Get the array with available key events
@@ -366,7 +364,9 @@ function _expectEvent(aExpectedTarget, aExpectedEvent, aTestName)
   var eventHandler = function(event) {
     var epassed = (!_gSeenEvent && event.originalTarget == aExpectedTarget &&
                    event.type == type);
-    is(epassed, true, aTestName + " " + type + " event target " + (_gSeenEvent ? "twice" : ""));
+    if (!epassed)
+      throw new Error(aTestName + " " + type + " event target " +
+                      (_gSeenEvent ? "twice" : ""));
     _gSeenEvent = true;
   };
 
@@ -385,9 +385,10 @@ function _checkExpectedEvent(aExpectedTarget, aExpectedEvent, aEventHandler, aTe
     var type = expectEvent ? aExpectedEvent : aExpectedEvent.substring(1);
     aExpectedTarget.removeEventListener(type, aEventHandler, false);
     var desc = type + " event";
-    if (!expectEvent)
+    if (expectEvent)
       desc += " not";
-    is(_gSeenEvent, expectEvent, aTestName + " " + desc + " fired");
+    if (_gSeenEvent != expectEvent)
+      throw new Error(aTestName + ": " + desc + " fired.");
   }
 
   _gSeenEvent = false;

@@ -319,29 +319,68 @@ var MozMillController = function (window) {
 
 MozMillController.prototype.sleep = utils.sleep;
 
-MozMillController.prototype.keypress = function(el, aKey, modifiers) {
-  var element = (el == null) ? this.window : el.getNode();
+/**
+ * Synthesize a keypress event on the given element
+ *
+ * @param {ElemBase} aTarget
+ *        Element which will receive the keypress event
+ * @param {string} aKey
+ *        Key to use for synthesizing the keypress event. It can be a simple
+ *        character like "k" or a string like "VK_ESCAPE" for command keys
+ * @param {object} aModifiers
+ *        Information about the modifier keys to send
+ *        Elements: accelKey   - Hold down the accelerator key (ctrl/meta)
+ *                               [optional - default: false]
+ *                  altKey     - Hold down the alt key
+ *                              [optional - default: false]
+ *                  ctrlKey    - Hold down the ctrl key
+ *                               [optional - default: false]
+ *                  metaKey    - Hold down the meta key (command key on Mac)
+ *                               [optional - default: false]
+ *                  shiftKey   - Hold down the shift key
+ *                               [optional - default: false]
+ * @param {object} aExpectedEvent
+ *        Information about the expected event to occur
+ *        Elements: target     - Element which should receive the event
+ *                               [optional - default: current element]
+ *                  type       - Type of the expected key event
+ */
+MozMillController.prototype.keypress = function(aTarget, aKey, aModifiers, aExpectedEvent) {
+  var element = (aTarget == null) ? this.window : aTarget.getNode();
   if (!element) {
-    throw new Error("could not find element " + el.getInfo());
+    throw new Error("Could not find element " + aTarget.getInfo());
     return false;
   }
 
-  events.triggerKeyEvent(element, 'keypress', aKey, modifiers);
+  events.triggerKeyEvent(element, 'keypress', aKey, aModifiers, aExpectedEvent);
 
   frame.events.pass({'function':'Controller.keypress()'});
   return true;
 }
 
-MozMillController.prototype.type = function (el, text) {
-  var element = (el == null) ? this.window : el.getNode();
+/**
+ * Synthesize keypress events for each character on the given element
+ *
+ * @param {ElemBase} aTarget
+ *        Element which will receive the type event
+ * @param {string} aText
+ *        The text to send as single keypress events
+ * @param {object} aExpectedEvent
+ *        Information about the expected event to occur
+ *        Elements: target     - Element which should receive the event
+ *                               [optional - default: current element]
+ *                  type       - Type of the expected key event
+ */
+MozMillController.prototype.type = function (aTarget, aText, aExpectedEvent) {
+  var element = (aTarget == null) ? this.window : aTarget.getNode();
   if (!element) {
-    throw new Error("could not find element " + el.getInfo());
+    throw new Error("could not find element " + aTarget.getInfo());
     return false;
   }
 
-  for (var indx = 0; indx < text.length; indx++) {
-    events.triggerKeyEvent(element, 'keypress', text.charAt(indx), {});
-  }
+  Array.forEach(aText, function(letter) {
+    events.triggerKeyEvent(element, 'keypress', letter, {}, aExpectedEvent);
+  });
 
   frame.events.pass({'function':'Controller.type()'});
   return true;
@@ -364,197 +403,173 @@ MozMillController.prototype.open = function(url)
   frame.events.pass({'function':'Controller.open()'});
 }
 
-MozMillController.prototype.click = function(elem, left, top)
-{
-  var element = elem.getNode();
-  if (!element){
-    throw new Error("could not find element " + elem.getInfo());
-    return false;
+/**
+ * Synthesize a general mouse event on the given element
+ *
+ * @param {ElemBase} aTarget
+ *        Element which will receive the mouse event
+ * @param {number} aOffsetX
+ *        Relative x offset in the elements bounds to click on
+ * @param {number} aOffsetY
+ *        Relative y offset in the elements bounds to click on
+ * @param {object} aEvent
+ *        Information about the event to send
+ *        Elements: accelKey   - Hold down the accelerator key (ctrl/meta)
+ *                               [optional - default: false]
+ *                  altKey     - Hold down the alt key
+ *                               [optional - default: false]
+ *                  button     - Mouse button to use
+ *                               [optional - default: 0]
+ *                  clickCount - Number of counts to click
+ *                               [optional - default: 1]
+ *                  ctrlKey    - Hold down the ctrl key
+ *                               [optional - default: false]
+ *                  metaKey    - Hold down the meta key (command key on Mac)
+ *                               [optional - default: false]
+ *                  shiftKey   - Hold down the shift key
+ *                               [optional - default: false]
+ *                  type       - Type of the mouse event ('click', 'mousedown',
+ *                               'mouseup', 'mouseover', 'mouseout')
+ *                               [optional - default: 'mousedown' + 'mouseup']
+ * @param {object} aExpectedEvent
+ *        Information about the expected event to occur
+ *        Elements: target     - Element which should receive the event
+ *                               [optional - default: current element]
+ *                  type       - Type of the expected mouse event
+ */
+MozMillController.prototype.mouseEvent = function(aTarget, aOffsetX, aOffsetY,
+                                                  aEvent, aExpectedEvent) {
+
+  var element = aTarget.getNode();
+  if (!element) {
+    throw new Error(arguments.callee.name + ": could not find element " +
+                    aTarget.getInfo());
   }
 
-  if (element.tagName == "menuitem") {
-    element.click();
-    return true;
-  }
-
-  if (isNaN(left)) { left = 1; }
-  if (isNaN(top)) { top = 1; }
+  // If no offset is given we will use the center of the element to click on.
+  var rect = element.getBoundingClientRect();
+  if (isNaN(aOffsetX))
+    aOffsetX = rect.width / 2;
+  if (isNaN(aOffsetY))
+    aOffsetY = rect.height / 2;
 
   // Scroll element into view otherwise the click will fail
   if (element.scrollIntoView)
     element.scrollIntoView();
 
-  EventUtils.synthesizeMouse(element, left, top, {}, element.ownerDocument.defaultView);
-  this.sleep(0);
+  if (aExpectedEvent) {
+    // The expected event type has to be set
+    if (!aExpectedEvent.type)
+      throw new Error(arguments.callee.name + ": Expected event type not specified");
 
-  frame.events.pass({'function':'Controller.click()'});
-  return true;
-}
-
-MozMillController.prototype.doubleClick = function(elem, left, top)
-{
-  var element = elem.getNode();
-  if (!element) {
-    throw new Error("could not find element " + elem.getInfo());
-    return false;
-  }
-
-  if (isNaN(left)) { left = 1; }
-  if (isNaN(top)) { top = 1; }
-
-  // Scroll element into view before initiating a double click
-  if (element.scrollIntoView)
-    element.scrollIntoView();
-
-  EventUtils.synthesizeMouse(element, left, top, {clickCount: 2},
-                             element.ownerDocument.defaultView);
-  this.sleep(0);
-
-  frame.events.pass({'function':'Controller.doubleClick()'});
-  return true;
-}
-
-MozMillController.prototype.mouseDown = function (elem, button, left, top)
-{
-  var element = elem.getNode();
-  if (!element) {
-    throw new Error("could not find element " + elem.getInfo());
-    return false;
-  }
-
-  if (isNaN(left)) { left = 1; }
-  if (isNaN(top)) { top = 1; }
-
-  // Scroll element into view before initiating a mouse down
-  if (element.scrollIntoView)
-    element.scrollIntoView();
-
-  EventUtils.synthesizeMouse(element, left, top, {button: button, type: "mousedown"},
-                             element.ownerDocument.defaultView);
-  this.sleep(0);
-
-  frame.events.pass({'function':'Controller.mouseDown()'});
-  return true;
-};
-
-MozMillController.prototype.mouseOut = function (elem, button, left, top)
-{
-  var element = elem.getNode();
-  if (!element) {
-    throw new Error("could not find element " + elem.getInfo());
-    return false;
-  }
-
-  if (isNaN(left)) { left = 1; }
-  if (isNaN(top)) { top = 1; }
-
-  // Scroll element into view before initiating a mouse down
-  if (element.scrollIntoView)
-    element.scrollIntoView();
-
-  EventUtils.synthesizeMouse(element, left, top, {button: button, type: "mouseout"},
-                             element.ownerDocument.defaultView);
-  this.sleep(0);
-
-  frame.events.pass({'function':'Controller.mouseOut()'});
-  return true;
-};
-
-MozMillController.prototype.mouseOver = function (elem, button, left, top)
-{
-  var element = elem.getNode();
-  if (!element) {
-    throw new Error("could not find element " + elem.getInfo());
-    return false;
-  }
-
-  if (isNaN(left)) { left = 1; }
-  if (isNaN(top)) { top = 1; }
-
-  // Scroll element into view before initiating a mouse down
-  if (element.scrollIntoView)
-    element.scrollIntoView();
-
-  EventUtils.synthesizeMouse(element, left, top, {button: button, type: "mouseover"},
-                             element.ownerDocument.defaultView);
-  this.sleep(0);
-
-  frame.events.pass({'function':'Controller.mouseOver()'});
-  return true;
-};
-
-MozMillController.prototype.mouseUp = function (elem, button, left, top)
-{
-  var element = elem.getNode();
-  if (!element) {
-    throw new Error("could not find element " + elem.getInfo());
-    return false;
-  }
-
-  if (isNaN(left)) { left = 1; }
-  if (isNaN(top)) { top = 1; }
-
-  // Scroll element into view before initiating a mouse down
-  if (element.scrollIntoView)
-    element.scrollIntoView();
-
-  EventUtils.synthesizeMouse(element, left, top, {button: button, type: "mouseup"},
-                             element.ownerDocument.defaultView);
-  this.sleep(0);
-
-  frame.events.pass({'function':'Controller.mouseUp()'});
-  return true;
-};
-
-MozMillController.prototype.middleClick = function(elem, left, top)
-{
-  var element = elem.getNode();
-    if (!element){
-      throw new Error("could not find element " + el.getInfo());
-      return false;
+    // If no target has been specified use the specified element
+    var target = aExpectedEvent.target ? aExpectedEvent.target.getNode() : element;
+    if (!target) {
+      throw new Error(arguments.callee.name + ": could not find element " +
+                      aExpectedEvent.target.getInfo());
     }
 
-    if (isNaN(left)) { left = 1; }
-    if (isNaN(top)) { top = 1; }
+    EventUtils.synthesizeMouseExpectEvent(element, aOffsetX, aOffsetY, aEvent,
+                                          target, aExpectedEvent.event,
+                                          "controller.mouseEvent()",
+                                          element.ownerDocument.defaultView);
+  } else {
+    EventUtils.synthesizeMouse(element, aOffsetX, aOffsetY, aEvent,
+                               element.ownerDocument.defaultView);
+  }
 
-  // Scroll element into view before initiating a right click
-  if (element.scrollIntoView)
-    element.scrollIntoView();
-
-  EventUtils.synthesizeMouse(element, left, top,
-                             { button: 1 },
-                             element.ownerDocument.defaultView);
-  this.sleep(0);
-
-  frame.events.pass({'function':'Controller.middleClick()'});
-    return true;
+  sleep(0);
 }
 
-MozMillController.prototype.rightClick = function(elem, left, top)
-{
-  var element = elem.getNode();
-    if (!element){
-      throw new Error("could not find element " + el.getInfo());
-      return false;
-    }
+/**
+ * Synthesize a mouse click event on the given element
+ */
+MozMillController.prototype.click = function(elem, left, top, expectedEvent) {
+  var element = elem.getNode()
 
-    if (isNaN(left)) { left = 1; }
-    if (isNaN(top)) { top = 1; }
+  // Handle menu items differently
+  if (element && element.tagName == "menuitem") {
+    element.click();
+  } else {
+    this.mouseEvent(elem, left, top, {}, expectedEvent);
+  }
 
-  // Scroll element into view before initiating a right click
-  if (element.scrollIntoView)
-    element.scrollIntoView();
-
-  EventUtils.synthesizeMouse(element, left, top,
-                             { type : "contextmenu", button: 2 },
-                             element.ownerDocument.defaultView);
-  this.sleep(0);
-
-  frame.events.pass({'function':'Controller.rightClick()'});
-    return true;
+  frame.events.pass({'function':'controller.click()'});
 }
 
-//show a deprecation warning for rightclick to update to rightClick
+/**
+ * Synthesize a double click on the given element
+ */
+MozMillController.prototype.doubleClick = function(elem, left, top, expectedEvent) {
+  this.mouseEvent(elem, left, top, {clickCount: 2}, expectedEvent);
+
+  frame.events.pass({'function':'controller.doubleClick()'});
+  return true;
+}
+
+/**
+ * Synthesize a mouse down event on the given element
+ */
+MozMillController.prototype.mouseDown = function (elem, button, left, top, expectedEvent) {
+  this.mouseEvent(elem, left, top, {button: button, type: "mousedown"}, expectedEvent);
+
+  frame.events.pass({'function':'controller.mouseDown()'});
+  return true;
+};
+
+/**
+ * Synthesize a mouse out event on the given element
+ */
+MozMillController.prototype.mouseOut = function (elem, button, left, top, expectedEvent) {
+  this.mouseEvent(elem, left, top, {button: button, type: "mouseout"}, expectedEvent);
+
+  frame.events.pass({'function':'controller.mouseOut()'});
+  return true;
+};
+
+/**
+ * Synthesize a mouse over event on the given element
+ */
+MozMillController.prototype.mouseOver = function (elem, button, left, top, expectedEvent) {
+  this.mouseEvent(elem, left, top, {button: button, type: "mouseover"}, expectedEvent);
+
+  frame.events.pass({'function':'controller.mouseOver()'});
+  return true;
+};
+
+/**
+ * Synthesize a mouse up event on the given element
+ */
+MozMillController.prototype.mouseUp = function (elem, button, left, top, expectedEvent) {
+  this.mouseEvent(elem, left, top, {button: button, type: "mouseup"}, expectedEvent);
+
+  frame.events.pass({'function':'controller.mouseUp()'});
+  return true;
+};
+
+/**
+ * Synthesize a mouse middle click event on the given element
+ */
+MozMillController.prototype.middleClick = function(elem, left, top, expectedEvent) {
+  this.mouseEvent(elem, left, top, {button: 1}, expectedEvent);
+
+  frame.events.pass({'function':'controller.middleClick()'});
+  return true;
+}
+
+/**
+ * Synthesize a mouse right click event on the given element
+ */
+MozMillController.prototype.rightClick = function(elem, left, top, expectedEvent) {
+  this.mouseEvent(elem, left, top, {type : "contextmenu", button: 2 }, expectedEvent);
+
+  frame.events.pass({'function':'controller.rightClick()'});
+  return true;
+}
+
+/**
+ * Synthesize a mouse right click event on the given element (deprecated)
+ */
 MozMillController.prototype.rightclick = function(){
   frame.log({function:'rightclick - Deprecation Warning', message:'Controller.rightclick should be renamed to Controller.rightClick'});
   this.rightClick.apply(this, arguments);
