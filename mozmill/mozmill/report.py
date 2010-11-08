@@ -52,7 +52,7 @@ from handlers import HandlerMatchException
 
 class Report(object):
 
-  def __init__(self, report, date_format="%Y-%m-%dT%H:%M:%S"):
+  def __init__(self, report, date_format="%Y-%m-%dT%H:%M:%SZ"):
     if not isinstance(report, basestring):
       raise HandlerMatchException
     self.report = report
