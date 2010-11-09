@@ -326,6 +326,8 @@ class FirefoxProfile(Profile):
                    'browser.warnOnQuit': False,
                    # Only install add-ons from the profile and the app folder
                    'extensions.enabledScopes' : 5,
+                   # Dont' run the add-on compatibility check during start-up
+                   'extensions.showMismatchUI' : False,
                    # Don't automatically update add-ons
                    'extensions.update.enabled'    : False,
                    # Don't open a dialog to show available add-on updates
