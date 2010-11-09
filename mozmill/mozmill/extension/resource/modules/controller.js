@@ -307,7 +307,9 @@ var MozMillController = function (window) {
   Components.utils.import('resource://mozmill/modules/mozmill.js', this.mozmillModule);
 
   utils.waitFor(function() {
-    return window != null && (window.documentLoaded != undefined);
+    return window != null &&
+           ("documentLoaded" in window) &&
+           window.documentLoaded;
   }, "controller(): Window could not be initialized.");
 
   if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined ) {
@@ -1221,24 +1223,19 @@ function browserAdditions (controller) {
 
     // Find the browser element for the given aTabDocument
     if (aTabDocument && typeof(aTabDocument) == "object") {
-      for each (var browser in this.window.gBrowser.browsers) {
-        if (browser.contentDocument == aTabDocument) {
-          tab = browser;
-          break;
-        }
-      }
+      tab = this.window.gBrowser.getBrowserForDocument(aTabDocument);
 
       if (!tab) {
         throw new Error("controller.waitForPageLoad(): Specified tab hasn't been found.");
       }
     }
 
-    // If tab hasn't been specified, fallback to selected browser
-    tab = this.window.gBrowser.selectedBrowser;
+    // If no tab has been specified, fallback to the selected browser
+    tab = tab || this.window.gBrowser.selectedBrowser;
 
     // Wait until the content in the tab has been loaded
     this.waitFor(function() {
-      return tab.contentDocument.documentLoaded;
+      return ("documentLoaded" in tab && tab.documentLoaded);
     }, "controller.waitForPageLoad(): Timeout waiting for page loaded.", timeout, aInterval);
 
     frame.events.pass({'function':'controller.waitForPageLoad()'});
