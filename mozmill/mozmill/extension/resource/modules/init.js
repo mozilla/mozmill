@@ -62,7 +62,8 @@ function attachEventListeners(window) {
     if (window.gBrowser) {
       // Page is ready
       window.gBrowser.addEventListener("load", function(event) {
-        event.target.documentLoaded = true;
+        var tab = window.gBrowser.getBrowserForDocument(event.target);
+        tab.documentLoaded = true;
       }, true);
  
       // Note: Error pages will never fire a "load" event. For those we
@@ -74,13 +75,16 @@ function attachEventListeners(window) {
         if (errorRegex.exec(event.target.baseURI)) {
           // Wait about 1s to be sure the DOM is ready
           mozmill.utils.sleep(1000);
-          event.target.documentLoaded = true;
+
+          var tab = window.gBrowser.getBrowserForDocument(event.target);
+          tab.documentLoaded = true;
         }
       }, true);
   
       // Page is about to get unloaded
       window.gBrowser.addEventListener("beforeunload", function(event) {
-        event.target.documentLoaded = false;
+        var tab = window.gBrowser.getBrowserForDocument(event.target);
+        tab.documentLoaded = false;
       }, true);
     }
   }, false);
