@@ -61,6 +61,7 @@ setup(name=PACKAGE_NAME,
       url='http://github.com/mozautomation/mozmill',
       license='MPL 1.1/GPL 2.0/LGPL 2.1',
       packages=find_packages(exclude=['legacy']),
+      zip_safe=False,
       entry_points="""
           [console_scripts]
           mozrunner = mozrunner:cli
