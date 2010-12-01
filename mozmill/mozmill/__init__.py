@@ -679,7 +679,8 @@ class MozMillRestart(MozMill):
             # XXX this allows for only one sub-level of test directories
             # is this a spec or a side-effect?
             # If the former, it should be documented
-            test_dirs = [d for d in os.listdir(testdir) 
+            test_dirs = [os.path.join(test_dir, d)
+                         for d in os.listdir(test_dir) 
                          if d.startswith('test') and os.path.isdir(os.path.join(test_dir, d))]
 
             if len(test_dirs):
@@ -692,7 +693,7 @@ class MozMillRestart(MozMill):
     def run_tests(self, tests, sleeptime=4):
 
         test_dirs = self.find_tests(tests)
-        self.tests.extend(tests_dirs)
+        self.tests.extend(test_dirs)
 
         for test_dir in test_dirs:
             self.run_dir(test_dir, sleeptime)
