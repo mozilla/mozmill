@@ -49,6 +49,8 @@ import traceback
 import urllib
 import urlparse
 
+from manifestdestiny import manifests
+
 try:
     import json
 except:
@@ -691,7 +693,7 @@ class CLI(jsbridge.CLI):
     module = "mozmill"
 
     parser_options = copy.copy(jsbridge.CLI.parser_options)
-    parser_options[("-t", "--test",)] = dict(dest="test", action='append',
+    parser_options[("-t", "--test",)] = dict(dest="test", action='append', default=[],
                                              help="Run test")
     parser_options[("-l", "--logfile",)] = dict(dest="logfile", default=None,
                                                 help="Log all events to file.")
@@ -705,6 +707,8 @@ class CLI(jsbridge.CLI):
     parser_options[("--timeout",)] = dict(dest="timeout", type="float",
                                           default=60., 
                                           help="seconds before harness timeout if no communication is taking place")
+    parser_options[("-m", "--manifest")] = dict(dest='manifests', action='append',
+                                                help='test manifest .ini file')
 
     def __init__(self, *args, **kwargs):
         jsbridge.CLI.__init__(self, *args, **kwargs)
@@ -714,14 +718,23 @@ class CLI(jsbridge.CLI):
                                           jsbridge_timeout=self.options.timeout,
                                           )
 
-        # expand user directory and check existence for the tests
         self.tests = []
+
+        # read tests from manifests
+        if self.options.manifests:
+            manifest_parser = manifests.TestManifest(manifests=self.options.manifests)
+            # check to ensure there are no missing tests
+            # not sure what to do if there are
+            assert not manifest_parser.missing()
+
+            self.tests.extend(manifest_parser.test_paths())
+
+        # expand user directory and check existence for the tests
         for test in self.options.test:
             test = os.path.abspath(os.path.expanduser(test))
             if not os.path.exists(test):
                 raise IOError("Not a valid test file/directory: '%s'" % test)
             self.tests.append(test)
-
 
         # setup log formatting
         self.mozmill.add_global_listener(LoggerListener())
