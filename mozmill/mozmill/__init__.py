@@ -248,6 +248,29 @@ class MozMill(object):
         # XXX assumes run_tests will be called soon after (currently true)
         self.starttime = datetime.utcnow()
 
+    def find_tests(self, tests, files=None):
+        if files is None:
+            files = []
+        for test in tests:
+
+            # tests have to be absolute paths, for some reason
+            test = os.path.abspath(test)
+            
+            if os.path.isdir(test):
+                for f in os.listdir(directory):
+                    if not f.startswith('test'):
+                        continue
+                    path = os.path.join(directory, f)
+                    if os.path.isdir(path):
+                        files.extend(self.find_tests([path], files))
+                    else:
+                        if f.endswith('.js') and path not in files:
+                            files.append(path)
+            else:
+                files.append(test)
+        return files
+
+
     def run_tests(self, tests, sleeptime=4):
         """
         run test files or directories
@@ -255,9 +278,7 @@ class MozMill(object):
         - sleeptime : initial time to sleep [s] (not sure why the default is 4)
         """
 
-        # Reset our Zombie Because we are still active
-        #self.zombieDetector.resetTimer()
-
+        tests = self.find_tests(tests)
         self.tests.extend(tests)
 
         frame = jsbridge.JSObject(self.bridge,
@@ -267,12 +288,9 @@ class MozMill(object):
         # transfer persisted data
         frame.persisted = self.persisted
 
+        # run the test files
         for test in tests:
-            # run the test directory or file
-            if os.path.isdir(test):
-                frame.runTestDirectory(test)
-            else:
-                frame.runTestFile(test)
+            frame.runTestFile(test)
 
         # Give a second for any callbacks to finish.
         sleep(1)
@@ -643,25 +661,41 @@ class MozMillRestart(MozMill):
         if extension_path not in profile.addons:
             profile.install_addon(extension_path)
         profile.set_preferences(profile.preferences)
-    
-    def run_tests(self, tests, sleeptime=4):
 
-        self.tests.extend(tests)
+    def find_tests(self, tests):
+        files = []
+
+        # make sure these are all directories
+        not_dir = [ i for i in tests
+                    if not os.path.isdir(i) ]
+        if not_dir:
+            raise IOError('Restart tests must be directories (%s)' % ', '.join(not_dir))
 
         for test_dir in tests:
-            
+
+            # tests have to be absolute paths, for some reason
+            test_dir = os.path.abspath(test_dir)
+
             # XXX this allows for only one sub-level of test directories
             # is this a spec or a side-effect?
             # If the former, it should be documented
-            test_dirs = [d for d in os.listdir(os.path.abspath(os.path.expanduser(test_dir))) 
+            test_dirs = [d for d in os.listdir(testdir) 
                          if d.startswith('test') and os.path.isdir(os.path.join(test_dir, d))]
-            self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
-            if not len(test_dirs):
-                test_dirs = [test_dir]
 
-            for d in test_dirs:
-                d = os.path.abspath(os.path.join(test_dir, d))
-                self.run_dir(d, sleeptime)
+            if len(test_dirs):
+                files.extend(test_dirs)
+            else:
+                files.append(test_dir)
+
+        return files
+    
+    def run_tests(self, tests, sleeptime=4):
+
+        test_dirs = self.find_tests(tests)
+        self.tests.extend(tests_dirs)
+
+        for test_dir in test_dirs:
+            self.run_dir(test_dir, sleeptime)
 
         # cleanup the profile
         self.runner.profile.cleanup()
@@ -685,6 +719,7 @@ class MozMillRestart(MozMill):
                 self.runner.profile.cleanup()
             except:
                 pass
+
                     
 
 
@@ -723,18 +758,20 @@ class CLI(jsbridge.CLI):
         # read tests from manifests
         if self.options.manifests:
             manifest_parser = manifests.TestManifest(manifests=self.options.manifests)
-            # check to ensure there are no missing tests
-            # not sure what to do if there are
-            assert not manifest_parser.missing()
 
             self.tests.extend(manifest_parser.test_paths())
 
-        # expand user directory and check existence for the tests
+        # expand user directory for individual tests
         for test in self.options.test:
-            test = os.path.abspath(os.path.expanduser(test))
-            if not os.path.exists(test):
-                raise IOError("Not a valid test file/directory: '%s'" % test)
+            test = os.path.expanduser(test)
             self.tests.append(test)
+                
+        # check existence for the tests
+        missing = [ test for test in self.tests
+                    if not os.path.exists(test) ]
+        if missing:
+            raise IOError("Not a valid test file/directory: %s" % ', '.join(["'%s'" % test for test in missing]))
+
 
         # setup log formatting
         self.mozmill.add_global_listener(LoggerListener())
