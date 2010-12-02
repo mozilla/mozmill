@@ -96,7 +96,7 @@ class MozMill(object):
         self.shutdownModes = enum('default', 'user_shutdown', 'user_restart')
         self.currentShutdownMode = self.shutdownModes.default
         self.userShutdownEnabled = False
-        self.test = None
+        self.tests = []
 
         # test time
         self.starttime = self.endtime = None
@@ -199,14 +199,14 @@ class MozMill(object):
 
         self.starttime = datetime.utcnow()
 
-    def run_tests(self, test, sleeptime=4):
+    def run_tests(self, tests, sleeptime=4):
         """
         run a test file or directory
-        - test : test file or directory to run
+        - tests : test files or directories to run
         - sleeptime : initial time to sleep [s] (not sure why the default is 4)
         """
 
-        self.test = test
+        self.tests.extend(tests)
 
         frame = jsbridge.JSObject(self.bridge,
                                   "Components.utils.import('resource://mozmill/modules/frame.js')")
@@ -215,19 +215,21 @@ class MozMill(object):
         # transfer persisted data
         frame.persisted = self.persisted
 
-        # run the test directory or file
-        if os.path.isdir(test):
-            frame.runTestDirectory(test)
-        else:
-            frame.runTestFile(test)
+        for test in tests:
+            # run the test directory or file
+            if os.path.isdir(test):
+                frame.runTestDirectory(test)
+            else:
+                frame.runTestFile(test)
 
         # Give a second for any callbacks to finish.
         sleep(1)
-    def run(self, test):
+        
+    def run(self, tests):
         """run the tests"""
         disconnected = False
         try:
-            self.run_tests(test)
+            self.run_tests(tests)
         except JSBridgeDisconnectError:
             disconnected = True
             if not self.userShutdownEnabled:
@@ -428,22 +430,27 @@ class MozMillRestart(MozMill):
             profile.install_addon(extension_path)
         profile.set_preferences(profile.preferences)
     
-    def run_tests(self, test_dir, sleeptime=4):
+    def run_tests(self, tests, sleeptime=4):
 
-        self.test = test_dir
-
-        # XXX this allows for only one sub-level of test directories
-        # is this a spec or a side-effect?
-        # If the former, it should be documented
-        test_dirs = [d for d in os.listdir(os.path.abspath(os.path.expanduser(test_dir))) 
-                     if d.startswith('test') and os.path.isdir(os.path.join(test_dir, d))]
+        # XXX should document what this does...it seems out of place
         self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
-        if not len(test_dirs):
-            test_dirs = [test_dir]
 
-        for d in test_dirs:
-            d = os.path.abspath(os.path.join(test_dir, d))
-            self.run_dir(d, sleeptime)
+        self.tests.extend(tests)
+
+        for test_dir in tests:
+
+            # XXX this allows for only one sub-level of test directories
+            # is this a spec or a side-effect?
+            # If the former, it should be documented
+            test_dirs = [d for d in os.listdir(os.path.abspath(os.path.expanduser(test_dir))) 
+                         if d.startswith('test') and os.path.isdir(os.path.join(test_dir, d))]
+
+            if not len(test_dirs):
+                test_dirs = [test_dir]
+
+            for d in test_dirs:
+                d = os.path.abspath(os.path.join(test_dir, d))
+                self.run_dir(d, sleeptime)
 
         # cleanup the profile
         self.runner.profile.cleanup()
@@ -501,17 +508,19 @@ class CLI(jsbridge.CLI):
                                           )
 
         # expand user directory and check existence for the test
-        if self.options.test:
-            self.options.test = os.path.abspath(os.path.expanduser(self.options.test))
-            if ( ( not os.path.isdir(self.options.test) )
-                 and ( not os.path.isfile(self.options.test) ) ):
+        self.tests = []
+        for test in self.options.tests:
+            test = os.path.abspath(os.path.expanduser(test))
+            if not os.path.exists(test):
                 raise Exception("Not a valid test file/directory")
+            self.tests.append(test)
 
     def add_options(self, parser):
         jsbridge.CLI.add_options(self, parser)
 
-        parser.add_option("-t", "--test", dest="test", default=None, 
-                          help='Run test file or directory')
+        parser.add_option("-t", "--test", dest="tests",
+                          action='append', default=[], 
+                          help='Run test')
         parser.add_option("--timeout", dest="timeout", type="float",
                           default=60., 
                           help="seconds before harness timeout if no communication is taking place")
@@ -551,8 +560,8 @@ class CLI(jsbridge.CLI):
         # start your mozmill
         self.mozmill.start(runner=runner)
 
-        if self.options.test:
-            self.mozmill.run(self.options.test)
+        if self.tests:
+            self.mozmill.run(self.tests)
         else:
             # TODO: document use case
             # probably take out of this function entirely

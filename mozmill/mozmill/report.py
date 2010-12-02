@@ -84,7 +84,6 @@ class Report(object):
               'time_start': self.mozmill.starttime.strftime(self.date_format),
               'time_end': self.mozmill.endtime.strftime(self.date_format),
               'time_upload': 'n/a',
-              'root_path': self.mozmill.test,
               'tests_passed': len(self.mozmill.passes),
               'tests_failed': len(self.mozmill.fails),
               'tests_skipped': len(self.mozmill.skipped),
