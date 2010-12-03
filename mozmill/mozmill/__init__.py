@@ -41,7 +41,6 @@ import imp
 import os
 import socket
 import sys
-import threading
 import traceback
 
 import jsbridge
@@ -51,17 +50,57 @@ import mozprofile
 import handlers
 
 from datetime import datetime, timedelta
+from manifestdestiny import manifests
 from time import sleep
 
+# metadata
 basedir = os.path.abspath(os.path.dirname(__file__))
-
 extension_path = os.path.join(basedir, 'extension')
-
 mozmillModuleJs = "Components.utils.import('resource://mozmill/modules/mozmill.js')"
 
 class TestsFailedException(Exception):
     """exception to be raised when the tests fail"""
     # XXX unused
+
+class TestResults(object):
+    """
+    accumulate test results for Mozmill
+    """
+    def __init__(self):
+        self.passes = []
+        self.fails = []
+        self.skipped = []
+        self.alltests = []
+
+        # total test run time
+        # TODO: these endpoints are a bit vague as to where they live
+        self.starttime = datetime.now()
+        self.endtime = None
+
+    def events(self):
+        """events the MozMill class will dispatch to"""
+        return {'mozmill.endTest': self.endTest_listener}
+
+    def stop(self, handlers, fatal=False):
+        """do final reporting and such"""
+        self.endtime = datetime.utcnow()
+
+        # handle stop events
+        for handler in handlers:
+            if hasattr(handler, 'stop'):
+                handler.stop(self, fatal)
+
+    ### event listener
+
+    def endTest_listener(self, test):
+        self.alltests.append(test)
+        if test.get('skipped', False):
+            self.skipped.append(test)
+        elif test['failed'] > 0:
+            self.fails.append(test)
+        else:
+            self.passes.append(test)
+
 
 class MozMill(object):
     """
@@ -76,45 +115,41 @@ class MozMill(object):
     run different sets of tests, create a new instantiation of MozMill
     """
 
-    def __init__(self, jsbridge_port=24242, jsbridge_timeout=60, handlers=()):
+    def __init__(self, results, jsbridge_port=24242, jsbridge_timeout=60, handlers=()):
         """
+        - results : a TestResults instance to accumulate results
         - jsbridge_port : port jsbridge uses to connect to to the application
         - jsbridge_timeout : how long to go without jsbridge communication
         - handlers : pluggable event handler
         """
 
+        # put your data here
+        self.results = results 
+
         # jsbridge parameters
         self.jsbridge_port = jsbridge_port
         self.jsbridge_timeout = jsbridge_timeout
 
-        # test parameters: filled in from event system
-        self.passes = [] ; self.fails = [] ; self.skipped = []
-        self.alltests = []
-
+        # persisted data
         self.persisted = {}
-        self.endRunnerCalled = False
+
+        # shutdown parameters
         self.shutdownModes = enum('default', 'user_shutdown', 'user_restart')
         self.currentShutdownMode = self.shutdownModes.default
         self.userShutdownEnabled = False
-        self.tests = []
-
-        # test time
-        self.starttime = self.endtime = None
 
         # setup event listeners
         self.global_listeners = []
         self.listeners = []
         self.add_listener(self.persist_listener, eventType="mozmill.persist")
-        self.add_listener(self.endTest_listener, eventType='mozmill.endTest')
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
         self.add_listener(self.startTest_listener, eventType='mozmill.setTest')
         self.add_listener(self.userShutdown_listener, eventType='mozmill.userShutdown')
 
         # add listeners for event handlers
-        # XXX should be done in a better way
-        self.handlers = handlers
+        self.handlers = [results]
+        self.handlers.extend(handlers)
         for handler in self.handlers:
-            handler.mozmill = self # XXX bad touch
             for event, method in handler.events().items():
                 self.add_listener(method, eventType=event)
             if hasattr(handler, '__call__'):
@@ -129,17 +164,9 @@ class MozMill(object):
 
     def persist_listener(self, obj):
         self.persisted = obj
+
     def startTest_listener(self, test):
         self.current_test = test
-
-    def endTest_listener(self, test):
-        self.alltests.append(test)
-        if test.get('skipped', False):
-            self.skipped.append(test)
-        elif test['failed'] > 0:
-            self.fails.append(test)
-        else:
-            self.passes.append(test)
 
     def endRunner_listener(self, obj):
         self.endRunnerCalled = True
@@ -173,6 +200,7 @@ class MozMill(object):
         self.fire_python_callback(obj['method'], obj['arg'], python_callbacks_module)
 
     ### methods for startup
+
     def create_network(self):
 
         # get the bridge and the back-channel
@@ -189,15 +217,17 @@ class MozMill(object):
             self.back_channel.add_global_listener(global_listener)
 
     def start(self, runner):
+        """prepare to run the tests"""
+        
         self.runner = runner
         self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
         self.endRunnerCalled = False
         
         self.runner.start()
         self.create_network()
-        self.appinfo = self.get_appinfo(self.bridge)
 
-        self.starttime = datetime.utcnow()
+        self.results.appinfo = self.get_appinfo(self.bridge)
+
 
     def run_tests(self, tests, sleeptime=4):
         """
@@ -205,8 +235,6 @@ class MozMill(object):
         - tests : test files or directories to run
         - sleeptime : initial time to sleep [s] (not sure why the default is 4)
         """
-
-        self.tests.extend(tests)
 
         frame = jsbridge.JSObject(self.bridge,
                                   "Components.utils.import('resource://mozmill/modules/frame.js')")
@@ -238,16 +266,14 @@ class MozMill(object):
         # shutdown the test harness
         self.stop(fatal=disconnected)
 
-        # exit (could be moved up to CLI)
-        if self.fails or disconnected:
-            sys.exit(1)
+        if disconnected:
+            # raise the disconnect error
+            raise
 
     def get_appinfo(self, bridge):
         """ Collect application specific information """
-
         mozmill = jsbridge.JSObject(bridge, mozmillModuleJs)
         appInfo = mozmill.appInfo
-
         results = {'application_id': str(appInfo.ID),
                    'application_name': str(appInfo.name),
                    'application_version': str(appInfo.version),
@@ -255,10 +281,11 @@ class MozMill(object):
                    'platform_buildid': str(appInfo.platformBuildID),
                    'platform_version': str(appInfo.platformVersion),
                   }
-
+        results.update(self.runner.get_repositoryInfo())
         return results
 
     ### methods for shutting down and cleanup
+    
     def report_disconnect(self):
         test = self.current_test
         test['passes'] = []
@@ -269,8 +296,11 @@ class MozMill(object):
         }]
         test['passed'] = 0
         test['failed'] = 1
-        self.alltests.append(test)
-        self.fails.append(test)
+
+        # send to self.results
+        # XXX bad touch
+        self.results.alltests.append(test)
+        self.results.fails.append(test)
 
     def stop_runner(self, timeout=30, close_bridge=False, hard=False):
         sleep(1)
@@ -292,8 +322,7 @@ class MozMill(object):
                 self.runner.wait()
         else: # TODO: unify this logic with the above better
             if hard:
-                self.runner.kill()
-                self.runner.profile.cleanup()
+                self.runner.cleanup()
                 return
 
             # XXX this call won't actually finish in the specified timeout time
@@ -309,29 +338,18 @@ class MozMill(object):
                 x += 1
             else:
                 print "WARNING | endRunner was never called. There must have been a failure in the framework."
-                self.runner.stop()
-                self.runner.profile.cleanup()
+                self.runner.cleanup()
                 sys.exit(1)
 
     def stop(self, fatal=False):
-        """cleanup"""
-        # record test end time
-        self.endtime = datetime.utcnow()
-
-        # handle stop events
-        for handler in self.handlers:
-            if hasattr(handler, 'stop'):
-                handler.stop(fatal)
+        """cleanup and invoking of final handlers"""
 
         # stop the runner
         self.stop_runner(timeout=10, close_bridge=True, hard=fatal)
 
-        # cleanup the profile if you need to
+        # cleanup 
         if self.runner is not None:
-            try:
-                self.runner.profile.cleanup()
-            except OSError:
-                pass # assume profile is already cleaned up
+            self.runner.cleanup()
 
 class MozMillRestart(MozMill):
 
@@ -344,8 +362,6 @@ class MozMillRestart(MozMill):
         self.runner = runner
         self.endRunnerCalled = False
         self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
-
-        self.starttime = datetime.utcnow()
      
     def firePythonCallback_listener(self, obj):
         if obj['fire_now']:
@@ -360,7 +376,7 @@ class MozMillRestart(MozMill):
             self.runner.start()
 
         self.create_network()
-        self.appinfo = self.get_appinfo(self.bridge)
+        self.results.appinfo = self.get_appinfo(self.bridge)
         frame = jsbridge.JSObject(self.bridge,
                                   "Components.utils.import('resource://mozmill/modules/frame.js')")
         return frame
@@ -379,7 +395,7 @@ class MozMillRestart(MozMill):
             tests = [pre_test, post_test]
         else:
             if not os.path.isfile(os.path.join(test_dir, 'test1.js')):
-                print "Skipping "+test_dir+" does not contain any known test file names"
+                print "Skipping "+test_dir+": does not contain any known test file names"
                 return
             tests = []
             counter = 1
@@ -418,6 +434,8 @@ class MozMillRestart(MozMill):
         self.python_callbacks_module = None    
         
         # Reset the profile.
+        # XXX profile should have a method just to clone:
+        # https://bugzilla.mozilla.org/show_bug.cgi?id=585106
         profile = self.runner.profile
         profile.cleanup()
         if profile.create_new:
@@ -435,8 +453,6 @@ class MozMillRestart(MozMill):
         # XXX should document what this does...it seems out of place
         self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
 
-        self.tests.extend(tests)
-
         for test_dir in tests:
 
             # XXX this allows for only one sub-level of test directories
@@ -453,7 +469,7 @@ class MozMillRestart(MozMill):
                 self.run_dir(d, sleeptime)
 
         # cleanup the profile
-        self.runner.profile.cleanup()
+        self.runner.cleanup()
 
         # Give a second for any pending callbacks to finish
         sleep(1) 
@@ -461,59 +477,42 @@ class MozMillRestart(MozMill):
     def stop(self, fatal=False):
         """MozmillRestart doesn't need to do cleanup as this is already done per directory"""
 
-        # XXX this is a one-off to fix bug 581733
-        # really, the entire shutdown sequence should be reconsidered and
-        # made more robust. 
-        # See https://bugzilla.mozilla.org/show_bug.cgi?id=581733#c20
-        # This will *NOT* work with all edge cases and it shouldn't be
-        # expected that adding on more kills() for each edge case will ever
-        # be able to fix a systematic issue by patching holes
         if fatal:
-            try:
-                self.runner.kill()
-                self.runner.profile.cleanup()
-            except:
-                pass
-        # and, note, we're already paying for it!
-        # now I need to call Mozmill.stop but of course I can't
-        # and since cut + paste is evil I'll actually have to figure
-        # out what we should be doing here
-                    
+            self.runner.cleanup()
 
 
 class CLI(jsbridge.CLI):
+    """command line interface to mozmill"""
+    
     module = "mozmill"
 
     def __init__(self, args):
+
         # add and parse options
         jsbridge.CLI.__init__(self, args)
 
-        # decide whether we're running in restart mode or not
-        if self.options.restart:
-            self.mozmill_class = MozMillRestart
-        else:
-            self.mozmill_class = MozMill
-
         # instantiate plugins
-        event_handlers = []
+        self.event_handlers = []
         for cls in handlers.handlers():
             handler = handlers.instantiate_handler(cls, self.options)
             if handler is not None:
-                event_handlers.append(handler)
+                self.event_handlers.append(handler)
 
-        # create a mozmill
-        self.mozmill = self.mozmill_class(jsbridge_port=int(self.options.port),                                  
-                                          jsbridge_timeout=self.options.timeout,
-                                          handlers=event_handlers
-                                          )
+        # read tests from manifests (if any)
+        self.manifest = manifests.TestManifest(manifests=self.options.manifests)
 
         # expand user directory and check existence for the test
-        self.tests = []
         for test in self.options.tests:
-            test = os.path.abspath(os.path.expanduser(test))
+            test = os.path.expanduser(test)
             if not os.path.exists(test):
                 raise Exception("Not a valid test file/directory")
-            self.tests.append(test)
+
+            # construct metadata for test
+            test_dict = { 'test': test, 'path': os.path.abspath(test) }
+            if self.options.restart:
+                test_dict['type'] = 'restart'
+            
+            self.manifest.tests.append(test_dict)
 
     def add_options(self, parser):
         jsbridge.CLI.add_options(self, parser)
@@ -527,6 +526,8 @@ class CLI(jsbridge.CLI):
         parser.add_option("--restart", dest='restart', action='store_true',
                           default=False,
                           help="operate in restart mode")
+        parser.add_option("-m", "--manifest", dest='manifests', action='append',
+                          help='test manifest .ini file')
 
         for cls in handlers.handlers():
             cls.add_options(parser)
@@ -552,32 +553,78 @@ class CLI(jsbridge.CLI):
         if '-foreground' not in runner_args['cmdargs']:
             runner_args['cmdargs'].append('-foreground')
         return runner_args
+
+    def run_tests(self, mozmill_cls, tests, runner, results):
+        """
+        instantiate a mozmill object and run its tests
+        - mozmill_cls : class of Mozmill to instantiate (either MozMill or MozMillRestart)
+        - tests : test paths to run
+        - runner : instance of a MozRunner
+        """
+
+        # create a mozmill
+        mozmill = mozmill_cls(results,
+                              jsbridge_port=self.options.port,
+                              jsbridge_timeout=self.options.timeout,
+                              handlers=self.event_handlers
+                              )
+
+        # start your mozmill
+        mozmill.start(runner=runner)
+
+        # run the tests
+        mozmill.run(tests)
+
         
     def run(self):
+
+        # find the tests to run
+        normal_tests = []
+        restart_tests = []
+        for test in self.manifest.active_tests():
+            if test.get('type') == 'restart':
+                restart_tests.append(test['path'])
+            else:
+                normal_tests.append(test['path'])
+            # TODO: should probably pass the whole test, maybe?
+
+        # make sure you have tests to run
+        if not (normal_tests or restart_tests):
+            self.parser.error("No tests found. Please specify tests with -t or -m")
+
+        # create a place to put results
+        results = TestResults()
+        
         # create a Mozrunner
         runner = self.create_runner()
 
-        # start your mozmill
-        self.mozmill.start(runner=runner)
 
-        if self.tests:
-            self.mozmill.run(self.tests)
-        else:
-            # TODO: document use case
-            # probably take out of this function entirely
-            if self.options.shell:
-                self.start_shell(runner)
-            else:
-                try:
-                    if not hasattr(runner, 'process_handler'):
-                        runner.start()
-                    runner.wait()
-                except KeyboardInterrupt:
-                    runner.stop()
+        # run the tests
+        e = None # runtime exception
+        try:
+            if normal_tests:
+                self.run_tests(MozMill, normal_tests, runner, results)
+                
+            if restart_tests:
+                self.run_tests(MozMillRestart, restart_tests, runner)
 
-            if self.mozmill.runner is not None:
-                self.mozmill.runner.profile.cleanup()
-    
+        except Exception, e:
+            runner.cleanup() # cleanly shutdown
+            raise
+
+        # do whatever reporting you're going to do
+        results.stop(self.event_handlers)
+
+        # exit on bad stuff happen
+        if e:
+            raise
+        if results.fails:
+            sys.exit(1)
+
+        # return results on success [currently unused]
+        return results
+        
+
 def enum(*sequential, **named):
     # XXX to deprecate
     enums = dict(zip(sequential, range(len(sequential))), **named)

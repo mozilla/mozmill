@@ -1,3 +1,7 @@
+"""
+logging event listener for Mozmill
+"""
+
 try:
     import json
 except:
@@ -10,6 +14,8 @@ class LoggerListener(object):
   ### methods for the EventHandler interface
 
   def __init__(self, showerrors=False, showall=False, logfile=None):
+
+    # initialize the logger
     self.logger = logging.getLogger('mozmill')
     log_options = { 'format': "%(levelname)s | %(message)s",
                     'level': logging.CRITICAL }
@@ -56,15 +62,15 @@ class LoggerListener(object):
     return { 'mozmill.setTest': self.startTest,
              'mozmill.endTest': self.endTest }
 
-  def stop(self, fatal):
+  def stop(self, results, fatal):
     """print pass/failed/skipped statistics"""
 
     if fatal:
       print 'TEST-UNEXPECTED-FAIL | Disconnect Error: Application unexpectedly closed'
     
-    print "INFO Passed: %d" % len(self.mozmill.passes)
-    print "INFO Failed: %d" % len(self.mozmill.fails)
-    print "INFO Skipped: %d" % len(self.mozmill.skipped)
+    print "INFO Passed: %d" % len(results.passes)
+    print "INFO Failed: %d" % len(results.fails)
+    print "INFO Skipped: %d" % len(results.skipped)
 
   ### event listeners
 

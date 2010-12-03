@@ -107,7 +107,8 @@ class CLI(mozrunner.CLI):
                           help="Use code module instead of iPython",
                           default=False)
         
-        parser.add_option('-P', '--port', dest="port", default="24242",
+        parser.add_option('-P', '--port', dest="port", type="int",
+                          default=24242,
                           help="TCP port to run jsbridge on.")
 
     def profile_args(self):
@@ -118,11 +119,13 @@ class CLI(mozrunner.CLI):
         return profile_args
 
     def runner_args(self):
+        """additional arguments for mozrunner"""
+        
         if self.options.debug:
             cmdargs = [ '-jsconsole' ]
         else:
             cmdargs = []
-        cmdargs += ['-jsbridge', self.options.port]
+        cmdargs += ['-jsbridge', '%d' % self.options.port]
         return dict(cmdargs=cmdargs)
         
     def run(self):
@@ -162,7 +165,7 @@ class CLI(mozrunner.CLI):
         runner.stop()
         
     def start_jsbridge_network(self, timeout=10):
-        port = int(self.options.port)
+        port = self.options.port
         host = '127.0.0.1'
         self.back_channel, self.bridge = wait_and_create_network(host, port, timeout)
 

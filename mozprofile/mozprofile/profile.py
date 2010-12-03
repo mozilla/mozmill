@@ -199,10 +199,13 @@ class Profile(object):
     def cleanup(self):
         """Cleanup operations on the profile."""
         if self.create_new:
-            rmtree(self.profile)
+            if os.path.exists(self.profile):
+                rmtree(self.profile)
         else:
             self.clean_preferences()
             self.clean_addons()
+
+    __del__ = cleanup
 
 class FirefoxProfile(Profile):
     """Specialized Profile subclass for Firefox"""

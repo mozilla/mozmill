@@ -64,7 +64,7 @@ setup(name=PACKAGE_NAME,
           report = mozmill.report:Report
         """,
       platforms =['Any'],
-      install_requires = ['jsbridge == 3.0a', 'mozrunner == 3.0a'],
+      install_requires = ['jsbridge == 3.0a', 'mozrunner == 3.0a', 'ManifestDestiny >= 0.1'],
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Console',
                    'Intended Audience :: Developers',

@@ -68,33 +68,33 @@ class Report(object):
     parser.add_option("--report", dest="report", default=None,
                       help="Report the results. Requires url to results server. Use 'stdout' for stdout.")
 
-  def stop(self, fatal):
+  def stop(self, results, fatal=False):
     results = self.get_report()
     return self.send_report(results, self.report)
 
   def report_type(self):
+    return 'NotImplementedError'
+    # XXX NOT SURE WHAT TO DO HERE
+    # if you're reporting across mozmill and mozmill-restart tests ...
+    # maybe this should live with the test metadata? ::shrug::
     mapping = {'MozMill': 'mozmill-test',
                'MozMillRestart': 'mozmill-restart-test',}
     return mapping[self.mozmill.__class__.__name__]
 
-  def get_report(self):
+  def get_report(self, results):
     """get the report results"""
 
     report = {'report_type': self.report_type(),
-              'time_start': self.mozmill.starttime.strftime(self.date_format),
-              'time_end': self.mozmill.endtime.strftime(self.date_format),
+              'time_start': results.starttime.strftime(self.date_format),
+              'time_end': results.endtime.strftime(self.date_format),
               'time_upload': 'n/a',
-              'tests_passed': len(self.mozmill.passes),
-              'tests_failed': len(self.mozmill.fails),
-              'tests_skipped': len(self.mozmill.skipped),
-              'results': self.mozmill.alltests
+              'tests_passed': len(results.passes),
+              'tests_failed': len(results.fails),
+              'tests_skipped': len(results.skipped),
+              'results': results.alltests
               }
 
-    report.update(self.mozmill.appinfo)
-
-    # XXX too many dots!  bad touch!
-    report.update(self.mozmill.runner.get_repositoryInfo())
-
+    report.update(results.appinfo)
     report['system_info'] = get_platform_information()
     
     return report
