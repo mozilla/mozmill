@@ -36,7 +36,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["Elem", "ID", "Link", "XPath", "Name", "Anon", "AnonXPath",
+var EXPORTED_SYMBOLS = ["Elem", "ID", "Link", "XPath", "Selector", "Name", "Anon", "AnonXPath",
                         "Lookup", "_byID", "_byName", "_byAttrib", "_byAnonAttrib",
                        ];
 
@@ -100,30 +100,31 @@ ElemBase.prototype.exists = function() {
   if (this.getNode()){ return true; }
   else{ return false; }
 }
-ElemBase.prototype.nodeSearch = function(d, func, s) {
-    var win = d.defaultView;
+ElemBase.prototype.nodeSearch = function(doc, func, string) {
+    var win = doc.defaultView;
     var e = null;
     var element = null;
     //inline function to recursively find the element in the DOM, cross frame.
-    var recurse = function(w, func, s){
-     if (w == null){
+    var search = function(win, func, string) {
+     if (win == null)
        return;
-     }
+
      //do the lookup in the current window
-     try{ element = func.call(w, s);}
-     catch(err){ element = null; }
+     try {
+       element = func.call(win, string);
+     }
+     catch(err) { }
      
-      if (!element){
-        var fc = w.frames.length;
-        var fa = w.frames;   
-        for (var i=0;i<fc;i++){
-          recurse(fa[i], func, s); 
+      if (!element || (element.length == 0)) {
+        var frames = win.frames;
+        for (var i=0; i < frames.length; i++) {
+          search(frames[i], func, string);
         }
      }
      else { e = element; }
     };
     
-    recurse(win, func, s);
+    search(win, func, string);
     
     return e;
 }
@@ -135,6 +136,28 @@ var Elem = function(node) {
 Elem.prototype = new utils.Copy(ElemBase.prototype);
 Elem.prototype.getNode = function () { return this.node; };
 Elem.prototype.getInfo = function () { return 'Elem instance.'; };
+
+
+var Selector = function(_document, selector) {
+  if (_document == undefined || selector == undefined) {
+    throw new Error('Selector constructor did not recieve enough arguments.');
+  }
+  this._document = _document;
+  this.selector = selector;
+  return this;
+}
+Selector.prototype = new utils.Copy(ElemBase.prototype);
+Selector.prototype.getInfo = function () {
+  return "Selector: " + this.selector;
+}
+Selector.prototype.getNodeForDocument = function (s) {
+  return this.document.querySelectorAll(s);
+}
+Selector.prototype.getNode = function (index) {
+  var nodes = this.nodeSearch(this._document, this.getNodeForDocument, this.selector);
+  return nodes ? nodes[index || 0] : null;
+}
+
 
 var ID = function(_document, nodeID) {
   if (_document == undefined || nodeID == undefined) {
