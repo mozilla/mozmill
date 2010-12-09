@@ -253,7 +253,7 @@ class MozMill(object):
             files = []
         for test in tests:
 
-            # tests have to be absolute paths, for some reason
+            # tests have to be absolute paths to be loaded from JS
             test = os.path.abspath(test)
             
             if os.path.isdir(test):
