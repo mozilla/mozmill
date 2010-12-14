@@ -385,7 +385,7 @@ class MozMill(object):
             system = os.environ.get("OS", system).replace('_', ' ')
             service_pack = os.sys.getwindowsversion()[4]
         elif system == "Linux":
-            (distro, version, codename) = platform.linux_distribution()
+            (distro, version, codename) = platform.dist()
             version = distro + " " + version
             if not processor:
                 processor = machine
