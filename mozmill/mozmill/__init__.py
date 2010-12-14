@@ -155,6 +155,9 @@ class MozMill(object):
             if hasattr(handler, '__call__'):
                 self.add_global_listener(handler)
 
+        # disable the crashreporter
+        os.environ['MOZ_CRASHREPORTER_NO_REPORT'] = '1'
+
     ### methods for listeners
     def add_listener(self, callback, **kwargs):
         self.listeners.append((callback, kwargs,))

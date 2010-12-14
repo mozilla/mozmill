@@ -47,15 +47,14 @@ import ConfigParser
 
 from utils import findInPath
 from mozprocess import killableprocess
-from mozprocess.kill import kill_process_by_name
 from mozprocess.pid import get_pids
 from mozprofile import *
 
 class Runner(object):
     """Handles all running operations. Finds bins, runs and kills the process."""
 
-    def __init__(self, profile, binary=None, cmdargs=None, env=None,
-                 aggressively_kill=('crashreporter',), kp_kwargs=None): 
+    def __init__(self, profile, binary=None, cmdargs=None, env=None, kp_kwargs=None):
+                 
         self.binary = Runner.get_binary(binary)
 
         if not os.path.exists(self.binary):
@@ -70,7 +69,6 @@ class Runner(object):
             self.env.update({'MOZ_NO_REMOTE':'1',})
         else:
             self.env = env
-        self.aggressively_kill = aggressively_kill
         self.kp_kwargs = kp_kwargs or {}
         self.process_handler = None
 
@@ -199,9 +197,6 @@ class Runner(object):
                 self.process_handler.kill(group=True)
             except Exception, e:
                 raise Exception('Cannot kill process, '+type(e).__name__+' '+e.message)
-
-        for name in self.aggressively_kill:
-            kill_process_by_name(name)
 
     def cleanup(self):
         self.stop()
