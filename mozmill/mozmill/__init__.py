@@ -176,6 +176,9 @@ class MozMill(object):
         self.add_listener(self.startTest_listener, eventType='mozmill.setTest')
         self.add_listener(self.userShutdown_listener, eventType='mozmill.userShutdown')
 
+        # disable the crashreporter
+        os.environ['MOZ_CRASHREPORTER_NO_REPORT'] = '1'
+
     def add_listener(self, callback, **kwargs):
         self.listeners.append((callback, kwargs,))
 
@@ -257,12 +260,13 @@ class MozMill(object):
             test = os.path.abspath(test)
             
             if os.path.isdir(test):
+                directory = test
                 for f in os.listdir(directory):
                     if not f.startswith('test'):
                         continue
                     path = os.path.join(directory, f)
                     if os.path.isdir(path):
-                        files.extend(self.find_tests([path], files))
+                        self.find_tests([path], files)
                     else:
                         if f.endswith('.js') and path not in files:
                             files.append(path)
