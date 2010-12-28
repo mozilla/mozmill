@@ -109,7 +109,8 @@ class CLI(mozrunner.CLI):
         if self.options.debug:
             kwargs.setdefault('preferences', {}).update({
               'extensions.checkCompatibility':False,
-              'devtools.errorconsole.enabled':True
+              'devtools.errorconsole.enabled':True,
+              'javascript.options.strict': True
             })
         profile = mozrunner.CLI.get_profile(self, *args, **kwargs)
         profile.install_addon(extension_path)
