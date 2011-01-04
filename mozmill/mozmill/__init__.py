@@ -252,7 +252,7 @@ class MozMill(object):
         return files
 
 
-    def run_tests(self, tests, sleeptime=4):
+    def run_tests(self, tests, sleeptime=0):
         """
         run test files or directories
         - test : test files or directories to run
@@ -574,7 +574,7 @@ class MozMillRestart(MozMill):
                                   "Components.utils.import('resource://mozmill/modules/frame.js')")
         return frame
 
-    def run_dir(self, test_dir, sleeptime=4):
+    def run_dir(self, test_dir, sleeptime=0):
         """run a directory of restart tests resetting the profile per directory"""
 
         # TODO:  document this behaviour!
@@ -667,7 +667,7 @@ class MozMillRestart(MozMill):
 
         return files
     
-    def run_tests(self, tests, sleeptime=4):
+    def run_tests(self, tests, sleeptime=0):
 
         test_dirs = self.find_tests(tests)
         self.tests.extend(test_dirs)
