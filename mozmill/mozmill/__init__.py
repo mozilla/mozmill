@@ -44,7 +44,6 @@ import imp
 import os
 import socket
 import sys
-import threading
 import traceback
 import urllib
 import urlparse
@@ -71,25 +70,6 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 extension_path = os.path.join(basedir, 'extension')
 
 mozmillModuleJs = "Components.utils.import('resource://mozmill/modules/mozmill.js')"
-
-class ZombieDetector(object):
-    """ Determines if the browser has stopped talking to us.  We assume that
-        if this happens the browser is in a hung state and the test run
-        should be terminated. """
-    # XXX currently unused ;
-    # see https://bugzilla.mozilla.org/show_bug.cgi?id=504440
-
-    def __init__(self, stopfunction):
-        self.stopfunction = stopfunction
-        self.doomsdayTimer = threading.Timer(1800, stopfunction) # 30 minutes
-        self.doomsdayTimer.start()
-
-    def resetTimer(self):
-        # Reset that timer
-        self.doomsdayTimer.cancel()
-        self.doomsdayTimer = threading.Timer(1800, self.stopfunction)
-        self.doomsdayTimer.start()
-
 
 class LoggerListener(object):
     cases = {
@@ -228,9 +208,6 @@ class MozMill(object):
 
     def start(self, profile=None, runner=None):
 
-        # Reset our Zombie counter
-        #self.zombieDetector.resetTimer()
-
         if not profile:
             profile = self.profile_class(addons=[jsbridge.extension_path, extension_path])
         self.profile = profile
@@ -304,9 +281,6 @@ class MozMill(object):
         print "TEST-START | %s | %s" % (test['filename'], test['name'])
 
     def endTest_listener(self, test):
-        # Reset our Zombie Counter because we are still active
-        #self.zombieDetector.resetTimer()
-
         self.alltests.append(test)
         if test.get('skipped', False):
             print "WARNING | %s | (SKIP) %s" % (test['name'], test.get('skipped_reason', ''))
@@ -505,7 +479,10 @@ class MozMill(object):
             mozmill.cleanQuit()
         except (socket.error, JSBridgeDisconnectError):
             pass
-
+        except:
+            self.runner.cleanup()
+            raise
+        
         if not close_bridge:
             starttime = datetime.utcnow()
             self.runner.wait(timeout=timeout)
@@ -518,8 +495,7 @@ class MozMill(object):
                 self.runner.wait()
         else: # TODO: unify this logic with the above better
             if hard:
-                self.runner.kill()
-                self.runner.profile.cleanup()
+                self.runner.cleanup()
                 return
 
             # XXX this call won't actually finish in the specified timeout time
@@ -535,8 +511,7 @@ class MozMill(object):
                 x += 1
             else:
                 print "WARNING | endRunner was never called. There must have been a failure in the framework."
-                self.runner.kill()
-                self.runner.profile.cleanup()
+                self.runner.cleanup()
                 sys.exit(1)
 
     def stop(self, fatal=False):
@@ -547,10 +522,8 @@ class MozMill(object):
 
         # cleanup the profile if you need to
         if self.runner is not None:
-            try:
-                self.runner.profile.cleanup()
-            except OSError:
-                pass # assume profile is already cleaned up
+            self.runner.cleanup()
+
 
 class MozMillRestart(MozMill):
 
@@ -703,7 +676,7 @@ class MozMillRestart(MozMill):
             self.run_dir(test_dir, sleeptime)
 
         # cleanup the profile
-        self.runner.profile.cleanup()
+        self.runner.cleanup()
 
         # Give a second for any pending callbacks to finish
         sleep(1) 
@@ -719,13 +692,7 @@ class MozMillRestart(MozMill):
         # expected that adding on more kills() for each edge case will ever
         # be able to fix a systematic issue by patching holes
         if fatal:
-            try:
-                self.runner.kill()
-                self.runner.profile.cleanup()
-            except:
-                pass
-
-                    
+            self.runner.cleanup()
 
 
 class CLI(jsbridge.CLI):
@@ -798,7 +765,6 @@ class CLI(jsbridge.CLI):
         return profile
 
     def run(self):
-        # XXX this is a complicated function that should probably be broken up
 
         # create a Mozrunner
         runner = self.create_runner()
@@ -806,8 +772,12 @@ class CLI(jsbridge.CLI):
         # make sure the application starts in the foreground
         if '-foreground' not in runner.cmdargs:
             runner.cmdargs.append('-foreground')
-            
-        self.mozmill.start(runner=runner, profile=runner.profile)
+
+        try:
+            self.mozmill.start(runner=runner, profile=runner.profile)
+        except:
+            runner.cleanup()
+            raise
 
         if self.tests:
 
@@ -820,6 +790,10 @@ class CLI(jsbridge.CLI):
                 if not self.mozmill.userShutdownEnabled:
                     self.mozmill.report_disconnect()               
                     print 'TEST-UNEXPECTED-FAIL | Disconnect Error: Application unexpectedly closed'
+                runner.cleanup()
+            except:
+                runner.cleanup()
+                raise
 
             # shutdown the test harness
             self.mozmill.stop(fatal=disconnected)
@@ -841,7 +815,7 @@ class CLI(jsbridge.CLI):
                     runner.stop()
 
             if self.mozmill.runner is not None:
-                self.mozmill.runner.profile.cleanup()
+                self.mozmill.runner.cleanup()
 
 
 class RestartCLI(CLI):

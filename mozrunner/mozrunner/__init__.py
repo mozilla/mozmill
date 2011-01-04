@@ -276,10 +276,14 @@ class Profile(object):
     def cleanup(self):
         """Cleanup operations on the profile."""
         if self.create_new:
-            rmtree(self.profile)
+            if os.path.exists(self.profile):
+                rmtree(self.profile)
         else:
             self.clean_preferences()
             self.clean_addons()
+
+    __del__ = cleanup
+    
 
 class FirefoxProfile(Profile):
     """Specialized Profile subclass for Firefox"""
@@ -461,7 +465,7 @@ class Runner(object):
                     self.process_handler.pid = pid
                     self.process_handler.wait(timeout=timeout)
 
-    def kill(self, kill_signal=signal.SIGTERM):
+    def stop(self, kill_signal=signal.SIGTERM):
         """Kill the browser"""
         if sys.platform != 'win32':
             self.process_handler.kill()
@@ -475,8 +479,12 @@ class Runner(object):
             except Exception, e:
                 logger.error('Cannot kill process, '+type(e).__name__+' '+e.message)
 
-    def stop(self):
-        self.kill()
+    def cleanup(self):
+        self.stop()
+        self.profile.cleanup()
+
+    __del__ = cleanup
+    
 
 class FirefoxRunner(Runner):
     """Specialized Runner subclass for running Firefox."""
