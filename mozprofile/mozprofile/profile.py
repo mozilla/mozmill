@@ -62,17 +62,16 @@ class Profile(object):
     """Handles all operations regarding profile. Created new profiles, installs extensions,
     sets preferences and handles cleanup."""
 
-    def __init__(self, binary=None, profile=None, addons=None,
-                 preferences=None):
+    def __init__(self, profile=None, addons=None, preferences=None):
+                 
         # Handle profile creation
-        self.binary = binary
         self.create_new = not(bool(profile))
         if profile:
             self.profile = profile
         else:
-            self.profile = self.create_new_profile(self.binary)
+            self.profile = self.create_new_profile()
 
-        ### set preferences from class preferences
+        # set preferences from class preferences
         if hasattr(self.__class__, 'preferences'):
             self.preferences = self.__class__.preferences.copy()
         else:
@@ -83,11 +82,10 @@ class Profile(object):
         # handle addon installation
         self.addons_installed = []
         self.addons = addons or []
-
         for addon in self.addons:
             self.install_addon(addon)
 
-    def create_new_profile(self, binary):
+    def create_new_profile(self):
         """Create a new clean profile in tmp which is a simple empty folder"""
         profile = tempfile.mkdtemp(suffix='.mozrunner')
         return profile

@@ -231,9 +231,8 @@ def create_runner(profile_class, runner_class,
     """Get the runner object, a not-very-abstract factory"""
     profile_args = profile_args or {}
     runner_args = runner_args or {}
+    profile = profile_class(**profile_args)
     binary = runner_class.get_binary(binary)
-    profile = profile_class(binary=binary,
-                            **profile_args)
     runner = runner_class(binary=binary,
                           profile=profile,
                           **runner_args)
