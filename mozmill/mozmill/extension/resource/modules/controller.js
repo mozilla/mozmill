@@ -589,6 +589,11 @@ MozMillController.prototype.check = function(el, state) {
     return false;
   }
 
+  // If we have a XUL element, unwrap its XPCNativeWrapper
+  if (element.namespaceURI == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul") {
+    element = utils.unwrapNode(element);
+  }
+
   state = (typeof(state) == "boolean") ? state : false;
   if (state != element.checked) {
     this.click(el);
@@ -612,6 +617,11 @@ MozMillController.prototype.radio = function(el)
   if (!element) {
     throw new Error("could not find element " + el.getInfo());
     return false;
+  }
+  
+  // If we have a XUL element, unwrap its XPCNativeWrapper
+  if (element.namespaceURI == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul") {
+    element = utils.unwrapNode(element);
   }
 
   this.click(el);
@@ -758,12 +768,17 @@ MozMillController.prototype.select = function (el, indx, option, value) {
   }
   //if we have a xul menulist select accordingly
   else if (element.localName.toLowerCase() == "menulist"){
+    var ownerDoc = element.ownerDocument;
+    // Unwrap the XUL element's XPCNativeWrapper
+    if (element.namespaceURI.toLowerCase() == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul") {
+      element = utils.unwrapNode(element);
+    }
     var item = null;
 
     if (indx != undefined) {
       if (indx == -1) {
         events.triggerEvent(element, 'focus', false);
-      element.selectedIndex = indx;
+        element.selectedIndex = indx;
         events.triggerEvent(element, 'change', true);
 
         frame.events.pass({'function':'Controller.select()'});
@@ -778,30 +793,30 @@ MozMillController.prototype.select = function (el, indx, option, value) {
             value != undefined && entry.value == value) {
           item = entry;
           break;
+        }
+      }
     }
-    }
-  }
 
     // Click the item
     try {
-      EventUtils.synthesizeMouse(element, 1, 1, {}, item.ownerDocument.defaultView);
+      EventUtils.synthesizeMouse(element, 1, 1, {}, ownerDoc.defaultView);
       this.sleep(0);
 
       // Scroll down until item is visible
       for (var i = s = element.selectedIndex; i <= element.itemCount + s; ++i) {
         var entry = element.getItemAtIndex((i + 1) % element.itemCount);
-        EventUtils.synthesizeKey("VK_DOWN", {}, element.ownerDocument.defaultView);
+        EventUtils.synthesizeKey("VK_DOWN", {}, ownerDoc.defaultView);
         if (entry.label == item.label) {
           break;
         }
         else if (entry.label == "") i += 1;
       }
 
-      EventUtils.synthesizeMouse(item, 1, 1, {}, item.ownerDocument.defaultView);
+      EventUtils.synthesizeMouse(item, 1, 1, {}, ownerDoc.defaultView);
       this.sleep(0);
 
-   frame.events.pass({'function':'Controller.select()'});
-   return true;
+      frame.events.pass({'function':'Controller.select()'});
+      return true;
     } catch (ex) {
       throw new Error('No item selected for element ' + el.getInfo());
       return false;

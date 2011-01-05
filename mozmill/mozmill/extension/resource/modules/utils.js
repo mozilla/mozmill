@@ -41,7 +41,7 @@ var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler",
                         "getFile", "Copy", "getChromeWindow", "getWindows", "runEditor",
                         "runFile", "getWindowByTitle", "getWindowByType", "tempfile", 
                         "getMethodInWindows", "getPreference", "setPreference",
-                        "sleep", "assert", "waitFor", "waitForEval"];
+                        "sleep", "assert", "unwrapNode", "waitFor", "waitForEval"];
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
               .getService(Components.interfaces.nsIAppShellService)
@@ -396,6 +396,26 @@ function assert(callback, message, thisObject) {
   }
 
   return true;
+}
+	   
+/**
+ * Unwraps a node which is wrapped into a XPCNativeWrapper or XrayWrapper
+ *
+ * @param {DOMnode} Wrapped DOM node
+ * @returns {DOMNode} Unwrapped DOM node
+ */
+function unwrapNode(aNode) {
+  var node = aNode;
+  if (node) {
+    // unwrap is not available on older branches (3.5 and 3.6) - Bug 533596
+    if ("unwrap" in XPCNativeWrapper) {	   
+      node = XPCNativeWrapper.unwrap(node);
+    }
+    else if (node.wrappedJSObject != null) {
+      node = node.wrappedJSObject;
+    }
+  }
+  return node;
 }
 
 /**
