@@ -54,13 +54,13 @@ class Runner(object):
     """Handles all running operations. Finds bins, runs and kills the process."""
 
     def __init__(self, profile, binary=None, cmdargs=None, env=None, kp_kwargs=None):
+        self.process_handler = None
+        self.profile = profile
                  
-        self.binary = Runner.get_binary(binary)
+        self.binary = self.__class__.get_binary(binary)
 
         if not os.path.exists(self.binary):
             raise Exception("Binary path does not exist "+self.binary)
-
-        self.profile = profile
 
         self.cmdargs = cmdargs or []
 
@@ -70,14 +70,13 @@ class Runner(object):
         else:
             self.env = env
         self.kp_kwargs = kp_kwargs or {}
-        self.process_handler = None
 
     @classmethod
     def get_binary(cls, binary=None):
         """determine the binary"""
         if binary is None:
             return cls.find_binary()
-        elif sys.platform == 'darwin':
+        elif sys.platform == 'darwin' and binary.find('Contents/MacOS/') == -1:
             # TODO FIX ME!!!
             return os.path.join(binary, 'Contents/MacOS/%s-bin' % cls.names[0])
         else:
