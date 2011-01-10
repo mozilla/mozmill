@@ -232,7 +232,7 @@ class MozMill(object):
         self.results.appinfo = self.get_appinfo(self.bridge)
 
 
-    def run_tests(self, tests, sleeptime=4):
+    def run_tests(self, tests, sleeptime=0):
         """
         run a test file or directory
         - tests : test files or directories to run
@@ -384,7 +384,7 @@ class MozMillRestart(MozMill):
                                   "Components.utils.import('resource://mozmill/modules/frame.js')")
         return frame
 
-    def run_dir(self, test_dir, sleeptime=4):
+    def run_dir(self, test_dir, sleeptime=0):
         """run a directory of restart tests resetting the profile per directory"""
 
         # TODO:  document this behaviour!
@@ -451,7 +451,7 @@ class MozMillRestart(MozMill):
             profile.install_addon(extension_path)
         profile.set_preferences(profile.preferences)
     
-    def run_tests(self, tests, sleeptime=4):
+    def run_tests(self, tests, sleeptime=0):
 
         # XXX should document what this does...it seems out of place
         self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
