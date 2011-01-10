@@ -508,7 +508,7 @@ class CLI(jsbridge.CLI):
         for test in self.options.tests:
             test = os.path.expanduser(test)
             if not os.path.exists(test):
-                raise Exception("Not a valid test file/directory")
+                raise Exception("Not a valid test file/directory: %s" % test)
 
             # construct metadata for test
             test_dict = { 'test': test, 'path': os.path.abspath(test) }
