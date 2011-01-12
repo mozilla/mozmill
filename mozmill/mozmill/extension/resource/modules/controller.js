@@ -1125,36 +1125,57 @@ MozMillController.prototype.mouseMove = function (doc, start, dest) {
   return true;
 }
 
-//Drag one eleent to the top x,y coords of another specified element
-MozMillController.prototype.dragDropElemToElem = function (dstart, ddest) {
-  //Get the drag and dest
-  var drag = dstart.getNode();
-  var dest = ddest.getNode();
+// Drag an element to the specified offset on another element, firing mouse and drag events.
+// Returns the captured dropEffect. Adapted from EventUtils' synthesizeDrop()
+MozMillController.prototype.dragToElement = function(src, dest, offsetX,
+    offsetY, aWindow, dropEffect, dragData) {
+  srcElement = src.getNode();
+  destElement = dest.getNode();
+  aWindow = aWindow || srcElement.ownerDocument.defaultView;
+  offsetX = offsetX || 20;
+  offsetY = offsetY || 20;
 
-  //if one of these elements couldn't be looked up
-  if (!drag){
-    throw new Error("could not find element " + drag.getInfo());
-    return false;
+  var dataTransfer;
+
+  var trapDrag = function(event) {
+    dataTransfer = event.dataTransfer;
+    if(!dragData)
+      return;
+
+    for (var i = 0; i < dragData.length; i++) {
+      var item = dragData[i];
+      for (var j = 0; j < item.length; j++) {
+        dataTransfer.mozSetDataAt(item[j].type, item[j].data, i);
+      }
+    }
+    dataTransfer.dropEffect = dropEffect || "move";
+    event.preventDefault();
+    event.stopPropagation();
   }
-  if (!dest){
-    throw new Error("could not find element " + dest.getInfo());
-    return false;
+
+  aWindow.addEventListener("dragstart", trapDrag, true);
+  EventUtils.synthesizeMouse(srcElement, 2, 2, { type: "mousedown" }, aWindow); // fire mousedown 2 pixels from corner of element
+  EventUtils.synthesizeMouse(srcElement, 11, 11, { type: "mousemove" }, aWindow);
+  EventUtils.synthesizeMouse(srcElement, offsetX, offsetY, { type: "mousemove" }, aWindow);
+  aWindow.removeEventListener("dragstart", trapDrag, true);
+
+  var event = aWindow.document.createEvent("DragEvents");
+  event.initDragEvent("dragenter", true, true, aWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null, dataTransfer);
+  destElement.dispatchEvent(event);
+
+  var event = aWindow.document.createEvent("DragEvents");
+  event.initDragEvent("dragover", true, true, aWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null, dataTransfer);
+  if (destElement.dispatchEvent(event)) {
+    EventUtils.synthesizeMouse(destElement, offsetX, offsetY, { type: "mouseup" }, aWindow);
+    return "none";
   }
 
-  var dragCoords = null;
-  var destCoords = null;
+  event = aWindow.document.createEvent("DragEvents");
+  event.initDragEvent("drop", true, true, aWindow, 0, 0, 0, 0, 0, false, false, false, false, 0, null, dataTransfer);
+  destElement.dispatchEvent(event);
+  EventUtils.synthesizeMouse(destElement, offsetX, offsetY, { type: "mouseup" }, aWindow);
 
-  dragCoords = drag.getBoundingClientRect();
-  destCoords = dest.getBoundingClientRect();
-
-  //Do the initial move to the drag element position
-  events.triggerMouseEvent(drag.ownerDocument.body, 'mousemove', true, dragCoords.left, dragCoords.top);
-  events.triggerMouseEvent(drag, 'mousedown', true, dragCoords.left, dragCoords.top); //do the mousedown
-  events.triggerMouseEvent(drag.ownerDocument.body, 'mousemove', true, destCoords.left, destCoords.top);
-  events.triggerMouseEvent(dest, 'mouseup', true, destCoords.left, destCoords.top);
-  events.triggerMouseEvent(dest, 'click', true, destCoords.left, destCoords.top);
-  frame.events.pass({'function':'Controller.dragDropElemToElem()'});
-  return true;
+  return dataTransfer.dropEffect;
 }
 
 function preferencesAdditions(controller) {
