@@ -13,27 +13,28 @@ class LoggerListener(object):
 
   ### methods for the EventHandler interface
 
-  def __init__(self, showerrors=False, showall=False, logfile=None):
+  def __init__(self, showerrors=False, showall=False, logfile=None, format="json"):
+    template = "%(levelname)s | %(message)s"
 
-    # initialize the logger
     self.logger = logging.getLogger('mozmill')
-    log_options = { 'format': "%(levelname)s | %(message)s",
-                    'level': logging.CRITICAL }
-    if showerrors:
-      log_options['level'] = logging.ERROR
+    formatter = logging.Formatter(template)
     if logfile:
-      log_options['filename'] = logfile
-      log_options['filemode'] = 'w'
-      log_options['level'] = logging.DEBUG
-    if showall:
-      log_options['level'] = logging.DEBUG    
-    logging.basicConfig(**log_options)
+      handler = logging.FileHandler(logfile, 'w')
+      self.logger.setLevel(logging.DEBUG)
+    else:
+      handler = logging.StreamHandler()
+      if format == "pprint-color":
+        formatter = ColorFormatter(template)
+    handler.setFormatter(formatter)
 
-    self.cases = {
-      'mozmill.pass':   lambda string: self.logger.info('Step Pass: ' + string),
-      'mozmill.fail':   lambda string: self.logger.error('Test Failure: ' + string),
-      'mozmill.skip':   lambda string: self.logger.info('Test Skipped: ' + string)
-      }
+    if showerrors:
+      self.logger.setLevel(logging.ERROR)
+    if showall:
+      self.logger.setLevel(logging.DEBUG)
+  
+    self.logger.addHandler(handler)
+   
+    self.format = format
 
 
   @classmethod
@@ -46,17 +47,43 @@ class LoggerListener(object):
     parser.add_option("--show-errors", dest="showerrors", default=False, 
                       action="store_true",
                       help="Print logger errors to the console.")
+    parser.add_option("--format", dest="format", default="json",
+                      metavar="[json|pprint|pprint-color]",
+                      help="Format for logging")
 
     
-  def __call__(self, eName, obj):
-    if obj == {}:
-      string = ''
+  def __call__(self, event, obj):
+    string = json.dumps(obj)
+    if self.format == "pprint" or self.format == "pprint-color":
+      string = self.pprint(obj)
+       
+    if event == 'mozmill.pass':
+      self.logger.info('Step Pass: ' + string)
+    elif event == 'mozmill.fail':
+      self.logger.error('Test Failure: ' + string)
+    elif event == 'mozmill.skip':
+      self.logger.info('Test Skipped: ' + string)
     else:
-      string = json.dumps(obj)
+      self.logger.debug(event + ' | ' + string)
       
-    if eName not in self.cases:
-      self.cases[eName] = self.default(eName, self.logger)
-    self.cases[eName](string)
+  def pprint(self, obj):
+    self.format_stack(obj)
+    return json.dumps(obj, indent=2)
+      
+  def format_stack(self, obj):
+    """ split any stacktrace string into an array """
+    if type(obj) == dict or type(obj) == list:
+      iter = obj
+      if type(obj) == list:
+        iter = range(len(obj))
+
+      for i in iter:
+        child = obj[i]
+        if i == "stack":
+          obj[i] = child.split("\n")
+        else:
+          self.format_stack(child)
+      
 
   def events(self):
     return { 'mozmill.setTest': self.startTest,
@@ -91,17 +118,43 @@ class LoggerListener(object):
 
   def levels(self):
     """TODO : logging levels"""
+    
+class ColorFormatter(logging.Formatter):
+  # http://stackoverflow.com/questions/384076/how-can-i-make-the-python-logging-output-to-be-colored
+  BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
 
-  class default(object):
-    # XXX no need for a separate class, I don't think
-    def __init__(self, eName, logger):
-      self.logger = logger
-      self.eName = eName
-    def __call__(self, string):
-      if string:
-        self.logger.debug(self.eName + ' | ' + string)
-      else:
-        self.logger.debug(self.eName)
+  RESET_SEQ = "\033[0m"
+  COLOR_SEQ = "\033[1;%dm"
+  BOLD_SEQ = "\033[1m"
+
+  COLORS = {
+    'WARNING': YELLOW,
+    'INFO': WHITE,
+    'DEBUG': BLUE,
+    'CRITICAL': YELLOW,
+    'ERROR': RED
+  }
+
+  def formatter_msg(self, msg, use_color = True):
+    if use_color:
+      msg = msg.replace("$RESET", self.RESET_SEQ).replace("$BOLD", self.BOLD_SEQ)
+    else:
+      msg = msg.replace("$RESET", "").replace("$BOLD", "")
+    return msg
+
+  def __init__(self, format=None, use_color=True):
+    msg = self.formatter_msg(format, use_color)
+    logging.Formatter.__init__(self, msg)
+    self.use_color = use_color
+
+  def format(self, record):
+    levelname = record.levelname
+    if self.use_color and levelname in self.COLORS:
+      fore_color = 30 + self.COLORS[levelname]
+      levelname_color = self.COLOR_SEQ % fore_color + levelname + self.RESET_SEQ
+      record.levelname = levelname_color
+    return logging.Formatter.format(self, record)
+
     
 
 
