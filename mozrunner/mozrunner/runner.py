@@ -314,8 +314,13 @@ class CLI(object):
         return dict(profile=self.options.profile,
                     addons=self.options.addons)
 
+    def command_args(self):
+        """additional arguments for the mozilla application"""
+        return self.args
+
     def runner_args(self):
         """arguments to instantiate the runner class"""
+        return dict(cmdargs=self.command_args())
 
     def create_runner(self):
         return create_runner(self.profile_class,

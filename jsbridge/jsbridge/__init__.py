@@ -121,15 +121,14 @@ class CLI(mozrunner.CLI):
             }
         return profile_args
 
-    def runner_args(self):
+    def command_args(self):
         """additional arguments for mozrunner"""
-        
-        if self.options.debug:
-            cmdargs = [ '-jsconsole' ]
-        else:
-            cmdargs = []
-        cmdargs += ['-jsbridge', '%d' % self.options.port]
-        return dict(cmdargs=cmdargs)
+        cmdargs = mozrunner.CLI.command_args(self)
+        if self.options.debug and '-jsconsole' not in cmdargs:
+            cmdargs.append('-jsconsole')
+        if '-jsbridge' not in cmdargs:
+            cmdargs += ['-jsbridge', '%d' % self.options.port]
+        return cmdargs
         
     def run(self):
         runner = self.create_runner()

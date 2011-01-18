@@ -551,11 +551,11 @@ class CLI(jsbridge.CLI):
         profile_args['addons'].append(extension_path)
         return profile_args
 
-    def runner_args(self):
-        runner_args = jsbridge.CLI.runner_args(self)
-        if '-foreground' not in runner_args['cmdargs']:
-            runner_args['cmdargs'].append('-foreground')
-        return runner_args
+    def command_args(self):
+        command_args = jsbridge.CLI.command_args(self)
+        if '-foreground' not in command_args:
+            command_args.append('-foreground')
+        return command_args
 
     def run_tests(self, mozmill_cls, tests, runner, results):
         """
