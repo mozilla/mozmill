@@ -118,6 +118,7 @@ var loadFile = function(path, collector) {
   try {
     loader.loadSubScript(uri, module);
   } catch(e) {
+    events.fail(e);
     Components.utils.reportError(e);
   }
   
