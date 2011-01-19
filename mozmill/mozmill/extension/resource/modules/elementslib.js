@@ -142,7 +142,7 @@ var Selector = function(_document, selector) {
   if (_document == undefined || selector == undefined) {
     throw new Error('Selector constructor did not recieve enough arguments.');
   }
-  this._document = _document;
+  this._view = _document.defaultView;
   this.selector = selector;
   return this;
 }
@@ -154,7 +154,7 @@ Selector.prototype.getNodeForDocument = function (s) {
   return this.document.querySelectorAll(s);
 }
 Selector.prototype.getNode = function (index) {
-  var nodes = this.nodeSearch(this._document, this.getNodeForDocument, this.selector);
+  var nodes = this.nodeSearch(this._view.document, this.getNodeForDocument, this.selector);
   return nodes ? nodes[index || 0] : null;
 }
 
@@ -163,7 +163,7 @@ var ID = function(_document, nodeID) {
   if (_document == undefined || nodeID == undefined) {
     throw new Error('ID constructor did not recieve enough arguments.');
   }
-  this._document = _document;
+  this._view = _document.defaultView;
   this.nodeID = nodeID;
   return this;
 }
@@ -175,14 +175,14 @@ ID.prototype.getNodeForDocument = function (s) {
   return this.document.getElementById(s);
 }
 ID.prototype.getNode = function () {
-  return this.nodeSearch(this._document, this.getNodeForDocument, this.nodeID);
+  return this.nodeSearch(this._view.document, this.getNodeForDocument, this.nodeID);
 }
 
 var Link = function(_document, linkName) {
   if (_document == undefined || linkName == undefined) {
     throw new Error('Link constructor did not recieve enough arguments.');
   }
-  this._document = _document;
+  this._view = _document.defaultView;
   this.linkName = linkName;
   return this;
 }
@@ -228,14 +228,14 @@ Link.prototype.getNodeForDocument = function (linkName) {
 }
 
 Link.prototype.getNode = function () {
-  return this.nodeSearch(this._document, this.getNodeForDocument, this.linkName);
+  return this.nodeSearch(this._view.document, this.getNodeForDocument, this.linkName);
 }
 
 var XPath = function(_document, expr) {
   if (_document == undefined || expr == undefined) {
     throw new Error('XPath constructor did not recieve enough arguments.');
   }
-  this._document = _document;
+  this._view = _document.defaultView;
   this.expr = expr;
   return this;
 }
@@ -264,14 +264,14 @@ XPath.prototype.getNodeForDocument = function (s) {
 }
 
 XPath.prototype.getNode = function () {
-  return this.nodeSearch(this._document, this.getNodeForDocument, this.expr);
+  return this.nodeSearch(this._view.document, this.getNodeForDocument, this.expr);
 }
 
 var Name = function(_document, nName) {
   if (_document == undefined || nName == undefined) {
     throw new Error('Name constructor did not recieve enough arguments.');
   }
-  this._document = _document;
+  this._view = _document.defaultView;
   this.nName = nName;
   return this;
 }
@@ -289,7 +289,7 @@ Name.prototype.getNodeForDocument = function (s) {
 }
 
 Name.prototype.getNode = function () {
-  return this.nodeSearch(this._document, this.getNodeForDocument, this.nName);
+  return this.nodeSearch(this._view.document, this.getNodeForDocument, this.nName);
 }
 
 
@@ -297,7 +297,7 @@ function Lookup (_document, expression) {
   if (_document == undefined || expression == undefined) {
     throw new Error('Lookup constructor did not recieve enough arguments.');
   }
-  this._document = _document;
+  this._view = _document.defaultView;
   this.expression = expression;
 }
 Lookup.prototype = new utils.Copy(ElemBase.prototype);
@@ -427,8 +427,8 @@ Lookup.prototype.exists = function () {
 }
 Lookup.prototype.getNode = function () {
   var expSplit = [e for each (e in smartSplit(this.expression) ) if (e != '')];
-  expSplit.unshift(this._document)
-  _document = this._document;
+  expSplit.unshift(this._view.document)
+  _document = this._view.document;
   var nCases = {'id':_byID, 'name':_byName, 'attrib':_byAttrib, 'index':_byIndex};
   var aCases = {'name':_anonByName, 'attrib':_anonByAttrib, 'index':_anonByIndex};
   var reduceLookup = function (parent, exp) {
