@@ -179,19 +179,26 @@ class Profile(object):
             
             addon_id = None
             for elem in desc:
+
+                # remove targetApplication nodes, they contain id's we aren't interested in
                 apps = elem.getElementsByTagName('em:targetApplication')
+                apps.extend(elem.getElementsByTagName('targetApplication'))
                 if apps:
                     for app in apps:
-                        # remove targetApplication nodes, they contain id's we aren't interested in
                         elem.removeChild(app)
+                        
+                    # find the id tag
                     if elem.getElementsByTagName('em:id'):
                         addon_id = str(elem.getElementsByTagName('em:id')[0].firstChild.data)
                     elif elem.hasAttribute('em:id'):
                         addon_id = str(elem.getAttribute('em:id'))
+                    elif elem.getElementsByTagName('id'):
+                        addon_id = str(elem.getElementsByTagName('id')[0].firstChild.data)
+                        
             return addon_id
 
         doc = minidom.parse(os.path.join(addon_path, 'install.rdf')) 
-
+        
         for tag in 'Description', 'RDF:Description':
             desc = doc.getElementsByTagName(tag)
             addon_id = find_id(desc)
@@ -331,16 +338,20 @@ class Runner(object):
     """Handles all running operations. Finds bins, runs and kills the process."""
 
     def __init__(self, binary=None, profile=None, cmdargs=[], env=None, kp_kwargs={}):
+
+        self.process_handler = None
+
+        # find the binary
         if binary is None:
             self.binary = self.find_binary()
         elif sys.platform == 'darwin' and binary.find('Contents/MacOS/') == -1:
             self.binary = os.path.join(binary, 'Contents/MacOS/%s-bin' % self.names[0])
         else:
             self.binary = binary
-
         if not os.path.exists(self.binary):
             raise Exception("Binary path does not exist "+self.binary)
 
+        
         if sys.platform == 'linux2' and self.binary.endswith('-bin'):
             dirname = os.path.dirname(self.binary)
             if os.environ.get('LD_LIBRARY_PATH', None):
@@ -467,6 +478,10 @@ class Runner(object):
 
     def stop(self, kill_signal=signal.SIGTERM):
         """Kill the browser"""
+
+        if not self.process_handler:
+            return
+        
         if sys.platform != 'win32':
             self.process_handler.kill()
             for name in self.names:
@@ -481,7 +496,8 @@ class Runner(object):
 
     def cleanup(self):
         self.stop()
-        self.profile.cleanup()
+        if self.profile:
+            self.profile.cleanup()
 
     __del__ = cleanup
     
