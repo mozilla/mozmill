@@ -609,7 +609,7 @@ class CLI(jsbridge.CLI):
                 self.run_tests(MozMill, normal_tests, runner, results)
                 
             if restart_tests:
-                self.run_tests(MozMillRestart, restart_tests, runner)
+                self.run_tests(MozMillRestart, restart_tests, runner, results)
 
         except Exception, e:
             runner.cleanup() # cleanly shutdown
