@@ -6,7 +6,5 @@ var testErrorConsole = function() {
   controller.open("http://www.mozilla.org");
   controller.waitForPageLoad();
 
-  Components.classes["@mozilla.org/filepicker;1"].createInstance(Components.interfaces.nsIFilePickr);
-
-  var search = new elementslib.ID(controller.tabs.activeTab, "q");
+  var syntaxError =
 }

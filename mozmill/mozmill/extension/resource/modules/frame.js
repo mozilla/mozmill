@@ -119,6 +119,15 @@ var loadFile = function(path, collector) {
     loader.loadSubScript(uri, module);
   } catch(e) {
     events.fail(e);
+    var obj = {
+      'filename':path,
+      'passed':false,
+      'failed':true,
+      'passes':0,
+      'fails' :1,
+      'name'  :'Unknown Test',
+    };
+    events.fireEvent('endTest', obj);
     Components.utils.reportError(e);
   }
   
@@ -431,41 +440,6 @@ Collector.prototype.initTestDirectory = function (directory) {
   }
   recursiveModuleLoader(os.getFileForPath(directory));
 }
-
-
-/**
- * Console listener which listens for error messages in the console and forwards
- * them to the Mozmill reporting system for output.
- */
-function ConsoleListener() {
-  this.register();
-}
-ConsoleListener.prototype = {
-  observe: function(aMessage) {
-    var msg = aMessage.message;
-    var re = /^\[.*Error:.*/i;
-    if (msg.match(re)) {
-      events.fail(msg);
-    }
-  },
-  QueryInterface: function (iid) {
-	if (!iid.equals(Components.interfaces.nsIConsoleListener) && !iid.equals(Components.interfaces.nsISupports)) {
-		throw Components.results.NS_ERROR_NO_INTERFACE;
-    }
-    return this;
-  },
-  register: function() {
-    var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"]
-                               .getService(Components.interfaces.nsIConsoleService);
-    aConsoleService.registerListener(this);
-  },
-  unregister: function() {
-    var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"]
-                               .getService(Components.interfaces.nsIConsoleService);
-    aConsoleService.unregisterListener(this);
-  }
-}
-
   
 // Observer which gets notified when the application quits
 function AppQuitObserver() {
@@ -588,8 +562,6 @@ Runner.prototype.wrapper = function (func, arg) {
 }
 
 Runner.prototype._runTestModule = function (module) {
-  var consoleListener = new ConsoleListener();
-
   if (module.__requirements__ != undefined && module.__force_skip__ == undefined) {
     for each(var req in module.__requirements__) {
       module[req] = this.collector.getModule(req);
@@ -659,8 +631,6 @@ Runner.prototype._runTestModule = function (module) {
     this.wrapper(module.__teardownModule__, module);
     events.endTest(module.__teardownModule__);
   }
-  
-  consoleListener.unregister();
   module.__status__ = 'done';
 }
 Runner.prototype.runTestModule = function (module) {
