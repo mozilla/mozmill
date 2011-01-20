@@ -288,6 +288,9 @@ class CLI(object):
                           help="Print module information")
         parser.add_option('--app', dest='app', default='firefox',
                           help="Application to use")
+        parser.add_option('--app-arg', dest='appArgs',
+                          default=[], action='append',
+                          help="provides an argument to the test application")
 
     ### methods regarding introspecting data            
     def get_metadata_from_egg(self):
@@ -316,7 +319,7 @@ class CLI(object):
 
     def command_args(self):
         """additional arguments for the mozilla application"""
-        return self.args
+        return self.options.appArgs
 
     def runner_args(self):
         """arguments to instantiate the runner class"""
