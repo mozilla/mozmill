@@ -716,6 +716,8 @@ class CLI(jsbridge.CLI):
                                           help="seconds before harness timeout if no communication is taking place")
     parser_options[("-m", "--manifest")] = dict(dest='manifests', action='append',
                                                 help='test manifest .ini file')
+    parser_options[("--app-arg",)] = dict(dest='appArgs', action='append', default=[],
+                                          help='provides an argument to the test application')
 
     def __init__(self, *args, **kwargs):
         jsbridge.CLI.__init__(self, *args, **kwargs)
@@ -768,6 +770,8 @@ class CLI(jsbridge.CLI):
 
         # create a Mozrunner
         runner = self.create_runner()
+
+        runner.cmdargs.extend(self.options.appArgs)
 
         # make sure the application starts in the foreground
         if '-foreground' not in runner.cmdargs:
