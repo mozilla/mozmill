@@ -41,7 +41,6 @@ import os
 import sys
 import copy
 import tempfile
-import signal
 import commands
 import zipfile
 import optparse
@@ -464,6 +463,7 @@ class Runner(object):
         """Run self.command in the proper environment."""
         if self.profile is None:
             self.profile = self.profile_class()
+        self.stop() # ensure you are stopped
         self.process_handler = run_command(self.command+self.cmdargs, self.env, **self.kp_kwargs)
 
     def wait(self, timeout=None):
@@ -473,10 +473,10 @@ class Runner(object):
         if sys.platform != 'win32':
             for name in self.names:
                 for pid in get_pids(name, self.process_handler.pid):
-                    self.process_handler.pid = pid
+                    self.process_handler.pid = pid  # bad touch!
                     self.process_handler.wait(timeout=timeout)
 
-    def stop(self, kill_signal=signal.SIGTERM):
+    def stop(self):
         """Kill the browser"""
 
         if not self.process_handler:
@@ -486,7 +486,7 @@ class Runner(object):
             self.process_handler.kill()
             for name in self.names:
                 for pid in get_pids(name, self.process_handler.pid):
-                    self.process_handler.pid = pid
+                    self.process_handler.pid = pid  # bad touch!
                     self.process_handler.kill()
         else:
             try:
