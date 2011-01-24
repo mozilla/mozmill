@@ -463,7 +463,6 @@ class Runner(object):
         """Run self.command in the proper environment."""
         if self.profile is None:
             self.profile = self.profile_class()
-        self.stop() # ensure you are stopped
         self.process_handler = run_command(self.command+self.cmdargs, self.env, **self.kp_kwargs)
 
     def wait(self, timeout=None):
