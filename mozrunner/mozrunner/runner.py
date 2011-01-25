@@ -63,6 +63,14 @@ class Runner(object):
             raise Exception("Binary path does not exist "+self.binary)
 
         self.cmdargs = cmdargs or []
+        _cmdargs = [i for i in self.cmdargs
+                    if i != '-foreground']
+        if len(_cmdargs) != len(self.cmdargs):
+            # foreground should be last; see
+            # - https://bugzilla.mozilla.org/show_bug.cgi?id=625614
+            # - https://bugzilla.mozilla.org/show_bug.cgi?id=626826
+            self.cmdargs = _cmdargs
+            self.cmdargs.append('-foreground')
 
         if env is None:
             self.env = os.environ.copy()
