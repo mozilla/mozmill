@@ -141,7 +141,7 @@ Menu.prototype = {
   open : function(contextElement) {
     // We have to open the context menu
     var menu = this._menu.getNode();
-    if (menu.localName == "menupopup" &&
+    if ((menu.localName == "popup" || menu.localName == "menupopup") &&
         contextElement && contextElement.exists()) {
       this._controller.rightClick(contextElement);
       this._controller.waitFor(function() {
