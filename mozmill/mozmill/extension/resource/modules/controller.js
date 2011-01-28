@@ -618,15 +618,15 @@ MozMillController.prototype.radio = function(el)
     throw new Error("could not find element " + el.getInfo());
     return false;
   }
-  
-  // If we have a XUL element, unwrap its XPCNativeWrapper
-  if (element.namespaceURI == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul") {
-  	element = utils.unwrapNode(element)
-  }
 
   this.click(el);
   this.waitFor(function() {
-    return element.selected == true;
+    // If we have a XUL element, unwrap its XPCNativeWrapper
+    if (element.namespaceURI == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul") {
+  	  element = utils.unwrapNode(element);
+  	  return element.selected == true;
+    }
+    return element.checked == true;
   }, "Radio button " + el.getInfo() + " could not be selected", 500);
 
   frame.events.pass({'function':'Controller.radio(' + el.getInfo() + ')'});
