@@ -59,8 +59,6 @@ var uuidgen = Components.classes["@mozilla.org/uuid-generator;1"]
 
 var backstage = this;
 
-var registeredFunctions = {};
-
 var persisted = {};
 
 arrayRemove = function(array, from, to) {
@@ -88,7 +86,6 @@ var loadFile = function(path, collector) {
   var uri = ios.newFileURI(file).spec;
 
   var module = {};  
-  module.registeredFunctions = registeredFunctions;
   module.collector = collector
   loadTestResources();
   module.mozmill = mozmill;
@@ -97,6 +94,8 @@ var loadFile = function(path, collector) {
   module.Cc = Components.classes;
   module.Ci = Components.interfaces;
   module.Cu = Components.utils;
+  module.log = log;
+
   module.require = function (mod) {
     var loader = new securableModule.Loader({
       rootPaths: [ios.newFileURI(file.parent).spec],
@@ -106,7 +105,8 @@ var loadFile = function(path, collector) {
                   persisted: persisted,
                   Cc: Components.classes,
                   Ci: Components.interfaces,
-                  Cu: Components.utils }
+                  Cu: Components.utils,
+                  log: log }
     });
     return loader.require(mod);
   }
@@ -134,10 +134,6 @@ var loadFile = function(path, collector) {
   module.__file__ = path;
   module.__uri__ = uri;
   return module;
-}
-
-function registerFunction (name, func) {
-  registeredFunctions[name] = func;
 }
 
 function stateChangeBase (possibilties, restrictions, target, cmeta, v) {
