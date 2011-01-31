@@ -44,13 +44,13 @@ import sys
 import traceback
 
 import jsbridge
-from jsbridge.network import JSBridgeDisconnectError
+import manifestparser
 import mozrunner
 import mozprofile
 import handlers
 
+from jsbridge.network import JSBridgeDisconnectError
 from datetime import datetime, timedelta
-from manifestdestiny import manifests
 from time import sleep
 
 # metadata
@@ -502,7 +502,7 @@ class CLI(jsbridge.CLI):
                 self.event_handlers.append(handler)
 
         # read tests from manifests (if any)
-        self.manifest = manifests.TestManifest(manifests=self.options.manifests)
+        self.manifest = manifestparser.TestManifest(manifests=self.options.manifests)
 
         # expand user directory and check existence for the test
         for test in self.options.tests:
