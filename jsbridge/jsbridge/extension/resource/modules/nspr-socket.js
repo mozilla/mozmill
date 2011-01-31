@@ -84,13 +84,12 @@ var ServerSocket = function(port) {
 
 ServerSocket.prototype = {
   onConnect : function(callback, interval) {
-    interval = interval || 2000;
+    interval = interval || 300;
     var that = this;
     (function accept() {
       var newfd = nspr.PR_Accept(that.fd, that.addr.address(), nspr.PR_INTERVAL_NO_WAIT);
       if(!newfd.isNull())
         callback(new Client(newfd));
-
       hwindow.setTimeout(accept, interval);
     })();
   },
@@ -108,27 +107,22 @@ var Client = function(fd) {
 Client.prototype = {
   onMessage : function(callback, interval, bufsize) {
     bufsize = bufsize || 4096;
-    interval = interval || 1000; // polling interval
-    var reinterval = interval; // next check after receiving data
-
+    interval = interval || 100; // polling interval
     var that = this;
+
     (function getMessage() {
       var buffer = new nspr.buffer(bufsize);
       var bytes = nspr.PR_Recv(that.fd, buffer, bufsize, 0, nspr.PR_INTERVAL_NO_WAIT);
       if(bytes > 0) {
         var message = buffer.readString();
         callback(message);
-        reinterval = 50;
       }
       else if(bytes == 0) {
         if(that.handleDisconnect)
           that.handleDisconnect();
         return;
       }
-
-      reinterval = Math.min(reinterval, interval);
-      hwindow.setTimeout(getMessage, reinterval);
-      reinterval *= 2; // logarithmically back off
+      hwindow.setTimeout(getMessage, interval);
     })();
   },
 
