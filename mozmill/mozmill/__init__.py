@@ -38,7 +38,6 @@
 # ***** END LICENSE BLOCK *****
 
 import copy
-from datetime import datetime, timedelta
 import httplib
 import imp
 import os
@@ -48,7 +47,8 @@ import traceback
 import urllib
 import urlparse
 
-from manifestdestiny import manifests
+from datetime import datetime, timedelta
+import manifestparser
 
 try:
     import json
@@ -731,7 +731,7 @@ class CLI(jsbridge.CLI):
 
         # read tests from manifests
         if self.options.manifests:
-            manifest_parser = manifests.TestManifest(manifests=self.options.manifests)
+            manifest_parser = manifestparser.TestManifest(manifests=self.options.manifests)
 
             self.tests.extend(manifest_parser.test_paths())
 
