@@ -611,16 +611,16 @@ class CLI(jsbridge.CLI):
             if restart_tests:
                 self.run_tests(MozMillRestart, restart_tests, runner, results)
 
-        except Exception, e:
+        except:
+            _, e, _ = sys.exc_info()
             runner.cleanup() # cleanly shutdown
-            raise
 
         # do whatever reporting you're going to do
         results.stop(self.event_handlers)
 
         # exit on bad stuff happen
         if e:
-            raise
+            raise e
         if results.fails:
             sys.exit(1)
 
