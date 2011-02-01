@@ -295,7 +295,7 @@ class CLI(object):
                           action="store_true",
                           help="Print module information")
         parser.add_option('--app', dest='app', default='firefox',
-                          help="Application to use")
+                          help="Application to use [DEFAULT: %default]")
         parser.add_option('--app-arg', dest='appArgs',
                           default=[], action='append',
                           help="provides an argument to the test application")
