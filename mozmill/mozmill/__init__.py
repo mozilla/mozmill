@@ -232,7 +232,7 @@ class MozMill(object):
         self.results.appinfo = self.get_appinfo(self.bridge)
 
 
-    def run_tests(self, tests, sleeptime=0):
+    def run_tests(self, paths, sleeptime=0):
         """
         run a test file or directory
         - tests : test files or directories to run
@@ -246,16 +246,31 @@ class MozMill(object):
         # transfer persisted data
         frame.persisted = self.persisted
 
+        tests = []
+        for path in paths:
+            tests += self.collect_tests(path)
+
         for test in tests:
-            # run the test directory or file
-            if os.path.isdir(test):
-                frame.runTestDirectory(test)
-            else:
-                frame.runTestFile(test)
+          frame.runTestFile(test)
 
         # Give a second for any callbacks to finish.
         sleep(1)
-        
+
+    def collect_tests(self, path):
+        if os.path.isfile(path):
+          return [path]
+
+        files = []
+        for filename in sorted(os.listdir(path)):
+            if filename.startswith("test"):
+                full = os.path.join(path, filename)
+                if os.path.isdir(full):
+                    files += self.collect_tests(full)
+                else:
+                    files.append(full)
+        return files
+
+
     def run(self, tests):
         """run the tests"""
         disconnected = False

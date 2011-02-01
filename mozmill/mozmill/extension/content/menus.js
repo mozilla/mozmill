@@ -108,18 +108,6 @@ function runFile(){
   testFinished();
 }
 
-function runDirectory(){
-  var nsIFilePicker = Components.interfaces.nsIFilePicker;
-  var fp = Components.classes["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
-  fp.init(window, "Select a Directory", nsIFilePicker.modeGetFolder);
-  var res = fp.show();
-  if (res == nsIFilePicker.returnOK){
-    $("#tabs").tabs("select", 1);
-    frame.runTestDirectory(fp.file.path, true);
-  }
-  testFinished();
-}
-
 function runEditor(){
   saveToFile();
   var filename = editor.getFilename();

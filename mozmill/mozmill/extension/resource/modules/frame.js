@@ -36,7 +36,7 @@
 // ***** END LICENSE BLOCK *****
 
 var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','events', 
-                        'jsbridge', 'runTestDirectory', 'runTestFile', 'log', 'getThread',
+                        'jsbridge', 'runTestFile', 'log', 'getThread',
                         'timers', 'persisted'];
 
 var httpd = {};   Components.utils.import('resource://mozmill/stdlib/httpd.js', httpd);
@@ -68,6 +68,7 @@ arrayRemove = function(array, from, to) {
 };
 
 mozmill = undefined; elementslib = undefined;
+
 var loadTestResources = function () {
   if (mozmill == undefined) {
     mozmill = {};
@@ -392,29 +393,6 @@ Collector.prototype.initTestModule = function (filename) {
   return test_module;
 }
 
-Collector.prototype.initTestDirectory = function (directory) {
-  var r = this;
-  function recursiveModuleLoader(dfile) {
-    r.loaded_directories.push(directory);
-    var dfiles = os.listDirectory(dfile);
-    for (var i in dfiles) {
-      var f = dfiles[i];
-      if ( f.isDirectory() && 
-           !withs.startsWith(f.leafName, '.') && 
-           withs.startsWith(f.leafName, "test") &&
-           !arrays.inArray(r.loaded_directories, f.path) ) {
-        recursiveModuleLoader(os.getFileForPath(f.path));
-      } else if ( withs.startsWith(f.leafName, "test") && 
-                  withs.endsWith(f.leafName, ".js")    &&
-                  !arrays.inArray(r.test_modules_by_filename, f.path) ) {
-        r.initTestModule(f.path);
-      }
-      r.testing.push(f.path);
-    }
-  }
-  recursiveModuleLoader(os.getFileForPath(directory));
-}
-  
 // Observer which gets notified when the application quits
 function AppQuitObserver() {
   this.register();
@@ -445,16 +423,7 @@ function Runner (collector, invokedFromIDE) {
   var m = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', m);
   this.platform = m.platform;
 }
-Runner.prototype.runTestDirectory = function (directory) {
-  this.collector.initTestDirectory(directory);
-  
-  for (var i in this.collector.test_modules_by_filename) {
-    var test = this.collector.test_modules_by_filename[i];
-    if (test.status != 'done') {
-      this.runTestModule(test);
-    }
-  }
-}
+
 Runner.prototype.runTestFile = function (filename) {
   this.collector.initTestModule(filename);
   this.runTestModule(this.collector.test_modules_by_filename[filename]);
@@ -586,12 +555,6 @@ Runner.prototype.runTestModule = function (module) {
 }
 
 
-var runTestDirectory = function (dir, invokedFromIDE) {
-  var runner = new Runner(new Collector(), invokedFromIDE);
-  runner.runTestDirectory(dir);
-  runner.end();
-  return true;
-}
 var runTestFile = function (filename, invokedFromIDE) {
   var runner = new Runner(new Collector(), invokedFromIDE);
   runner.runTestFile(filename);
