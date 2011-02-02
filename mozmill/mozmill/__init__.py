@@ -484,7 +484,7 @@ class MozMillRestart(MozMill):
             self.runner.cleanup()
 
 
-class CLI(jsbridge.CLI):
+class CLI(mozrunner.CLI):
     """command line interface to mozmill"""
     
     module = "mozmill"
@@ -492,7 +492,7 @@ class CLI(jsbridge.CLI):
     def __init__(self, args):
 
         # add and parse options
-        jsbridge.CLI.__init__(self, args)
+        mozrunner.CLI.__init__(self, args)
 
         # instantiate plugins
         self.event_handlers = []
@@ -518,10 +518,10 @@ class CLI(jsbridge.CLI):
             self.manifest.tests.append(test_dict)
 
     def add_options(self, parser):
-        jsbridge.CLI.add_options(self, parser)
+        mozrunner.CLI.add_options(self, parser)
 
         parser.add_option("-t", "--test", dest="tests",
-                          action='append', default=[], 
+                          action='append', default=[],
                           help='Run test')
         parser.add_option("--timeout", dest="timeout", type="float",
                           default=60., 
@@ -531,31 +531,42 @@ class CLI(jsbridge.CLI):
                           help="operate in restart mode")
         parser.add_option("-m", "--manifest", dest='manifests', action='append',
                           help='test manifest .ini file')
+        parser.add_option('-D', '--debug', dest="debug", 
+                          action="store_true",
+                          help="debug mode",
+                          default=False)
+        parser.add_option('-P', '--port', dest="port", type="int",
+                          default=24242,
+                          help="TCP port to run jsbridge on.")
 
         for cls in handlers.handlers():
             cls.add_options(parser)
-
-    def get_profile(self, *args, **kwargs):
-        # XXX to refactor; the slots should be smart enough to
-        # make this unnecessary
-        profile = jsbridge.CLI.get_profile(self, *args, **kwargs)
-        profile.install_addon(extension_path)
-        return profile
 
     def profile_args(self):
         """
         return arguments needed to make a profile object from
         this command-line interface
         """
-        profile_args = jsbridge.CLI.profile_args(self)
+        profile_args = mozrunner.CLI.profile_args(self)
         profile_args['addons'].append(extension_path)
+        profile_args['addons'].append(jsbridge.extension_path)
+
+        if self.options.debug:
+            profile_args['preferences'] = {
+              'extensions.checkCompatibility': False,
+              'javascript.options.strict': True
+            }
         return profile_args
 
     def command_args(self):
-        command_args = jsbridge.CLI.command_args(self)
-        if '-foreground' not in command_args:
-            command_args.append('-foreground')
-        return command_args
+        cmdargs = mozrunner.CLI.command_args(self)
+        if self.options.debug and '-jsconsole' not in cmdargs:
+            cmdargs.append('-jsconsole')
+        if '-jsbridge' not in cmdargs:
+            cmdargs += ['-jsbridge', '%d' % self.options.port]
+        if '-foreground' not in cmdargs:
+            cmdargs.append('-foreground')
+        return cmdargs
 
     def run_tests(self, mozmill_cls, tests, runner, results):
         """
