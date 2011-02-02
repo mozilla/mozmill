@@ -602,7 +602,7 @@ class CLI(mozrunner.CLI):
 
 
         # run the tests
-        e = None # runtime exception
+        exception = None # runtime exception
         try:
             if normal_tests:
                 self.run_tests(MozMill, normal_tests, runner, results)
@@ -611,16 +611,16 @@ class CLI(mozrunner.CLI):
                 self.run_tests(MozMillRestart, restart_tests, runner, results)
 
         except:
-            _, e, _ = sys.exc_info()
+            exception_type, exception, tb = sys.exc_info()
             runner.cleanup() # cleanly shutdown
 
         # do whatever reporting you're going to do
         results.stop(self.event_handlers)
 
         # exit on bad stuff happen
-        if e:
-            raise e
-        if results.fails:
+        if exception:
+            traceback.print_exception(exception_type, exception, tb)
+        if exception or results.fails:
             sys.exit(1)
 
         # return results on success [currently unused]
