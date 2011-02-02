@@ -205,6 +205,13 @@ class Runner(object):
             except Exception, e:
                 raise Exception('Cannot kill process, '+type(e).__name__+' '+e.message)
 
+    def reset(self):
+        """
+        reset the runner between runs
+        currently, only resets the profile, but probably should do more
+        """
+        self.profile.reset()
+
     def cleanup(self):
         self.stop()
         self.profile.cleanup()

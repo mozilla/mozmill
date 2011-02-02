@@ -436,20 +436,8 @@ class MozMillRestart(MozMill):
         
         self.python_callbacks_module = None    
         
-        # Reset the profile.
-        # XXX profile should have a method just to clone:
-        # https://bugzilla.mozilla.org/show_bug.cgi?id=585106
-        profile = self.runner.profile
-        profile.cleanup()
-        if profile.create_new:
-            profile.profile = profile.create_new_profile(self.runner.binary)                
-        for addon in profile.addons:
-            profile.install_addon(addon)
-        if jsbridge.extension_path not in profile.addons:
-            profile.install_addon(jsbridge.extension_path)
-        if extension_path not in profile.addons:
-            profile.install_addon(extension_path)
-        profile.set_preferences(profile.preferences)
+        # Reset the runner + profile.
+        self.runner.reset()
     
     def run_tests(self, tests, sleeptime=0):
 
