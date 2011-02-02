@@ -341,7 +341,7 @@ Collector.prototype.startHttpd = function () {
   }
 }
 Collector.prototype.stopHttpd = function () {
-  this.httpd.stop()
+  this.httpd.stop(function(){});  // Callback needed to pause execution until the server has been properly shutdown
   this.httpd = null;
 }
 Collector.prototype.addHttpResource = function (directory, ns) {
@@ -494,6 +494,7 @@ Runner.prototype.end = function () {
   } catch(e) {
     events.fireEvent('error', "persist serialization failed.");
   }
+  this.collector.stopHttpd();
   events.fireEvent('endRunner', true);
 }
 Runner.prototype.getDependencies = function (module) {
