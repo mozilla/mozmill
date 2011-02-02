@@ -341,8 +341,10 @@ Collector.prototype.startHttpd = function () {
   }
 }
 Collector.prototype.stopHttpd = function () {
-  this.httpd.stop(function(){});  // Callback needed to pause execution until the server has been properly shutdown
-  this.httpd = null;
+  if (this.httpd) {
+    this.httpd.stop(function(){});  // Callback needed to pause execution until the server has been properly shutdown
+    this.httpd = null;
+  }
 }
 Collector.prototype.addHttpResource = function (directory, ns) {
   if (!this.httpd) {
