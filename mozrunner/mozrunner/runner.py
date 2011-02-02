@@ -188,7 +188,7 @@ class Runner(object):
                     self.process_handler.pid = pid
                     self.process_handler.wait(timeout=timeout)
 
-    def stop(self, kill_signal=signal.SIGTERM):
+    def stop(self):
         """Kill the app"""
         if self.process_handler is None:
             return
