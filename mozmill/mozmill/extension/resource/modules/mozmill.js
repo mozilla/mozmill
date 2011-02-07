@@ -44,6 +44,7 @@ var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
                         "getMsgComposeController", "getDownloadsController",
                         "Application", "MozMillAsyncTest", "cleanQuit",
                         "getPlacesController", 'isMac', 'isLinux', 'isWindows',
+                        "firePythonCallback"
                        ];
                         
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
@@ -189,11 +190,12 @@ function getAddrbkController () {
 
 MozMillAsyncTest = controller.MozMillAsyncTest;
 
-function firePythonCallback (method, obj) {
-  frame.events.fireEvent("firePythonCallback", {"method":method, "arg":obj, "fire_now":true, "filename":frame.events.currentModule.__file__});
-}
-function firePythonCallbackAfterRestart(method, obj) {
-  frame.events.fireEvent("firePythonCallback", {"method":method, "arg":obj, "fire_now":false, "filename":frame.events.currentModule.__file__});
+function firePythonCallback (filename, method, args, kwargs) {
+  obj = {'filename': filename, 'method': method};
+  obj['test'] = frame.events.currentModule.__file__;
+  obj['args'] = args || [];
+  obj['kwargs'] = kwargs || {};
+  frame.events.fireEvent("firePythonCallback", obj);
 }
 
 function timer (name) {

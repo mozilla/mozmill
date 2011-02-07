@@ -1,26 +1,26 @@
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
-#
+# 
 # The contents of this file are subject to the Mozilla Public License Version
 # 1.1 (the "License"); you may not use this file except in compliance with
 # the License. You may obtain a copy of the License at
-# http://www.mozilla.org/MPL/
-#
+# http:#www.mozilla.org/MPL/
+# 
 # Software distributed under the License is distributed on an "AS IS" basis,
 # WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
 # for the specific language governing rights and limitations under the
 # License.
-#
+# 
 # The Original Code is Mozilla Corporation Code.
-#
+# 
 # The Initial Developer of the Original Code is
 # Mikeal Rogers.
 # Portions created by the Initial Developer are Copyright (C) 2008
 # the Initial Developer. All Rights Reserved.
-#
+# 
 # Contributor(s):
 #  Mikeal Rogers <mikeal.rogers@gmail.com>
-#
+# 
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
 # the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
@@ -32,47 +32,29 @@
 # and other provisions required by the GPL or the LGPL. If you do not delete
 # the provisions above, a recipient may use your version of this file under
 # the terms of any one of the MPL, the GPL or the LGPL.
-#
+# 
 # ***** END LICENSE BLOCK *****
 
-from setuptools import setup, find_packages
+"""
+python callbacks handler for mozmill
+"""
 
-desc = """UI Automation tool for Mozilla applications."""
-summ = """A tool for full UI automation of Mozilla applications."""
+import imp
+import os
 
-PACKAGE_NAME = "mozmill"
-PACKAGE_VERSION = "2.0a"
+class PythonCallbacks(object):
 
-setup(name=PACKAGE_NAME,
-      version=PACKAGE_VERSION,
-      description=desc,
-      long_description=summ,
-      author='Mozilla, Mikeal Rogers',
-      author_email='mikeal.rogers@gmail.com',
-      url='http://github.com/mozautomation/mozmill',
-      license='http://www.apache.org/licenses/LICENSE-2.0',
-      packages=find_packages(exclude=['test']),
-      include_package_data=True,
-      package_data = {'': ['*.js', '*.css', '*.html', '*.txt', '*.xpi', '*.rdf', '*.xul', '*.jsm', '*.xml'],},
-      zip_safe=False,
-      entry_points="""
-          [console_scripts]
-          mozmill = mozmill:cli
+    def __init__(self): pass
 
-          [mozmill.event_handlers]
-          logging = mozmill.logger:LoggerListener
-          report = mozmill.report:Report
-          callbacks = mozmill.python_callbacks:PythonCallbacks
-        """,
-      platforms =['Any'],
-      install_requires = ['jsbridge == 3.0a',
-                          'mozrunner == 3.0a',
-                          'ManifestDestiny == 0.2.2'],
-      classifiers=['Development Status :: 4 - Beta',
-                   'Environment :: Console',
-                   'Intended Audience :: Developers',
-                   'License :: OSI Approved :: Apache Software License',
-                   'Operating System :: OS Independent',
-                   'Topic :: Software Development :: Libraries :: Python Modules',
-                  ]
-     )
+    def events(self):
+        return {'mozmill.firePythonCallback': self.fire }
+
+    def fire(self, obj):
+        path = os.path.dirname(obj['test'])
+        path = os.path.join(path, obj['filename'])
+        assert os.path.exists(path)
+        module = imp.load_source('callbacks', path)
+        method = getattr(module, obj['method'])
+        method(*obj.get('args', []), **obj.get('kwargs', {}))
+        
+        

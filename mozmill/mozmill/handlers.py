@@ -29,7 +29,7 @@ def instantiate_handler(handler, options):
   import inspect
   argspec = inspect.getargspec(handler.__init__)
   args = argspec.args[1:] # don't need to pass self
-  defaults = argspec.defaults
+  defaults = argspec.defaults or []
   offset = len(args) - len(defaults)
   mandatory = set(args[:offset])
   kw = dict([(args[i+offset], defaults[i])

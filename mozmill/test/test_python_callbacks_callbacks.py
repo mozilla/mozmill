@@ -1,5 +1,4 @@
 def nowCallback(obj):
+    print "You're in a python callback!"
     assert obj == "test"
 
-def failCallback(obj):
-    assert True is False

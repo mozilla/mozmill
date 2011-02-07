@@ -67,6 +67,8 @@ class TestResults(object):
     accumulate test results for Mozmill
     """
     def __init__(self):
+
+        # test statistics
         self.passes = []
         self.fails = []
         self.skipped = []
@@ -159,6 +161,7 @@ class MozMill(object):
         os.environ['MOZ_CRASHREPORTER_NO_REPORT'] = '1'
 
     ### methods for listeners
+
     def add_listener(self, callback, **kwargs):
         self.listeners.append((callback, kwargs,))
 
@@ -179,29 +182,6 @@ class MozMill(object):
             self.currentShutdownMode = obj
         self.userShutdownEnabled = not self.userShutdownEnabled        
 
-    def fire_python_callback(self, method, arg, python_callbacks_module):
-        meth = getattr(python_callbacks_module, method)
-        try:
-            meth(arg)
-        except Exception, e:
-            self.endTest_listener({"name":method, "failed":1, 
-                                   "python_exception_type":e.__class__.__name__,
-                                   "python_exception_string":str(e),
-                                   "python_traceback":traceback.format_exc(),
-                                   "filename":python_callbacks_module.__file__})
-            return False
-        self.endTest_listener({"name":method, "failed":0, 
-                               "filename":python_callbacks_module.__file__})
-        return True
-    
-    def firePythonCallback_listener(self, obj):
-        callback_file = "%s_callbacks.py" % os.path.splitext(obj['filename'])[0]
-        if os.path.isfile(callback_file):
-            python_callbacks_module = imp.load_source('callbacks', callback_file)
-        else:
-            raise Exception("No valid callback file")
-        self.fire_python_callback(obj['method'], obj['arg'], python_callbacks_module)
-
     ### methods for startup
 
     def create_network(self):
@@ -211,6 +191,7 @@ class MozMill(object):
                                                                           self.jsbridge_port)
 
         # set a timeout on jsbridge actions in order to ensure termination
+        # XXX bad touch
         self.back_channel.timeout = self.bridge.timeout = self.jsbridge_timeout
         
         # Assign listeners to the back channel
@@ -223,7 +204,6 @@ class MozMill(object):
         """prepare to run the tests"""
         
         self.runner = runner
-        self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
         self.endRunnerCalled = False
         
         self.runner.start()
@@ -236,7 +216,7 @@ class MozMill(object):
         """
         run a test file or directory
         - tests : test files or directories to run
-        - sleeptime : initial time to sleep [s] (not sure why the default is 4)
+        - sleeptime : initial time to sleep [s]
         """
 
         frame = jsbridge.JSObject(self.bridge,
@@ -246,10 +226,12 @@ class MozMill(object):
         # transfer persisted data
         frame.persisted = self.persisted
 
+        # collect tests
         tests = []
         for path in paths:
             tests += self.collect_tests(path)
 
+        # run tests
         for test in tests:
           frame.runTestFile(test)
 
@@ -257,6 +239,8 @@ class MozMill(object):
         sleep(1)
 
     def collect_tests(self, path):
+        """find all tests for a given path"""
+        
         if os.path.isfile(path):
           return [path]
 
@@ -370,23 +354,12 @@ class MozMill(object):
             self.runner.cleanup()
 
 class MozMillRestart(MozMill):
-
-    def __init__(self, *args, **kwargs):
-        MozMill.__init__(self, *args, **kwargs)
-        self.python_callbacks = [] # TODO: why do we reset this?
     
     def start(self, runner):
         # XXX note that this block is duplicated *EXACTLY* from MozMill.start
         self.runner = runner
         self.endRunnerCalled = False
-        self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
-     
-    def firePythonCallback_listener(self, obj):
-        if obj['fire_now']:
-            self.fire_python_callback(obj['method'], obj['arg'], self.python_callbacks_module)
-        else:
-            self.python_callbacks.append(obj)
-        
+
     def start_runner(self):
 
         # if user_restart we don't need to start the browser back up
@@ -421,10 +394,8 @@ class MozMillRestart(MozMill):
                 tests.append(os.path.join(test_dir, "test"+str(counter)+".js"))
                 counter += 1
 
+        # XXX this should probably go earlier
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
-
-        if os.path.isfile(os.path.join(test_dir, 'callbacks.py')):
-            self.python_callbacks_module = imp.load_source('callbacks', os.path.join(test_dir, 'callbacks.py'))
 
         for test in tests:
             frame = self.start_runner()
@@ -444,20 +415,11 @@ class MozMillRestart(MozMill):
                 if not self.userShutdownEnabled:
                     raise JSBridgeDisconnectError()
             self.userShutdownEnabled = False
-
-            for callback in self.python_callbacks:
-                self.fire_python_callback(callback['method'], callback['arg'], self.python_callbacks_module)
-            self.python_callbacks = []
-        
-        self.python_callbacks_module = None    
         
         # Reset the runner + profile.
         self.runner.reset()
     
     def run_tests(self, tests, sleeptime=0):
-
-        # XXX should document what this does...it seems out of place
-        self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
 
         for test_dir in tests:
 
@@ -543,7 +505,8 @@ class CLI(mozrunner.CLI):
                           help="TCP port to run jsbridge on.")
 
         for cls in handlers.handlers():
-            cls.add_options(parser)
+            if hasattr(cls, 'add_options'):
+                cls.add_options(parser)
 
     def profile_args(self):
         """

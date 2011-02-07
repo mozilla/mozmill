@@ -251,9 +251,6 @@ events.skip = function (reason) {
   events.fireEvent('skip', reason);
 }
 events.fireEvent = function (name, obj) {
-  if (events.currentTest && name == "firePythonCallback" && events.currentTest.__invokedFromIDE__) {
-    throw new Error("tests that use firePythonCallback cannot be run from the IDE\n");
-  }
   if (this.listeners[name]) {
     for (var i in this.listeners[name]) {
       this.listeners[name][i](obj);
