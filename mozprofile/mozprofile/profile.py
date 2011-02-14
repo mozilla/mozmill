@@ -140,6 +140,7 @@ class Profile(object):
             addons = [os.path.join(path, x) for x in os.listdir(path)]
            
         for addon in addons:
+            tmpdir = None
             if addon.endswith('.xpi'):
                 tmpdir = tempfile.mkdtemp(suffix = "." + os.path.split(addon)[-1])
                 compressed_file = zipfile.ZipFile(addon, "r")
@@ -163,6 +164,10 @@ class Profile(object):
             addon_path = os.path.join(self.profile, 'extensions', addon_id)
             copytree(addon, addon_path, preserve_symlinks=1)
             self.addons_installed.append(addon_path)
+
+            # remove the temporary directory, if any
+            if tmpdir:
+                rmtree(tmpdir)
 
     def clean_addons(self):
         """Cleans up addons in the profile."""
