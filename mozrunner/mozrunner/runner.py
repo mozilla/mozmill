@@ -39,16 +39,15 @@
 
 __all__ = ['Runner', 'ThunderbirdRunner', 'FirefoxRunner', 'create_runner', 'CLI', 'cli']
 
+import optparse
 import os
 import sys
-import signal
-import optparse
 import ConfigParser
 
 from utils import findInPath
+from mozprofile import *
 from mozprocess import killableprocess
 from mozprocess.pid import get_pids
-from mozprofile import *
 
 class Runner(object):
     """Handles all running operations. Finds bins, runs and kills the process."""
@@ -72,11 +71,17 @@ class Runner(object):
             self.cmdargs = _cmdargs
             self.cmdargs.append('-foreground')
 
+        # process environment
         if env is None:
             self.env = os.environ.copy()
-            self.env.update({'MOZ_NO_REMOTE':'1',})
         else:
-            self.env = env
+            self.env = env.copy()
+        # allows you to run an instance of Firefox separately from any other instances
+        self.env['MOZ_NO_REMOTE'] = '1'
+        # keeps Firefox attached to the terminal window after it starts
+        self.env['NO_EM_RESTART'] = '1'
+
+        # arguments for killableprocess
         self.kp_kwargs = kp_kwargs or {}
 
     @classmethod
@@ -85,7 +90,6 @@ class Runner(object):
         if binary is None:
             return cls.find_binary()
         elif sys.platform == 'darwin' and binary.find('Contents/MacOS/') == -1:
-            # TODO FIX ME!!!
             return os.path.join(binary, 'Contents/MacOS/%s-bin' % cls.names[0])
         else:
             return binary
@@ -176,35 +180,29 @@ class Runner(object):
 
     def start(self):
         """Run self.command in the proper environment."""
+
+        # run once to register any extensions
+        # see:
+        # - http://hg.mozilla.org/releases/mozilla-1.9.2/file/915a35e15cde/build/automation.py.in#l702
+        # - http://mozilla-xp.com/mozilla.dev.apps.firefox/Rules-for-when-firefox-bin-restarts-it-s-process
+        firstrun = killableprocess.runCommand(self.command+['-silent', '-foreground'], env=self.env, **self.kp_kwargs)
+        firstrun.wait()
+
+        # now run for real
         self.process_handler = killableprocess.runCommand(self.command+self.cmdargs, env=self.env, **self.kp_kwargs)
 
     def wait(self, timeout=None):
-        """Wait for the browser to exit."""
+        """Wait for the app to exit."""
+        if self.process_handler is None:
+            return
         self.process_handler.wait(timeout=timeout)
-
-        if sys.platform != 'win32':
-            for name in self.names:
-                for pid in get_pids(name, self.process_handler.pid):
-                    self.process_handler.pid = pid
-                    self.process_handler.wait(timeout=timeout)
 
     def stop(self):
         """Kill the app"""
         if self.process_handler is None:
             return
+        self.process_handler.kill()
         
-        if sys.platform != 'win32':
-            self.process_handler.kill()
-            for name in self.names:
-                for pid in get_pids(name, self.process_handler.pid):
-                    self.process_handler.pid = pid
-                    self.process_handler.kill()
-        else:
-            try:
-                self.process_handler.kill(group=True)
-            except Exception, e:
-                raise Exception('Cannot kill process, '+type(e).__name__+' '+e.message)
-
     def reset(self):
         """
         reset the runner between runs
