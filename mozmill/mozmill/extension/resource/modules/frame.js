@@ -482,7 +482,7 @@ Runner.prototype.wrapper = function (func, arg) {
   }
 }
 
-Runner.prototype._runTestModule = function (module) {
+Runner.prototype.runTestModule = function (module) {
   var attrs = [];
   for (var i in module) {
     attrs.push(i);
@@ -547,10 +547,6 @@ Runner.prototype._runTestModule = function (module) {
   }
   module.__status__ = 'done';
 }
-Runner.prototype.runTestModule = function (module) {
-  this._runTestModule(module);
-}
-
 
 var runTestFile = function (filename, invokedFromIDE) {
   var runner = new Runner(new Collector(), invokedFromIDE);
