@@ -37,7 +37,6 @@
 #
 # ***** END LICENSE BLOCK *****
 
-import imp
 import os
 import socket
 import sys
@@ -58,10 +57,6 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 extension_path = os.path.join(basedir, 'extension')
 mozmillModuleJs = "Components.utils.import('resource://mozmill/modules/mozmill.js')"
 
-class TestsFailedException(Exception):
-    """exception to be raised when the tests fail"""
-    # XXX unused
-
 class TestResults(object):
     """
     accumulate test results for Mozmill
@@ -75,9 +70,11 @@ class TestResults(object):
         self.alltests = []
 
         # total test run time
-        # TODO: these endpoints are a bit vague as to where they live
         self.starttime = datetime.now()
         self.endtime = None
+
+        # application information
+        self.appinfo = None
 
     def events(self):
         """events the MozMill class will dispatch to"""
@@ -106,26 +103,26 @@ class TestResults(object):
 
 class MozMill(object):
     """
-    MozMill is a one-shot test runner  You should use MozMill as follows:
+    MozMill is a test runner  You should use MozMill as follows:
 
     m = MozMill(...)
-    m.start(...)
-    m.run_tests()
+    m.run(tests)
     m.stop()
-
-    You should *NOT* vary from this order of execution.  If you have need to
-    run different sets of tests, create a new instantiation of MozMill
     """
 
-    def __init__(self, results, jsbridge_port=24242, jsbridge_timeout=60, handlers=()):
+    def __init__(self, runner, results, jsbridge_port=24242, jsbridge_timeout=60, handlers=()):
         """
+        - runner : a MozRunner instance to run the app
         - results : a TestResults instance to accumulate results
         - jsbridge_port : port jsbridge uses to connect to to the application
         - jsbridge_timeout : how long to go without jsbridge communication
         - handlers : pluggable event handler
         """
 
-        # put your data here
+        # the MozRunner
+        self.runner = runner
+
+        # mozmill puts your data here
         self.results = results 
 
         # jsbridge parameters
@@ -139,6 +136,7 @@ class MozMill(object):
         self.shutdownModes = enum('default', 'user_shutdown', 'user_restart')
         self.currentShutdownMode = self.shutdownModes.default
         self.userShutdownEnabled = False
+        self.endRunnerCalled = False
 
         # setup event listeners
         self.global_listeners = []
@@ -160,7 +158,7 @@ class MozMill(object):
         # disable the crashreporter
         os.environ['MOZ_CRASHREPORTER_NO_REPORT'] = '1'
 
-    ### methods for listeners
+    ### methods for event listeners
 
     def add_listener(self, callback, **kwargs):
         self.listeners.append((callback, kwargs,))
@@ -191,7 +189,6 @@ class MozMill(object):
                                                                           self.jsbridge_port)
 
         # set a timeout on jsbridge actions in order to ensure termination
-        # XXX bad touch
         self.back_channel.timeout = self.bridge.timeout = self.jsbridge_timeout
         
         # Assign listeners to the back channel
@@ -200,74 +197,56 @@ class MozMill(object):
         for global_listener in self.global_listeners:
             self.back_channel.add_global_listener(global_listener)
 
-    def start(self, runner):
-        """prepare to run the tests"""
-        
-        self.runner = runner
-        self.endRunnerCalled = False
-        
-        self.runner.start()
+    def start_runner(self):
+        """start the MozRunner"""
+
+        # if user_restart we don't need to start the browser back up
+        if self.currentShutdownMode != self.shutdownModes.user_restart:
+            self.runner.start()
+
+        # create the network
         self.create_network()
 
-        self.results.appinfo = self.get_appinfo(self.bridge)
-
-
-    def run_tests(self, paths, sleeptime=0):
-        """
-        run a test file or directory
-        - tests : test files or directories to run
-        - sleeptime : initial time to sleep [s]
-        """
+        # fetch the application info
+        if not self.results.appinfo:
+            self.results.appinfo = self.get_appinfo(self.bridge)
 
         frame = jsbridge.JSObject(self.bridge,
                                   "Components.utils.import('resource://mozmill/modules/frame.js')")
-        sleep(sleeptime)
 
-        # transfer persisted data
-        frame.persisted = self.persisted
+        # set some state
+        self.currentShutdownMode = self.shutdownModes.default
+        self.endRunnerCalled = False 
+        frame.persisted = self.persisted # transfer persisted data
 
-        # collect tests
-        tests = []
-        for path in paths:
-            tests += self.collect_tests(path)
+        # return the frame
+        return frame
 
+    def run_tests(self, tests):
+        """run test files"""
+
+        # start the runner
+        frame = self.start_runner()
+        
         # run tests
         for test in tests:
-          frame.runTestFile(test)
+          frame.runTestFile(test['path'])
 
-        # Give a second for any callbacks to finish.
-        sleep(1)
-
-    def collect_tests(self, path):
-        """find all tests for a given path"""
-        
-        if os.path.isfile(path):
-          return [path]
-
-        files = []
-        for filename in sorted(os.listdir(path)):
-            if filename.startswith("test"):
-                full = os.path.join(path, filename)
-                if os.path.isdir(full):
-                    files += self.collect_tests(full)
-                else:
-                    files.append(full)
-        return files
-
+        # stop the runner
+        self.stop_runner()
 
     def run(self, tests):
         """run the tests"""
+
         disconnected = False
         try:
             self.run_tests(tests)
         except JSBridgeDisconnectError:
             disconnected = True
             if not self.userShutdownEnabled:
-                self.report_disconnect()               
+                self.report_disconnect()
+                raise
             
-        # shutdown the test harness
-        self.stop(fatal=disconnected)
-
         if disconnected:
             # raise the disconnect error
             raise
@@ -300,154 +279,70 @@ class MozMill(object):
         test['failed'] = 1
 
         # send to self.results
-        # XXX bad touch
         self.results.alltests.append(test)
         self.results.fails.append(test)
 
-    def stop_runner(self, timeout=30, close_bridge=False, hard=False):
+    def stop_runner(self, timeout=10):
+
+        # Give a second for any callbacks to finish.
         sleep(1)
+
+        # reset the shutdown mode
+        self.currentShutdownMode = self.shutdownModes.default
+
+        # quit the application via JS
+        # this *will* cause a diconnect error
+        # (not sure what the socket.error is all about)
         try:
             mozmill = jsbridge.JSObject(self.bridge, mozmillModuleJs)
             mozmill.cleanQuit()
         except (socket.error, JSBridgeDisconnectError):
             pass
 
-        if not close_bridge:
-            starttime = datetime.utcnow()
-            self.runner.wait(timeout=timeout)
-            endtime = datetime.utcnow()
-            if ( endtime - starttime ) > timedelta(seconds=timeout):
-                try:
-                    self.runner.stop()
-                except:
-                    pass
-                self.runner.wait()
-        else: # TODO: unify this logic with the above better
-            if hard:
-                self.runner.cleanup()
-                return
+        # wait for the runner to stop
+        self.runner.wait(timeout=timeout)
+        x = 0
+        while x < timeout:
+            if self.endRunnerCalled:
+                break
+            x += 0.25
+            sleep(0.25)
+        else:
+            raise Exception('endRunner was never called. There must have been a failure in the framework')
 
-            # XXX this call won't actually finish in the specified timeout time
-            self.runner.wait(timeout=timeout)
-
-            self.back_channel.close()
-            self.bridge.close()
-            x = 0
-            while x < timeout:
-                if self.endRunnerCalled:
-                    break
-                sleep(1)
-                x += 1
-            else:
-                print "WARNING | endRunner was never called. There must have been a failure in the framework."
-                self.runner.cleanup()
-                sys.exit(1)
-
-    def stop(self, fatal=False):
+    def stop(self):
         """cleanup and invoking of final handlers"""
 
-        # stop the runner
-        self.stop_runner(timeout=10, close_bridge=True, hard=fatal)
+        # close the bridge and back channel
+        self.back_channel.close()
+        self.bridge.close()
 
         # cleanup 
         if self.runner is not None:
             self.runner.cleanup()
 
-class MozMillRestart(MozMill):
-    
-    def start(self, runner):
-        # XXX note that this block is duplicated *EXACTLY* from MozMill.start
-        self.runner = runner
-        self.endRunnerCalled = False
 
-    def start_runner(self):
+### method for test collection
 
-        # if user_restart we don't need to start the browser back up
-        if self.currentShutdownMode != self.shutdownModes.user_restart:
-            self.runner.start()
+def collect_tests(path):
+    """find all tests for a given path"""
 
-        self.create_network()
-        self.results.appinfo = self.get_appinfo(self.bridge)
-        frame = jsbridge.JSObject(self.bridge,
-                                  "Components.utils.import('resource://mozmill/modules/frame.js')")
-        return frame
+    path = os.path.abspath(path)
+    if os.path.isfile(path):
+        return [path]
 
-    def run_dir(self, test_dir, sleeptime=0):
-        """run a directory of restart tests resetting the profile per directory"""
+    files = []
+    for filename in sorted(os.listdir(path)):
+        if filename.startswith("test"):
+            full = os.path.join(path, filename)
+            if os.path.isdir(full):
+                files += collect_tests(full)
+            else:
+                files.append(full)
+    return files
 
-        # TODO:  document this behaviour!
-        if os.path.isfile(os.path.join(test_dir, 'testPre.js')):   
-            pre_test = os.path.join(test_dir, 'testPre.js')
-            post_test = os.path.join(test_dir, 'testPost.js') 
-            if not os.path.exists(pre_test) or not os.path.exists(post_test):
-                print "Skipping "+test_dir+" does not contain both pre and post test."
-                return
-            
-            tests = [pre_test, post_test]
-        else:
-            if not os.path.isfile(os.path.join(test_dir, 'test1.js')):
-                print "Skipping "+test_dir+": does not contain any known test file names"
-                return
-            tests = []
-            counter = 1
-            while os.path.isfile(os.path.join(test_dir, "test"+str(counter)+".js")):
-                tests.append(os.path.join(test_dir, "test"+str(counter)+".js"))
-                counter += 1
-
-        # XXX this should probably go earlier
-        self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
-
-        for test in tests:
-            frame = self.start_runner()
-            self.currentShutdownMode = self.shutdownModes.default
-            self.endRunnerCalled = False
-            sleep(sleeptime)
-
-            frame.persisted = self.persisted
-            try:
-                frame.runTestFile(test)
-                while not self.endRunnerCalled:
-                    sleep(.25)
-                self.currentShutdownMode = self.shutdownModes.default
-                self.stop_runner()
-                sleep(2) # Give mozrunner some time to shutdown the browser
-            except JSBridgeDisconnectError:
-                if not self.userShutdownEnabled:
-                    raise JSBridgeDisconnectError()
-            self.userShutdownEnabled = False
         
-        # Reset the runner + profile.
-        self.runner.reset()
-    
-    def run_tests(self, tests, sleeptime=0):
-
-        for test_dir in tests:
-
-            # XXX this allows for only one sub-level of test directories
-            # is this a spec or a side-effect?
-            # If the former, it should be documented
-            test_dirs = [d for d in os.listdir(os.path.abspath(os.path.expanduser(test_dir))) 
-                         if d.startswith('test') and os.path.isdir(os.path.join(test_dir, d))]
-
-            if not len(test_dirs):
-                test_dirs = [test_dir]
-
-            for d in test_dirs:
-                d = os.path.abspath(os.path.join(test_dir, d))
-                self.run_dir(d, sleeptime)
-
-        # cleanup the profile
-        self.runner.cleanup()
-
-        # Give a second for any pending callbacks to finish
-        sleep(1) 
-
-    def stop(self, fatal=False):
-        """MozmillRestart doesn't need to do cleanup as this is already done per directory"""
-
-        if fatal:
-            self.runner.cleanup()
-
+### command line interface
 
 class CLI(mozrunner.CLI):
     """command line interface to mozmill"""
@@ -475,12 +370,19 @@ class CLI(mozrunner.CLI):
             if not os.path.exists(test):
                 raise Exception("Not a valid test file/directory: %s" % test)
 
-            # construct metadata for test
-            test_dict = { 'test': test, 'path': os.path.abspath(test) }
+            # collect the tests
+            tests = [{'test': os.path.basename(t), 'path': t}
+                     for t in collect_tests(test)]
             if self.options.restart:
-                test_dict['type'] = 'restart'
-            
-            self.manifest.tests.append(test_dict)
+                for t in tests:
+                    t['type'] = 'restart'
+            self.manifest.tests.extend(tests)
+
+        # list the tests and exit if specified
+        if self.options.list_tests:
+            for test in self.manifest.tests:
+                print test['path']
+            self.parser.exit()
 
     def add_options(self, parser):
         mozrunner.CLI.add_options(self, parser)
@@ -503,6 +405,9 @@ class CLI(mozrunner.CLI):
         parser.add_option('-P', '--port', dest="port", type="int",
                           default=24242,
                           help="TCP port to run jsbridge on.")
+        parser.add_option('--list-tests', dest='list_tests',
+                          action='store_true', default=False,
+                          help="list test files that would be run, in order")
 
         for cls in handlers.handlers():
             if hasattr(cls, 'add_options'):
@@ -525,6 +430,8 @@ class CLI(mozrunner.CLI):
         return profile_args
 
     def command_args(self):
+        """arguments to the application to be run"""
+        
         cmdargs = mozrunner.CLI.command_args(self)
         if self.options.debug and '-jsconsole' not in cmdargs:
             cmdargs.append('-jsconsole')
@@ -533,64 +440,48 @@ class CLI(mozrunner.CLI):
         if '-foreground' not in cmdargs:
             cmdargs.append('-foreground')
         return cmdargs
-
-    def run_tests(self, mozmill_cls, tests, runner, results):
-        """
-        instantiate a mozmill object and run its tests
-        - mozmill_cls : class of Mozmill to instantiate (either MozMill or MozMillRestart)
-        - tests : test paths to run
-        - runner : instance of a MozRunner
-        """
-
-        # create a mozmill
-        mozmill = mozmill_cls(results,
-                              jsbridge_port=self.options.port,
-                              jsbridge_timeout=self.options.timeout,
-                              handlers=self.event_handlers
-                              )
-
-        # start your mozmill
-        mozmill.start(runner=runner)
-
-        # run the tests
-        mozmill.run(tests)
-
         
     def run(self):
 
-        # find the tests to run
-        normal_tests = []
-        restart_tests = []
-        for test in self.manifest.active_tests():
+        # groups of tests to run together
+        tests = self.manifest.tests[:]
+        test_groups = [[]] 
+        while tests:
+            test = tests.pop(0)
             if test.get('type') == 'restart':
-                restart_tests.append(test['path'])
-            else:
-                normal_tests.append(test['path'])
-            # TODO: should probably pass the whole test, maybe?
+                test_groups.append([test])
+                test_groups.append([]) # make a new group for non-restart tests
+                continue
+            test_groups[-1].append(test)
+        test_groups = [i for i in test_groups if i] # filter out empty groups
 
         # make sure you have tests to run
-        if not (normal_tests or restart_tests):
+        if not test_groups:
             self.parser.error("No tests found. Please specify tests with -t or -m")
-
+        
         # create a place to put results
         results = TestResults()
         
         # create a Mozrunner
         runner = self.create_runner()
 
+        # create a MozMill
+        mozmill = MozMill(runner, results,
+                          jsbridge_port=self.options.port,
+                          jsbridge_timeout=self.options.timeout,
+                          handlers=self.event_handlers
+                          )
 
         # run the tests
         exception = None # runtime exception
         try:
-            if normal_tests:
-                self.run_tests(MozMill, normal_tests, runner, results)
-                
-            if restart_tests:
-                self.run_tests(MozMillRestart, restart_tests, runner, results)
-
+            for test_group in test_groups:
+                mozmill.run(test_group)
         except:
             exception_type, exception, tb = sys.exc_info()
-            runner.cleanup() # cleanly shutdown
+
+        # shutdown the test harness cleanly
+        mozmill.stop()
 
         # do whatever reporting you're going to do
         results.stop(self.event_handlers)
