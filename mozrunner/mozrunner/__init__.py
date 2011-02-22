@@ -311,6 +311,11 @@ class FirefoxProfile(Profile):
                    'extensions.update.enabled'    : False,
                    # Don't open a dialog to show available add-on updates
                    'extensions.update.notifyUser' : False,
+
+                   # Disable addon compatibility checks
+                   'extensions.checkCompatibility' : False,
+                   'extensions.checkCompatibility.4.0' : False,
+                   'extensions.checkCompatibility.4.0b' : False,
                    }
 
     @property
