@@ -766,29 +766,30 @@ MozMillController.prototype.select = function (el, indx, option, value) {
      return false;
    }
   }
-  //if we have a xul menulist select accordingly
-  else if (element.localName.toLowerCase() == "menulist"){
+  //if we have a xul menupopup select accordingly
+  else if (element.namespaceURI.toLowerCase() == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul") {
     var ownerDoc = element.ownerDocument;
     // Unwrap the XUL element's XPCNativeWrapper
-    if (element.namespaceURI.toLowerCase() == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul") {
-      element = utils.unwrapNode(element);
-    }
+    element = utils.unwrapNode(element);
+    // Get the list of menuitems
+    menuitems = element.getElementsByTagName("menupopup")[0].getElementsByTagName("menuitem");
+    
     var item = null;
 
     if (indx != undefined) {
       if (indx == -1) {
         events.triggerEvent(element, 'focus', false);
-        element.selectedIndex = indx;
+        element.boxObject.QueryInterface(Components.interfaces.nsIMenuBoxObject).activeChild = null;
         events.triggerEvent(element, 'change', true);
 
         frame.events.pass({'function':'Controller.select()'});
         return true;
       } else {
-        item = element.getItemAtIndex(indx);
+        item = menuitems[indx];
       }
     } else {
-      for (var i = 0; i < element.itemCount; i++) {
-        var entry = element.getItemAtIndex(i);
+      for (var i = 0; i < menuitems.length; i++) {
+        var entry = menuitems[i];
         if (option != undefined && entry.label == option ||
             value != undefined && entry.value == value) {
           item = entry;
@@ -803,13 +804,12 @@ MozMillController.prototype.select = function (el, indx, option, value) {
       this.sleep(0);
 
       // Scroll down until item is visible
-      for (var i = s = element.selectedIndex; i <= element.itemCount + s; ++i) {
-        var entry = element.getItemAtIndex((i + 1) % element.itemCount);
-        EventUtils.synthesizeKey("VK_DOWN", {}, ownerDoc.defaultView);
-        if (entry.label == item.label) {
+      for (var i = 0; i <= menuitems.length; ++i) {
+        var selected = element.boxObject.QueryInterface(Components.interfaces.nsIMenuBoxObject).activeChild;
+        if (item == selected) {
           break;
         }
-        else if (entry.label == "") i += 1;
+        EventUtils.synthesizeKey("VK_DOWN", {}, ownerDoc.defaultView);
       }
 
       EventUtils.synthesizeMouse(item, 1, 1, {}, ownerDoc.defaultView);
