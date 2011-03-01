@@ -1,6 +1,3 @@
-// Set to your local copy of shared-modules
-var prefs = require("../../mozmill-tests/shared-modules/prefs");
-
 var setupModule = function(module) {
   module.controller = mozmill.getBrowserController();
 }
@@ -11,23 +8,15 @@ var testHTMLRadio = function() {
   
   var radio = new elementslib.ID(controller.tabs.activeTab, "www");
   controller.radio(radio);
-  controller.sleep(2000);
 }
 
 var testXULRadio = function() {
-  prefs.openPreferencesDialog(controller, prefDialogCallback);
-}
+  prefs = mozmill.getPreferencesController();
+  controller.sleep(1000);  // Wait for prefs dialog to open
 
-var prefDialogCallback = function(controller) {
-  var prefDialog = new prefs.preferencesDialog(controller);
-  
-  var radio = new elementslib.ID(controller.window.document, "alwaysAsk");
+  var radio = new elementslib.ID(prefs.window.document, "alwaysAsk");
   controller.radio(radio);
-  controller.sleep(2000);
   
-  radio = new elementslib.ID(controller.window.document, "saveTo");
+  radio = new elementslib.ID(prefs.window.document, "saveTo");
   controller.radio(radio);
-  controller.sleep(2000);
-
-  prefDialog.close(true);
 }
