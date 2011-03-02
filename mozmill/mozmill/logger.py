@@ -33,8 +33,16 @@ class LoggerListener(object):
       self.logger.setLevel(logging.DEBUG)
   
     self.logger.addHandler(handler)
-   
     self.format = format
+    
+    self.custom_levels = {
+     "TEST-START" : 21, # logging.INFO is 20
+     "TEST-PASS": 41, # logging.ERROR is 40
+     "TEST-UNEXPECTED-FAIL": 42,
+    }
+
+    for name in self.custom_levels:
+      logging.addLevelName(self.custom_levels[name], name)
 
 
   @classmethod
@@ -93,7 +101,8 @@ class LoggerListener(object):
     """print pass/failed/skipped statistics"""
 
     if fatal:
-      print 'TEST-UNEXPECTED-FAIL | Disconnect Error: Application unexpectedly closed'
+      self.logger.log(self.custom_levels["TEST-UNEXPECTED-FAIL"], 
+        'Disconnect Error: Application unexpectedly closed')
     
     print "INFO Passed: %d" % len(results.passes)
     print "INFO Failed: %d" % len(results.fails)
@@ -102,23 +111,19 @@ class LoggerListener(object):
   ### event listeners
 
   def startTest(self, test):
-    print "TEST-START | %s | %s" % (test['filename'], test['name'])
+    self.logger.log(self.custom_levels["TEST-START"], "%s | %s" % (test['filename'], test['name']))
 
   def endTest(self, test):
 
     if test.get('skipped', False):
-      print "WARNING | %s | (SKIP) %s" % (test['name'], test.get('skipped_reason', ''))
+      self.logger.warning("%s | (SKIP) %s" % (test['name'], test.get('skipped_reason', '')))
 
     elif test['failed'] > 0:
-      print "TEST-UNEXPECTED-FAIL | %s | %s" % (test['filename'], test['name'])
+      self.logger.log(self.custom_levels["TEST-UNEXPECTED-FAIL"], "%s | %s" % (test['filename'], test['name']))
     else:
-      print "TEST-PASS | %s | %s" % (test['filename'], test['name'])
+      self.logger.log(self.custom_levels["TEST-PASS"], "%s | %s" % (test['filename'], test['name']))
 
-  ###
-
-  def levels(self):
-    """TODO : logging levels"""
-    
+  
 class ColorFormatter(logging.Formatter):
   # http://stackoverflow.com/questions/384076/how-can-i-make-the-python-logging-output-to-be-colored
   BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
@@ -132,7 +137,10 @@ class ColorFormatter(logging.Formatter):
     'INFO': WHITE,
     'DEBUG': BLUE,
     'CRITICAL': YELLOW,
-    'ERROR': RED
+    'ERROR': RED,
+    'TEST-PASS': GREEN,
+    'TEST-UNEXPECTED-FAIL': RED,
+    'TEST-START': BLUE
   }
 
   def formatter_msg(self, msg, use_color = True):
