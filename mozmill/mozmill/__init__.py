@@ -61,7 +61,7 @@ class TestResults(object):
     """
     accumulate test results for Mozmill
     """
-    def __init__(self):
+    def __init__(self, version):
 
         # test statistics
         self.passes = []
@@ -75,6 +75,9 @@ class TestResults(object):
 
         # application information
         self.appinfo = None
+
+        # other information
+        self.mozmill_version = version
 
     def events(self):
         """events the MozMill class will dispatch to"""
@@ -460,7 +463,8 @@ class CLI(mozrunner.CLI):
             self.parser.error("No tests found. Please specify tests with -t or -m")
         
         # create a place to put results
-        results = TestResults()
+        version = self.metadata["Version"].lstrip()
+        results = TestResults(version)
         
         # create a Mozrunner
         runner = self.create_runner()
