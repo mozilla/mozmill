@@ -69,7 +69,7 @@ class Report(object):
                       help="Report the results. Requires url to results server. Use 'stdout' for stdout.")
 
   def stop(self, results, fatal=False):
-    results = self.get_report()
+    results = self.get_report(results)
     return self.send_report(results, self.report)
 
   def report_type(self):
