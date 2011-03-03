@@ -41,7 +41,7 @@ var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler",
                         "getFile", "Copy", "getChromeWindow", "getWindows", "runEditor",
                         "runFile", "getWindowByTitle", "getWindowByType", "tempfile", 
                         "getMethodInWindows", "getPreference", "setPreference",
-                        "sleep", "assert", "unwrapNode", "waitFor", "waitForEval"];
+                        "sleep", "assert", "unwrapNode", "TimeoutError", "waitFor", "waitForEval"];
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
               .getService(Components.interfaces.nsIAppShellService)
@@ -419,6 +419,24 @@ function unwrapNode(aNode) {
 }
 
 /**
+ * TimeoutError
+ *
+ * Error object used for timeouts
+ */
+function TimeoutError(message, fileName, lineNumber) {
+  var err = new Error();
+  if (err.stack) {
+    this.stack = err.stack;
+  }
+  this.message = message === undefined ? err.message : message;
+  this.fileName = fileName === undefined ? err.fileName : fileName;
+  this.lineNumber = lineNumber === undefined ? err.lineNumber : lineNumber;
+};
+TimeoutError.prototype = new Error();
+TimeoutError.prototype.constructor = TimeoutError;
+TimeoutError.prototype.name = 'TimeoutError';
+
+/**
  * Waits for the callback evaluates to true
  */
 function waitFor(callback, message, timeout, interval, thisObject) {
@@ -444,7 +462,7 @@ function waitFor(callback, message, timeout, interval, thisObject) {
 
   if (self.counter >= timeout) {
     message = message || arguments.callee.name + ": Timeout exceeded for '" + callback + "'";
-    throw new Error(message);
+    throw new TimeoutError(message);
   }
 
   return true;
