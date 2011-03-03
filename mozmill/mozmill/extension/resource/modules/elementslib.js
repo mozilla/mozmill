@@ -63,33 +63,28 @@ var countQuotes = function(str){
   return count;
 }
 var smartSplit = function (str) {
-  // Note: I would love it if someone good with regular expressions 
-  // could just replace this function with a good regex
-
   // Ensure we have an even number of quotes
   if (countQuotes(str) % 2 != 0) {
     throw new Error ("Invalid Lookup Expression");
   }
-
-  var repls = [];
-  while ((str.indexOf('"') != -1) && i <= str.length) {
-    var i = str.indexOf('"');
-    var s = str.slice(i, str.indexOf('"', i + 1) +1)
-    str = str.replace(s, '%$^'+repls.length);
-    repls.push(s)
-  }
   
-  var split = str.split('/');
-  var rindex = 0;
-  for (var i in split) {
-    while (split[i].indexOf('%$^') != -1) {
-      var s = split[i];
-      var si = rindex;
-      split[i] = s.replace('%$^'+si, repls[si]);
-      rindex++;
-    }
+  /**
+   * This regex matches a single "node" in a lookup string.
+   * In otherwords, it matches the part between the two '/'s
+   *
+   * Regex Explanation:
+   * \/ - start matching at the first forward slash
+   * ([^\/"]*"[^"]*")* - match as many pairs of quotes as possible until we hit a slash (ignore slashes inside quotes)
+   * [^\/]* - match the remainder of text outside of last quote but before next slash
+   */
+  var re = /\/([^\/"]*"[^"]*")*[^\/]*/g
+  var ret = []
+  var match = re.exec(str);
+  while (match != null) {
+    ret.push(match[0].replace(/^\//, ""));
+    match = re.exec(str);
   }
-  return split;
+  return ret;
 }
 
 
