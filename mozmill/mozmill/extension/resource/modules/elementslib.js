@@ -376,6 +376,9 @@ var _byAnonAttrib = function (_document, parent, attributes) {
   return _returnResult(results)
 }
 var _byIndex = function (_document, parent, i) {
+  if (parent instanceof Array) {
+    return parent[i];
+  }
   return parent.childNodes[i];
 }
 var _anonByName = function (_document, parent, value) {
