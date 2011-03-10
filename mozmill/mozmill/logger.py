@@ -8,12 +8,14 @@ except:
     import simplejson as json
 
 import logging
+import re
 
 class LoggerListener(object):
+  stack_regex = re.compile("(.*)@(.*?)(?: -> (file\:\/\/\/\S*))?\:(\d*)$")
 
   ### methods for the EventHandler interface
-
-  def __init__(self, showerrors=False, showall=False, logfile=None, format="json"):
+  def __init__(self, showerrors=False, showall=False, logfile=None,
+               format="json", debug=False):
     template = "%(levelname)s | %(message)s"
 
     self.logger = logging.getLogger('mozmill')
@@ -33,17 +35,17 @@ class LoggerListener(object):
       self.logger.setLevel(logging.DEBUG)
   
     self.logger.addHandler(handler)
-    self.format = format
-    
+
     self.custom_levels = {
      "TEST-START" : 21, # logging.INFO is 20
      "TEST-PASS": 41, # logging.ERROR is 40
      "TEST-UNEXPECTED-FAIL": 42,
     }
-
     for name in self.custom_levels:
       logging.addLevelName(self.custom_levels[name], name)
-
+      
+    self.format = format
+    self.debug = debug
 
   @classmethod
   def add_options(cls, parser):
@@ -75,10 +77,10 @@ class LoggerListener(object):
       self.logger.debug(event + ' | ' + string)
       
   def pprint(self, obj):
-    self.format_stack(obj)
+    self.find_stack(obj)
     return json.dumps(obj, indent=2)
       
-  def format_stack(self, obj):
+  def find_stack(self, obj):
     """ split any stacktrace string into an array """
     if type(obj) == dict or type(obj) == list:
       iter = obj
@@ -88,11 +90,18 @@ class LoggerListener(object):
       for i in iter:
         child = obj[i]
         if i == "stack":
-          obj[i] = child.split("\n")
+          obj[i] = self.format_stack(child)
         else:
-          self.format_stack(child)
-      
-
+          self.find_stack(child)
+          
+  def format_stack(self, stack):
+    stack = stack.split("\n")
+    matches = [self.stack_regex.search(call) for call in stack]
+    return [{'function': match.group(1),
+             'filename': match.group(3) or match.group(2),
+             'lineno': match.group(4)}
+           for match in matches if match and (match.group(3) or self.debug)]
+    
   def events(self):
     return { 'mozmill.setTest': self.startTest,
              'mozmill.endTest': self.endTest }
@@ -114,10 +123,8 @@ class LoggerListener(object):
     self.logger.log(self.custom_levels["TEST-START"], "%s | %s" % (test['filename'], test['name']))
 
   def endTest(self, test):
-
     if test.get('skipped', False):
       self.logger.warning("%s | (SKIP) %s" % (test['name'], test.get('skipped_reason', '')))
-
     elif test['failed'] > 0:
       self.logger.log(self.custom_levels["TEST-UNEXPECTED-FAIL"], "%s | %s" % (test['filename'], test['name']))
     else:
