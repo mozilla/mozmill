@@ -181,6 +181,9 @@ class Runner(object):
     def start(self):
         """Run self.command in the proper environment."""
 
+        # ensure you are stopped
+        self.stop()
+
         # run once to register any extensions
         # see:
         # - http://hg.mozilla.org/releases/mozilla-1.9.2/file/915a35e15cde/build/automation.py.in#l702
