@@ -265,7 +265,7 @@ class MozMill(object):
     ### methods for shutting down and cleanup
     
     def report_disconnect(self):
-        test = self.current_test
+        test = getattr(self, "current_test", {})
         test['passes'] = []
         test['fails'] = [{
           'exception' : {
