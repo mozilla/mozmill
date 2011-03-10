@@ -74,7 +74,7 @@ class LoggerListener(object):
     elif event == 'mozmill.skip':
       self.logger.info('Test Skipped: ' + string)
     else:
-      self.logger.debug(event + ' | ' + string)
+      self.logger.debug(str(event) + ' | ' + string)
       
   def pprint(self, obj):
     self.find_stack(obj)
