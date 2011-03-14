@@ -131,14 +131,13 @@ class MozMill(object):
         # jsbridge parameters
         self.jsbridge_port = jsbridge_port
         self.jsbridge_timeout = jsbridge_timeout
+        self.bridge = self.back_channel = None
 
         # persisted data
         self.persisted = {}
 
         # shutdown parameters
-        self.shutdownModes = enum('default', 'user_shutdown', 'user_restart')
-        self.currentShutdownMode = self.shutdownModes.default
-        self.userShutdownEnabled = False
+        self.shutdownMode = {}
         self.endRunnerCalled = False
 
         # setup event listeners
@@ -179,9 +178,16 @@ class MozMill(object):
         self.endRunnerCalled = True
         
     def userShutdown_listener(self, obj):
-        if obj in [self.shutdownModes.default, self.shutdownModes.user_restart, self.shutdownModes.user_shutdown]:
-            self.currentShutdownMode = obj
-        self.userShutdownEnabled = not self.userShutdownEnabled        
+        """
+        listen for the 'userShutdown' event and set some state so
+        that the (python) instance knows what to do.  The obj should
+        have the following keys:
+        - restart : whether the application is to be restarted
+        - user : whether the shutdown was triggered via test JS
+        - next : for the restart cases, which test to run next
+        - resetProfile : reset the profile after shutdown
+        """
+        self.shutdownMode = obj
 
     ### methods for startup
 
@@ -203,10 +209,13 @@ class MozMill(object):
     def start_runner(self):
         """start the MozRunner"""
 
-        # if user_restart we don't need to start the browser back up
-        if self.currentShutdownMode != self.shutdownModes.user_restart:
+        # if user restart we don't need to start the browser back up
+        if not (self.shutdownMode.get('user', False)
+                and self.shutdownMode.get('restart', False)):
+            if self.shutdownMode.get('resetProfile'):
+                self.runner.reset() # reset the profile
             self.runner.start()
-
+            
         # create the network
         self.create_network()
 
@@ -218,12 +227,32 @@ class MozMill(object):
                                   "Components.utils.import('resource://mozmill/modules/frame.js')")
 
         # set some state
-        self.currentShutdownMode = self.shutdownModes.default
+        self.shutdownMode = {}
         self.endRunnerCalled = False 
         frame.persisted = self.persisted # transfer persisted data
 
         # return the frame
         return frame
+
+    def run_test_file(self, frame, path, name=None):
+        """
+        run a single test file
+        - frame : JS frame object
+        - path : path to the test file
+        - name : name of test to run; if None, run all tests
+        """        
+        try:
+            frame.runTestFile(path, False, name)
+        except JSBridgeDisconnectError:
+            # if the runner is restarted via JS, run this test
+            # again if the next is specified
+            nextTest = self.shutdownMode.get('next')
+            if not nextTest:
+                # if there is not a next test,
+                # throw the error up the chain
+                raise
+            frame = self.start_runner()
+            self.run_test_file(frame, path, nextTest)
 
     def run_tests(self, tests):
         """run test files"""
@@ -232,8 +261,17 @@ class MozMill(object):
         frame = self.start_runner()
         
         # run tests
-        for test in tests:
-          frame.runTestFile(test['path'])
+        while tests:
+            test = tests.pop(0)
+            try:
+                self.run_test_file(frame, test['path'])
+            except JSBridgeDisconnectError:
+                if self.shutdownMode and tests:
+                    # if the test initiates shutdown and there are other tests
+                    # restart the runner
+                    frame = self.start_runner()
+                else:
+                    raise
 
         # stop the runner
         self.stop_runner()
@@ -244,7 +282,7 @@ class MozMill(object):
         try:
             self.run_tests(tests)
         except JSBridgeDisconnectError:
-            if not self.userShutdownEnabled:
+            if not self.shutdownMode:
                 self.report_disconnect()
                 raise
             
@@ -285,7 +323,7 @@ class MozMill(object):
         sleep(1)
 
         # reset the shutdown mode
-        self.currentShutdownMode = self.shutdownModes.default
+        self.shutdownMode = {}
 
         # quit the application via JS
         # this *will* cause a diconnect error
@@ -311,8 +349,9 @@ class MozMill(object):
         """cleanup and invoking of final handlers"""
 
         # close the bridge and back channel
-        self.back_channel.close()
-        self.bridge.close()
+        if self.back_channel:
+            self.back_channel.close()
+            self.bridge.close()
 
         # cleanup 
         if self.runner is not None:
@@ -493,11 +532,6 @@ class CLI(mozrunner.CLI):
         # return results on success [currently unused]
         return results
         
-
-def enum(*sequential, **named):
-    # XXX to deprecate
-    enums = dict(zip(sequential, range(len(sequential))), **named)
-    return type('Enum', (), enums)
 
 def cli(args=sys.argv[1:]):
     CLI(args).run()

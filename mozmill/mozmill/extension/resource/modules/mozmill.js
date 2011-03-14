@@ -47,21 +47,20 @@ var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
                         "firePythonCallback"
                        ];
                         
+// imports
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 var events = {};      Components.utils.import('resource://mozmill/modules/events.js', events);
 var utils = {};       Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
-
 var os = {}; Components.utils.import('resource://mozmill/stdlib/os.js', os);
 var withs = {}; Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
 
+// platform information
 var platform = os.getPlatform();
-
 var isMac = false;
 var isWindows = false;
 var isLinux = false;
-
 if (platform == "darwin"){
   isMac = true;
 }

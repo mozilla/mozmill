@@ -45,8 +45,7 @@ var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js'
 var arrays = {};  Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var withs = {};   Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
 var utils = {};   Components.utils.import('resource://mozmill/modules/utils.js', utils);
-var securableModule = {};
-  Components.utils.import('resource://mozmill/stdlib/securable-module.js', securableModule);
+var securableModule = {};  Components.utils.import('resource://mozmill/stdlib/securable-module.js', securableModule);
 
 var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
      getService(Components.interfaces.nsIConsoleService);
@@ -57,8 +56,6 @@ var loader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
 var uuidgen = Components.classes["@mozilla.org/uuid-generator;1"]
                     .getService(Components.interfaces.nsIUUIDGenerator);  
 
-var backstage = this;
-
 var persisted = {};
 
 arrayRemove = function(array, from, to) {
@@ -68,8 +65,8 @@ arrayRemove = function(array, from, to) {
 };
 
 mozmill = undefined; elementslib = undefined;
-
 var loadTestResources = function () {
+  // load resources we want in our tests
   if (mozmill == undefined) {
     mozmill = {};
     Components.utils.import("resource://mozmill/modules/mozmill.js", mozmill);
@@ -81,11 +78,14 @@ var loadTestResources = function () {
 }
 
 var loadFile = function(path, collector) {
+  // load a test module from a file and add some candy
+
   var file = Components.classes["@mozilla.org/file/local;1"]
                        .createInstance(Components.interfaces.nsILocalFile);
   file.initWithPath(path);
   var uri = ios.newFileURI(file).spec;
 
+  // populate the module with some things we like
   var module = {};  
   module.collector = collector
   loadTestResources();
@@ -96,7 +96,6 @@ var loadFile = function(path, collector) {
   module.Ci = Components.interfaces;
   module.Cu = Components.utils;
   module.log = log;
-
   module.require = function (mod) {
     var loader = new securableModule.Loader({
       rootPaths: [ios.newFileURI(file.parent).spec],
@@ -173,14 +172,14 @@ events.setState = function (v) {
                            'setupTest', 'teardownTest', 'test', 'collection'], 
                            null, 'currentState', 'setState', v);
 }
-events.toggleUserShutdown = function (){
+events.toggleUserShutdown = function (obj){
   if (this.userShutdown) {
-    this.fail({'function':'frame.events.toggleUserShutdown', 'message':'Shutdown expected but none detected before timeout'});
+      this.fail({'function':'frame.events.toggleUserShutdown', 'message':'Shutdown expected but none detected before timeout', 'userShutdown': obj});
   }
-  this.userShutdown = (!this.userShutdown);
+  this.userShutdown = obj;
 }
 events.isUserShutdown = function () {
-  return this.userShutdown;
+  return Boolean(this.userShutdown);
 }
 events.setTest = function (test, invokedFromIDE) {
   test.__passes__ = [];
@@ -302,29 +301,24 @@ if (jsbridge) {
   events.addListener('', function (name, obj) {jsbridge.fireEvent('mozmill.'+name, obj)} );
 }
 
-var http_server = httpd.getServer(43336);
-
 function Collector () {
+  // the collector handles HTTPD and initilizing the module
   this.test_modules_by_filename = {};
-  this.loaded_directories = [];
   this.testing = [];
   this.httpd_started = false;
   this.http_port = 43336;
-  // var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
-  // this.logger = new logging.Logger('Collector');
+  this.http_server = httpd.getServer(this.http_port);
 }
 
 Collector.prototype.startHttpd = function () {
   while (this.httpd == undefined) {
     try {
-      http_server.start(this.http_port);
-      this.httpd = http_server;
+      this.http_server.start(this.http_port);
+      this.httpd = this.http_server;
     } catch(e) { // Failure most likely due to port conflict
       this.http_port++;
-      http_server = httpd.getServer(this.http_port);
+      this.http_server = httpd.getServer(this.http_port);
     }; 
-    
-    
   }
 }
 Collector.prototype.stopHttpd = function () {
@@ -352,41 +346,37 @@ Collector.prototype.addHttpResource = function (directory, ns) {
   return 'http://localhost:' + this.http_port + ns
 }
 
-Collector.prototype.initTestModule = function (filename) {
+Collector.prototype.initTestModule = function (filename, name) {
   var test_module = loadFile(filename, this);
   test_module.__tests__ = [];
   for (var i in test_module) {
-    if (test_module[i] == null) {
-      // do nothing
-    }
-    else if (typeof(test_module[i]) == "function") {
+    if (typeof(test_module[i]) == "function") {
+      test_module[i].__name__ = i;
       if (i == "setupTest") {
-        test_module[i].__name__ = i;
         test_module.__setupTest__ = test_module[i];
       } else if (i == "setupModule") {
-        test_module[i].__name__ = i;
         test_module.__setupModule__ = test_module[i];
       } else if (i == "teardownTest") {
-        test_module[i].__name__ = i;
         test_module.__teardownTest__ = test_module[i];
       } else if (i == "teardownModule") {
-        test_module[i].__name__ = i;
         test_module.__teardownModule__ = test_module[i];
       } else if (withs.startsWith(i, "test")) {
-        test_module[i].__name__ = i;
+        if (name && (i != name)) {
+            continue;
+        }
+        name = null;
         test_module.__tests__.push(test_module[i]);
       }
     } else if (typeof(test_module[i]) == 'object' && 
                test_module[i]._mozmillasynctest == true) {
         test_module[i].__name__ = i;
         test_module.__tests__.push(test_module[i]);
-    }
+     }
   }
   
   test_module.collector = this;
   test_module.status = 'loaded';
   this.test_modules_by_filename[filename] = test_module;
-
   return test_module;
 }
 
@@ -415,14 +405,12 @@ function Runner (collector, invokedFromIDE) {
   this.collector = collector;
   this.invokedFromIDE = invokedFromIDE
   events.fireEvent('startRunner', true);
-  // var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
-  // this.logger = new logging.Logger('Runner');
   var m = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', m);
   this.platform = m.platform;
 }
 
-Runner.prototype.runTestFile = function (filename) {
-  this.collector.initTestModule(filename);
+Runner.prototype.runTestFile = function (filename, name) {
+  this.collector.initTestModule(filename, name);
   this.runTestModule(this.collector.test_modules_by_filename[filename]);
 }
 Runner.prototype.end = function () {
@@ -440,31 +428,37 @@ Runner.prototype.wrapper = function (func, arg) {
                      .getService(Components.interfaces.nsIThreadManager)
                      .currentThread;
 
+  // skip excluded platforms
   if (func.EXCLUDED_PLATFORMS != undefined) {
     if (arrays.inArray(func.EXCLUDED_PLATFORMS, this.platform)) {
       events.skip("Platform exclusion");
       return;
     }
   }
+
+  // skip function if requested
   if (func.__force_skip__ != undefined) {
     events.skip(func.__force_skip__);
     return;
   }
+
+  // execute the test function
   try {
     if (arg) {
-      func(arg);
-    } else {
-      if (func._mozmillasynctest == true) {
+        func(arg);
+    } else if (func._mozmillasynctest == true) {
         func.run();
-      } else {
+    } else {
         func();
-      }
     }
-    // If a shutdown was expected but the application hasn't quit, throw a failure
+
+    // If a user shutdown was expected but the application hasn't quit, throw a failure
     if (events.isUserShutdown()) {
       utils.sleep(500);  // Prevents race condition between mozrunner hard process kill and normal FFx shutdown
-      if (!events.appQuit) {
-        events.fail({'function':'Runner.wrapper', 'message':'Shutdown expected but none detected before end of test'});
+      if (events.userShutdown['user'] && !events.appQuit) {
+          events.fail({'function':'Runner.wrapper', 
+                       'message':'Shutdown expected but none detected before end of test', 
+                       'userShutdown': events.userShutdown});
       }
     }
   } catch (e) {
@@ -483,10 +477,6 @@ Runner.prototype.wrapper = function (func, arg) {
 }
 
 Runner.prototype.runTestModule = function (module) {
-  var attrs = [];
-  for (var i in module) {
-    attrs.push(i);
-  }
   events.setModule(module);
   module.__status__ = 'running';
   if (module.__setupModule__) { 
@@ -520,6 +510,10 @@ Runner.prototype.runTestModule = function (module) {
       events.setTest(test, this.invokedFromIDE);
       if (setupTestPassed) {
         this.wrapper(test);
+        if (events.userShutdown && !events.userShutdown['user']) {
+            events.endTest(test);
+            break;
+        }
       } else {
         events.skip("setupTest failed.");
       }
@@ -548,9 +542,9 @@ Runner.prototype.runTestModule = function (module) {
   module.__status__ = 'done';
 }
 
-var runTestFile = function (filename, invokedFromIDE) {
+var runTestFile = function (filename, invokedFromIDE, name) {
   var runner = new Runner(new Collector(), invokedFromIDE);
-  runner.runTestFile(filename);
+  runner.runTestFile(filename, name);
   runner.end();
   return true;
 }
