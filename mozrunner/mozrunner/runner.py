@@ -102,6 +102,14 @@ class Runner(object):
         # keeps Firefox attached to the terminal window after it starts
         self.env['NO_EM_RESTART'] = '1'
 
+        # set the library path if needed on linux
+        if sys.platform == 'linux2' and self.binary.endswith('-bin'):
+            dirname = os.path.dirname(self.binary)
+            if os.environ.get('LD_LIBRARY_PATH', None):
+                self.env['LD_LIBRARY_PATH'] = '%s:%s' % (os.environ['LD_LIBRARY_PATH'], dirname)
+            else:
+                self.env['LD_LIBRARY_PATH'] = dirname
+
         # arguments for killableprocess
         self.kp_kwargs = kp_kwargs or {}
 
