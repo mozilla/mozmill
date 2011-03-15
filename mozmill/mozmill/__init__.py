@@ -56,12 +56,13 @@ from time import sleep
 basedir = os.path.abspath(os.path.dirname(__file__))
 extension_path = os.path.join(basedir, 'extension')
 mozmillModuleJs = "Components.utils.import('resource://mozmill/modules/mozmill.js')"
+package_metadata = mozrunner.get_metadata_from_egg('mozmill')
 
 class TestResults(object):
     """
     accumulate test results for Mozmill
     """
-    def __init__(self, version):
+    def __init__(self):
 
         # test statistics
         self.passes = []
@@ -77,7 +78,7 @@ class TestResults(object):
         self.appinfo = None
 
         # other information
-        self.mozmill_version = version
+        self.mozmill_version = package_metadata.get('Version')
 
     def events(self):
         """events the MozMill class will dispatch to"""
@@ -496,8 +497,7 @@ class CLI(mozrunner.CLI):
             self.parser.error("No tests found. Please specify tests with -t or -m")
         
         # create a place to put results
-        version = self.metadata["Version"]
-        results = TestResults(version)
+        results = TestResults()
         
         # create a Mozrunner
         runner = self.create_runner()

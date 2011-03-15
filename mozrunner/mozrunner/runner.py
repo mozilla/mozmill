@@ -37,7 +37,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
-__all__ = ['Runner', 'ThunderbirdRunner', 'FirefoxRunner', 'create_runner', 'CLI', 'cli']
+__all__ = ['Runner', 'ThunderbirdRunner', 'FirefoxRunner', 'create_runner', 'CLI', 'cli', 'get_metadata_from_egg', 'package_metadata']
 
 import optparse
 import os
@@ -48,6 +48,27 @@ from utils import findInPath
 from mozprofile import *
 from mozprocess import killableprocess
 from mozprocess.pid import get_pids
+
+### python package method metadata by introspection
+try:
+    import pkg_resources
+    def get_metadata_from_egg(module):
+        ret = {}
+        dist = pkg_resources.get_distribution(module)
+        if dist.has_metadata("PKG-INFO"):
+            for line in dist.get_metadata_lines("PKG-INFO"):
+                key, value = line.split(':', 1)
+                key = key.strip()
+                value = value.strip()
+                ret[key] = value
+        if dist.has_metadata("requires.txt"):
+            ret["Dependencies"] = "\n" + dist.get_metadata("requires.txt")    
+        return ret
+except ImportError:
+    # package resources not avaialable
+    def get_metadata_from_egg(module):
+        return {}
+package_metadata = get_metadata_from_egg('mozrunner')
 
 class Runner(object):
     """Handles all running operations. Finds bins, runs and kills the process."""
@@ -264,12 +285,18 @@ class CLI(object):
         - args : command line arguments
         """
 
-        self.metadata = self.get_metadata_from_egg()
-        self.parser = optparse.OptionParser(version="%prog " + self.metadata["Version"])
+        self.metadata = getattr(sys.modules[self.module],
+                                'package_metadata',
+                                {})
+        version = self.metadata.get('Version')
+        kwargs = {}
+        if version:
+            kwargs = dict(version="%prog " + version)
+        self.parser = optparse.OptionParser(**kwargs)
         self.add_options(self.parser)
         (self.options, self.args) = self.parser.parse_args(args)
 
-        if self.options.info:
+        if getattr(self.options, 'info', None):
             self.print_metadata()
             sys.exit(0)
 
@@ -285,28 +312,26 @@ class CLI(object):
 
     def add_options(self, parser):
         """add options to the parser"""
-        
         parser.add_option('-b', "--binary",
                           dest="binary", help="Binary path.",
-                          metavar=None, default=None)
-        
+                          metavar=None, default=None)        
         parser.add_option('-p', "--profile",
                          dest="profile", help="Profile path.",
                          metavar=None, default=None)
-        
         parser.add_option('-a', "--addon", dest="addons",
                          action='append',
                          help="Addons paths to install",
                          metavar=None, default=[])
-        
-        parser.add_option("--info", dest="info", default=False,
-                          action="store_true",
-                          help="Print module information")
         parser.add_option('--app', dest='app', default='firefox',
                           help="Application to use [DEFAULT: %default]")
         parser.add_option('--app-arg', dest='appArgs',
                           default=[], action='append',
                           help="provides an argument to the test application")
+        if self.metadata:
+            parser.add_option("--info", dest="info", default=False,
+                              action="store_true",
+                              help="Print module information")
+
 
     ### methods regarding introspecting data            
     def get_metadata_from_egg(self):
