@@ -496,7 +496,7 @@ class CLI(mozrunner.CLI):
             self.parser.error("No tests found. Please specify tests with -t or -m")
         
         # create a place to put results
-        version = self.metadata["Version"].lstrip()
+        version = self.metadata["Version"]
         results = TestResults(version)
         
         # create a Mozrunner

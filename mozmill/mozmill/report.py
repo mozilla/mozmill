@@ -85,6 +85,7 @@ class Report(object):
     """get the report results"""
 
     report = {'report_type': self.report_type(),
+              'mozmill_version': results.mozmill_version,
               'time_start': results.starttime.strftime(self.date_format),
               'time_end': results.endtime.strftime(self.date_format),
               'time_upload': 'n/a',
