@@ -12,6 +12,7 @@ import re
 
 class LoggerListener(object):
   stack_regex = re.compile("(.*)@(.*?)(?: -> (file\:\/\/\/\S*))?\:(\d*)$")
+  name = 'Logging'
 
   ### methods for the EventHandler interface
   def __init__(self, showerrors=False, showall=False, logfile=None,

@@ -50,6 +50,7 @@ import handlers
 
 from jsbridge.network import JSBridgeDisconnectError
 from datetime import datetime, timedelta
+from optparse import OptionGroup
 from time import sleep
 
 # metadata
@@ -422,33 +423,42 @@ class CLI(mozrunner.CLI):
             self.parser.exit()
 
     def add_options(self, parser):
-        mozrunner.CLI.add_options(self, parser)
+        group = OptionGroup(parser, 'MozRunner options')
+        mozrunner.CLI.add_options(self, group)
+        parser.add_option_group(group)
 
-        parser.add_option("-t", "--test", dest="tests",
+        group = OptionGroup(parser, 'MozMill options')
+        group.add_option("-t", "--test", dest="tests",
                           action='append', default=[],
                           help='Run test')
-        parser.add_option("--timeout", dest="timeout", type="float",
+        group.add_option("--timeout", dest="timeout", type="float",
                           default=60., 
                           help="seconds before harness timeout if no communication is taking place")
-        parser.add_option("--restart", dest='restart', action='store_true',
+        group.add_option("--restart", dest='restart', action='store_true',
                           default=False,
                           help="operate in restart mode")
-        parser.add_option("-m", "--manifest", dest='manifests', action='append',
+        group.add_option("-m", "--manifest", dest='manifests', action='append',
                           help='test manifest .ini file')
-        parser.add_option('-D', '--debug', dest="debug", 
+        group.add_option('-D', '--debug', dest="debug", 
                           action="store_true",
                           help="debug mode",
                           default=False)
-        parser.add_option('-P', '--port', dest="port", type="int",
+        group.add_option('-P', '--port', dest="port", type="int",
                           default=24242,
                           help="TCP port to run jsbridge on.")
-        parser.add_option('--list-tests', dest='list_tests',
+        group.add_option('--list-tests', dest='list_tests',
                           action='store_true', default=False,
                           help="list test files that would be run, in order")
+        parser.add_option_group(group)
 
         for cls in handlers.handlers():
             if hasattr(cls, 'add_options'):
-                cls.add_options(parser)
+                name = getattr(cls, 'name', cls.__name__)
+                group = OptionGroup(parser, '%s options' % name,
+                                    description=getattr(cls, '__doc__', None))
+                cls.add_options(group)
+                parser.add_option_group(group)
+                                
 
     def profile_args(self):
         """

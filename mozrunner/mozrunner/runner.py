@@ -297,10 +297,10 @@ class CLI(object):
                                 'package_metadata',
                                 {})
         version = self.metadata.get('Version')
-        kwargs = {}
+        parser_args = {'description': self.metadata.get('Summary')}
         if version:
-            kwargs = dict(version="%prog " + version)
-        self.parser = optparse.OptionParser(**kwargs)
+            parser_args['version'] = "%prog " + version
+        self.parser = optparse.OptionParser(**parser_args)
         self.add_options(self.parser)
         (self.options, self.args) = self.parser.parse_args(args)
 
@@ -320,6 +320,7 @@ class CLI(object):
 
     def add_options(self, parser):
         """add options to the parser"""
+
         parser.add_option('-b', "--binary",
                           dest="binary", help="Binary path.",
                           metavar=None, default=None)        
