@@ -75,7 +75,8 @@ class Report(object):
   def get_report(self, results):
     """get the report results"""
 
-    report = {'mozmill_version': results.mozmill_version,
+    report = {'report_type': 'mozmill-test',
+              'mozmill_version': results.mozmill_version,
               'time_start': results.starttime.strftime(self.date_format),
               'time_end': results.endtime.strftime(self.date_format),
               'time_upload': 'n/a',
