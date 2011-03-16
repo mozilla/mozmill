@@ -113,14 +113,20 @@ class Profile(object):
             addon_id = None
             for elem in desc:
                 apps = elem.getElementsByTagName('em:targetApplication')
+                apps.extend(elem.getElementsByTagName('targetApplication'))
                 if apps:
                     for app in apps:
                         # remove targetApplication nodes, they contain id's we aren't interested in
                         elem.removeChild(app)
+
+                    # find the id tag
                     if elem.getElementsByTagName('em:id'):
                         addon_id = str(elem.getElementsByTagName('em:id')[0].firstChild.data)
                     elif elem.hasAttribute('em:id'):
                         addon_id = str(elem.getAttribute('em:id'))
+                    elif elem.getElementsByTagName('id'):
+                        addon_id = str(elem.getElementsByTagName('id')[0].firstChild.data)
+                    
             return addon_id
 
         doc = minidom.parse(os.path.join(addon_path, 'install.rdf')) 
