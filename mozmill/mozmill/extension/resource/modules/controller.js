@@ -37,7 +37,7 @@
 //
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["MozMillController", "waitForEval", "MozMillAsyncTest",
+var EXPORTED_SYMBOLS = ["MozMillController", "waitForEval",
                         "globalEventRegistry", "sleep"];
 
 var EventUtils = {}; Components.utils.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
@@ -1316,35 +1316,4 @@ function browserAdditions (controller) {
 controllerAdditions = {
   'Browser:Preferences':preferencesAdditions,
   'navigator:browser'  :browserAdditions,
-}
-
-
-var withs = {}; Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
-
-MozMillAsyncTest = function (timeout) {
-  if (timeout == undefined) {
-    this.timeout = 6000;
-  } else {
-    this.timeout = timeout;
-  }
-  this._done = false;
-  this._mozmillasynctest = true;
-}
-
-MozMillAsyncTest.prototype.run = function () {
-  for (var i in this) {
-    if (withs.startsWith(i, 'test') && typeof(this[i]) == 'function') {
-      this[i]();
-    }
-  }
-
-  utils.waitFor(function() {
-    return this._done == true;
-  }, "MozMillAsyncTest timed out. Done is " + this._done, 500, 100); 
-
-  return true;
-}
-
-MozMillAsyncTest.prototype.finish = function () {
-  this._done = true;
 }

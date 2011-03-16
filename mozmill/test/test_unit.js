@@ -18,26 +18,6 @@ var testAsserts = function() {
 }
 testAsserts.meta = {'litmusids':[2345678]}
 
-var testAsyncPass = new mozmill.MozMillAsyncTest();
-
-testAsyncPass.testOnePasses = function () {
-  jum.assert(true);
-  jum.assertTrue(true);
-  jum.assertFalse(false);
-  jum.assertEquals('asdf', 'asdf');
-  jum.assertNotEquals('asdf', 'fdsa');
-  jum.assertNull(null);
-  jum.assertNotNull(true);
-  jum.assertUndefined({}.asdf);
-  jum.assertNotUndefined('asdf');
-  jum.assertNaN('a');
-  jum.assertNotNaN(4);
-  jum.pass();
-  testAsyncPass.finish();
-}
-
-var testAsyncTimeout = new mozmill.MozMillAsyncTest(1000)
-
 var testNothing = {};
 
 var testNotAsserts = function() {

@@ -42,7 +42,8 @@ var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
                         "newMail3PaneController", "getMail3PaneController", 
                         "wm", "platform", "getAddrbkController", 
                         "getMsgComposeController", "getDownloadsController",
-                        "Application", "MozMillAsyncTest", "cleanQuit",
+                        "Application",
+                        "cleanQuit",
                         "getPlacesController", 'isMac', 'isLinux', 'isWindows',
                         "firePythonCallback"
                        ];
@@ -186,8 +187,6 @@ function getAddrbkController () {
     return new controller.MozMillController(addrbkWindow);
   }
 }
-
-MozMillAsyncTest = controller.MozMillAsyncTest;
 
 function firePythonCallback (filename, method, args, kwargs) {
   obj = {'filename': filename, 'method': method};

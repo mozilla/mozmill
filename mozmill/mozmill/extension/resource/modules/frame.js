@@ -367,11 +367,7 @@ Collector.prototype.initTestModule = function (filename, name) {
         name = null;
         test_module.__tests__.push(test_module[i]);
       }
-    } else if (typeof(test_module[i]) == 'object' && 
-               test_module[i]._mozmillasynctest == true) {
-        test_module[i].__name__ = i;
-        test_module.__tests__.push(test_module[i]);
-     }
+    }
   }
   
   test_module.collector = this;
@@ -446,8 +442,6 @@ Runner.prototype.wrapper = function (func, arg) {
   try {
     if (arg) {
         func(arg);
-    } else if (func._mozmillasynctest == true) {
-        func.run();
     } else {
         func();
     }
@@ -462,12 +456,6 @@ Runner.prototype.wrapper = function (func, arg) {
       }
     }
   } catch (e) {
-    if (func._mozmillasynctest == true) {
-      func = {
-              'filename':events.currentModule.__file__,
-              'name':func.__name__
-             }
-    }
     // Allow the exception if a user shutdown was expected
     if (!events.isUserShutdown()) {
       events.fail({'exception': e, 'test':func})
