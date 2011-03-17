@@ -65,7 +65,8 @@ class Report(object):
   @classmethod
   def add_options(cls, parser):
     """add options to the parser"""
-    parser.add_option("--report", dest="report", default=None,
+    parser.add_option("--report", dest="report",
+                      default=None, metavar='URL',
                       help="Report the results. Requires url to results server. Use 'stdout' for stdout.")
 
   def stop(self, results, fatal=False):

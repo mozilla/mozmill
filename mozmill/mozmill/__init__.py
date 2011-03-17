@@ -154,8 +154,9 @@ class MozMill(object):
         self.handlers = [results]
         self.handlers.extend(handlers)
         for handler in self.handlers:
-            for event, method in handler.events().items():
-                self.add_listener(method, eventType=event)
+            if hasattr(handler, 'events'):
+                for event, method in handler.events().items():
+                    self.add_listener(method, eventType=event)
             if hasattr(handler, '__call__'):
                 self.add_global_listener(handler)
 
@@ -389,15 +390,32 @@ class CLI(mozrunner.CLI):
 
     def __init__(self, args):
 
+        # event handler plugin names
+        self.handlers = {}
+        for handler_class in handlers.handlers():
+            name = getattr(handler_class, 'name', handler_class.__name__)
+            self.handlers[name] = handler_class
+
         # add and parse options
         mozrunner.CLI.__init__(self, args)
 
-        # instantiate plugins
+        # instantiate event handler plugins
         self.event_handlers = []
-        for cls in handlers.handlers():
-            handler = handlers.instantiate_handler(cls, self.options)
+        for name, handler_class in self.handlers.items():
+            if name in self.options.disable:
+                continue
+            handler = handlers.instantiate_handler(handler_class, self.options)
             if handler is not None:
                 self.event_handlers.append(handler)
+        for handler in self.options.handlers:
+            # user handlers
+            try:
+                handler_class = handlers.load_handler(handler)
+            except BaseException, e:
+                self.parser.error(str(e))
+            _handler = handlers.instantiate_handler(handler_class, self.options)
+            if _handler is not None:
+                self.event_handlers.append(_handler)
 
         # read tests from manifests (if any)
         self.manifest = manifestparser.TestManifest(manifests=self.options.manifests)
@@ -423,40 +441,51 @@ class CLI(mozrunner.CLI):
             self.parser.exit()
 
     def add_options(self, parser):
+        """add command line options"""
+        
         group = OptionGroup(parser, 'MozRunner options')
         mozrunner.CLI.add_options(self, group)
         parser.add_option_group(group)
 
         group = OptionGroup(parser, 'MozMill options')
         group.add_option("-t", "--test", dest="tests",
-                          action='append', default=[],
-                          help='Run test')
+                         action='append', default=[],
+                         help='Run test')
         group.add_option("--timeout", dest="timeout", type="float",
-                          default=60., 
-                          help="seconds before harness timeout if no communication is taking place")
+                         default=60., 
+                         help="seconds before harness timeout if no communication is taking place")
         group.add_option("--restart", dest='restart', action='store_true',
-                          default=False,
-                          help="operate in restart mode")
-        group.add_option("-m", "--manifest", dest='manifests', action='append',
-                          help='test manifest .ini file')
+                         default=False,
+                         help="operate in restart mode")
+        group.add_option("-m", "--manifest", dest='manifests',
+                         action='append',
+                         metavar='MANIFEST',
+                         help='test manifest .ini file')
         group.add_option('-D', '--debug', dest="debug", 
-                          action="store_true",
-                          help="debug mode",
-                          default=False)
+                         action="store_true",
+                         help="debug mode",
+                         default=False)
         group.add_option('-P', '--port', dest="port", type="int",
-                          default=24242,
-                          help="TCP port to run jsbridge on.")
+                         default=24242,
+                         help="TCP port to run jsbridge on.")
         group.add_option('--list-tests', dest='list_tests',
-                          action='store_true', default=False,
-                          help="list test files that would be run, in order")
+                         action='store_true', default=False,
+                         help="list test files that would be run, in order")
+        group.add_option('--handler', dest='handlers', metavar='PATH:CLASS',
+                         action='append', default=[],
+                         help="specify a event handler given a file PATH and the CLASS in the file")
+        if self.handlers:
+            group.add_option('--disable', dest='disable', metavar='HANDLER',
+                             action='append', default=[],
+                             help="disable a default event handler (%s)" % ','.join(self.handlers.keys()))
+
         parser.add_option_group(group)
 
-        for cls in handlers.handlers():
-            if hasattr(cls, 'add_options'):
-                name = getattr(cls, 'name', cls.__name__)
+        for name, handler_class in self.handlers.items():
+            if hasattr(handler_class, 'add_options'):
                 group = OptionGroup(parser, '%s options' % name,
-                                    description=getattr(cls, '__doc__', None))
-                cls.add_options(group)
+                                    description=getattr(handler_class, '__doc__', None))
+                handler_class.add_options(group)
                 parser.add_option_group(group)
                                 
 
@@ -531,7 +560,7 @@ class CLI(mozrunner.CLI):
         mozmill.stop()
 
         # do whatever reporting you're going to do
-        results.stop(self.event_handlers)
+        results.stop(self.event_handlers, fatal=exception is not None)
 
         # exit on bad stuff happen
         if exception:

@@ -1,3 +1,11 @@
+"""
+pluggable event handlers for mozmill
+"""
+
+import imp
+import inspect
+import os
+
 class EventHandler(object):
   """abstract base class for handling MozMill events"""
 
@@ -11,7 +19,7 @@ class EventHandler(object):
     """returns a mapping of event types (strings) to methods"""
     return {}
 
-  def stop(self):
+  def stop(self, results, fatal):
     """handles harness shutdown (NOT a JS event)"""
 
   @classmethod
@@ -26,8 +34,12 @@ class HandlerMatchException:
 
 def instantiate_handler(handler, options):
   """instantiate a handler based on a set of options"""
-  import inspect
-  argspec = inspect.getargspec(handler.__init__)
+  try:
+    argspec = inspect.getargspec(handler.__init__)
+  except TypeError:
+    # __init__ is actually <slot wrapper '__init__' of 'object' objects>
+    # which means its not actually defined on the class
+    return handler()
   args = argspec.args[1:] # don't need to pass self
   defaults = argspec.defaults or []
   offset = len(args) - len(defaults)
@@ -47,6 +59,22 @@ def instantiate_handler(handler, options):
   except HandlerMatchException:
     return None
 
+def load_handler(string):
+  """
+  load a handler given a string of the format:
+  /path/to/file.py:ClassName
+  """
+  if ':' not in string:
+    raise Exception("handler string should be of the format /path/to/file.py:ClassName")
+  path, name = string.split(':', 1)
+  if not os.path.exists(path):
+    raise Exception("file '%s' does not exist" % path)
+  module = imp.load_source(path, path)
+  try:
+    handler = getattr(module, name)
+  except AttributeError:
+    raise AttributeError("module '%s' has no attribute '%s'" % (path, name))
+  return handler
 
 def handlers():
   from pkg_resources import iter_entry_points
