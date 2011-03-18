@@ -145,6 +145,7 @@ class MozMill(object):
         # setup event listeners
         self.global_listeners = []
         self.listeners = []
+        self.listener_dict = {} # dict of listeners by event type
         self.add_listener(self.persist_listener, eventType="mozmill.persist")
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
         self.add_listener(self.startTest_listener, eventType='mozmill.setTest')
@@ -165,8 +166,9 @@ class MozMill(object):
 
     ### methods for event listeners
 
-    def add_listener(self, callback, **kwargs):
-        self.listeners.append((callback, kwargs,))
+    def add_listener(self, callback, eventType):
+        self.listener_dict.setdefault(eventType, []).append(callback)
+        self.listeners.append((callback, {'eventType': eventType}))
 
     def add_global_listener(self, callback):
         self.global_listeners.append(callback)
@@ -191,6 +193,17 @@ class MozMill(object):
         - resetProfile : reset the profile after shutdown
         """
         self.shutdownMode = obj
+
+    def fire_event(self, event, obj):
+        """fire an event from the python side"""
+
+        # global listeners
+        for callback in self.global_listeners:
+            callback(event, obj)
+
+        # event listeners
+        for callback in self.listener_dict.get(event, []):
+            callback(obj)
 
     ### methods for startup
 
