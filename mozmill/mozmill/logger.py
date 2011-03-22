@@ -50,7 +50,7 @@ class LoggerListener(object):
 
   @classmethod
   def add_options(cls, parser):
-    parser.add_option("-l", "--logfile", dest="logfile", default=None,
+    parser.add_option("-l", "--log-file", dest="logfile", default=None,
                       help="Log all events to file.")
     parser.add_option("--show-all", dest="showall", default=False,
                       action="store_true",
