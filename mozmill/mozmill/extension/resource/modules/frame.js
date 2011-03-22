@@ -192,6 +192,7 @@ events.setTest = function (test, invokedFromIDE) {
   events.fireEvent('setTest', obj);
 }
 events.endTest = function (test) {
+  // report the end of a test
   test.status = 'done';
   events.currentTest = null; 
   var obj = {'filename':events.currentModule.__file__, 
@@ -214,7 +215,9 @@ events.setModule = function (v) {
   return stateChangeBase( null, [function (v) {return (v.__file__ != undefined)}], 
                           'currentModule', 'setModule', v);
 }
+
 events.pass = function (obj) {
+  // a low level event, such as a keystroke, succeeds
   if (events.currentTest) {
     events.currentTest.__passes__.push(obj);
   }
@@ -227,6 +230,7 @@ events.pass = function (obj) {
   events.fireEvent('pass', obj);
 }
 events.fail = function (obj) {
+  // a low level event, such as a keystroke, fails
   if (events.currentTest) {
     events.currentTest.__fails__.push(obj);
   }
@@ -239,6 +243,8 @@ events.fail = function (obj) {
   events.fireEvent('fail', obj);
 }
 events.skip = function (reason) {
+  // this is used to report skips associated with setupModule and setupTest
+  // and nothing else
   events.currentTest.skipped = true;
   events.currentTest.skipped_reason = reason;
   for each(var timer in timers) {
