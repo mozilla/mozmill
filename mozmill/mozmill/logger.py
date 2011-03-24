@@ -15,7 +15,7 @@ class LoggerListener(object):
   name = 'Logging'
 
   ### methods for the EventHandler interface
-  def __init__(self, log_file=None, console_level=None, file_level="INFO",
+  def __init__(self, log_file=None, console_level="INFO", file_level="INFO",
                format="json", debug=False):
     template = "%(levelname)s | %(message)s"
 
@@ -67,8 +67,8 @@ class LoggerListener(object):
     parser.add_option("--console-level",
                     action = "store", type = "choice", dest = "console_level",
                     choices = LOG_LEVELS, metavar = LEVEL_STRING,
-                    help = "level of console logging",
-                    default=None)
+                    help = "level of console logging, defaulting to INFO",
+                    default="INFO")
     parser.add_option("--file-level", 
                     action = "store", type = "choice", dest = "file_level",
                     choices = LOG_LEVELS, metavar = LEVEL_STRING,
@@ -131,9 +131,9 @@ class LoggerListener(object):
       self.logger.log(self.custom_levels["TEST-UNEXPECTED-FAIL"], 
         'Disconnect Error: Application unexpectedly closed')
     
-    print "INFO Passed: %d" % len(results.passes)
-    print "INFO Failed: %d" % len(results.fails)
-    print "INFO Skipped: %d" % len(results.skipped)
+    self.logger.info("Passed: %d" % len(results.passes))
+    self.logger.info("Failed: %d" % len(results.fails))
+    self.logger.info("Skipped: %d" % len(results.skipped))
 
   ### event listeners
 
