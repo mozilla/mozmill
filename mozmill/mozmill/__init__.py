@@ -277,7 +277,7 @@ class MozMill(object):
         """run test files"""
 
         # start the runner
-        frame = self.start_runner()
+        started = False
         
         # run tests
         while tests:
@@ -297,17 +297,20 @@ class MozMill(object):
                 self.fire_event('endTest', obj)
                 continue
             try:
+                if not started:
+                    frame = self.start_runner()
                 self.run_test_file(frame, test['path'])
             except JSBridgeDisconnectError:
-                if self.shutdownMode and tests:
+                if self.shutdownMode:
                     # if the test initiates shutdown and there are other tests
-                    # restart the runner
-                    frame = self.start_runner()
+                    # signal that the runner is stopped
+                    started = False
                 else:
                     raise
 
         # stop the runner
-        self.stop_runner()
+        if started:
+            self.stop_runner()
 
     def run(self, tests):
         """run the tests"""
