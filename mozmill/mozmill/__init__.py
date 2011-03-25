@@ -459,9 +459,6 @@ class CLI(mozrunner.CLI):
             # collect the tests
             tests = [{'test': os.path.basename(t), 'path': t}
                      for t in collect_tests(test)]
-            if self.options.restart:
-                for t in tests:
-                    t['type'] = 'restart'
             self.manifest.tests.extend(tests)
 
         # list the tests and exit if specified
@@ -486,7 +483,7 @@ class CLI(mozrunner.CLI):
                          help="seconds before harness timeout if no communication is taking place")
         group.add_option("--restart", dest='restart', action='store_true',
                          default=False,
-                         help="operate in restart mode")
+                         help="restart the application and reset the profile between each test file")
         group.add_option("-m", "--manifest", dest='manifests',
                          action='append',
                          metavar='MANIFEST',
@@ -511,6 +508,7 @@ class CLI(mozrunner.CLI):
 
         parser.add_option_group(group)
 
+        # add option for included event handlers
         for name, handler_class in self.handlers.items():
             if hasattr(handler_class, 'add_options'):
                 group = OptionGroup(parser, '%s options' % name,
@@ -549,20 +547,8 @@ class CLI(mozrunner.CLI):
         
     def run(self):
 
-        # groups of tests to run together
-        tests = self.manifest.tests[:]
-        test_groups = [[]] 
-        while tests:
-            test = tests.pop(0)
-            if test.get('type') == 'restart':
-                test_groups.append([test])
-                test_groups.append([]) # make a new group for non-restart tests
-                continue
-            test_groups[-1].append(test)
-        test_groups = [i for i in test_groups if i] # filter out empty groups
-
         # make sure you have tests to run
-        if not test_groups:
+        if not self.manifest.tests:
             self.parser.error("No tests found. Please specify tests with -t or -m")
         
         # create a place to put results
@@ -581,8 +567,12 @@ class CLI(mozrunner.CLI):
         # run the tests
         exception = None # runtime exception
         try:
-            for test_group in test_groups:
-                mozmill.run(test_group)
+            if self.options.restart:
+                for test in self.manifest.tests:
+                    mozmill.run([test])
+                    runner.reset() # reset the profile
+            else:
+                mozmill.run(self.manifest.tests[:])
         except:
             exception_type, exception, tb = sys.exc_info()
 
