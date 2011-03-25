@@ -51,12 +51,21 @@ var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
      getService(Components.interfaces.nsIConsoleService);
 var ios = Components.classes["@mozilla.org/network/io-service;1"]
                     .getService(Components.interfaces.nsIIOService);
-var loader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
+var subscriptLoader = Components.classes["@mozilla.org/moz/jssubscript-loader;1"]
                     .getService(Components.interfaces.mozIJSSubScriptLoader);
 var uuidgen = Components.classes["@mozilla.org/uuid-generator;1"]
-                    .getService(Components.interfaces.nsIUUIDGenerator);  
+                    .getService(Components.interfaces.nsIUUIDGenerator);
 
 var persisted = {};
+
+var moduleLoader = new securableModule.Loader({
+  rootPaths: ["resource://mozmill/modules/"],
+  defaultPrincipal: "system",
+  globals : { Cc: Components.classes,
+              Ci: Components.interfaces,
+              Cu: Components.utils,
+              Cr: Components.results}
+});
 
 arrayRemove = function(array, from, to) {
   var rest = array.slice((to || from) + 1 || array.length);
@@ -86,19 +95,22 @@ var loadFile = function(path, collector) {
   file.initWithPath(path);
   var uri = ios.newFileURI(file).spec;
 
-
-  // populate the module with some things we like
-  var module = {};  
-  module.collector = collector
   loadTestResources();
-  module.mozmill = mozmill;
-  module.elementslib = mozelement;
-  module.findElement = mozelement;
-  module.persisted = persisted;
-  module.Cc = Components.classes;
-  module.Ci = Components.interfaces;
-  module.Cu = Components.utils;
-  module.log = log;
+  var assertions = moduleLoader.require("./assertions");
+  var module = {  
+    collector:  collector,
+    mozmill: mozmill,
+    elementslib: mozelement,
+    findElement: mozelement,
+    persisted: persisted,
+    Cc: Components.classes,
+    Ci: Components.interfaces,
+    Cu: Components.utils,
+    Cr: Components.results,
+    log: log,
+    assert: assertions.assert,
+    expect: assertions.expect
+  }
   module.require = function (mod) {
     var loader = new securableModule.Loader({
       rootPaths: [ios.newFileURI(file.parent).spec],
@@ -120,7 +132,7 @@ var loadFile = function(path, collector) {
     collector.current_path = path;
   }
   try {
-    loader.loadSubScript(uri, module);
+    subscriptLoader.loadSubScript(uri, module);
   } catch(e) {
     events.fail(e);
     var obj = {
