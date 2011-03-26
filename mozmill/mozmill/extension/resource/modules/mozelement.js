@@ -42,7 +42,6 @@ var EXPORTED_SYMBOLS = ["Elem", "Selector", "ID", "Link", "XPath", "Name", "Look
                        ];
 
 var EventUtils = {}; Components.utils.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
-var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
 var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
@@ -176,7 +175,16 @@ MozMillElement.prototype.keypress = function(aKey, aModifiers, aExpectedEvent) {
     throw new Error("Could not find element " + this.getInfo());
   }
 
-  events.triggerKeyEvent(this.element, 'keypress', aKey, aModifiers || {}, aExpectedEvent);
+  var win = this.element.ownerDocument? this.element.ownerDocument.defaultView : this.element;
+  this.element.focus();
+
+  if (aExpectedEvent) {
+    var target = aExpectedEvent.target? aExpectedEvent.target.getNode() : this.element;
+    EventUtils.synthesizeKeyExpectEvent(aKey, aModifiers || {}, target, aExpectedEvent.type,
+                                                            "MozMillElement.keypress()", win);
+  } else {
+    EventUtils.synthesizeKey(aKey, aModifiers || {}, win);
+  }
 
   frame.events.pass({'function':'MozMillElement.keypress()'});
   return true;
@@ -364,6 +372,18 @@ MozMillElement.prototype.waitThenClick = function (timeout, interval, left, top,
   this.click(left, top, expectedEvent);
 };
 
+// Dispatches an HTMLEvent
+MozMillElement.prototype.dispatchEvent = function (eventType, canBubble, modifiers) {
+  canBubble = canBubble || true;
+  var evt = this.element.ownerDocument.createEvent('HTMLEvents');
+  evt.shiftKey = modifiers["shift"];
+  evt.metaKey = modifiers["meta"];
+  evt.altKey = modifiers["alt"];
+  evt.ctrlKey = modifiers["ctrl"];
+  evt.initEvent(eventType, canBubble, true);
+  this.element.dispatchEvent(evt);
+};
+
 
 //---------------------------------------------------------------------------------------------------------------------------------------
 
@@ -514,9 +534,9 @@ MozMillDropList.prototype.select = function (indx, option, value) {
     if (indx != undefined) {
       // Resetting a menulist has to be handled separately
       if (indx == -1) {
-        events.triggerEvent(this.element, 'focus', false);
+        this.dispatchEvent('focus', false);
         this.element.selectedIndex = indx;
-        events.triggerEvent(this.element, 'change', true);
+        this.dispatchEvent('change', true);
 
         frame.events.pass({'function':'MozMillDropList.select()'});
         return true;
@@ -537,9 +557,9 @@ MozMillDropList.prototype.select = function (indx, option, value) {
     // Click the item
     try {
       // EventUtils.synthesizeMouse doesn't work.
-      events.triggerEvent(this.element, 'focus', false);
+      this.dispatchEvent('focus', false);
       item.selected = true;
-      events.triggerEvent(this.element, 'change', true);
+      this.dispatchEvent('change', true);
 
       frame.events.pass({'function':'MozMillDropList.select()'});
       return true;
@@ -549,20 +569,20 @@ MozMillDropList.prototype.select = function (indx, option, value) {
     }
   }
   //if we have a xul menupopup select accordingly
-  else if (element.namespaceURI.toLowerCase() == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul") {
-    var ownerDoc = element.ownerDocument;
+  else if (this.element.namespaceURI.toLowerCase() == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul") {
+    var ownerDoc = this.element.ownerDocument;
     // Unwrap the XUL element's XPCNativeWrapper
-    element = utils.unwrapNode(element);
+    this.element = utils.unwrapNode(this.element);
     // Get the list of menuitems
-    menuitems = element.getElementsByTagName("menupopup")[0].getElementsByTagName("menuitem");
+    menuitems = this.element.getElementsByTagName("menupopup")[0].getElementsByTagName("menuitem");
     
     var item = null;
 
     if (indx != undefined) {
       if (indx == -1) {
-        events.triggerEvent(element, 'focus', false);
-        element.boxObject.QueryInterface(Components.interfaces.nsIMenuBoxObject).activeChild = null;
-        events.triggerEvent(element, 'change', true);
+        this.dispatchEvent('focus', false);
+        this.element.boxObject.QueryInterface(Components.interfaces.nsIMenuBoxObject).activeChild = null;
+        this.dispatchEvent('change', true);
 
         frame.events.pass({'function':'MozMillDropList.select()'});
         return true;
@@ -582,12 +602,11 @@ MozMillDropList.prototype.select = function (indx, option, value) {
 
     // Click the item
     try {
-      EventUtils.synthesizeMouse(element, 1, 1, {}, ownerDoc.defaultView);
-      this.sleep(0);
+      EventUtils.synthesizeMouse(this.element, 1, 1, {}, ownerDoc.defaultView);
 
       // Scroll down until item is visible
       for (var i = 0; i <= menuitems.length; ++i) {
-        var selected = element.boxObject.QueryInterface(Components.interfaces.nsIMenuBoxObject).activeChild;
+        var selected = this.element.boxObject.QueryInterface(Components.interfaces.nsIMenuBoxObject).activeChild;
         if (item == selected) {
           break;
         }
@@ -595,12 +614,11 @@ MozMillDropList.prototype.select = function (indx, option, value) {
       }
 
       EventUtils.synthesizeMouse(item, 1, 1, {}, ownerDoc.defaultView);
-      this.sleep(0);
 
       frame.events.pass({'function':'MozMillDropList.select()'});
       return true;
     } catch (ex) {
-      throw new Error('No item selected for element ' + el.getInfo());
+      throw new Error('No item selected for element ' + this.getInfo());
       return false;
     }
   }
@@ -661,9 +679,18 @@ MozMillTextBox.prototype.sendKeys = function (aText, aModifiers, aExpectedEvent)
 
   var element = this.element;
   Array.forEach(aText, function(letter) {
-    events.triggerKeyEvent(element, 'keypress', letter, aModifiers || {}, aExpectedEvent);
+    var win = element.ownerDocument? element.ownerDocument.defaultView : element;
+    element.focus();
+
+    if (aExpectedEvent) {
+      var target = aExpectedEvent.target ? aExpectedEvent.target.getNode() : element;
+      EventUtils.synthesizeKeyExpectEvent(letter, aModifiers || {}, target, aExpectedEvent.type,
+                                                              "MozMillTextBox.sendKeys()", win);
+    } else {
+      EventUtils.synthesizeKey(letter, aModifiers || {}, win);
+    }
   });
 
-  frame.events.pass({'function':'MozMillElement.type()'});
+  frame.events.pass({'function':'MozMillTextBox.type()'});
   return true;
 };

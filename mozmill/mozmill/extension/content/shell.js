@@ -1,5 +1,4 @@
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
-var events = {}; Components.utils.import('resource://mozmill/modules/events.js', events);
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);

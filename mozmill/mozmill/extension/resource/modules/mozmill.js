@@ -36,7 +36,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
+var EXPORTED_SYMBOLS = ["controller", "utils", "elementslib", "os",
                         "getBrowserController", "newBrowserController", 
                         "getAddonsController", "getPreferencesController", 
                         "newMail3PaneController", "getMail3PaneController", 
@@ -50,7 +50,6 @@ var EXPORTED_SYMBOLS = ["controller", "events", "utils", "elementslib", "os",
                         
 // imports
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
-var events = {};      Components.utils.import('resource://mozmill/modules/events.js', events);
 var utils = {};       Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);

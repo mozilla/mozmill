@@ -19,9 +19,9 @@ var testLongMenuPopup = function() {
   var pane = new elementslib.ID(prefs.window.document, "paneContent");
 
   controller.keypress(pane, "VK_RIGHT", {});
+  controller.sleep(1000);  // If keypresses sent too quickly triggers known bug in Firefox where content pane doesn't load
   controller.keypress(pane, "VK_RIGHT", {});
-
-  controller.sleep(3000);  // Wait for content tab to load
+  controller.sleep(1000);  // Wait for the content pane to load
 
   var droplist = new elementslib.ID(prefs.window.document, "defaultFont");
 
