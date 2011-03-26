@@ -41,6 +41,7 @@ import httplib
 import sys
 import urllib
 import urlparse
+import datetime
 
 try:
   import json
@@ -113,7 +114,7 @@ class Report(object):
     # report to CouchDB
     try:
         # Set the upload time of the report
-        now = datetime.utcnow()
+        now = datetime.datetime.utcnow()
         results['time_upload'] = now.strftime(self.date_format)
 
         # Parse URL fragments and send data
@@ -133,7 +134,7 @@ class Report(object):
             return data
 
         # Print document location to the console and return
-        print "Report document created at '%s%s'" % (report_url, data['id'])
+        print "Report document created at '%s/%s'" % (report_url, data['id'])
         return data
     except Exception, e:
         print "Sending results to '%s' failed (%s)." % (report_url, e)

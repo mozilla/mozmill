@@ -41,6 +41,10 @@ import os
 import socket
 import sys
 import traceback
+try:
+  import json
+except:
+  import simplejson as json
 
 import jsbridge
 import manifestparser
@@ -333,6 +337,7 @@ class MozMill(object):
                    'platform_buildid': str(appInfo.platformBuildID),
                    'platform_version': str(appInfo.platformVersion),
                   }
+        results['addons'] = json.loads(mozmill.addons)
         results.update(self.runner.get_repositoryInfo())
         return results
 

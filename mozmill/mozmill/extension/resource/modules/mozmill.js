@@ -55,6 +55,10 @@ var elementslib = {}; Components.utils.import('resource://mozmill/modules/elemen
 var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
 var os = {}; Components.utils.import('resource://mozmill/stdlib/os.js', os);
 
+try {
+  Components.utils.import("resource://gre/modules/AddonManager.jsm");
+} catch(e) { /* Firefox 4 only */ }
+
 // platform information
 var platform = os.getPlatform();
 var isMac = false;
@@ -96,7 +100,15 @@ var Application = applicationDictionary[appInfo.ID];
 if (Application == undefined) {
   // Default to Firefox
   var Application = 'Firefox';
-} 
+}
+
+// keep list of installed addons to send to jsbridge for test run report
+var addons = "null"; // this will be JSON parsed
+if(AddonManager) {
+  AddonManager.getAllAddons(function(addonList) {
+    addons = JSON.stringify(addonList);
+  });
+}
 
 function cleanQuit () {
   utils.getMethodInWindows('goQuitApplication')();

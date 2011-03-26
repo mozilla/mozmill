@@ -45,7 +45,6 @@ def init_jsobject(cls, bridge, name, value, description=None):
 
 def create_jsobject(bridge, fullname, value=None, obj_type=None, override_set=False):
     """Create a single JSObject for named object on other side of the bridge.
-    
     Handles various initization cases for different JSObjects."""
     description = bridge.describe(fullname)
     obj_type = description['type']
@@ -82,7 +81,12 @@ class JSObject(object):
         """
         result = create_jsobject(self._bridge_, name, override_set=True)
         return result
-    
+        
+    def __iter__(self):
+        attributes = self._bridge_.describe(self._name_)['attributes']
+        for i in attributes:
+          yield getattr(self, i)
+
     def __getattr__(self, name):
         """Get the object from jsbridge. 
         
@@ -92,10 +96,11 @@ class JSObject(object):
             return lambda : self._bridge_.describe(self._name_)['attributes']
             
         attributes = self._bridge_.describe(self._name_)['attributes']
+
         if name in attributes:
-            return self.__jsget__(self._name_+'["'+name+'"]')
+            return self.__jsget__(self._name_ + '["'+ name +'"]')
         else:
-            raise AttributeError(name+" is undefined.")
+            raise AttributeError(name + " is undefined.")
     
     __getitem__ = __getattr__
         
