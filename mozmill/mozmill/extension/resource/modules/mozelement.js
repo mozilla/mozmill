@@ -341,36 +341,27 @@ MozMillElement.prototype.rightClick = function(left, top, expectedEvent) {
   return true;
 };
 
-MozMillElement.prototype.waitFor = function(callback, message, timeout, interval, thisObject) {
-  utils.waitFor(callback, message, timeout, interval, thisObject);
-  frame.events.pass({'function':'MozMillElement.waitFor()'});
-};
-
 MozMillElement.prototype.waitForElement = function(timeout, interval) {
-  this.waitFor(function() {
-    return this.exists();
+  var elem = this;
+  utils.waitFor(function() {
+    return elem.exists();
   }, "Timeout exceeded for waitForElement " + this.getInfo(), timeout, interval);
 
   frame.events.pass({'function':'MozMillElement.waitForElement()'});
 };
 
 MozMillElement.prototype.waitForElementNotPresent = function(timeout, interval) {
-  this.waitFor(function() {
-    return !this.exists();
+  var elem = this;
+  utils.waitFor(function() {
+    return !elem.exists();
   }, "Timeout exceeded for waitForElementNotPresent " + this.getInfo(), timeout, interval);
 
   frame.events.pass({'function':'MozMillElement.waitForElementNotPresent()'});
 };
 
-MozMillElement.prototype.__defineGetter__("waitForEvents", function() {
-  if (this._waitForEvents == undefined)
-    this._waitForEvents = new waitForEvents();
-  return this._waitForEvents;
-});
-
-MozMillElement.prototype.waitThenClick = function (timeout, interval) {
+MozMillElement.prototype.waitThenClick = function (timeout, interval, left, top, expectedEvent) {
   this.waitForElement(timeout, interval);
-  this.click();
+  this.click(left, top, expectedEvent);
 };
 
 
