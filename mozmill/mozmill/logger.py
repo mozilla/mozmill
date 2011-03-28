@@ -9,6 +9,7 @@ except:
 
 import logging
 import re
+import sys
 
 class LoggerListener(object):
   stack_regex = re.compile("(.*)@(.*?)(?: -> (file\:\/\/\/\S*))?\:(\d*)$")
@@ -26,7 +27,7 @@ class LoggerListener(object):
       "ERROR": logging.ERROR,
       "CRITICAL": logging.CRITICAL
     }
-    
+
     self.custom_levels = {
      "TEST-START" : 21, # logging.INFO is 20
      "TEST-PASS": 22,
@@ -38,7 +39,7 @@ class LoggerListener(object):
     self.logger = logging.getLogger('mozmill')
     self.logger.setLevel(logging.DEBUG)
     formatter = logging.Formatter(template)
-    
+
     if console_level:
       console = logging.StreamHandler()
       if format == "pprint-color":
@@ -53,9 +54,25 @@ class LoggerListener(object):
       handler.setLevel(levels[file_level])
       self.logger.addHandler(handler)
 
-      
+    sys.stdout = self.StdOutLogger(self.logger)
+    sys.stderr = self.StdErrLogger(self.logger)
+
     self.format = format
     self.debug = debug
+
+  class StdOutLogger:
+    def __init__(self, logger):
+      self.logger = logger
+
+    def write(self, str):
+      self.logger.info(str)
+
+  class StdErrLogger:
+    def __init__(self, logger):
+      self.logger = logger
+
+    def write(self, str):
+      self.logger.error(str)
 
   @classmethod
   def add_options(cls, parser):                      
@@ -79,7 +96,7 @@ class LoggerListener(object):
                       metavar="[json|pprint|pprint-color]",
                       help="Format for logging")
 
-    
+
   def __call__(self, event, obj):
     string = json.dumps(obj)
     if self.format == "pprint" or self.format == "pprint-color":
@@ -93,11 +110,11 @@ class LoggerListener(object):
       self.logger.info('Test Skipped: ' + string)
     else:
       self.logger.debug(str(event) + ' | ' + string)
-      
+
   def pprint(self, obj):
     self.find_stack(obj)
     return json.dumps(obj, indent=2)
-      
+
   def find_stack(self, obj):
     """ split any stacktrace string into an array """
     if type(obj) == dict or type(obj) == list:
@@ -111,7 +128,7 @@ class LoggerListener(object):
           obj[i] = self.format_stack(child)
         else:
           self.find_stack(child)
-          
+
   def format_stack(self, stack):
     stack = stack.split("\n")
     matches = [self.stack_regex.search(call) for call in stack]
@@ -119,7 +136,7 @@ class LoggerListener(object):
              'filename': match.group(3) or match.group(2),
              'lineno': match.group(4)}
            for match in matches if match and (match.group(3) or self.debug)]
-    
+
   def events(self):
     return { 'mozmill.setTest': self.startTest,
              'mozmill.endTest': self.endTest }
@@ -148,7 +165,7 @@ class LoggerListener(object):
     else:
       self.logger.log(self.custom_levels["TEST-PASS"], "%s | %s" % (test['filename'], test['name']))
 
-  
+
 class ColorFormatter(logging.Formatter):
   # http://stackoverflow.com/questions/384076/how-can-i-make-the-python-logging-output-to-be-colored
   BLACK, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE = range(8)
