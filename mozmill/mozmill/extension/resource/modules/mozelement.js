@@ -459,7 +459,8 @@ function MozMillRadio(locatorType, locator, args) {
 MozMillRadio.isType = function(node) {
   if ((node.localName.toLowerCase() == 'input' && node.getAttribute('type') == 'radio') ||
       (node.localName.toLowerCase() == 'toolbarbutton' && node.getAttribute('type') == 'radio') ||
-      (node.localName.toLowerCase() == 'radio')) {
+      (node.localName.toLowerCase() == 'radio') ||
+      (node.localName.toLowerCase() == 'radiogroup')) {
     return true;
   }
   return false;
@@ -467,21 +468,23 @@ MozMillRadio.isType = function(node) {
 
 /**
  * Select the given radio button
+ *
+ * index - Specifies which radio button in the group to select (only applicable to radiogroup elements)
+ *         Defaults to the first radio button in the group
  */
-MozMillRadio.prototype.select = function()
-{
+MozMillRadio.prototype.select = function(index) {
   if (!this.element) {
     throw new Error("could not find element " + this.getInfo());
   }
   
-  // If we have a XUL element, unwrap its XPCNativeWrapper
-  if (this.element.namespaceURI == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul") {
-    this.element = utils.unwrapNode(this.element);
+  if (this.element.localName.toLowerCase() == "radiogroup") {
+    var element = this.element.getElementsByTagName("radio")[index || 0];
+    new MozMillRadio("Elem", element).click();
+  } else {
+    var element = this.element;
+    this.click();
   }
-
-  this.click();
   
-  var element = this.element;
   utils.waitFor(function() {
     // If we have a XUL element, unwrap its XPCNativeWrapper
     if (element.namespaceURI == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul") {
