@@ -37,8 +37,7 @@
 //
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ["MozMillController", "waitForEval",
-                        "globalEventRegistry", "sleep"];
+var EXPORTED_SYMBOLS = ["MozMillController", "globalEventRegistry", "sleep"];
 
 var EventUtils = {}; Components.utils.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
 
@@ -56,7 +55,6 @@ var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
 var sleep = utils.sleep;
 var assert = utils.assert;
 var waitFor = utils.waitFor;
-var waitForEval = utils.waitForEval;
 
 waitForEvents = function() {}
 
@@ -308,14 +306,6 @@ MozMillController.prototype.waitFor = function(callback, message, timeout,
   frame.events.pass({'function':'controller.waitFor()'});
 }
 
-MozMillController.prototype.waitForEval = function(expression, timeout, interval, subject) {
-  waitFor(function() {
-    return eval(expression);
-  }, "controller.waitForEval: Timeout exceeded for '" + expression + "'", timeout, interval);
-
-  frame.events.pass({'function':'controller.waitForEval()'});
-}
-
 MozMillController.prototype.__defineGetter__("waitForEvents", function() {
   if (this._waitForEvents == undefined)
     this._waitForEvents = new waitForEvents();
@@ -476,16 +466,6 @@ MozMillController.prototype.assert = function(callback, message, thisObject)
   utils.assert(callback, message, thisObject);
 
   frame.events.pass({'function': ": controller.assert('" + callback + "')"});
-  return true;
-}
-
-// Assert that the result of a Javascript expression is true
-MozMillController.prototype.assertJS = function(expression, subject) {
-  assert(function() {
-    return eval(expression)
-  }, "controller.assertJS: Failed for '" + expression + "'");
-
-  frame.events.pass({'function': "controller.assertJS('" + expression + "')"});
   return true;
 }
 

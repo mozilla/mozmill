@@ -41,7 +41,7 @@ var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler",
                         "getFile", "Copy", "getChromeWindow", "getWindows", "runEditor",
                         "runFile", "getWindowByTitle", "getWindowByType", "tempfile", 
                         "getMethodInWindows", "getPreference", "setPreference",
-                        "sleep", "assert", "unwrapNode", "TimeoutError", "waitFor", "waitForEval"];
+                        "sleep", "assert", "unwrapNode", "TimeoutError", "waitFor"];
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
               .getService(Components.interfaces.nsIAppShellService)
@@ -424,15 +424,3 @@ function waitFor(callback, message, timeout, interval, thisObject) {
 
   return true;
 }
-
-/**
- * Waits until the expression evaluates to true
- */
-function waitForEval(expression, timeout, interval, subject) {
-  waitFor(function() {
-    return eval(expression);
-  }, arguments.callee.name + ": Timeout exceeded for '" + expression + "'", timeout, interval);
-
-  return true;
-}
-
