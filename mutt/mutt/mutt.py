@@ -43,7 +43,7 @@ import imp
 import unittest
 
 from copy import copy
-from manifestparser import ManifestParser 
+from manifestparser import TestManifest
 from processhandler import ProcessHandler
 
 usage = """
@@ -108,7 +108,7 @@ parser_groups = (
                                        help=("use a specific manifest rather than the "
                                              "default all-tests.ini"),
                                        metavar=None,
-                                       default="all-tests.ini",
+                                       default=os.path.join(os.path.dirname(__file__), "tests", "all-tests.ini"),
                                        cmds=['test', 'testjs',
                                              'testpy', 'testall'])),
         (("", "--extra-packages",), dict(dest="extra_packages",
@@ -313,7 +313,7 @@ def test_all_js(tests, options):
         if options.binary:
             args.append('-b')
             args.append(options.binary)
-        args.append('--show-all')
+        args.append('--console-level=DEBUG')
         
         args.append('-t')
         args.append(t['path'])
@@ -376,11 +376,11 @@ def run(arguments=sys.argv[1:], target_cfg=None, pkg_cfg=None,
     command = args[0]
 
     # Parse the manifests
-    mp = ManifestParser()
+    mp = TestManifest()
     mp.read(options.manifest)
 
     if command == "testpy":
-        results = test_all_python(mp.get(type='python'), options)
+        results = test_all_python(mp.active_tests(type='python'), options)
         if results.failures or results.errors:
             sys.exit(report(True, results, None, options))
         else:
@@ -388,14 +388,14 @@ def run(arguments=sys.argv[1:], target_cfg=None, pkg_cfg=None,
 
 
     elif command == "testjs":
-        results = test_all_js(mp.get(type='javascript'), options)
+        results = test_all_js(mp.active_tests(type='javascript'), options)
         if results.failures:
             sys.exit(report(True, None, results, options))
         else:
             sys.exit(report(False))
   
     elif command == "testall":
-        test_all(mp.tests, options)
+        test_all(mp.active_tests(), options)
         return
     else:
         print "Unknown command"
