@@ -215,6 +215,7 @@ class Profile(object):
 
         # install each addon
         for addon in addons:
+            tmpdir = None
 
             # if the addon is an .xpi, uncompress it to a temporary directory
             if addon.endswith('.xpi'):
@@ -239,6 +240,10 @@ class Profile(object):
             addon_path = os.path.join(self.profile, 'extensions', addon_id)
             copytree(addon, addon_path, preserve_symlinks=1)
             self.addons_installed.append(addon_path)
+
+            # remove the temporary directory, if any
+            if tmpdir:
+                rmtree(tmpdir)
 
     def clean_addons(self):
         """Cleans up addons in the profile."""
