@@ -108,8 +108,10 @@ var loadFile = function(path, collector) {
     Cu: Components.utils,
     Cr: Components.results,
     log: log,
-    assert: assertions.assert,
-    expect: assertions.expect
+    assert: new assertions.Assert(),
+    expect: new assertions.Expect(),
+    Expect: assertions.Expect,
+    Assert: assertions.Assert
   }
   module.require = function (mod) {
     var loader = new securableModule.Loader({

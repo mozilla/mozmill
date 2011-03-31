@@ -277,7 +277,7 @@ Expect.prototype = {
    *   message to present if assertion fails
    * @returns {boolean} Result of the test.
    */
-  throws : function(block, /*optional*/error, /*optional*/message) {
+  throws : function Expect_throws(block, /*optional*/error, /*optional*/message) {
     return this._throws.apply(this, [true].concat(Array.prototype.slice.call(arguments)));
   },
 
@@ -292,7 +292,7 @@ Expect.prototype = {
    *   message to present if assertion fails
    * @returns {boolean} Result of the test.
    */
-  doesNotThrow : function(block, /*optional*/error, /*optional*/message) {
+  doesNotThrow : function Expect_doesNotThrow(block, /*optional*/error, /*optional*/message) {
     return this._throws.apply(this, [false].concat(Array.prototype.slice.call(arguments)));
   },
   
@@ -302,7 +302,7 @@ Expect.prototype = {
      adapted from node.js's assert._throws()
      https://github.com/joyent/node/blob/master/lib/assert.js
   */
-  _throws : function(shouldThrow, block, expected, message) {
+  _throws : function Expect__throws(shouldThrow, block, expected, message) {
     var actual;
 
     if (typeof expected === 'string') {
@@ -334,7 +334,7 @@ Expect.prototype = {
     return this._test(true, message);
   },
   
-  _expectedException : function(actual, expected) {
+  _expectedException : function Expect__expectedException(actual, expected) {
     if (!actual || !expected) {
       return false;
     }
@@ -370,9 +370,7 @@ AssertionError.prototype.constructor = AssertionError;
 AssertionError.prototype.name = 'AssertionError';
 
 
-var Assert = function() {
-  Expect.call(this);
-}
+var Assert = function() {}
 
 Assert.prototype = new Expect();
 
@@ -408,5 +406,5 @@ Assert.prototype._logFail = function Assert__logFail(aResult) {
 
 
 // Export of variables
-assertions.expect = new Expect();
-assertions.assert = new Assert();
+assertions.Expect = Expect;
+assertions.Assert = Assert;

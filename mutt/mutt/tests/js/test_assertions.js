@@ -71,34 +71,49 @@ const TEST_DATA = [
   { fun: "throws", params: [function () { throw new Error(); }, undefined, "Throws an error"], result: true},
   { fun: "throws", params: [function () { throw new Error(); }, Error, "Throws a specific error"], result: true},
   { fun: "throws", params: [function () { throw new Error(); }, Err, "Catches the wrong error"],
-    result: {throws: Error}},
+    result: false, throws: Error},
   { fun: "throws", params: [function () { }, undefined, "Throws no error"], result: false},
 
   { fun: "doesNotThrow", params: [function () { }, undefined, "Throws no error"], result: true},
   { fun: "doesNotThrow", params: [function () { }, Error, "Throws no specific error"], result: true},
+  { fun: "doesNotThrow", params: [function () { throw new Error(); }, Error, "Doesn't throw on named exception"],
+    result: false},
+  { fun: "doesNotThrow", params: [function () { throw new Error(); }, Err, "Catches wrong error"],
+    result: false, throws: Error},
   { fun: "doesNotThrow", params: [function () { throw new Error(); }, undefined, "Throws error"],
-    result: {throws: Error}}
+    result: false, throws: Error}
 ];
 
+/**
+ * Expect class for assertions which doesn't add failing and passing frames
+ */
+var SoftExpect = function() {}
+SoftExpect.prototype = new Expect()
+SoftExpect.prototype._logPass = function SoftExpect__logPass(aResult) {
+  // We do not want to add a passing frame but only take care of the
+  // return values of the _test method
+}; 
+SoftExpect.prototype._logFail = function SoftExpect__logFail(aResult) {
+  // We do not want to add a failing frame but only take care of the
+  // return values of the _test function
+};
+SoftExpect.prototype.constructor = SoftExpect;
+var softExpect = new SoftExpect();
 
 /**
  * Tests for supported expect methods
  */
 function testExpect() {
-  expect._logFail = function() {}; // don't want to actually fail when we fail successfully
-
   for each (var test in TEST_DATA) {
     var message = "expect." + test.fun + " for [" +
                   test.params.join(", ") + "]";
-
-    if(test.result.throws) {
+    if(test.throws)
       assert.throws(function() {
-        expect[test.fun].apply(expect, test.params);
-      }, test.result.throws, message);
-    }
+        softExpect[test.fun].apply(softExpect, test.params);
+      }, test.throws, message);
     else
-      assert.equal(expect[test.fun].apply(expect, test.params)
-      , test.result, message);
+      expect.equal(softExpect[test.fun].apply(softExpect, test.params)
+        , test.result, message);
   }
 }
 
@@ -111,10 +126,12 @@ function testAssert() {
                   test.params.join(", ") + "]";
 
     if(test.result === true)
-      assert[test.fun].apply(assert, test.params);
+      expect.doesNotThrow(function() {
+        assert[test.fun].apply(assert, test.params);
+      }, assert.AssertionError, message);
     else
       assert.throws(function() {
         assert[test.fun].apply(assert, test.params);
-      }, test.result.throws || assert.AssertionError, message);
+      }, test.throws || assert.AssertionError, message);
   }
 }
