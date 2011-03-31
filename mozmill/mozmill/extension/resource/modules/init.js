@@ -56,39 +56,72 @@ var windowObserver = {
  * Attach event listeners
  */
 function attachEventListeners(window) {
+  // These are the event handlers
+  var pageShowHandler = function(event) {
+    var tab = window.gBrowser.getBrowserForDocument(event.target);
+    if (tab)
+      tab.documentLoaded = true;
+
+    // We need to add/remove the unload/pagehide event listeners to preserve caching.
+    window.gBrowser.addEventListener("beforeunload", beforeUnloadHandler, true);
+    window.gBrowser.addEventListener("pagehide", pageHideHandler, true);
+  };
+
+  var DOMContentLoadedHandler = function(event) {
+    var errorRegex = /about:.+(error)|(blocked)\?/;
+    if (errorRegex.exec(event.target.baseURI)) {
+      // Wait about 1s to be sure the DOM is ready
+      mozmill.utils.sleep(1000);
+
+      var tab = window.gBrowser.getBrowserForDocument(event.target);
+      if (tab)
+        tab.documentLoaded = true;
+    
+      // We need to add/remove the unload event listener to preserve caching.
+      window.gBrowser.addEventListener("beforeunload", beforeUnloadHandler, true);
+    }
+  };
+  
+  // beforeunload is still needed because pagehide doesn't fire before the page is unloaded.
+  // still use pagehide for cases when beforeunload doesn't get fired
+  var beforeUnloadHandler = function(event) {
+    var tab = window.gBrowser.getBrowserForDocument(event.target);
+    if (tab)
+      tab.documentLoaded = false;
+
+    window.gBrowser.removeEventListener("beforeunload", beforeUnloadHandler, true);
+  };
+
+  var pageHideHandler = function(event) {
+    // If event.persisted is false, the beforeUnloadHandler should fire
+    // and there is no need for this event handler.
+    if (event.persisted) {
+      var tab = window.gBrowser.getBrowserForDocument(event.target);
+      if (tab)
+        tab.documentLoaded = false;
+
+      window.gBrowser.removeEventListener("beforeunload", beforeUnloadHandler, true);
+    }
+
+  };
+  
+  // Add the event handlers to the tabbedbrowser once its window has loaded
   window.addEventListener("load", function(event) {
     window.documentLoaded = true;
- 
+
+
     if (window.gBrowser) {
       // Page is ready
-      window.gBrowser.addEventListener("load", function(event) {
-        var tab = window.gBrowser.getBrowserForDocument(event.target);
-        if (tab)
-          tab.documentLoaded = true;
-      }, true);
+      window.gBrowser.addEventListener("pageshow", pageShowHandler, true);
  
       // Note: Error pages will never fire a "load" event. For those we
       // have to wait for the "DOMContentLoaded" event. That's the final state.
       // Error pages will always have a baseURI starting with
       // "about:" followed by "error" or "blocked".
-      window.gBrowser.addEventListener("DOMContentLoaded", function(event) {
-        var errorRegex = /about:.+(error)|(blocked)\?/;
-        if (errorRegex.exec(event.target.baseURI)) {
-          // Wait about 1s to be sure the DOM is ready
-          mozmill.utils.sleep(1000);
-
-          var tab = window.gBrowser.getBrowserForDocument(event.target);
-          if (tab)
-            tab.documentLoaded = true;
-        }
-      }, true);
-  
-      // Page is about to get unloaded
-      window.gBrowser.addEventListener("beforeunload", function(event) {
-        var tab = window.gBrowser.getBrowserForDocument(event.target);
-        if (tab)
-          tab.documentLoaded = false;
-      }, true);
+      window.gBrowser.addEventListener("DOMContentLoaded", DOMContentLoadedHandler, true);
+      
+      // Leave page (use caching)
+      window.gBrowser.addEventListener("pagehide", pageHideHandler, true);
     }
   }, false);
 }
