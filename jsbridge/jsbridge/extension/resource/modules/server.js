@@ -39,7 +39,8 @@
 var EXPORTED_SYMBOLS = ["Server", "server", "AsyncRead", "Session", "sessions", "globalRegistry", "startServer"];
 
 var events = {}; Components.utils.import("resource://jsbridge/modules/events.js", events);
-
+const DEBUG_ON = false;
+const BUFFER_SIZE = 1024;
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const loader = Cc['@mozilla.org/moz/jssubscript-loader;1']
@@ -64,11 +65,29 @@ function AsyncRead (session) {
 }
 AsyncRead.prototype.onStartRequest = function (request, context) {};
 AsyncRead.prototype.onStopRequest = function (request, context, status) {
+  log("async onstoprequest: onstoprequest");
   this.session.onQuit();
 }
 AsyncRead.prototype.onDataAvailable = function (request, context, inputStream, offset, count) {
   var str = {};
-  this.session.instream.readString(count, str);
+  str.value = '';
+
+  var bytesAvail = 0;
+  do {
+    var parts = {};
+    if (count > BUFFER_SIZE) {
+      bytesAvail = BUFFER_SIZE;
+    } else {
+      bytesAvail = count;
+    }
+
+    log("jsbridge: onDataAvailable, reading bytesAvail = " + bytesAvail + "\n");
+    var bytesRead = this.session.instream.readString(bytesAvail, parts);
+    count = count - bytesRead;
+    log("jsbridge: onDataAvailable, read bytes: " + bytesRead + " count is now: " + count + "\n"); 
+    str.value += parts.value;
+  } while (count > 0);
+  log("jsbridge: onDataAvailable, going into receive with: \n\n" + str.value + "\n\n");
   this.session.receive(str.value);
 }
 
@@ -145,7 +164,6 @@ Bridge.prototype._setAttribute = function (obj, name, value) {
   return value;
 }
 Bridge.prototype.setAttribute = function (uuid, obj, name, value) {
-  // log(uuid, String(obj), name, String(value))
   try {
     var result = this._setAttribute(obj, name, value);
   } catch(e) {
@@ -181,7 +199,8 @@ Bridge.prototype.execFunction = function (uuid, func, args) {
   } else if ( result == true) {
     this.session.encodeOut({'result':true, 'data':null, 'uuid':uuid});
   } else {
-    throw 'Something very bad happened.'
+    log("jsbridge threw unknown data in execFunc");
+    throw 'JSBridge unknown data in execFunc';
   }
 }
 
@@ -196,17 +215,17 @@ function Session (transport) {
       this.outputstream = transport.openOutputStream(Ci.nsITransport.OPEN_BLOCKING, 0, 0);	
       this.outstream = Cc['@mozilla.org/intl/converter-output-stream;1']
                     .createInstance(Ci.nsIConverterOutputStream);
-      this.outstream.init(this.outputstream, 'UTF-8', 1024,
+      this.outstream.init(this.outputstream, 'UTF-8', BUFFER_SIZE,
                     Ci.nsIConverterOutputStream.DEFAULT_REPLACEMENT_CHARACTER);
       this.stream = transport.openInputStream(0, 0, 0);
       this.instream = Cc['@mozilla.org/intl/converter-input-stream;1']
           .createInstance(Ci.nsIConverterInputStream);
-      this.instream.init(this.stream, 'UTF-8', 1024,
+      this.instream.init(this.stream, 'UTF-8', BUFFER_SIZE,
                     Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
   } catch(e) {
       log('jsbridge: Error: ' + e);
   }
-  // log('jsbridge: Accepted connection.');
+  log('jsbridge: Accepted connection.');
   
   this.pump = Cc['@mozilla.org/network/input-stream-pump;1']
       .createInstance(Ci.nsIInputStreamPump);
@@ -214,17 +233,36 @@ function Session (transport) {
   this.pump.asyncRead(new AsyncRead(this), null);
 }
 Session.prototype.onOutput = function(string) {
-  // log('jsbridge write: '+string)
+  log('jsbridge: write: '+string)
   if (typeof(string) != "string") {
     throw "This is not a string"
   } 
   try {
-    this.outstream.writeString(string);
+    var stroffset = 0;
+    do {
+      var parts = '';
+      // Handle the case where we are writing something larger than our buffer
+      if (string.length > BUFFER_SIZE) {
+        log("jsbridge: onOutput: writing data stroffset is: " + stroffset + " string.length is: " + string.length);
+        parts = string.slice(stroffset, stroffset + BUFFER_SIZE);
+        log("jsbridge: onOutput: here is our part: \n" + parts + "\n");
+      } else {
+        parts = string;
+      }
+
+      // Update our offset
+      stroffset = stroffset += parts.length;
+
+      // write it
+      this.outstream.writeString(parts);
+    } while (stroffset < string.length);
+
+    // Ensure the entire stream is flushed
     this.outstream.flush();
   } catch (e) {
-    throw "Why is this failing "+string
+    log("jsbridge: threw on writing string: " + string + "   exception: " + e);
+    throw "JSBridge cannot write: "+string
   }
-  // this.outstream.write(string, string.length);
 };
 Session.prototype.onQuit = function() {
   this.instream.close();
@@ -245,7 +283,6 @@ Session.prototype.encodeOut = function (obj) {
   
 }
 Session.prototype.receive = function(data) {
-  // log('jsbrige receive: '+data);
   Components.utils.evalInSandbox(data, this.sandbox);
 }
 
@@ -278,7 +315,6 @@ Server.prototype.start = function () {
         .createInstance(Ci.nsIServerSocket);
     this.serv.init(this.port, true, -1);
     this.serv.asyncListen(this);
-    // log('jsbridge: Listening...');
   } catch(e) {
     log('jsbridge: Exception: ' + e);
   }    
@@ -298,7 +334,9 @@ Server.prototype.onSocketAccepted = function (serv, transport) {
 }
 
 function log(msg) {
+  if (DEBUG_ON) {
     dump(msg + '\n');
+  } 
 }
 
 function startServer(port) {
