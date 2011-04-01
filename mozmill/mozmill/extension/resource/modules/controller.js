@@ -22,6 +22,7 @@
 //  Adam Christian <adam.christian@gmail.com>
 //  Mikeal Rogers <mikeal.rogers@gmail.com>
 //  Henrik Skupin <hskupin@mozilla.com>
+//  Aaron Train <atrain@mozilla.com>
 //
 // Alternatively, the contents of this file may be used under the terms of
 // either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -150,7 +151,7 @@ Menu.prototype = {
     }
 
     // Run through the entire menu and populate with dynamic entries
-    this._buildMenu(this._controller, menu);
+    this._buildMenu(menu);
 
     return this;
   },
