@@ -37,14 +37,11 @@
 #
 # ***** END LICENSE BLOCK *****
 
-__all__ = ['Profile', 'FirefoxProfile', 'ThunderbirdProfile', 'print_addon_ids']
+__all__ = ['Profile', 'FirefoxProfile', 'ThunderbirdProfile']
 
 import os
-import sys
 import tempfile
-import urllib2
-import zipfile
-from xml.dom import minidom
+from addons import AddonManager
 
 try:
     import simplejson
@@ -61,8 +58,10 @@ class Profile(object):
     """Handles all operations regarding profile. Created new profiles, installs extensions,
     sets preferences and handles cleanup."""
 
-    def __init__(self, profile=None, addons=None, preferences=None):
-                 
+    def __init__(self, profile=None, addons=None, addon_manifests=None, preferences=None, restore=True):
+        # if true, remove installed addons/prefs afterwards
+        self.restore = restore
+
         # Handle profile creation
         self.create_new = not profile
         if profile:
@@ -79,10 +78,8 @@ class Profile(object):
         self.set_preferences(self.preferences)
  
         # handle addon installation
-        self.addons_installed = []
-        self.addons = addons or []
-        for addon in self.addons:
-            self.install_addon(addon)
+        self.addon_manager = AddonManager(self.profile)
+        self.addon_manager.install_addons(addons, addon_manifests)
 
     def reset(self):
         """
@@ -90,114 +87,16 @@ class Profile(object):
         """
         self.cleanup()
         if self.create_new:
-            self.__init__(addons=self.addons, preferences=self.preferences)
+            profile = None 
         else:
-            self.__init__(profile=self.profile, addons=self.addons, preferences=self.preferences)
-
+            profile = self.profile
+        self.__init__(profile=profile, addons=self.addon_manager.addons,
+                      addon_manifests=self.addon_manager.manifests, preferences=self.preferences)
     def create_new_profile(self):
         """Create a new clean profile in tmp which is a simple empty folder"""
         profile = tempfile.mkdtemp(suffix='.mozrunner')
         return profile
 
-    ### methods related to addons
-
-    @classmethod
-    def addon_id(self, addon_path):
-        """
-        return the id for a given addon, or None if not found
-        - addon_path : path to the addon directory
-        """
-        
-        def find_id(desc):
-            """finds the addon id give its description"""
-            
-            addon_id = None
-            for elem in desc:
-                apps = elem.getElementsByTagName('em:targetApplication')
-                apps.extend(elem.getElementsByTagName('targetApplication'))
-                if apps:
-                    for app in apps:
-                        # remove targetApplication nodes, they contain id's we aren't interested in
-                        elem.removeChild(app)
-
-                    # find the id tag
-                    if elem.getElementsByTagName('em:id'):
-                        addon_id = str(elem.getElementsByTagName('em:id')[0].firstChild.data)
-                    elif elem.hasAttribute('em:id'):
-                        addon_id = str(elem.getAttribute('em:id'))
-                    elif elem.getElementsByTagName('id'):
-                        addon_id = str(elem.getElementsByTagName('id')[0].firstChild.data)
-                    
-            return addon_id
-
-        doc = minidom.parse(os.path.join(addon_path, 'install.rdf')) 
-
-        for tag in 'Description', 'RDF:Description':
-            desc = doc.getElementsByTagName(tag)
-            addon_id = find_id(desc)
-            if addon_id:
-                return addon_id
-
-    def install_addon(self, path):
-        """Installs the given addon or directory of addons in the profile."""
-
-        # if the addon is a url, download it
-        # note that this won't work with protocols urllib2 doesn't support
-        if '://' in path:
-            response = urllib2.urlopen(path)
-            fd, path = tempfile.mkstemp(suffix='.xpi')
-            os.write(fd, response.read())
-            os.close(fd)
-            tmpfile = path
-        else:
-            tmpfile = None
-
-        # if the addon is a directory, install all addons in it
-        addons = [path]
-        if not path.endswith('.xpi') and not os.path.exists(os.path.join(path, 'install.rdf')):
-            assert os.path.isdir(path)
-            addons = [os.path.join(path, x) for x in os.listdir(path)]
-
-        # install each addon
-        for addon in addons:
-            tmpdir = None
-            if addon.endswith('.xpi'):
-                tmpdir = tempfile.mkdtemp(suffix = "." + os.path.split(addon)[-1])
-                compressed_file = zipfile.ZipFile(addon, "r")
-                for name in compressed_file.namelist():
-                    if name.endswith('/'):
-                        os.makedirs(os.path.join(tmpdir, name))
-                    else:
-                        if not os.path.isdir(os.path.dirname(os.path.join(tmpdir, name))):
-                            os.makedirs(os.path.dirname(os.path.join(tmpdir, name)))
-                        data = compressed_file.read(name)
-                        f = open(os.path.join(tmpdir, name), 'wb')
-                        f.write(data)
-                        f.close()
-                addon = tmpdir
-
-            # determine the addon id
-            addon_id = Profile.addon_id(addon)
-            assert addon_id is not None, "The addon id could not be found: %s" % addon
- 
-            # copy the addon to the profile
-            addon_path = os.path.join(self.profile, 'extensions', addon_id)
-            copytree(addon, addon_path, preserve_symlinks=1)
-            self.addons_installed.append(addon_path)
-
-            # remove the temporary directory, if any
-            if tmpdir:
-                rmtree(tmpdir)
-
-        # remove temporary file, if any
-        if tmpfile:
-            os.remove(tmpfile)
-
-    def clean_addons(self):
-        """Cleans up addons in the profile."""
-        for addon in self.addons_installed:
-            if os.path.isdir(addon):
-                rmtree(addon)
 
     ### methods for preferences
 
@@ -234,12 +133,13 @@ class Profile(object):
  
     def cleanup(self):
         """Cleanup operations on the profile."""
-        if self.create_new:
-            if os.path.exists(self.profile):
-                rmtree(self.profile)
-        else:
-            self.clean_preferences()
-            self.clean_addons()
+        if self.restore:
+            if self.create_new:
+                if os.path.exists(self.profile):
+                    rmtree(self.profile)
+            else:
+                self.clean_preferences()
+                self.addon_manager.clean_addons()
 
     __del__ = cleanup
 
@@ -290,9 +190,3 @@ class ThunderbirdProfile(Profile):
                    'browser.warnOnQuit': False,
                    'browser.sessionstore.resume_from_crash': False,
                    }
-
-
-def print_addon_ids(args=sys.argv[1:]):
-    """print addon ids for testing"""
-    for arg in args:
-        print Profile.addon_id(arg)
