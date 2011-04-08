@@ -38,6 +38,11 @@ from ctypes import c_void_p, POINTER, sizeof, Structure, windll, WinError, WINFU
 from ctypes.wintypes import BOOL, BYTE, DWORD, HANDLE, LPCWSTR, LPWSTR, UINT, WORD
 from qijo import QueryInformationJobObject
 
+# Because we do not want to depend on pywin32, we cannot get win32con which 
+# contains this nifty little constant.  The constant has had the magic value
+# of 259 for a long time (since win2k as far as I can tell).
+STILL_ACTIVE = 259
+
 LPVOID = c_void_p
 LPBYTE = POINTER(BYTE)
 LPDWORD = POINTER(DWORD)
@@ -313,6 +318,7 @@ INFINITE = -1
 WAIT_TIMEOUT = 0x0102
 WAIT_OBJECT_0 = 0x0
 WAIT_ABANDONED = 0x0080
+WAIT_FAILED = 0xFFFFFFFF
 
 # GetExitCodeProcess()
 
