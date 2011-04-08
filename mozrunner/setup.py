@@ -41,7 +41,7 @@ import sys
 desc = """Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)"""
 
 PACKAGE_NAME = "mozrunner"
-PACKAGE_VERSION = "2.5.3"
+PACKAGE_VERSION = "2.5.4"
 
 deps = []
 

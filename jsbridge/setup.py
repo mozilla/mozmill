@@ -42,9 +42,9 @@ desc = """Python to JavaScript bridge interface."""
 summ = """A powerful and extensible Python to JavaScript bridge interface."""
 
 PACKAGE_NAME = "jsbridge"
-PACKAGE_VERSION = "2.4.2"
+PACKAGE_VERSION = "2.4.3"
 
-requires = ['mozrunner == 2.5.3']
+requires = ['mozrunner == 2.5.4']
 
 if not sys.version.startswith('2.6'):
     requires.append('simplejson')
