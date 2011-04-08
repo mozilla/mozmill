@@ -104,7 +104,7 @@ if (Application == undefined) {
 
 // keep list of installed addons to send to jsbridge for test run report
 var addons = "null"; // this will be JSON parsed
-if(AddonManager) {
+if(typeof AddonManager != "undefined") {
   AddonManager.getAllAddons(function(addonList) {
     addons = JSON.stringify(addonList);
   });
