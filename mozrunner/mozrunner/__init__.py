@@ -321,6 +321,18 @@ class FirefoxProfile(Profile):
                    'extensions.checkCompatibility' : False,
                    'extensions.checkCompatibility.4.0' : False,
                    'extensions.checkCompatibility.4.0b' : False,
+                   'extensions.checkCompatibility.4.2' : False,
+                   'extensions.checkCompatibility.4.2a' : False,
+                   'extensions.checkCompatibility.4.2b' : False,
+                   'extensions.checkCompatibility.4.2pre' : False,
+                   'extensions.checkCompatibility.5.0' : False,
+                   'extensions.checkCompatibility.5.0a' : False,
+                   'extensions.checkCompatibility.5.0b' : False,
+                   'extensions.checkCompatibility.5.0pre' : False,
+                   'extensions.checkCompatibility.6.0' : False,
+                   'extensions.checkCompatibility.6.0a' : False,
+                   'extensions.checkCompatibility.6.0b' : False,
+                   'extensions.checkCompatibility.6.0pre' : False,
                    }
 
     @property
