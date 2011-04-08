@@ -116,7 +116,7 @@ var loadFile = function(path, collector) {
     collector.current_path = path;
   }
   try {
-    loader.loadSubScript(uri, module);
+    loader.loadSubScript(uri, module, "UTF-8");
   } catch(e) {
     events.fail(e);
     var obj = {
