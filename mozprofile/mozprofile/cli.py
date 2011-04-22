@@ -50,19 +50,22 @@ def cli(argv=sys.argv[1:]):
     parser = OptionParser(usage=usage, description=__doc__)
 
     parser.add_option("-p", "--profile", dest="profile",
-                        help="The profile to operate on\n" +
+                        help="The profile to operate on. " +
                              "If none, creates a new profile in temp directory")
     parser.add_option("-a", "--addon", dest="addons",
                         action="append",
-                        help="An addon to install\n" + 
-                             "Can be a filepath a directory containing addons or a url")
+                        help="An addon to install. " + 
+                             "Can be a filepath, a directory containing addons, or a url")
     parser.add_option("-m", "--addon-manifests", dest="manifests",
                         action="append",
                         help="An addon manifest to install")
-    parser.add_option("--prefs", dest="prefs",
-                        help="A mapping of preferences to set")
+    parser.add_option("--pref", dest="prefs",
+                        action='append',
+                        default=[],
+                        help="A string preference to set. " +
+                             "Must be a key-value pair separated by a ':'")
     parser.add_option("--print-addon-ids", dest="print_addons",
-                        help="A list of addon filepaths\n" +
+                        help="A list of addon filepaths. " +
                              "Prints the id of each addon and exits")
     opt, args = parser.parse_args(argv)
     
@@ -70,6 +73,12 @@ def cli(argv=sys.argv[1:]):
         for arg in opt.print_addons:
             print AddonManager.get_addon_id(arg)
         return True
+   
+    # The profile class calls dict.update() which can accept an iterable of iterables of length two
+    for i in range(len(opt.prefs)):
+        if ':' not in opt.prefs[i]:
+            parser.error("preference must be a key-value pair separated by a ':'")
+        opt.prefs[i] = opt.prefs[i].split(':', 1)
 
     if opt.addons or opt.manifests:
         # Some sort of user feedback is needed when installing addons
