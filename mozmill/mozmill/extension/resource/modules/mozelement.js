@@ -397,7 +397,6 @@ MozMillCheckBox.prototype.parent = MozMillElement.prototype;
 MozMillCheckBox.prototype.constructor = MozMillCheckBox;
 function MozMillCheckBox(locatorType, locator, args) {
   this.parent.constructor.call(this, locatorType, locator, args);
-  this.element = this.getElement;
 }
 
 // Static method returns true if node is this type of element
