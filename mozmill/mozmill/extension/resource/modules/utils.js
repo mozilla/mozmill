@@ -41,7 +41,9 @@ var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler",
                         "getFile", "Copy", "getChromeWindow", "getWindows", "runEditor",
                         "runFile", "getWindowByTitle", "getWindowByType", "tempfile", 
                         "getMethodInWindows", "getPreference", "setPreference",
-                        "sleep", "assert", "unwrapNode", "TimeoutError", "waitFor"];
+                        "sleep", "assert", "unwrapNode", "TimeoutError", "waitFor",
+                        "takeScreenshot",
+                       ];
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
               .getService(Components.interfaces.nsIAppShellService)
@@ -423,4 +425,133 @@ function waitFor(callback, message, timeout, interval, thisObject) {
   }
 
   return true;
+}
+
+/**
+ * Calculates the x and y chrome offset for an element
+ * See https://developer.mozilla.org/en/DOM/window.innerHeight
+ * 
+ * Note this function will not work if the user has custom toolbars (via extension) at the bottom or left/right of the screen
+ */
+function getChromeOffset(elem) {
+  var win = elem.ownerDocument.defaultView;
+  // Calculate x offset
+  var chromeWidth = 0;
+  if (win["name"] != "sidebar") { 
+    chromeWidth = win.outerWidth - win.innerWidth;
+  }
+
+  // Calculate y offset
+  var chromeHeight = win.outerHeight - win.innerHeight;
+  // chromeHeight == 0 means elem is already in the chrome and doesn't need the addonbar offset
+  if (chromeHeight > 0) {
+    // window.innerHeight doesn't include the addon or find bar, so account for these if present
+    var addonbar = win.document.getElementById("addon-bar");
+    if (addonbar) { 
+      chromeHeight -= addonbar.scrollHeight;
+    }
+    var findbar = win.document.getElementById("FindToolbar");
+    if (findbar) {
+      chromeHeight -= findbar.scrollHeight;
+    }
+  }
+
+  return {'x':chromeWidth, 'y':chromeHeight}; 
+}
+
+/**
+ * Takes a screenshot of the specified DOM node 
+ */
+function takeScreenshot(node, name, highlights) {
+  var rect, win, width, height, left, top, needsOffset;
+  // node can be either a window or an arbitrary DOM node
+  try {
+    win = node.ownerDocument.defaultView;   // node is an arbitrary DOM node
+    rect = node.getBoundingClientRect();
+    width = rect.width;
+    height = rect.height;
+    top = rect.top;
+    left = rect.left;
+    // offset for highlights not needed as they will be relative to this node
+    needsOffset = false;
+  } catch (e) {
+    win = node;                             // node is a window
+    width = win.innerWidth;
+    height = win.innerHeight;
+    top = 0;
+    left = 0;
+    // offset needed for highlights to take 'outerHeight' of window into account
+    needsOffset = true;
+  }
+
+  var canvas = win.document.createElementNS("http://www.w3.org/1999/xhtml", "canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  var ctx = canvas.getContext("2d");
+  // Draws the DOM contents of the window to the canvas
+  ctx.drawWindow(win, left, top, width, height, "rgb(255,255,255)");
+  
+  // This section is for drawing a red rectangle around each element passed in via the highlights array
+  if (highlights) {
+    ctx.lineWidth = "2";
+    ctx.strokeStyle = "red";
+    ctx.save();
+
+    for (var i = 0; i < highlights.length; ++i) {
+      var elem = highlights[i];
+      rect = elem.getBoundingClientRect();
+
+      var offsetY = 0, offsetX = 0;
+      if (needsOffset) {
+        var offset = getChromeOffset(elem);
+        offsetX = offset.x;
+        offsetY = offset.y;
+      } else {
+        // Don't need to offset the window chrome, just make relative to containing node
+        offsetY = -top;
+        offsetX = -left;
+      }
+
+      // Draw the rectangle
+      ctx.strokeRect(rect.left + offsetX, rect.top + offsetY, rect.width, rect.height);
+    }
+  } // end highlights
+
+  // if there is a name save the file, else return dataURL
+  if (name) {
+    return saveCanvas(canvas, name);
+  } 
+  return canvas.toDataURL("image/png","");
+}
+
+/**
+ * Takes a canvas as input and saves it to the file tempdir/name.png
+ * Returns the filepath of the saved file
+ */
+function saveCanvas(canvas, name) {
+  var file = Components.classes["@mozilla.org/file/directory_service;1"]
+                                .getService(Components.interfaces.nsIProperties)
+                                .get("TmpD", Components.interfaces.nsIFile);
+  file.append("mozmill_screens");
+  file.append(name + ".png");
+  file.createUnique(Components.interfaces.nsIFile.NORMAL_FILE_TYPE, 0666);
+
+  // create a data url from the canvas and then create URIs of the source and targets  
+  var io = Components.classes["@mozilla.org/network/io-service;1"]
+                              .getService(Components.interfaces.nsIIOService);
+  var source = io.newURI(canvas.toDataURL("image/png", ""), "UTF8", null);
+  var target = io.newFileURI(file)
+ 
+  // prepare to save the canvas data
+  var persist = Components.classes["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"]
+                                   .createInstance(Components.interfaces.nsIWebBrowserPersist);
+
+  persist.persistFlags = Components.interfaces.nsIWebBrowserPersist.PERSIST_FLAGS_REPLACE_EXISTING_FILES;
+  persist.persistFlags |= Components.interfaces.nsIWebBrowserPersist.PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION;
+ 
+  // save the canvas data to the file
+  persist.saveURI(source, null, null, null, null, file);
+
+  return file.path;
 }

@@ -300,6 +300,70 @@ MozMillController.prototype.open = function(url)
   frame.events.pass({'function':'Controller.open()'});
 }
 
+/**
+ * Take a screenshot of specified node
+ * 
+ * @param {element} node
+ *   the window or DOM element to capture
+ * @param {string} name
+ *   the name of the screenshot used in reporting and as filename
+ * @param {boolean} save
+ *   if true saves the screenshot as 'name.png' in tempdir, otherwise returns a dataURL
+ * @param {element list} highlights
+ *   a list of DOM elements to highlight by drawing a red rectangle around them
+ */
+MozMillController.prototype.screenShot = function _screenShot(node, name, save, highlights) {
+  if (!node) {
+    throw new Error("node is undefined");
+  }
+  
+  // Unwrap the node and highlights
+  if ("getNode" in node) node = node.getNode();
+  if (highlights) {
+    for (var i = 0; i < highlights.length; ++i) {
+      if ("getNode" in highlights[i]) {
+        highlights[i] = highlights[i].getNode();
+      }
+    }
+  }
+  
+  // If save is false, a dataURL is used
+  // Include both in the report anyway to avoid confusion and make the report easier to parse
+  var filepath, dataURL;
+  try {
+    if (save) {
+      filepath = utils.takeScreenshot(node, name, highlights);
+    } else {
+      dataURL = utils.takeScreenshot(node, undefined, highlights);
+    }
+  } catch (e) {
+    throw new Error("controller.screenShot() failed: " + e);
+  }
+
+  // Find the name of the test function
+  for (var attr in frame.events.currentModule) {
+    if (frame.events.currentModule[attr] == frame.events.currentTest) {
+      var testName = attr;
+      break;
+    }
+  }
+
+  // Create a timestamp
+  var d = new Date();
+  // Report object
+  var obj = { "filepath": filepath,
+              "dataURL": dataURL,
+              "name": name,
+              "timestamp": d.toLocaleString(),
+              "test_file": frame.events.currentModule.__file__,
+              "test_name": testName,
+            }
+  // Send the screenshot object to python over jsbridge
+  this.fireEvent("screenShot", obj);
+
+  frame.events.pass({'function':'controller.screenShot()'});
+}
+
 MozMillController.prototype.waitFor = function(callback, message, timeout,
                                                interval, thisObject) {
   utils.waitFor(callback, message, timeout, interval, thisObject);

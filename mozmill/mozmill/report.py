@@ -85,7 +85,8 @@ class Report(object):
               'tests_passed': len(results.passes),
               'tests_failed': len(results.fails),
               'tests_skipped': len(results.skipped),
-              'results': results.alltests
+              'results': results.alltests,
+              'screenshots': results.screenshots,
               }
 
     report.update(results.appinfo)
