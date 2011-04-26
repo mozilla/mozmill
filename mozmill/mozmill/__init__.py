@@ -63,9 +63,14 @@ extension_path = os.path.join(basedir, 'extension')
 mozmillModuleJs = "Components.utils.import('resource://mozmill/modules/mozmill.js')"
 package_metadata = mozrunner.get_metadata_from_egg('mozmill')
 
+# defaults
+ADDONS = [extension_path, jsbridge.extension_path]
+JSBRIDGE_PORT = 24242
+JSBRIDGE_TIMEOUT = 60. # timeout for jsbridge
+
 class TestResults(object):
     """
-    accumulate test results for Mozmill
+    class to accumulate test results for Mozmill
     """
     def __init__(self):
 
@@ -89,7 +94,7 @@ class TestResults(object):
         """events the MozMill class will dispatch to"""
         return {'mozmill.endTest': self.endTest_listener}
 
-    def stop(self, handlers, fatal=False):
+    def finish(self, handlers, fatal=False):
         """do final reporting and such"""
         self.endtime = datetime.utcnow()
 
@@ -115,11 +120,36 @@ class MozMill(object):
     MozMill is a test runner  You should use MozMill as follows:
 
     m = MozMill(...)
-    m.run(tests)
-    m.stop()
+    results = m.run(tests)
+    results.finish()
     """
 
-    def __init__(self, runner, results, jsbridge_port=24242, jsbridge_timeout=60, handlers=()):
+    @classmethod
+    def create(cls, results=None, jsbridge_port=JSBRIDGE_PORT, jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=(),
+               app='firefox', profile_args=None, runner_args=None):
+      
+        # select runner and profile class for the given app
+        try:
+            runner_class = mozrunner.runners[app]
+        except KeyError:
+            raise NotImplementedError('Application "%s" unknown (should be one of %s)' % (app, mozrunner.runners.keys()))
+          
+        # get the necessary arguments to construct the profile and runner instance
+        profile_args = profile_args or {}
+        runner_args = runner_args or {}
+        profile_args.setdefault('addons', []).extend(ADDONS)
+        cmdargs = runner_args.setdefault('cmdargs', [])
+        if '-jsbridge' not in cmdargs:
+            cmdargs += ['-jsbridge', '%d' % jsbridge_port]
+        runner_args['profile_args'] = profile_args
+            
+        # create an equipped runner
+        runner = runner_class.create(**runner_args)
+            
+        # create a mozmill
+        return cls(runner, results=results, jsbridge_port=jsbridge_port, jsbridge_timeout=jsbridge_timeout, handlers=handlers)
+
+    def __init__(self, runner, results=None, jsbridge_port=JSBRIDGE_PORT, jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=()):
         """
         - runner : a MozRunner instance to run the app
         - results : a TestResults instance to accumulate results
@@ -132,7 +162,7 @@ class MozMill(object):
         self.runner = runner
 
         # mozmill puts your data here
-        self.results = results 
+        self.results = results or TestResults()
 
         # jsbridge parameters
         self.jsbridge_port = jsbridge_port
@@ -156,7 +186,7 @@ class MozMill(object):
         self.add_listener(self.userShutdown_listener, eventType='mozmill.userShutdown')
 
         # add listeners for event handlers
-        self.handlers = [results]
+        self.handlers = [self.results]
         self.handlers.extend(handlers)
         for handler in self.handlers:
             if hasattr(handler, 'events'):
@@ -277,16 +307,18 @@ class MozMill(object):
             frame = self.start_runner()
             self.run_test_file(frame, path, nextTest)
 
-    def run_tests(self, tests):
+    def run_tests(self, *tests):
         """run test files"""
+        tests = list(tests)
 
-        # start the runner
+        # note runner state
         started = False
         
         # run tests
         while tests:
             test = tests.pop(0)
-            if 'disabled' in test:
+            
+            if 'disabled' in test: # skip test
 
                 # see frame.js:events.endTest
                 obj = {'filename': test['path'],
@@ -300,6 +332,7 @@ class MozMill(object):
                        }
                 self.fire_event('endTest', obj)
                 continue
+              
             try:
                 if not started:
                     frame = self.start_runner()
@@ -316,15 +349,24 @@ class MozMill(object):
         if started:
             self.stop_runner()
 
-    def run(self, tests):
+    def run(self, *tests):
         """run the tests"""
 
+        exception = None
         try:
-            self.run_tests(tests)
-        except JSBridgeDisconnectError:
+            self.run_tests(*tests)
+        except JSBridgeDisconnectError, e:
+            exception_type, exception, tb = sys.exc_info()
             if not self.shutdownMode:
                 self.report_disconnect()
-                raise
+        finally:
+            self.stop() # shutdown the test harness cleanly
+              
+        # reraise the most recent exception, if any
+        if exception:
+            raise
+        
+        return self.results
             
     def get_appinfo(self, bridge):
         """ Collect application specific information """
@@ -487,7 +529,7 @@ class CLI(mozrunner.CLI):
                          action='append', default=[],
                          help='Run test')
         group.add_option("--timeout", dest="timeout", type="float",
-                         default=60., 
+                         default=JSBRIDGE_TIMEOUT,
                          help="seconds before harness timeout if no communication is taking place")
         group.add_option("--restart", dest='restart', action='store_true',
                          default=False,
@@ -501,7 +543,7 @@ class CLI(mozrunner.CLI):
                          help="debug mode",
                          default=False)
         group.add_option('-P', '--port', dest="port", type="int",
-                         default=24242,
+                         default=JSBRIDGE_PORT,
                          help="TCP port to run jsbridge on.")
         group.add_option('--list-tests', dest='list_tests',
                          action='store_true', default=False,
@@ -531,8 +573,7 @@ class CLI(mozrunner.CLI):
         this command-line interface
         """
         profile_args = mozrunner.CLI.profile_args(self)
-        profile_args['addons'].append(extension_path)
-        profile_args['addons'].append(jsbridge.extension_path)
+        profile_args.setdefault('addons', []).extend(ADDONS)
 
         if self.options.debug:
             profile_args['preferences'] = {
@@ -577,18 +618,15 @@ class CLI(mozrunner.CLI):
         try:
             if self.options.restart:
                 for test in self.manifest.tests:
-                    mozmill.run([test])
+                    mozmill.run(test)
                     runner.reset() # reset the profile
             else:
-                mozmill.run(self.manifest.tests[:])
+                mozmill.run(*self.manifest.tests)
         except:
             exception_type, exception, tb = sys.exc_info()
 
-        # shutdown the test harness cleanly
-        mozmill.stop()
-
         # do whatever reporting you're going to do
-        results.stop(self.event_handlers, fatal=exception is not None)
+        results.finish(self.event_handlers, fatal=exception is not None)
 
         # exit on bad stuff happen
         if exception:
