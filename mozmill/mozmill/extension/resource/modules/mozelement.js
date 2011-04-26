@@ -38,7 +38,7 @@
 
 var EXPORTED_SYMBOLS = ["Elem", "Selector", "ID", "Link", "XPath", "Name", "Lookup", 
                         "MozMillElement", "MozMillCheckBox", "MozMillRadio", "MozMillDropList",
-                        "MozMillTextBox",
+                        "MozMillTextBox", "subclasses",
                        ];
 
 var EventUtils = {}; Components.utils.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
@@ -46,19 +46,23 @@ var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', f
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 
+// A list of all the subclasses available.  Shared modules can push their own subclasses onto this list
+var subclasses = [MozMillCheckBox, MozMillRadio, MozMillDropList, MozMillTextBox];
+
 /**
  * createInstance()
  *
  * Returns an new instance of a MozMillElement
  * The type of the element is automatically determined
  */
-var createInstance = function (locatorType, locator, elem) {
+function createInstance(locatorType, locator, elem) {
   if (elem) {
     var args = {"element":elem};
-    if (MozMillCheckBox.isType(elem)) return new MozMillCheckBox(locatorType, locator, args);
-    if (MozMillRadio.isType(elem)) return new MozMillRadio(locatorType, locator, args);
-    if (MozMillDropList.isType(elem)) return new MozMillDropList(locatorType, locator, args);
-    if (MozMillTextBox.isType(elem)) return new MozMillTextBox(locatorType, locator, args);
+    for (var i = 0; i < subclasses.length; ++i) {
+      if (subclasses[i].isType(elem)) {
+        return new subclasses[i](locatorType, locator, args);
+      }
+    }
     if (MozMillElement.isType(elem)) return new MozMillElement(locatorType, locator, args);
   }
   throw new Error("could not find element " + locatorType + ": " + locator);
