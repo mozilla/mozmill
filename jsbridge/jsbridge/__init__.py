@@ -143,6 +143,8 @@ class CLI(mozrunner.CLI):
             import IPython
         except:
             IPython = None
+        if not hasattr(self, 'bridge'):
+            self.start_jsbridge_network()
         jsobj = JSObject(self.bridge, window_string)
         
         if IPython is None or self.options.usecode:
