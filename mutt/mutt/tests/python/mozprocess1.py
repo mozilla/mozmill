@@ -11,7 +11,8 @@ class ProcTest1(unittest.TestCase):
         CHROMEPATH = ["C:\\Users\\ctalbert\\AppData\\Local\\Google\\Chrome\\Application\\chrome.exe"]
         args = ["http://www.mozilla.org", "http://www.wikipedia.org"]
         cmd = CHROMEPATH + args
-        p = killableprocess.run_command(cmd, env = os.environ, None)
+        kp_kwargs = None
+        p = killableprocess.run_command(cmd, env = os.environ, **kp_kwargs)
         return p
 
     def test_multiprockill(self):
