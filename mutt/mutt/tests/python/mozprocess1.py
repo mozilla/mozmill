@@ -4,6 +4,7 @@ import sys
 from time import sleep
 
 from mozprocess import killableprocess
+from mozprocess import processhandler
 
 class ProcTest1(unittest.TestCase):
 
@@ -23,17 +24,28 @@ class ProcTest1(unittest.TestCase):
         p = killableprocess.runCommand(cmd, env = os.environ, **kp_kwargs)
         return p
 
-    def test_multiprockill(self):
-        #p = self.startchrome()
-        p = self.startffx()
-        sleep(60)
-        p.kill()
-
-    def test_multiwaittimeout(self):
-        print "STARTING WAIT TEST"
-        #p = self.startchrome()
-        p = self.startffx()
-        p.wait(timeout=60)
+    def prochandlerstartffx(self):
+        FFXDIR = "C:\\Program Files (x86)\\Minefield"
+        args = ["--no-remote", "http://youtube.com"]
+        p = processhandler.ProcessHandler("C:\\Program Files (x86)\\Minefield\\firefox.exe", args, FFXDIR)
+        return p
         
+#    def test_multiprockill(self):
+        #p = self.startchrome()
+#        p = self.startffx()
+#        sleep(60)
+#        p.kill()
 
+#    def test_multiwaittimeout(self):
+#        print "STARTING WAIT TEST"
+#        #p = self.startchrome()
+#        p = self.startffx()
+#        p.wait(timeout=60)
+     
+    def test_prochandler_kill(self):
+        p = self.prochandlerstartffx()
+        p.run()
+        sleep(60)
+        rc = p.kill()
+        print "got rc back as : %s" % rc
 

@@ -34,14 +34,15 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from ctypes import c_void_p, POINTER, sizeof, Structure, windll, WinError, WINFUNCTYPE
-from ctypes.wintypes import BOOL, BYTE, DWORD, HANDLE, LPCWSTR, LPWSTR, UINT, WORD
+from ctypes import c_void_p, POINTER, sizeof, Structure, windll, WinError, WINFUNCTYPE, c_ulong
+from ctypes.wintypes import BOOL, BYTE, DWORD, HANDLE, LPCWSTR, LPWSTR, UINT, WORD, ULONG
 from qijo import QueryInformationJobObject
 
 LPVOID = c_void_p
 LPBYTE = POINTER(BYTE)
 LPDWORD = POINTER(DWORD)
 LPBOOL = POINTER(BOOL)
+LPULONG = POINTER(c_ulong)
 
 def ErrCheckBool(result, func, args):
     """errcheck function for Windows functions that return a BOOL True
@@ -188,6 +189,15 @@ CREATE_NO_WINDOW = 0x08000000
 CREATE_SUSPENDED = 0x00000004
 CREATE_UNICODE_ENVIRONMENT = 0x00000400
 
+# Flags for IOCompletion ports (some of these would probably be defined if 
+# we used the win32 extensions for python, but we don't want to do that if we 
+# can help it.
+INVALID_HANDLE_VALUE = HANDLE(-1) # From winbase.h
+
+# Self Defined Constants for IOPort <--> Job Object communication
+COMPKEY_TERMINATE = LPDWORD(DWORD(0)) # TODO: Needed?
+COMPKEY_JOBOBJECT = LPDWORD(DWORD(1))
+
 # flags for job limit information
 # see http://msdn.microsoft.com/en-us/library/ms684147%28VS.85%29.aspx
 JOB_OBJECT_LIMIT_BREAKAWAY_OK = 0x00000800
@@ -197,6 +207,47 @@ JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK = 0x00001000
 DEBUG_ONLY_THIS_PROCESS = 0x00000002
 DEBUG_PROCESS = 0x00000001
 DETACHED_PROCESS = 0x00000008
+
+# JOBOBJECT_ASSOCIATE_COMPLETION_PORT structure
+class JOBOBJECT_ASSOCIATE_COMPLETION_PORT(Structure):
+    _fields_ = [('CompletionKey', LPULONG),
+                ('CompletionPort', HANDLE)]
+#    def __init__(self):
+#        Structure.__init__(self)
+#        self.cb = sizeof(self)
+
+
+# CreateIOCompletionPort
+CreateIoCompletionPortProto = WINFUNCTYPE(HANDLE,      # Return Type
+                                          HANDLE,      # File Handle
+                                          HANDLE,      # Existing Completion Port
+                                          LPULONG,     # Completion Key
+                                          DWORD        # Number of Threads
+                                         )
+CreateIoCompletionPortFlags = ((1, "FileHandle", INVALID_HANDLE_VALUE),
+                               (1, "ExistingCompletionPort", None),
+                               (1, "CompletionKey", LPULONG(c_ulong(0))),
+                               (1, "NumberOfConcurrentThreads", 0))
+CreateIoCompletionPort = CreateIoCompletionPortProto(("CreateIoCompletionPort",
+                                                      windll.kernel32),
+                                                      CreateIoCompletionPortFlags)
+CreateIoCompletionPort.errcheck = ErrCheckHandle
+
+# SetInformationJobObject
+SetInformationJobObjectProto = WINFUNCTYPE(BOOL,      # Return Type
+                                           HANDLE,    # Job Handle
+                                           DWORD,     # Type of Class next param is
+                                           LPVOID,    # Job Object Class
+                                           DWORD      # Job Object Class Length
+                                          )
+SetInformationJobObjectProtoFlags = ((1, "hJob", None),
+                                     (1, "JobObjectInfoClass", None),
+                                     (1, "lpJobObjectInfo", None),
+                                     (1, "cbJobObjectInfoLength", 0))
+SetInformationJobObject = SetInformationJobObjectProto(("SetInformationJobObject",
+                                                        windll.kernel32),
+                                                        SetInformationJobObjectProtoFlags)
+SetInformationJobObject.errcheck = ErrCheckBool
 
 # CreateJobObject()
 
