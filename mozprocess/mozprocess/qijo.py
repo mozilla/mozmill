@@ -82,6 +82,10 @@ class JOBOBJECT_BASIC_LIMIT_INFORMATION(Structure):
                 ('SchedulingClass', DWORD)
                 ]
 
+class JOBOBJECT_ASSOCIATE_COMPLETION_PORT(Structure):
+    _fields_ = [('CompletionKey', c_ulong),
+                ('CompletionPort', HANDLE)]
+
 # see http://msdn.microsoft.com/en-us/library/ms684156%28VS.85%29.aspx
 class JOBOBJECT_EXTENDED_LIMIT_INFORMATION(Structure):
     _fields_ = [('BasicLimitInformation', JOBOBJECT_BASIC_LIMIT_INFORMATION),
@@ -103,6 +107,7 @@ class JobObjectInfo(object):
                 'JobObjectAssociateCompletionPortInformation': 7
                 }
     structures = {
+                   7: JOBOBJECT_ASSOCIATE_COMPLETION_PORT,
                    8: JOBOBJECT_BASIC_AND_IO_ACCOUNTING_INFORMATION,
                    9: JOBOBJECT_EXTENDED_LIMIT_INFORMATION
                    }
