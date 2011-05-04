@@ -30,8 +30,7 @@ DWORD WINAPI JobNotify(PVOID)
         fGotCompStat = GetQueuedCompletionStatus(hIOCP, &dwBytesXferred,
 &CompKey, &po, 2000);
 
-        // if the function returns false and po is null we have either timed
-out or the i/0
+        // if the function returns false and po is null we have either timed out or the i/0
         // completion port has been closed
         if (!fGotCompStat && (po == NULL))
             {
@@ -56,18 +55,15 @@ out or the i/0
                 case JOB_OBJECT_MSG_ACTIVE_PROCESS_ZERO:
                     break;
 
-                // A new process has been added to the job object, the PID is
-in the po variable
+                // A new process has been added to the job object, the PID is in the po variable
                 case JOB_OBJECT_MSG_NEW_PROCESS:
                     break;
 
-                // One of the processes has exited, the PID is in the po
-variable
+                // One of the processes has exited, the PID is in the po variable
                 case JOB_OBJECT_MSG_EXIT_PROCESS:
                     break;
 
-                // One of the processes has exited abnormally, the PID is in
-the po variable
+                // One of the processes has exited abnormally, the PID is in the po variable
                 case JOB_OBJECT_MSG_ABNORMAL_EXIT_PROCESS:
                     break;
 

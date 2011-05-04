@@ -4,14 +4,16 @@ import signal
 import sys
 import select
 import types
+import threading
 from datetime import datetime, timedelta
 
 import pdb
 
 if sys.platform == 'win32':
     import ctypes, ctypes.wintypes, time, msvcrt
+    from ctypes import sizeof, addressof, c_ulong, byref, POINTER
     import winprocess
-    from qijo import JobObjectAssociateCompletionPortInformation
+    from qijo import JobObjectAssociateCompletionPortInformation, JOBOBJECT_ASSOCIATE_COMPLETION_PORT
 
 class ProcessHandler(object):
     """Class which represents a process to be executed."""
@@ -116,23 +118,26 @@ class ProcessHandler(object):
                     self._io_port = winprocess.CreateIoCompletionPort()
                     self._job = winprocess.CreateJobObject()
 
-                    pdb.set_trace()
-                    
                     # Now associate the io comp port and the job object
-                    joacp = winprocess.JOBOBJECT_ASSOCIATE_COMPLETION_PORT(winprocess.COMPKEY_JOBOBJECT,
-                                                                           self._io_port)
-                    joacpsz = joacp.__sizeof__()
+                    joacp = JOBOBJECT_ASSOCIATE_COMPLETION_PORT(winprocess.COMPKEY_JOBOBJECT,
+                                                                self._io_port)
                     winprocess.SetInformationJobObject(self._job,
                                                        JobObjectAssociateCompletionPortInformation,
-                                                       joacp
+                                                       addressof(joacp),
+                                                       sizeof(joacp)
                                                        )
-                                                       
+
                     # Assign the job object to the process
                     winprocess.AssignProcessToJobObject(self._job, int(hp))
+
+                    # Spin up our thread for managing the IO Completion Port
+                    self._procmgrthread = threading.Thread(target = self._procmgr)
                 else:
                     self._job = None
                         
                 winprocess.ResumeThread(int(ht))
+                if (self._procmgrthread):
+                    self._procmgrthread.start()
                 ht.Close()
 
                 if p2cread is not None:
@@ -142,6 +147,89 @@ class ProcessHandler(object):
                 if errwrite is not None:
                     errwrite.Close()
                 time.sleep(.1)
+          
+            # Windows Process Manager - watches the IO Completion Port and
+            # keeps track of child processes
+            def _procmgr(self):
+                if not (self._io_port) or not (self._job):
+                    return
+                try:
+                    self._poll_iocompletion_port()
+                except KeyboardInterrupt:
+                    print "Keyboard interrupt"
+
+            def _poll_iocompletion_port(self):
+                # Watch the IO Completion port for status
+                # TODO: This should probably be a while not done: loop, and 
+                # done should be set on a "zero processes left" or on an error
+                # or on a number of times after a kill has been posted.  For example:
+                # once you call kill it sets "finish up" and once this loop sees "finish up"
+                # it runs 2-3 more loops before throwing an exception and killing itself
+                # that way this thread won't run forever. (Ideally we'd get the msg 4 (no processes remaining)
+                # before we exhaust our "finish up"
+                while (True):
+                    msgid = c_ulong(0)
+                    compkey = c_ulong(0)
+                    overlapped = POINTER(winprocess.OVERLAPPED)()
+
+                    portstatus = winprocess.GetQueuedCompletionStatus(self._io_port,
+                                                                      byref(msgid),
+                                                                      byref(compkey),
+                                                                      byref(overlapped),
+                                                                      10000)
+                    # TODO: THis is a debugging line showing how ideally we'd get
+                    # information out of the overlapped struct, like the PID
+                    rtn = c_ulong(0)
+                    winprocess.GetOverlappedResult(self._job,
+                                                           byref(overlapped),
+                                                           byref(rtn),
+                                                           1)
+                    print "winproc: msgid: %s, overlapped value: %s" % (msgid.value, rtn.value)
+                    print "winproc: Done getting status compkey: %s" % compkey.value
+                    print "winproc: And msgid is: %s" % msgid.value
+
+                    if (not portstatus):
+                        print "error detected"
+                        errcode = winprocess.GetLastError()
+                        if errcode == winprocess.ERROR_ABANDONED_WAIT_0:
+                            # Then something has killed the port, break the loop
+                            break
+                        else:
+                            print "continuing polling"
+                            # Continue polling until we have abandoned wait
+                            continue
+                    if compkey.value == winprocess.COMPKEY_TERMINATE.value:
+                        print "compkey_terminate encountered"
+                        # Then we're done
+                        break
+                    
+                    # Check the status of the IO Port and do things based on it
+                    if (compkey.value == winprocess.COMPKEY_JOBOBJECT.value):
+                        if (msgid.value == winprocess.JOB_OBJECT_MSG_ACTIVE_PROCESS_ZERO):
+                            # No processes left, time to shut down
+                            # TODO: This should signal our wait() logic (not implemneted yet)
+                            print "winproc: no procs left, shutting down"
+                            break
+                        elif (msgid.value == winprocess.JOB_OBJECT_MSG_NEW_PROCESS):
+                            # New Process started, check overlapped for pid
+                            # TODO: Ideally this following code would get us the PID
+                            #       in this case.
+                            rtn = c_ulong(0)
+                            winprocess.GetOverlappedResult(self._io_port,
+                                                           byref(overlapped),
+                                                           byref(rtn),
+                                                           1)
+                            print "winproc: normal proc start, overlapped: %s" % rtn.value
+                        elif (msgid.value == winprocess.JOB_OBJECT_MSG_EXIT_PROCESS):
+                            # One proc exited, check overlapped for pid
+                            print "winproc: normal proc exit, check overlapped for pid"
+                        elif (msgid.value == winprocess.JOB_OBJECT_MSG_ABNORMAL_EXIT_PROCESS):
+                            # One process existed abnormally, check overlapped for pid
+                            print "winproc: abnormal proc exit, check overlapped for pid"
+                        else:
+                            # We don't care about anything else
+                            print "winproc: caught else condition, keep polling"
+                print "winproc: Exiting while loop, leaving thread"
 
     def __init__(self, cmd, args=None, cwd=None):
         self.cmd = cmd

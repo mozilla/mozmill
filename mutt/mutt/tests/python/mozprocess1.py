@@ -29,6 +29,11 @@ class ProcTest1(unittest.TestCase):
         args = ["--no-remote", "http://youtube.com"]
         p = processhandler.ProcessHandler("C:\\Program Files (x86)\\Minefield\\firefox.exe", args, FFXDIR)
         return p
+    def starttestprg(self):
+        WORKDIR = "C:\\Users\\ctalbert\\projects\\processlauncher\\processlauncher\\Debug"
+        args = []
+        p = processhandler.ProcessHandler("C:\\Users\\ctalbert\\projects\\processlauncher\\processlauncher\\Debug\\processlauncher.exe", args, WORKDIR)
+        return p
         
 #    def test_multiprockill(self):
         #p = self.startchrome()
@@ -43,9 +48,10 @@ class ProcTest1(unittest.TestCase):
 #        p.wait(timeout=60)
      
     def test_prochandler_kill(self):
-        p = self.prochandlerstartffx()
+        #p = self.prochandlerstartffx()
+        p = self.starttestprg()
         p.run()
-        sleep(60)
+        sleep(25)
         rc = p.kill()
         print "got rc back as : %s" % rc
 

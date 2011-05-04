@@ -34,7 +34,7 @@
 # NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION
 # WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
-from ctypes import c_void_p, POINTER, sizeof, Structure, windll, WinError, WINFUNCTYPE, c_ulong
+from ctypes import c_void_p, POINTER, sizeof, Structure, Union, windll, WinError, WINFUNCTYPE, c_ulong
 from ctypes.wintypes import BOOL, BYTE, DWORD, HANDLE, LPCWSTR, LPWSTR, UINT, WORD, ULONG
 from qijo import QueryInformationJobObject
 
@@ -143,7 +143,17 @@ class EnvironmentBlock:
                       for (key, value) in dict.iteritems()]
             values.append("")
             self._as_parameter_ = LPCWSTR("\0".join(values))
-        
+
+# Error Messages we need to watch for go here
+# See: http://msdn.microsoft.com/en-us/library/ms681388%28v=vs.85%29.aspx
+ERROR_ABANDONED_WAIT_0 = 735
+            
+# GetLastError()
+GetLastErrorProto = WINFUNCTYPE(DWORD                   # Return Type
+                               )
+GetLastErrorFlags = ()
+GetLastError = GetLastErrorProto(("GetLastError", windll.kernel32), GetLastErrorFlags)
+
 # CreateProcess()
 
 CreateProcessProto = WINFUNCTYPE(BOOL,                  # Return type
@@ -195,38 +205,88 @@ CREATE_UNICODE_ENVIRONMENT = 0x00000400
 INVALID_HANDLE_VALUE = HANDLE(-1) # From winbase.h
 
 # Self Defined Constants for IOPort <--> Job Object communication
-COMPKEY_TERMINATE = LPDWORD(DWORD(0)) # TODO: Needed?
-COMPKEY_JOBOBJECT = LPDWORD(DWORD(1))
+COMPKEY_TERMINATE = c_ulong(0)
+COMPKEY_JOBOBJECT = c_ulong(1)
 
 # flags for job limit information
 # see http://msdn.microsoft.com/en-us/library/ms684147%28VS.85%29.aspx
 JOB_OBJECT_LIMIT_BREAKAWAY_OK = 0x00000800
 JOB_OBJECT_LIMIT_SILENT_BREAKAWAY_OK = 0x00001000
 
-# XXX these flags should be documented
+# Flags for Job Object Completion Port Message IDs from winnt.h
+# See also: http://msdn.microsoft.com/en-us/library/ms684141%28v=vs.85%29.aspx
+JOB_OBJECT_MSG_END_OF_JOB_TIME =          1
+JOB_OBJECT_MSG_END_OF_PROCESS_TIME =      2
+JOB_OBJECT_MSG_ACTIVE_PROCESS_LIMIT =     3
+JOB_OBJECT_MSG_ACTIVE_PROCESS_ZERO =      4
+JOB_OBJECT_MSG_NEW_PROCESS =              6
+JOB_OBJECT_MSG_EXIT_PROCESS =             7
+JOB_OBJECT_MSG_ABNORMAL_EXIT_PROCESS =    8
+JOB_OBJECT_MSG_PROCESS_MEMORY_LIMIT =     9
+JOB_OBJECT_MSG_JOB_MEMORY_LIMIT =         10
+
+# See winbase.h
 DEBUG_ONLY_THIS_PROCESS = 0x00000002
 DEBUG_PROCESS = 0x00000001
 DETACHED_PROCESS = 0x00000008
 
-# JOBOBJECT_ASSOCIATE_COMPLETION_PORT structure
-class JOBOBJECT_ASSOCIATE_COMPLETION_PORT(Structure):
-    _fields_ = [('CompletionKey', LPULONG),
-                ('CompletionPort', HANDLE)]
-#    def __init__(self):
-#        Structure.__init__(self)
-#        self.cb = sizeof(self)
+# OVERLAPPED Structure.  See: http://msdn.microsoft.com/en-us/library/ms684342%28v=vs.85%29.aspx
+# and http://posted-stuff.blogspot.com/2009/07/iocp-based-sockets-with-ctypes-in.html
+# This is a nightmare because it's a struct containing a union which contains a struct
+class _US(Structure):
+    _fields_ = [("Offset", DWORD),
+                ("OffsetHigh", DWORD)]
+class _U(Union):
+    _fields_ = [("s", _US),
+                ("Pointer", LPVOID)]
+class OVERLAPPED(Structure):
+    _fields_ = [("Internal", LPULONG),
+                ("InternalHigh", LPULONG),
+                ("u", _U),
+                ("hEvent", HANDLE)]
+LPOVERLAPPED = POINTER(OVERLAPPED)
 
+# GetQueuedCompletionPortStatus - http://msdn.microsoft.com/en-us/library/aa364986%28v=vs.85%29.aspx
+GetQueuedCompletionStatusProto = WINFUNCTYPE(BOOL,         # Return Type
+                                             HANDLE,       # Completion Port
+                                             LPDWORD,      # Msg ID
+                                             LPULONG,      # Completion Key
+                                             POINTER(LPOVERLAPPED), # Overlapped Struct
+                                             DWORD)        # milliseconds to wait
+GetQueuedCompletionStatusFlags = ((1, "CompletionPort", INVALID_HANDLE_VALUE),
+                                  (1, "lpNumberOfBytes", None),
+                                  (1, "lpCompletionKey", None),
+                                  (1, "lpOverlapped", None),
+                                  (1, "dwMilliseconds", 0))
+GetQueuedCompletionStatus = GetQueuedCompletionStatusProto(("GetQueuedCompletionStatus",
+                                                            windll.kernel32),
+                                                           GetQueuedCompletionStatusFlags)
+# GetOverlappedResult -- http://msdn.microsoft.com/en-us/library/ms683209%28v=vs.85%29.aspx
+# Necessary to get any data out of the overlapped struct
+GetOverlappedResultProto = WINFUNCTYPE(BOOL,          # Return Type
+                                       HANDLE,        # Handle to the Job Object (in our case)
+                                       POINTER(LPOVERLAPPED),  # The Overlapped struct to investigate
+                                       LPDWORD,       # The value retrieved from the struct
+                                       BOOL)          # Whether to wait for completion or not
+GetOverlappedResultFlags = ((1, "hFile", INVALID_HANDLE_VALUE),
+                            (1, "lpOverlapped", None),
+                            (1, "lpNumberOfBytesTransferred", None),
+                            (1, "bWait", 1))
+GetOverlappedResult = GetOverlappedResultProto(("GetOverlappedResult", windll.kernel32),
+                                               GetOverlappedResultFlags)
+GetOverlappedResult.errcheck = ErrCheckBool
 
 # CreateIOCompletionPort
+# Note that the completion key is just a number, not a pointer.
 CreateIoCompletionPortProto = WINFUNCTYPE(HANDLE,      # Return Type
                                           HANDLE,      # File Handle
                                           HANDLE,      # Existing Completion Port
-                                          LPULONG,     # Completion Key
+                                          c_ulong,     # Completion Key
                                           DWORD        # Number of Threads
                                          )
 CreateIoCompletionPortFlags = ((1, "FileHandle", INVALID_HANDLE_VALUE),
                                (1, "ExistingCompletionPort", None),
-                               (1, "CompletionKey", LPULONG(c_ulong(0))),
+                               (1, "CompletionKey", c_ulong(0)),
                                (1, "NumberOfConcurrentThreads", 0))
 CreateIoCompletionPort = CreateIoCompletionPortProto(("CreateIoCompletionPort",
                                                       windll.kernel32),
