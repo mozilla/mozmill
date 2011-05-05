@@ -231,6 +231,9 @@ class Bridge(Telnet):
         return self.run(_uuid, 'bridge.describe('+', '.join([encoder.encode(_uuid), obj_name])+')')
     
     def fire_callbacks(self, obj):
+        if 'uuid' not in obj and 'exception' in obj:
+            # harness failure
+            raise JavaScriptException(obj['exception']['message'])
         self.callbacks[obj['uuid']] = obj
     
     def process_read(self, data):
