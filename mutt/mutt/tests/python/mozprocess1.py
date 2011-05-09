@@ -55,3 +55,8 @@ class ProcTest1(unittest.TestCase):
         rc = p.kill()
         print "got rc back as : %s" % rc
 
+    def test_prochandler_wait(self):
+        p = self.starttestprg()
+        p.run()
+        rc = p.waitForFinish()
+        print "wait: got rc: %s" % rc
