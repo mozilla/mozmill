@@ -229,52 +229,22 @@ JOB_OBJECT_MSG_JOB_MEMORY_LIMIT =         10
 DEBUG_ONLY_THIS_PROCESS = 0x00000002
 DEBUG_PROCESS = 0x00000001
 DETACHED_PROCESS = 0x00000008
-
-# OVERLAPPED Structure.  See: http://msdn.microsoft.com/en-us/library/ms684342%28v=vs.85%29.aspx
-# and http://posted-stuff.blogspot.com/2009/07/iocp-based-sockets-with-ctypes-in.html
-# This is a nightmare because it's a struct containing a union which contains a struct
-class _US(Structure):
-    _fields_ = [("Offset", DWORD),
-                ("OffsetHigh", DWORD)]
-class _U(Union):
-    _fields_ = [("s", _US),
-                ("Pointer", LPVOID)]
-class OVERLAPPED(Structure):
-    _fields_ = [("Internal", LPULONG),
-                ("InternalHigh", LPULONG),
-                ("u", _U),
-                ("hEvent", HANDLE)]
-LPOVERLAPPED = POINTER(OVERLAPPED)
-
+    
 # GetQueuedCompletionPortStatus - http://msdn.microsoft.com/en-us/library/aa364986%28v=vs.85%29.aspx
 GetQueuedCompletionStatusProto = WINFUNCTYPE(BOOL,         # Return Type
                                              HANDLE,       # Completion Port
                                              LPDWORD,      # Msg ID
                                              LPULONG,      # Completion Key
-                                             POINTER(LPOVERLAPPED), # Overlapped Struct
+                                             LPULONG,      # PID Returned from the call (may be null)
                                              DWORD)        # milliseconds to wait
 GetQueuedCompletionStatusFlags = ((1, "CompletionPort", INVALID_HANDLE_VALUE),
                                   (1, "lpNumberOfBytes", None),
                                   (1, "lpCompletionKey", None),
-                                  (1, "lpOverlapped", None),
+                                  (1, "lpPID", None),
                                   (1, "dwMilliseconds", 0))
 GetQueuedCompletionStatus = GetQueuedCompletionStatusProto(("GetQueuedCompletionStatus",
                                                             windll.kernel32),
                                                            GetQueuedCompletionStatusFlags)
-# GetOverlappedResult -- http://msdn.microsoft.com/en-us/library/ms683209%28v=vs.85%29.aspx
-# Necessary to get any data out of the overlapped struct
-GetOverlappedResultProto = WINFUNCTYPE(BOOL,          # Return Type
-                                       HANDLE,        # Handle to the Job Object (in our case)
-                                       POINTER(LPOVERLAPPED),  # The Overlapped struct to investigate
-                                       LPDWORD,       # The value retrieved from the struct
-                                       BOOL)          # Whether to wait for completion or not
-GetOverlappedResultFlags = ((1, "hFile", INVALID_HANDLE_VALUE),
-                            (1, "lpOverlapped", None),
-                            (1, "lpNumberOfBytesTransferred", None),
-                            (1, "bWait", 1))
-GetOverlappedResult = GetOverlappedResultProto(("GetOverlappedResult", windll.kernel32),
-                                               GetOverlappedResultFlags)
-GetOverlappedResult.errcheck = ErrCheckBool
 
 # CreateIOCompletionPort
 # Note that the completion key is just a number, not a pointer.
@@ -310,7 +280,6 @@ SetInformationJobObject = SetInformationJobObjectProto(("SetInformationJobObject
 SetInformationJobObject.errcheck = ErrCheckBool
 
 # CreateJobObject()
-
 CreateJobObjectProto = WINFUNCTYPE(HANDLE,             # Return type
                                    LPVOID,             # lpJobAttributes
                                    LPCWSTR             # lpName
@@ -420,10 +389,14 @@ WaitForSingleObject = WaitForSingleObjectProto(
     ("WaitForSingleObject", windll.kernel32),
     WaitForSingleObjectFlags)
 
+# http://msdn.microsoft.com/en-us/library/ms681381%28v=vs.85%29.aspx
 INFINITE = -1
 WAIT_TIMEOUT = 0x0102
 WAIT_OBJECT_0 = 0x0
 WAIT_ABANDONED = 0x0080
+
+# Used when we terminate a process.
+ERROR_CONTROL_C_EXIT = 0x23c
 
 # GetExitCodeProcess()
 
