@@ -47,13 +47,13 @@ class ProcTest1(unittest.TestCase):
 #        p = self.startffx()
 #        p.wait(timeout=60)
      
-    def test_prochandler_kill(self):
-        #p = self.prochandlerstartffx()
-        p = self.starttestprg()
-        p.run()
-        sleep(25)
-        rc = p.kill()
-        print "got rc back as : %s" % rc
+   # def test_prochandler_kill(self):
+   #     #p = self.prochandlerstartffx()
+   #     p = self.starttestprg()
+   #     p.run()
+   #     sleep(25)
+   #     rc = p.kill()
+   #     print "got rc back as : %s" % rc
 
     def test_prochandler_wait(self):
         p = self.starttestprg()
