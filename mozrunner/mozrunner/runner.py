@@ -46,7 +46,7 @@ import ConfigParser
 
 from utils import findInPath
 from mozprofile import *
-from mozprocess import killableprocess
+from mozprocess.processhandler import ProcessHandler
 from mozprocess.pid import get_pids
 
 ### python package method metadata by introspection
@@ -222,17 +222,22 @@ class Runner(object):
         # see:
         # - http://hg.mozilla.org/releases/mozilla-1.9.2/file/915a35e15cde/build/automation.py.in#l702
         # - http://mozilla-xp.com/mozilla.dev.apps.firefox/Rules-for-when-firefox-bin-restarts-it-s-process
-        firstrun = killableprocess.runCommand(self.command+['-silent', '-foreground'], env=self.env, **self.kp_kwargs)
-        firstrun.wait()
+        # This run just calls through processhandler to popen directly as we 
+        # are not particuarly cared in tracking this process
+        
+        firstrun = ProcessHandler.run_popen_directly(self.command+['-silent', '-foreground'], env=self.env, **self.kp_kwargs)
+        #firstrun.wait()
 
-        # now run for real
-        self.process_handler = killableprocess.runCommand(self.command+self.cmdargs, env=self.env, **self.kp_kwargs)
+        # now run for real, this run uses the managed processhandler
+        self.process_handler = ProcessHandler(self.command+self.cmdargs, env=self.env, logname="mozmill", **self.kp_kwargs)
+        self.process_handler.run()
 
     def wait(self, timeout=None):
         """Wait for the app to exit."""
         if self.process_handler is None:
             return
-        self.process_handler.wait(timeout=timeout)
+        print "Calling wait for finish now"
+        self.process_handler.waitForFinish(timeout=timeout)
 
     def stop(self):
         """Kill the app"""
