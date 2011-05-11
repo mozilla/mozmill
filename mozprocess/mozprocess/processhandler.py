@@ -15,6 +15,23 @@ if sys.platform == 'win32':
     import winprocess
     from qijo import JobObjectAssociateCompletionPortInformation, JOBOBJECT_ASSOCIATE_COMPLETION_PORT
 
+class ReportMsg():
+    """ Trying to work with the standard python logger didn't work well.
+        This just helps us print things to stdout.
+    """
+    @classmethod
+    def info(klass, msg):
+        print "INFO %s" % msg
+    @classmethod
+    def warn(klass, msg):
+        print "WARNING %s" % msg
+    @classmethod
+    def debug(klass, msg):
+        print "DEBUG %s" % msg
+    @classmethod
+    def error(klass, msg):
+        print "ERROR %s" % msg
+ 
 class ProcessHandler(object):
     """Class which represents a process to be executed."""
 
@@ -39,26 +56,14 @@ class ProcessHandler(object):
                      universal_newlines=False,
                      startupinfo=None,
                      creationflags=0,
-                     ignore_children=False,
-                     logger = None):
+                     ignore_children=False):
             # Flip this for crazy debug output
             self._debug = True
 
             # Parameter for whether or not we should attempt to track child processes
             self._ignore_children = ignore_children
             
-            # Our logging module, if it is None, we use the system logger
-            if (logger):
-                print "setting mozmill log"
-                self.logger = logger
-            else:
-                # TODO: We can't use the system log unless specific handlers are creafted
-                # for teh threads on all pre-2.7 pythons. Not sure how to tell so
-                # right now default to print.
-                #print "setting system log"
-                #self.logger = logging
-                self.logger.info = print()
-                self.logger.warn = print()
+            self.logger = ReportMsg
 
             # Odd workaround for mac - TODO: Figure out why this exists
             self.kill_called = False
@@ -70,6 +75,7 @@ class ProcessHandler(object):
                 #       child processes, TODO: Ideally, find a way around this
                 preexec_fn = os.setpgid(0,0)
 
+            print "These are your ARGS %s " % args
             subprocess.Popen.__init__(self, args, bufsize, executable,
                                       stdin, stdout, stderr,
                                       preexec_fn, close_fds,
@@ -488,8 +494,6 @@ class ProcessHandler(object):
             env = environment to use for the process (defaults to os.environ)
             ignore_children = when True, causes system to ignore child processes,
                               defaults to False (which tracks child processes)
-            logname = A logname for the python logger to use, if None (the default)
-                      then the system python logger is used.
             kwargs = keyword args to pass directly into Popen
             
             NOTE: Child processes will be tracked by default.  If for any reason
@@ -513,13 +517,6 @@ class ProcessHandler(object):
 
         if self.args:
             self.cmd = self.cmd + self.args
-
-        # The modules that use us can pass in a python logging module for us to
-        # write to.  Failing that, we'll write to the system one.
-        if (logname):
-            self.logger = logging.getLogger(logname)
-        else:
-            self.logger = logging
 
     @property
     def timedOut(self):
@@ -556,7 +553,6 @@ class ProcessHandler(object):
                                  cwd=self.cwd,
                                  env = self.env,
                                  ignore_children = self._ignore_children,
-                                 logger = self.logger,
                                  **self.keywordargs)
 
     def kill(self):
