@@ -73,7 +73,9 @@ class ProcessHandler(object):
                 # Sets process group id to the pid of the parent process
                 # NOTE: This prevents you from using preexec_fn and managing 
                 #       child processes, TODO: Ideally, find a way around this
-                preexec_fn = os.setpgid(0,0)
+                def setpgidfn():
+                    os.setpgid(0, 0)
+                preexec_fn = setpgidfn
 
             print "These are your ARGS %s " % args
             subprocess.Popen.__init__(self, args, bufsize, executable,
@@ -103,6 +105,7 @@ class ProcessHandler(object):
                     try:
                         os.killpg(self.pid, signal.SIGKILL)
                     except:
+                        self.logger.warn("Exception: %s %s" % sys.exc_info()[:2])
                         self.logger.warn("Could not kill process: %s" % self.pid)
                     finally:
                         self.returncode = -9
@@ -431,7 +434,7 @@ class ProcessHandler(object):
         elif sys.platform == "linux2" or (sys.platform in ('sunos5', 'solaris')):
             # Much of this linux and mac code remains unchanged from the killableprocess
             # implementation
-            def _wait(self, timeout=timeout):
+            def _wait(self, timeout=None):
                 def _linux_wait_callback(timeout):
                     try:
                         os.waitpid(self.pid, 0)
@@ -441,7 +444,7 @@ class ProcessHandler(object):
                 self.returncode = self._timed_wait_callback(_linux_wait_callback, timeout)
                 return self.returncode
         elif sys.platform == "darwin":
-            def _wait(self, timeout=timeout):
+            def _wait(self, timeout=None):
                 def _mac_wait_callback(timeout):
                     try:
                         count = 0
