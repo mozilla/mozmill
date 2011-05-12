@@ -246,8 +246,8 @@ class Runner(object):
             return
 
         print "whoa nellie killing process"
-        #self.process_handler.kill()
-        self.process_handler.waitForFinish(timeout=65)
+        self.process_handler.kill()
+        #self.process_handler.waitForFinish(timeout=65)
         
     def reset(self):
         """
