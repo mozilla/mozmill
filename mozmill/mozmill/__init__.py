@@ -341,6 +341,7 @@ class MozMill(object):
             try:
                 if not started:
                     frame = self.start_runner()
+                    started = True
                 self.run_test_file(frame, test['path'])
             except JSBridgeDisconnectError:
                 if self.shutdownMode:
