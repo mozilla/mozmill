@@ -65,7 +65,8 @@ class Profile(object):
         # Handle profile creation
         self.create_new = not profile
         if profile:
-            self.profile = profile
+            # Ensure we have a full path to the profile
+            self.profile = os.path.expanduser(profile)
         else:
             self.profile = self.create_new_profile()
 
