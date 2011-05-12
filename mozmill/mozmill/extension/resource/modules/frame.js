@@ -248,6 +248,17 @@ events.pass = function (obj) {
   events.fireEvent('pass', obj);
 }
 events.fail = function (obj) {
+  var error = obj.exception;
+  if(error) {
+    // Error objects aren't enumerable https://bugzilla.mozilla.org/show_bug.cgi?id=637207
+    obj.exception = {
+      name: error.name,
+      message: error.message,
+      lineNumber: error.lineNumber,
+      fileName: error.fileName,
+      stack: error.stack
+    };
+  }
   // a low level event, such as a keystroke, fails
   if (events.currentTest) {
     events.currentTest.__fails__.push(obj);
