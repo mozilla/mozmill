@@ -58,7 +58,7 @@ class ProcessHandler(object):
                      creationflags=0,
                      ignore_children=False):
             # Flip this for crazy debug output
-            self._debug = True
+            self._debug = False 
 
             # Parameter for whether or not we should attempt to track child processes
             self._ignore_children = ignore_children
@@ -84,20 +84,28 @@ class ProcessHandler(object):
                                       shell, cwd, env,
                                       universal_newlines, startupinfo, creationflags)
 
+        def __del__(self, _maxint=sys.maxint):
+            if (self._handle):
+                self._internal_poll(_deadstate=_maxint)
+            
         def kill(self):
             self.returncode = 0
             if sys.platform == 'win32':
-                if not self._ignore_children and self._job:
+                if not self._ignore_children and self._handle and self._job:
                     winprocess.TerminateJobObject(self._job, winprocess.ERROR_CONTROL_C_EXIT)
                     self.returncode = winprocess.GetExitCodeProcess(self._handle)
-                else:
+                elif self._handle:
                     try:
+                        
                         winprocess.TerminateProcess(self._handle, winprocess.ERROR_CONTROL_C_EXIT)
                     except:
                         # TODO: Throw?
                         self.logger.warn("Could not terminate process")
                     finally:
                         self.returncode = winprocess.GetExitCodeProcess(self._handle)
+                        self._cleanup()
+                else:
+                    self.logger.info("Process no longer exists")
             else:
                 # TODO: Figure out why mac needs this workaround
                 self.kill_called = True
@@ -112,7 +120,8 @@ class ProcessHandler(object):
                 else:
                     os.kill(self.pid, signal.SIGKILL)
                     self.returncode = -9
-                 
+            
+            self._cleanup()
             return self.returncode
 
         def wait(self, timeout=None):
@@ -124,6 +133,7 @@ class ProcessHandler(object):
             print "clintdbg: got wait"
             # This call will be different for each OS
             self.returncode = self._wait(timeout=timeout)
+            self._cleanup()
             return self.returncode
 
         """ Private Members of Process class """
@@ -245,7 +255,7 @@ class ProcessHandler(object):
                                           falling back to not using job objects for \
                                           managing child processes")
                         # Ensure no dangling handles left behind
-                        self._cleanup_job_and_io_port()
+                        self._cleanup_job_io_port()
                 else:
                     self._job = None
                         
@@ -332,7 +342,6 @@ class ProcessHandler(object):
                             break
                         elif (msgid.value == winprocess.JOB_OBJECT_MSG_NEW_PROCESS):
                             # New Process started
-                            self.logger.info("New child process started pid: %s" % pid.value)
                             if (self._debug): print "winproc: new process, pid: %s" % pid.value
                             
                             # Add the child proc to our list in case our parent flakes out on us
@@ -341,7 +350,6 @@ class ProcessHandler(object):
                                 self._spawned_procs[pid.value] = 1
                         elif (msgid.value == winprocess.JOB_OBJECT_MSG_EXIT_PROCESS):
                             # One process exited normally
-                            self.logger.info("Process %s has exited normally" % pid.value)
                             if (self._debug): print "winproc: normal proc exit pid: %s" % pid.value
                             
                             if pid.value == self.pid and len(self._spawned_procs) > 0:
@@ -352,7 +360,6 @@ class ProcessHandler(object):
                                 del(self._spawned_procs[pid.value])
                         elif (msgid.value == winprocess.JOB_OBJECT_MSG_ABNORMAL_EXIT_PROCESS):
                             # One process existed abnormally
-                            self.logger.info("Process %s has abnormally exited" % pid.value)
                             if (self._debug): print "winproc: abnormal proc exit pid: %s" % pid.value
 
                             if pid.value == self.pid and len(self._spawned_procs) > 0:
@@ -367,18 +374,27 @@ class ProcessHandler(object):
                             pass
                     
                 if self._debug: print "winproc: Exiting while loop, leaving thread"
-                self._cleanup_job_and_io_port()
+                self._cleanup_job_io_port()
             
             def _wait(self, timeout=None):
-                self.returncode = 0
-                # TODO should there be a default timeout or is a timeout of None
-                # waiting forever?  Do what popen generally does
+                
+                # First, check to see if the process is still running
+                if self._handle:
+                    self.returncode = winprocess.GetExitCodeProcess(self._handle)
+                else:
+                    # Dude, the process is like totally dead!
+                    return self.returncode
+
+                if self.returncode != winprocess.STILL_ACTIVE:
+                    # The process is already gone.  No need to wait
+                    self._cleanup()
+                    return self.returncode
 
                 if self._job and self._procmgrthread.is_alive():
                     # Then we are managing with IO Completion Ports
                     # wait on a signal so we know when we have seen the last
                     # process come through.
-                    if (self._debug): print "Waiting for IO Port to let us know it is closed"
+                    if self._debug: print "Waiting for IO Port to let us know it is closed"
                     
                     # We use queues to synchronize between the thread and this 
                     # function because events just didn't have robust enough error
@@ -395,6 +411,7 @@ class ProcessHandler(object):
                     finally:
                         # Either way, let's try to get this code
                         self.returncode = winprocess.GetExitCodeProcess(self._handle)
+                        self._cleanup()
 
                 else:
                     # Not managing with job objects, so all we can reasonably do
@@ -404,7 +421,11 @@ class ProcessHandler(object):
                     else:
                         # We need that timeout in milliseconds
                         timeout = timeout * 1000
-                    rc = winprocess.WaitForSingleObject(self._handle, timeout)
+
+                    rc = None
+                    if self._handle:
+                        rc = winprocess.WaitForSingleObject(self._handle, timeout)
+
                     if rc == winprocess.WAIT_TIMEOUT:
                         # TODO: Should this throw?
                         # I tend to think it should try to kill it directly at this point.
@@ -418,11 +439,17 @@ class ProcessHandler(object):
                     else:
                         # An error occured we should probably throw
                         rc = winprocess.GetLastError()
-                        raise WinError(rc)
+                        if rc:
+                            raise WinError(rc)
 
+                    self._cleanup()
                     return self.returncode
 
-            def _cleanup_job_and_io_port(self):
+            def _cleanup_job_io_port(self):
+                """ Do the job and IO port cleanup separately because there are
+                    cases where we want to clean these without killing _handle
+                    (i.e. if we fail to create the job object in the first place)
+                """
                 if self._job:
                     self._job.Close()
                     self._job = None
@@ -431,6 +458,16 @@ class ProcessHandler(object):
                     self._io_port = None
                 if self._procmgrthread:
                     self._procmgrthread = None
+
+            def _cleanup(self):
+                self._cleanup_job_io_port()
+                if self._thread:
+                    self._thread.Close()
+                    self._thread = None
+                if self._handle:
+                    self._handle.Close()
+                    self._handle = None
+
         elif sys.platform == "linux2" or (sys.platform in ('sunos5', 'solaris')):
             # Much of this linux and mac code remains unchanged from the killableprocess
             # implementation
@@ -443,6 +480,10 @@ class ProcessHandler(object):
                     return self.returncode
                 self.returncode = self._timed_wait_callback(_linux_wait_callback, timeout)
                 return self.returncode
+            
+            def _cleanup(self):
+                pass
+
         elif sys.platform == "darwin":
             def _wait(self, timeout=None):
                 def _mac_wait_callback(timeout):
@@ -474,6 +515,9 @@ class ProcessHandler(object):
                     return self.returncode
                 self.returncode = self._timed_wait_callback(_mac_wait_callback, timeout)
                 return self.returncode
+            
+            def cleanup(self):
+                pass
         else:
             # An unrecognized platform, we will call the base class for everything
             self.logger.warn("Unrecognized platform, process groups may not be managed properly")
@@ -481,6 +525,9 @@ class ProcessHandler(object):
             def _wait(self, timeout=timeout):
                 self.returncode = subprocess.Popen.wait(self)
                 return self.returncode
+
+            def _cleanup(self):
+                pass
                 
     def __init__(self,
                  cmd,

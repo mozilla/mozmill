@@ -395,6 +395,9 @@ WAIT_TIMEOUT = 0x0102
 WAIT_OBJECT_0 = 0x0
 WAIT_ABANDONED = 0x0080
 
+# http://msdn.microsoft.com/en-us/library/ms683189%28VS.85%29.aspx
+STILL_ACTIVE = 259
+
 # Used when we terminate a process.
 ERROR_CONTROL_C_EXIT = 0x23c
 

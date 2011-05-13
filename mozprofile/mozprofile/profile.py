@@ -41,18 +41,13 @@ __all__ = ['Profile', 'FirefoxProfile', 'ThunderbirdProfile']
 
 import os
 import tempfile
+from shutil import rmtree
 from addons import AddonManager
 
 try:
     import simplejson
 except ImportError:
     import json as simplejson
-
-# Use dir_util for copy/rm operations because shutil is all kinds of broken
-from distutils import dir_util
-copytree = dir_util.copy_tree
-rmtree = dir_util.remove_tree
-
 
 class Profile(object):
     """Handles all operations regarding profile. Created new profiles, installs extensions,
@@ -132,12 +127,39 @@ class Profile(object):
 
     ### cleanup
  
+    def _cleanup_error(self, function, path, excinfo):
+        """ Specifically for windows we need to handle the case where the windows
+            process has not yet relinquished handles on files, so we do a wait/try
+            construct and timeout if we can't get a clear road to deletion
+        """
+        try:
+            from exceptions import WindowsError
+            from time import sleep
+            def is_file_locked():
+                return excinfo[0] is WindowsError and excinfo[1].winerror == 32
+            
+            if excinfo[0] is WindowsError and excinfo[1].winerror == 32:
+                # Then we're on windows, wait to see if the file gets unlocked
+                # we wait 10s
+                count = 0
+                while count < 10:
+                    sleep(1)
+                    try:
+                        function(path)
+                        break
+                    except:
+                        count += 1
+        finally:
+            # We can't re-raise an error, so we'll hope the stuff above us will throw
+            pass
+                
+
     def cleanup(self):
         """Cleanup operations on the profile."""
         if self.restore:
             if self.create_new:
                 if os.path.exists(self.profile):
-                    rmtree(self.profile)
+                    rmtree(self.profile, onerror=self._cleanup_error)
             else:
                 self.clean_preferences()
                 self.addon_manager.clean_addons()
