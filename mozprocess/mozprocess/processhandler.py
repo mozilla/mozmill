@@ -114,7 +114,7 @@ class ProcessHandler(object):
                     try:
                         os.killpg(self.pid, signal.SIGKILL)
                     except BaseException, e:
-                        
+                        print e
                         if getattr(e, "errno", None) != 3:
                             # Error 3 is "no such process", which is ok
                             self.logger.warn("Could not kill process: %s" % self.pid)
@@ -494,11 +494,12 @@ class ProcessHandler(object):
                         count = 0
                         print "macproc: timeout is: %s and self.kill_called: %s" % (timeout, self.kill_called)
                         # This function expects timeout in milliseconds
-                        if timeout is None and self.kill_called:
-                            # TODO: From killableprocess: "Have to set some kind of timeout
-                            #       or else this could go on forever"
-                            # I'm not sure why this hack exists, myself.
-                            timeout = 10000
+                        if timeout is None:
+                            if self.kill_called:
+                                # TODO: From killableprocess: "Have to set some kind of timeout
+                                #       or else this could go on forever"
+                                # I'm not sure why this hack exists, myself.
+                                timeout = 10000
                         else:
                             timeout = timeout * 1000
 
@@ -512,14 +513,14 @@ class ProcessHandler(object):
                             os.killpg(self.pid, signal.SIG_DFL)
                             # count is increased by 500ms for every .5 of sleep
                             time.sleep(.5); count += 500
-                    except exceptions.OSError:
+                    except OSError:
                         print "Caught error during macproc"
                         return self.returncode
                     return self.returncode
                 self.returncode = self._timed_wait_callback(_mac_wait_callback, timeout)
                 return self.returncode
             
-            def cleanup(self):
+            def _cleanup(self):
                 pass
         else:
             # An unrecognized platform, we will call the base class for everything

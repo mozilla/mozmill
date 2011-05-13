@@ -149,7 +149,7 @@ class Profile(object):
                         break
                     except:
                         count += 1
-        finally:
+        except ImportError:
             # We can't re-raise an error, so we'll hope the stuff above us will throw
             pass
                 
