@@ -156,7 +156,7 @@ class LoggerListener(object):
 
     if fatal:
       self.logger.log(self.custom_levels["TEST-UNEXPECTED-FAIL"], 
-        'Disconnect Error: (logger)Application unexpectedly closed')
+        'Disconnect Error: Application unexpectedly closed')
     
     self.logger.info("Passed: %d" % len(results.passes))
     self.logger.info("Failed: %d" % len(results.fails))

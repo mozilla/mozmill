@@ -237,7 +237,7 @@ class Runner(object):
         """Wait for the app to exit."""
         if self.process_handler is None:
             return
-        print "Calling wait for finish now"
+        print "DEBUG::Calling wait for finish now"
         self.process_handler.waitForFinish(timeout=timeout)
 
     def stop(self):
@@ -245,10 +245,9 @@ class Runner(object):
         if self.process_handler is None:
             return
 
-        print "whoa nellie killing process"
+        print "DEBUG: stop is calling kill"
         self.process_handler.kill()
-        #self.process_handler.waitForFinish(timeout=65)
-        
+
     def reset(self):
         """
         reset the runner between runs
