@@ -246,6 +246,7 @@ class Runner(object):
             return
 
         print "DEBUG: stop is calling kill"
+
         self.process_handler.kill()
 
     def reset(self):
