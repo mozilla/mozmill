@@ -85,8 +85,9 @@ class ProcessHandler(object):
                                       universal_newlines, startupinfo, creationflags)
 
         def __del__(self, _maxint=sys.maxint):
-            if (self._handle):
-                self._internal_poll(_deadstate=_maxint)
+            if sys.platform == "win32":
+                if (self._handle):
+                    self._internal_poll(_deadstate=_maxint)
             
         def kill(self):
             self.returncode = 0
@@ -112,9 +113,11 @@ class ProcessHandler(object):
                 if not self._ignore_children:
                     try:
                         os.killpg(self.pid, signal.SIGKILL)
-                    except:
-                        self.logger.warn("Exception: %s %s" % sys.exc_info()[:2])
-                        self.logger.warn("Could not kill process: %s" % self.pid)
+                    except BaseException, e:
+                        
+                        if getattr(e, "errno", None) != 3:
+                            # Error 3 is "no such process", which is ok
+                            self.logger.warn("Could not kill process: %s" % self.pid)
                     finally:
                         self.returncode = -9
                 else:
