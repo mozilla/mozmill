@@ -106,7 +106,32 @@ if (Application == undefined) {
 var addons = "null"; // this will be JSON parsed
 if(typeof AddonManager != "undefined") {
   AddonManager.getAllAddons(function(addonList) {
-    addons = JSON.stringify(addonList);
+      var converter = Components.classes["@mozilla.org/intl/scriptableunicodeconverter"]
+          .createInstance(Components.interfaces.nsIScriptableUnicodeConverter);
+      converter.charset = 'utf-8';
+
+      function replacer(key, value) {
+          if (typeof(value) == "string") {
+              try {
+                  return converter.ConvertToUnicode(value);
+              } catch(e) {
+                  var newstring = '';
+                  for (var i=0; i < value.length; i++) {
+                      replacement = '';
+                      if ((32 <= value.charCodeAt(i)) && (value.charCodeAt(i) < 127)) {
+                          // eliminate non-convertable characters;
+                          newstring += value.charAt(i);
+                      } else {
+                          newstring += replacement;
+                      }
+                  }
+                  return newstring;
+              }
+          }
+          return value;
+      }
+
+      addons = converter.ConvertToUnicode(JSON.stringify(addonList, replacer))
   });
 }
 
