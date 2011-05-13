@@ -67,12 +67,22 @@ class LoggerListener(object):
     def write(self, str):
       self.logger.info(str)
 
+    def flush(self):
+      # We don't keep any state, so this just needs to be here
+      # so the python distutils stuff can call us.
+      pass
+
   class StdErrLogger:
     def __init__(self, logger):
       self.logger = logger
 
     def write(self, str):
       self.logger.error(str)
+
+    def flush(self):
+      # We don't keep any state, so this just needs to be here
+      # so the python distutils side can call us.
+      pass
 
   @classmethod
   def add_options(cls, parser):                      
