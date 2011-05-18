@@ -77,7 +77,6 @@ class ProcessHandler(object):
                     os.setpgid(0, 0)
                 preexec_fn = setpgidfn
 
-            print "These are your ARGS %s " % args
             subprocess.Popen.__init__(self, args, bufsize, executable,
                                       stdin, stdout, stderr,
                                       preexec_fn, close_fds,
@@ -133,41 +132,12 @@ class ProcessHandler(object):
                 its exit code
                 Returns the main process's exit code
             """
-            print "clintdbg: got wait"
             # This call will be different for each OS
             self.returncode = self._wait(timeout=timeout)
             self._cleanup()
             return self.returncode
 
         """ Private Members of Process class """
-        def _timed_wait_callback(self, callback_func, timeout):
-            """ This function is used by linux and mac to handle their wait code.
-                It runs a wait loop with the given timeout and calls back into
-                a function (callback_func) with the given timeout parmeter
-            """
-            if timeout is None:
-                if not self._ignore_children:
-                    return callback_func(timeout)
-                else:
-                    # For non-group wait, call base class
-                    subprocess.Popen.wait(self)
-                    return self.returncode
-            done = False
-            
-            now = datetime.datetime.now()
-            starttime = datetime.datetime.now()
-            diff = now - starttime
-            while (((diff.seconds * 100 * 1000 + diff.microseconds) < timeout * 1000 * 1000) and
-                   done is False):
-                if not self._ignore_children:
-                    return callback_func(timeout)
-                else:
-                    if subprocess.poll() is not None:
-                        done = self.returncode
-                time.sleep(.5)
-                now = datetime.datetime.now()
-                diff = now - starttime
-            return self.returncode
 
         if sys.platform == 'win32':
             # Redefine the execute child so that we can track process groups
@@ -471,57 +441,64 @@ class ProcessHandler(object):
                     self._handle.Close()
                     self._handle = None
 
-        elif sys.platform == "linux2" or (sys.platform in ('sunos5', 'solaris')):
-            # Much of this linux and mac code remains unchanged from the killableprocess
-            # implementation
+        elif sys.platform in ('darwin', 'linux2', 'sunos5', 'solaris'):
+            def _timed_wait_callback(self, callback_func, timeout):
+                """ This function is used by these platforms to handle their wait code.
+                    It runs a wait loop with the given timeout and calls back into
+                    a function (callback_func) with the given timeout parmeter
+                    Note that timeout is always in seconds
+                """
+                if timeout is None:
+                    if not self._ignore_children:
+                        if not callback_func(timeout):
+                            # The call failed, throw
+                            self.logger.warn("ERROR waiting for process to close")
+                        return self.returncode
+                    else:
+                        # For non-group wait, call base class
+                        subprocess.Popen.wait(self)
+                        return self.returncode
+                done = False
+            
+                now = starttime = time.time()
+                diff = now - starttime
+                while (diff < timeout and done is False):
+                    if not self._ignore_children:
+                        done = callback_func(timeout)
+                    else:
+                        if subprocess.Popen.poll(self) is not None:
+                            done = True
+                    #time.sleep(.5)
+                    now = time.time()
+                    diff = now - starttime
+                if not done:
+                    # Then we timed out - throw?
+                    self.logger.warn("ERROR: Timed out waiting for process to close")
+
+                return self.returncode
+
             def _wait(self, timeout=None):
-                def _linux_wait_callback(timeout):
+                """ Haven't found any reason to differentiate between these platforms
+                    so they all use the same wait callback.  If it is necessary to
+                    craft different styles of wait, then a new wait callback
+                    could be easily implemented.
+                """
+                
+                def _wait_callback(timeout):
+                    """ Returns True if wait completes successfully, false otherwise """
                     try:
                         os.waitpid(self.pid, 0)
                     except OSError, e:
                         self.logger.warn("Encountered error waiting for pid to close: %s" % e)
-                    return self.returncode
-                self.returncode = self._timed_wait_callback(_linux_wait_callback, timeout)
+                        return False
+                    return True
+                
+                self.returncode = self._timed_wait_callback(_wait_callback, timeout)
                 return self.returncode
             
             def _cleanup(self):
                 pass
 
-        elif sys.platform == "darwin":
-            def _wait(self, timeout=None):
-                def _mac_wait_callback(timeout):
-                    try:
-                        count = 0
-                        print "macproc: timeout is: %s and self.kill_called: %s" % (timeout, self.kill_called)
-                        # This function expects timeout in milliseconds
-                        if timeout is None:
-                            if self.kill_called:
-                                # TODO: From killableprocess: "Have to set some kind of timeout
-                                #       or else this could go on forever"
-                                # I'm not sure why this hack exists, myself.
-                                timeout = 10000
-                        else:
-                            timeout = timeout * 1000
-
-                        if timeout is None:
-                            # TODO: How do you break out of this loop
-                            while 1:
-                                print "macproc: CAUGHT FOREVER!"
-                                os.killpg(self.pid, signal.SIG_DFL)
-
-                        while ((count * 2) <= timeout):
-                            os.killpg(self.pid, signal.SIG_DFL)
-                            # count is increased by 500ms for every .5 of sleep
-                            time.sleep(.5); count += 500
-                    except OSError:
-                        print "Caught error during macproc"
-                        return self.returncode
-                    return self.returncode
-                self.returncode = self._timed_wait_callback(_mac_wait_callback, timeout)
-                return self.returncode
-            
-            def _cleanup(self):
-                pass
         else:
             # An unrecognized platform, we will call the base class for everything
             self.logger.warn("Unrecognized platform, process groups may not be managed properly")
@@ -572,6 +549,7 @@ class ProcessHandler(object):
         if self.args:
             self.cmd = self.cmd + self.args
 
+        print "@*@**@*@@ self.cmd: %s ********", self.cmd
     @property
     def timedOut(self):
         """True if the process has timed out."""
