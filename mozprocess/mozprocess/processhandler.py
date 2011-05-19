@@ -237,12 +237,9 @@ class ProcessHandler(object):
                     self._procmgrthread.start()
                 ht.Close()
 
-                if p2cread is not None:
-                    p2cread.Close()
-                if c2pwrite is not None:
-                    c2pwrite.Close()
-                if errwrite is not None:
-                    errwrite.Close()
+                for i in (p2cread, c2pwrite, errwrite):
+                    if i is not None:
+                        i.Close()
                 time.sleep(.1)
           
             # Windows Process Manager - watches the IO Completion Port and
@@ -257,7 +254,7 @@ class ProcessHandler(object):
                 try:
                     self._poll_iocompletion_port()
                 except KeyboardInterrupt:
-                    print "Keyboard interrupt"
+                    raise KeyboardInterrupt
 
             def _poll_iocompletion_port(self):
                 # Watch the IO Completion port for status
@@ -278,9 +275,13 @@ class ProcessHandler(object):
                     # if we should start killing the children or not.
                     if (countdowntokill != 0):
                         diff = datetime.now() - countdowntokill
-                        # Wait 3 minutes for windows to get its act together
+                        # Arbitrarily wait 3 minutes for windows to get its act together
+                        # Windows sometimes takes a small nap between notifying the 
+                        # IO Completion port and actually killing the children, and we
+                        # don't want to mistake that situation for the situation of an unexpected
+                        # parent abort (which is what we're looking for here).
                         if diff.seconds > 180:
-                            self.logger.warn("Parent process exited without killing children, attempting to kill children")
+                            print >> sys.stderr, "Parent process exited without killing children, attempting to kill children"
                             self.kill()
                             self._process_events.put({self.pid: 'FINISHED'})
 
@@ -289,19 +290,18 @@ class ProcessHandler(object):
                         errcode = winprocess.GetLastError()
                         if errcode == winprocess.ERROR_ABANDONED_WAIT_0:
                             # Then something has killed the port, break the loop
-                            self.logger.warn("IO Completion Port unexpectedly closed")
+                            print >> sys.stderr, "IO Completion Port unexpectedly closed"
                             break
                         elif errcode == winprocess.WAIT_TIMEOUT:
                             if self._debug: print "continuing polling"
                             # Timeouts are expected, just keep on polling
                             continue
                         else:
-                            self.logger.warn("Error Code %s trying to query IO Completion Port, exiting" % errcode)
-                            if self._debug: print "Got Error code %s trying to query IO Completion port" % errcode
+                            print "Error Code %s trying to query IO Completion Port, exiting" % errcode
+                            raise WinError(errcode)
                             break
 
                     if compkey.value == winprocess.COMPKEY_TERMINATE.value:
-                        print "compkey_terminate encountered"
                         # Then we're done
                         break
 
@@ -379,8 +379,7 @@ class ProcessHandler(object):
                             if self._debug: print "winprocc: finished item"
                             self._process_events.task_done()
                     except:
-                        # Should we throw? 
-                        self.logger.warn("IO Completion Port failed to signal process shutdown")
+                        raise OSError("IO Completion Port failed to signal process shutdown")
                     finally:
                         # Either way, let's try to get this code
                         self.returncode = winprocess.GetExitCodeProcess(self._handle)
@@ -400,10 +399,9 @@ class ProcessHandler(object):
                         rc = winprocess.WaitForSingleObject(self._handle, timeout)
 
                     if rc == winprocess.WAIT_TIMEOUT:
-                        # TODO: Should this throw?
-                        # I tend to think it should try to kill it directly at this point.
-                        # But that might be reading too much into the mind of the user.
-                        self.logger.warn("Timed out waiting for process to close, attempting TerminateProcess")
+                        # Timed out waiting for process to close, attempt to kill
+                        # the process directly.
+                        print "Timed out waiting for process to close, attempting TerminateProcess"
                         self.kill()
                     elif rc == winprocess.WAIT_OBJECT_0:
                         # We caught WAIT_OBJECT_0, which indicates all is well
@@ -452,7 +450,7 @@ class ProcessHandler(object):
                     if not self._ignore_children:
                         if not callback_func(timeout):
                             # The call failed, throw
-                            self.logger.warn("ERROR waiting for process to close")
+                            raise OSError("Error waiting for process to close")
                         return self.returncode
                     else:
                         # For non-group wait, call base class
@@ -472,8 +470,7 @@ class ProcessHandler(object):
                     now = time.time()
                     diff = now - starttime
                 if not done:
-                    # Then we timed out - throw?
-                    self.logger.warn("ERROR: Timed out waiting for process to close")
+                    raise OSError("Timed out waiting for process to close")
 
                 return self.returncode
 
@@ -489,7 +486,8 @@ class ProcessHandler(object):
                     try:
                         os.waitpid(self.pid, 0)
                     except OSError, e:
-                        self.logger.warn("Encountered error waiting for pid to close: %s" % e)
+                        # TODO: Should we just let this throw from here?
+                        print >> sys.stderr, "Encountered error waiting for pid to close: %s" % e
                         return False
                     return True
                 
