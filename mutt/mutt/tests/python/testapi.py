@@ -1,0 +1,24 @@
+import mozmill
+import os
+import tempfile
+import unittest
+
+class TestMozmillAPI(unittest.TestCase):
+    """test mozmill's API"""
+
+    def make_test(self):
+        """make an example test to run"""
+        test = """var test_something = function() {}"""
+        fd, path = tempfile.mkstemp()
+        os.write(fd, test)
+        os.close(fd)
+        return path
+
+    def test_api(self):
+        passes = 1
+        path = self.make_test()
+        m = mozmill.MozMill.create()
+        results = m.run(dict(path=path))
+        self.assertTrue(len(results.passes) == passes)
+
+    

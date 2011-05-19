@@ -1,7 +1,8 @@
+import os
+import tempfile
 import unittest
 import mozmill
 from mozmill.logger import LoggerListener
-import os
 
 class ModuleTest(unittest.TestCase):
     def test_modules(self):
@@ -16,7 +17,9 @@ class ModuleTest(unittest.TestCase):
         print "this is testpath: %s" % testpath
         
         test = [{'path': testpath}]
-        logger = LoggerListener(log_file="foo.txt", file_level="DEBUG", debug=True)
+        log_file = tempfile.mktemp(suffix='.txt')
+        print "this is logfile: %s" % log_file
+        logger = LoggerListener(log_file=log_file, file_level="DEBUG", debug=True)
         m = mozmill.MozMill.create(handlers=(logger,), runner_args={'cmdargs':['-console']})
         results = m.run(*test)
         results.finish((logger,))
