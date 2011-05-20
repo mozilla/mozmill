@@ -1,17 +1,24 @@
 #
 # iniparser Makefile
 #
+UNAME := $(shell uname -s)
 
 # Compiler settings
 CC      = gcc
-CFLAGS  = -O2 -fPIC -Wall -ansi -pedantic
-
 # Ar settings to build the library
 AR	    = ar
 ARFLAGS = rcv
-
 SHLD = ${CC} ${CFLAGS}
-LDSHFLAGS = -shared -Wl,-Bsymbolic  -Wl,-rpath -Wl,/usr/lib -Wl,-rpath,/usr/lib
+ifeq (($UNAME), Linux)
+    CFLAGS  = -O2 -fPIC -Wall -ansi -pedantic
+    LDSHFLAGS = -shared -Wl,-Bsymbolic  -Wl,-rpath -Wl,/usr/lib -Wl,-rpath,/usr/lib
+endif
+
+ifeq (($UNAME), Darwin)
+    CFLAGS  = -v -arch i386 -fPIC -Wall -ansi -pedantic -lcxcore
+    LDSHFLAGS = -v -dylib
+endif
+
 LDFLAGS = -Wl,-rpath -Wl,/usr/lib -Wl,-rpath,/usr/lib
 
 # Set RANLIB to ranlib on systems that require it (Sun OS < 4, Mac OSX)
@@ -44,8 +51,7 @@ libiniparser.a:	$(OBJS)
 	@($(RANLIB) libiniparser.a)
 
 libiniparser.so:	$(OBJS)
-	@$(SHLD) $(LDSHFLAGS) -o $@.0 $(OBJS) $(LDFLAGS) \
-		-Wl,-soname=`basename $@`.0
+	@$(SHLD) $(LDSHFLAGS) -o $@.0 $(OBJS) $(LDFLAGS)
 
 clean:
 	$(RM) $(OBJS)

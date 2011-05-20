@@ -12,7 +12,10 @@ RM      = rm -f
 
 default: all
 
-all: proclaunch
+all: iniparser proclaunch
+
+iniparser:
+	$(MAKE) -C iniparser
 
 proclaunch: proclaunch.c
 	$(CC) $(CFLAGS) -o proclaunch proclaunch.c -Iiniparser -Liniparser -liniparser

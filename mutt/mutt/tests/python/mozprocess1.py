@@ -8,9 +8,10 @@ from mozprocess import processhandler
 
 class ProcTest1(unittest.TestCase):
 
-    # This gets run once at the beginning of the run
-    @classmethod
-    def setUpClass(cls):
+    # Ideally, I'd use setUpClass but that only exists in 2.7.
+    # So this will get called before every single test, but it will at least
+    # be a no-op after the first one.
+    def setUp(self):
         p = subprocess.Popen(["make"], shell=True, cwd=os.path.dirname(__file__))
         p.communicate()
  
@@ -48,15 +49,26 @@ class ProcTest1(unittest.TestCase):
 
         self.check_for_process()
 
-    def check_for_process(self):
+    def check_for_process(self, isalive=False):
+        """ Set isalive to True to succeed if the process exists.
+            By default this function succeeds if no process exists.
+        """
         p1 = subprocess.Popen(["ps", "-A"], stdout=subprocess.PIPE)
-        p2 = subprocess.Popen(["grep", "proclauncher"], stdin=p1.stdout, stdout=subprocess.PIPE)
+        p2 = subprocess.Popen(["grep", "proclaunch"], stdin=p1.stdout, stdout=subprocess.PIPE)
         p1.stdout.close()
         output = p2.communicate()[0]
-        if output:
+        detected = False
+        for line in output:
+            if "grep proclaunch" in line:
+                continue
+            elif "proclaunch" in line:
+                detected = True
+                break
+
+        if detected:
             print "*****Test fails: %s", output
-            self.assertTrue(False, "Detected process is still running")
+            self.assertTrue(isalive, "Detected process is still running")
         else:
-            self.assertTrue(True, "Process ended successfully")
+            self.assertTrue(not isalive, "Process ended")
 
 

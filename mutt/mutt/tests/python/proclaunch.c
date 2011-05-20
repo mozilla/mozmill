@@ -9,9 +9,7 @@ int main(int argc, char **argv) {
   dictionary *dict = NULL;
 
   // Command line handling
-  printf("argc: %d\n", argc);
-  printf("argv[1]: %s\n", argv[1]);
-  if (argc < 2 || (argv[1] == "-h" || argv[1] == "--help")) {
+  if (argc == 1 || argv[1] == "-h" || argv[1] == "--help") {
     printf("ProcLauncher takes an ini file.  Specify the ini file as the only\n");
     printf("parameter of the command line:\n");
     printf("proclauncher my.ini\n\n");
@@ -28,6 +26,7 @@ int main(int argc, char **argv) {
     printf("maxtime=25              ; You can call these sections whatever you want\n");
     printf("children=0              ; as long as you reference them in a children attribute\n");
     printf("....\n");
+    return 0;
   } else if (argc == 2) {
     // This is ini file mode:
     // proclauncher <inifile>
