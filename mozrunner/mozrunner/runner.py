@@ -74,13 +74,14 @@ class Runner(object):
     """Handles all running operations. Finds bins, runs and kills the process."""
 
     @classmethod
-    def create(cls, binary=None, cmdargs=None, env=None, kp_kwargs=None, profile_args=None):
+    def create(cls, binary=None, cmdargs=None, env=None, kp_kwargs=None, profile_args=None, clean_profile=True):
         profile = cls.profile_class(**(profile_args or {}))
-        return cls(profile, binary=binary, cmdargs=cmdargs, env=env, kp_kwargs=kp_kwargs)
+        return cls(profile, binary=binary, cmdargs=cmdargs, env=env, kp_kwargs=kp_kwargs, clean_profile=clean_profile)
 
-    def __init__(self, profile, binary=None, cmdargs=None, env=None, kp_kwargs=None):
+    def __init__(self, profile, binary=None, cmdargs=None, env=None, kp_kwargs=None, clean_profile=True):
         self.process_handler = None
         self.profile = profile
+        self.clean_profile = clean_profile
 
         # find the binary
         self.binary = self.__class__.get_binary(binary)
@@ -249,7 +250,8 @@ class Runner(object):
 
     def cleanup(self):
         self.stop()
-        self.profile.cleanup()
+        if self.clean_profile:
+            self.profile.cleanup()
 
     __del__ = cleanup
 
