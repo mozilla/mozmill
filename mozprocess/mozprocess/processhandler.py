@@ -269,7 +269,7 @@ class ProcessHandler(object):
                                                                       byref(msgid),
                                                                       byref(compkey),
                                                                       byref(pid),
-                                                                      10000)
+                                                                      5000)
   
                     # If the countdowntokill has been activated, we need to check
                     # if we should start killing the children or not.
@@ -421,22 +421,35 @@ class ProcessHandler(object):
                     cases where we want to clean these without killing _handle
                     (i.e. if we fail to create the job object in the first place)
                 """
-                if self._job:
+                if self._job and self._job != winprocess.INVALID_HANDLE_VALUE:
                     self._job.Close()
                     self._job = None
-                if self._io_port:
+                else:
+                    # If windows already freed our handle just set it to none
+                    # (saw this intermittently while testing)
+                    self._job = None
+
+                if self._io_port and self._io_port != winprocess.INVALID_HANDLE_VALUE:
                     self._io_port.Close()
                     self._io_port = None
+                else:
+                    self._io_port = None
+
                 if self._procmgrthread:
                     self._procmgrthread = None
 
             def _cleanup(self):
                 self._cleanup_job_io_port()
-                if self._thread:
+                if self._thread and self._thread != winprocess.INVALID_HANDLE_VALUE:
                     self._thread.Close()
                     self._thread = None
-                if self._handle:
+                else:
+                    self._thread = None
+
+                if self._handle and self._handle != winprocess.INVALID_HANDLE_VALUE:
                     self._handle.Close()
+                    self._handle = None
+                else:
                     self._handle = None
 
         elif sys.platform in ('darwin', 'linux2', 'sunos5', 'solaris'):
@@ -547,7 +560,6 @@ class ProcessHandler(object):
         if self.args:
             self.cmd = self.cmd + self.args
 
-        print "@*@**@*@@ self.cmd: %s ********", self.cmd
     @property
     def timedOut(self):
         """True if the process has timed out."""

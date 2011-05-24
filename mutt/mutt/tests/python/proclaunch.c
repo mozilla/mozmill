@@ -2,14 +2,56 @@
 #include <stdlib.h>
 #include "iniparser.h"
 
+#ifdef _WIN32
+#include <windows.h>
+#include <tchar.h>
 
+extern int iniparser_getint(dictionary *d, char *key, int notfound);
+extern char *iniparser_getstring(dictionary *d, char *key, char *def);
+
+// This is the windows launcher function
+int launchWindows(int children, int maxtime) {
+  _TCHAR cmdline[50];
+  STARTUPINFO startup;
+  PROCESS_INFORMATION procinfo;
+  BOOL rv = 0;
+  
+  _stprintf(cmdline, _T("proclaunch.exe %d %d"), children, maxtime);
+  ZeroMemory(&startup, sizeof(STARTUPINFO));
+  startup.cb = sizeof(STARTUPINFO);
+  
+  ZeroMemory(&procinfo, sizeof(PROCESS_INFORMATION));
+  
+  printf("Launching process!\n");
+  rv = CreateProcess(NULL,
+                cmdline,
+                NULL,
+                NULL,
+                FALSE,
+                0,
+                NULL,
+                NULL,
+                &startup,
+                &procinfo);
+
+  if (!rv) {
+    DWORD dw = GetLastError(); 
+    printf("error: %d\n", dw); 
+  }
+  CloseHandle(procinfo.hProcess);
+  CloseHandle(procinfo.hThread);
+  return 0;
+}
+#endif
 
 int main(int argc, char **argv) {
-  int children = 0, maxtime = 0;
+  int children = 0;
+  int maxtime = 0;
+  int passedtime = 0;
   dictionary *dict = NULL;
 
   // Command line handling
-  if (argc == 1 || argv[1] == "-h" || argv[1] == "--help") {
+  if (argc == 1 || (0 == strcmp(argv[1], "-h")) || (0 == strcmp(argv[1], "--help"))) {
     printf("ProcLauncher takes an ini file.  Specify the ini file as the only\n");
     printf("parameter of the command line:\n");
     printf("proclauncher my.ini\n\n");
@@ -40,11 +82,10 @@ int main(int argc, char **argv) {
   }
 
   if (dict) {
-    // Dict operation
-    //iniparser_dump(dict, stdout);
-    maxtime = iniparser_getint(dict, "main:maxtime", 10);
+    /* Dict operation */
     char *childlist = iniparser_getstring(dict, "main:children", NULL);
-    if (childlist) {
+    maxtime = iniparser_getint(dict, (char*)"main:maxtime", 10);;
+	if (childlist) {
       int c = 0, m = 10;
       char childkey[50], maxkey[50];
       char cmd[25];
@@ -64,8 +105,12 @@ int main(int argc, char **argv) {
         m = iniparser_getint(dict, maxkey, 10);
         
         // Launch the child process
-        sprintf(cmd, "./proclaunch %d %d &", c, m);
-        system(cmd);
+        #ifdef _WIN32
+          launchWindows(c, m);
+        #else
+          sprintf(cmd, "./proclaunch %d %d &", c, m);
+          system(cmd);
+        #endif
 
         // Get the next child entry
         token = strtok(NULL, ",");
@@ -77,19 +122,29 @@ int main(int argc, char **argv) {
     char cmd[25];
     // This is launching grandchildren, there are no great grandchildren, so we
     // pass in a 0 for the children to spawn.
-    sprintf(cmd, "./proclaunch %d %d &", 0, maxtime); 
-    printf("Launching child process: %s\n", cmd);
-    while (children  > 0) {
-      system(cmd);
-      children--;
-    }
+    #ifdef _WIN32
+      while(children > 0) {
+        launchWindows(0, maxtime);
+        children--;
+      }
+    #else
+      sprintf(cmd, "./proclaunch %d %d &", 0, maxtime); 
+      printf("Launching child process: %s\n", cmd);
+      while (children  > 0) {
+        system(cmd);
+        children--;
+      }
+    #endif
   }
 
-  // Now we have launched all the children.  Let's wait for max time before returning
-  // This does pseudo busy waiting just to appear active
-  int passedtime = 0;
+  /* Now we have launched all the children.  Let's wait for max time before returning
+     This does pseudo busy waiting just to appear active */
   while (passedtime < maxtime) {
-    sleep(1);
+#ifdef _WIN32
+		Sleep(1000);
+#else
+	    sleep(1);
+#endif
     passedtime++;
   }
   exit(0);
