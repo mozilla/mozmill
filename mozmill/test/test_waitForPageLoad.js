@@ -1,8 +1,8 @@
 const LOCATIONS = [
   // Normal pages
   {url : "http://www.google.de", type: "id", value : "logo"},
-  {url : "https://addons.mozilla.org/en-US/firefox/?browse=featured", type: "id", value : "query"},
-  {url : "http://addons.mozilla.org", type: "id", value : "query"},
+  {url : "https://addons.mozilla.org/en-US/firefox/?browse=featured", type: "id", value : "search-q"},
+  {url : "http://addons.mozilla.org", type: "id", value : "search-q"},
 
   // FTP pages
   {url : "ftp://ftp.mozilla.org/pub/", type : "link", value : "firefox" },
@@ -10,8 +10,11 @@ const LOCATIONS = [
   // Error pages
  {url : "https://mur.at", type: "id", value : "cert_domain_link"},
  {url : "http://www.mozilla.com/firefox/its-a-trap.html", type: "id", value : "ignoreWarningButton"},
- //{url : "https://mozilla.org/", type: "id", value : "getMeOutOfHereButton"}
+ {url : "https://mozilla.org/", type: "id", value : "getMeOutOfHereButton"},
+ {url : "http://people.mozilla.org/~ctalbert/testpages/iframetest.html", type: "id", value: "iframe"}
 ];
+
+
 var setupTest = function() {
   controller = mozmill.getBrowserController();
 }
@@ -109,18 +112,34 @@ var testWaitForPageLoad = function() {
   controller.waitForPageLoad();
   controller.waitForPageLoad(500);
 
- 
+
   /**
    * PART VI - Loading a page in another tab should wait for its completion
    */
   controller.open(LOCATIONS[1].url);
- 
+
   controller.keypress(null, "t", {accelKey: true});
   controller.open(LOCATIONS[0].url);
- 
+
   var firstTab = controller.tabs.getTab(0);
   var element = new elementslib.ID(firstTab, LOCATIONS[1].value);
   controller.waitForPageLoad(firstTab);
   controller.assertNode(element);
+
+  /**
+   * PART VII - Loading an embedded web page (discovery pane)
+   */
+  controller.open("about:addons");
+  controller.waitForPageLoad();
+
+  var browser = new elementslib.ID(controller.tabs.activeTab, "discover-browser");
+  var doc = browser.getNode().contentDocument;
+
+  // Before the real discovery pane gets loaded a blank page is shown
+  controller.waitForPageLoad(doc, 1000);
+  controller.assert(function () {
+    return doc.location.href === "about:blank";
+  }, "Initial page has been loaded, got '" + doc.location +
+     "' - expected 'about:blank'.");
 }
 

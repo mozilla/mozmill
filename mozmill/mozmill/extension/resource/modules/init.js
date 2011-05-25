@@ -56,22 +56,30 @@ var windowObserver = {
  * Attach event listeners
  */
 function attachEventListeners(window) {
-  window.addEventListener("load", function(event) {
+  window.addEventListener("load", function (event) {
     window.documentLoaded = true;
  
     if (window.gBrowser) {
       // Page is ready
-      window.gBrowser.addEventListener("load", function(event) {
-        var tab = window.gBrowser.getBrowserForDocument(event.target);
-        if (tab)
+      window.gBrowser.addEventListener("load", function (event) {
+        // this is the content document of the loaded page.
+        var doc = event.originalTarget;
+        var tab = window.gBrowser.getBrowserForDocument(doc);
+
+        if (tab) {
+          //dump("*** Loaded tab: location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
           tab.documentLoaded = true;
+        } else {
+          //dump("*** Loaded HTML location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
+          doc.defaultView.documentLoaded = true;
+        }
       }, true);
  
       // Note: Error pages will never fire a "load" event. For those we
       // have to wait for the "DOMContentLoaded" event. That's the final state.
       // Error pages will always have a baseURI starting with
       // "about:" followed by "error" or "blocked".
-      window.gBrowser.addEventListener("DOMContentLoaded", function(event) {
+      window.gBrowser.addEventListener("DOMContentLoaded", function (event) {
         var errorRegex = /about:.+(error)|(blocked)\?/;
         if (errorRegex.exec(event.target.baseURI)) {
           // Wait about 1s to be sure the DOM is ready
@@ -84,10 +92,18 @@ function attachEventListeners(window) {
       }, true);
   
       // Page is about to get unloaded
-      window.gBrowser.addEventListener("beforeunload", function(event) {
+      window.gBrowser.addEventListener("beforeunload", function (event) {
+        var doc = event.originalTarget;
         var tab = window.gBrowser.getBrowserForDocument(event.target);
-        if (tab)
+
+        if (tab) {
+          //dump("*** Unload tab: location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
           tab.documentLoaded = false;
+        } else {
+          //dump("*** Unload HTML location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
+          doc.defaultView.documentLoaded = false;
+        }
+
       }, true);
     }
   }, false);
