@@ -60,24 +60,24 @@ class LoggerListener(object):
     self.format = format
     self.debug = debug
 
-  class StdOutLogger:
+  class StdOutLogger(object):
     def __init__(self, logger):
       self.logger = logger
 
     def write(self, str):
-      self.logger.info(str)
+      self.logger.info(str.rstrip())
 
     def flush(self):
       # We don't keep any state, so this just needs to be here
       # so the python distutils stuff can call us.
       pass
 
-  class StdErrLogger:
+  class StdErrLogger(object):
     def __init__(self, logger):
       self.logger = logger
 
     def write(self, str):
-      self.logger.error(str)
+      self.logger.error(str.rstrip())
 
     def flush(self):
       # We don't keep any state, so this just needs to be here
