@@ -67,6 +67,8 @@ class Profile(object):
         if profile:
             # Ensure we have a full path to the profile
             self.profile = os.path.expanduser(profile)
+            if not os.path.exists(self.profile):
+                os.makedirs(self.profile)
         else:
             self.profile = self.create_new_profile()
 
@@ -93,6 +95,7 @@ class Profile(object):
             profile = self.profile
         self.__init__(profile=profile, addons=self.addon_manager.addons,
                       addon_manifests=self.addon_manager.manifests, preferences=self.preferences)
+
     def create_new_profile(self):
         """Create a new clean profile in tmp which is a simple empty folder"""
         profile = tempfile.mkdtemp(suffix='.mozrunner')
