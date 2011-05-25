@@ -68,6 +68,7 @@ var nsprSockets = {
   PR_SockOpt_Reuseaddr: 2,
   PR_SockOpt_NoDelay: 13,
   PR_INTERVAL_NO_WAIT : 0,
+  PR_INTERVAL_MAX : 100000,
 
   buffer : ctypes.ArrayType(ctypes.char),
 

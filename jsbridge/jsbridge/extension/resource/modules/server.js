@@ -38,9 +38,13 @@
 
 var EXPORTED_SYMBOLS = ["Server", "AsyncRead", "Session", "sessions", "startServer"];
 
+const DEBUG_ON = true;
+const DO_FILE_LOGGING = true;
+const BUFFER_SIZE = 1024;
 var Cc = Components.classes;
 var Ci = Components.interfaces;
 var bridge = {}; Components.utils.import("resource://jsbridge/modules/bridge.js", bridge);
+var gJsbridgeFileLogger = {}; Components.utils.import("resource://jsbridge/modules/jsbridgefilelogger.js", gJsbridgeFileLogger);
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
     .getService(Components.interfaces.nsIAppShellService)
@@ -58,7 +62,19 @@ AsyncRead.prototype.onStopRequest = function (request, context, status) {
 }
 AsyncRead.prototype.onDataAvailable = function (request, context, inputStream, offset, count) {
   var str = {};
-  this.session.instream.readString(count, str);
+  str.value = '';
+  var bytesAvail = 0;
+  do {
+    var parts = {};
+    if (count > BUFFER_SIZE) {
+      bytesAvail = BUFFER_SIZE;
+    } else {
+      bytesAvail = count;
+    }
+    var bytesRead = this.session.instream.readString(bytesAvail, parts);
+    count = count - bytesRead;
+    str.value += parts.value;
+  } while (count > 0);
   this.session.receive(str.value);
 }
 
@@ -73,17 +89,16 @@ function Session (transport) {
       this.outputstream = transport.openOutputStream(Ci.nsITransport.OPEN_BLOCKING, 0, 0);	
       this.outstream = Cc['@mozilla.org/intl/converter-output-stream;1']
                     .createInstance(Ci.nsIConverterOutputStream);
-      this.outstream.init(this.outputstream, 'UTF-8', 1024,
+      this.outstream.init(this.outputstream, 'UTF-8', BUFFER_SIZE,
                     Ci.nsIConverterOutputStream.DEFAULT_REPLACEMENT_CHARACTER);
       this.stream = transport.openInputStream(0, 0, 0);
       this.instream = Cc['@mozilla.org/intl/converter-input-stream;1']
           .createInstance(Ci.nsIConverterInputStream);
-      this.instream.init(this.stream, 'UTF-8', 1024,
+      this.instream.init(this.stream, 'UTF-8', BUFFER_SIZE,
                     Ci.nsIConverterInputStream.DEFAULT_REPLACEMENT_CHARACTER);
   } catch(e) {
       log('jsbridge: Error: ' + e);
   }
-  // log('jsbridge: Accepted connection.');
   
   this.pump = Cc['@mozilla.org/network/input-stream-pump;1']
       .createInstance(Ci.nsIInputStreamPump);
@@ -91,17 +106,32 @@ function Session (transport) {
   this.pump.asyncRead(new AsyncRead(this), null);
 }
 Session.prototype.onOutput = function(string) {
-  // log('jsbridge write: '+string)
   if (typeof(string) != "string") {
     throw "This is not a string"
   } 
   try {
-    this.outstream.writeString(string);
+    var stroffset = 0;
+    do {
+      var parts = '';
+      // Handle the case where we are writing something larger than our buffer
+      if (string.length > BUFFER_SIZE) {
+        parts = string.slice(stroffset, stroffset + BUFFER_SIZE);
+      } else {
+        parts = string;
+      }
+
+      // Update our offset
+      stroffset = stroffset += parts.length;
+
+      // write it
+      this.outstream.writeString(parts);
+    } while (stroffset < string.length);
+
+    // Ensure the entire stream is flushed
     this.outstream.flush();
   } catch (e) {
-    throw "Why is this failing "+string
+    throw "JSBridge cannot write: "+string;
   }
-  // this.outstream.write(string, string.length);
 };
 Session.prototype.onQuit = function() {
   this.instream.close();
@@ -122,7 +152,6 @@ Session.prototype.encodeOut = function (obj) {
   
 }
 Session.prototype.receive = function(data) {
-  //log('jsbrige receive: '+data);
   Components.utils.evalInSandbox(data, this.sandbox);
 }
 
@@ -156,16 +185,20 @@ Server.prototype.start = function () {
         .createInstance(Ci.nsIServerSocket);
     this.serv.init(this.port, true, -1);
     this.serv.asyncListen(this);
-    // log('jsbridge: Listening...');
   } catch(e) {
     log('jsbridge: Exception: ' + e);
   }    
 }
 Server.prototype.stop = function () {
-    log('jsbridge: Closing...');
     this.serv.close();
     this.sessions.quit();
     this.serv = undefined;
+    
+    // If we have file logging turned on, turn it off
+    if (gJsbridgeFileLogger) {
+      gJsbridgeFileLogger.close();
+      gJsbridgeFileLogger = null;
+    }
 }
 Server.prototype.onStopListening = function (serv, status) {
 // Stub function
@@ -176,7 +209,17 @@ Server.prototype.onSocketAccepted = function (serv, transport) {
 }
 
 function log(msg) {
+  if (DEBUG_ON) {
     dump(msg + '\n');
+  }
+  
+  if (DO_FILE_LOGGING) {
+    if (!gJsbridgeFileLogger) {
+      // TODO: You want to change this before you turn it on!!!
+      gJsbridgeFileLogger = new JsbridgeFileLogger("/media/Storage/projects/jsbridge.log");
+    }
+    gJsbridgeFileLogger.write(msg);
+  } 
 }
 
 function startServer(port) {

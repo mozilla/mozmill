@@ -132,7 +132,7 @@ Client.prototype = {
 
   sendMessage : function(message) {
     var buffer = new nspr.buffer(message);
-    nspr.PR_Send(this.fd, buffer, message.length, 0, nspr.PR_INTERVAL_NO_WAIT);
+    nspr.PR_Send(this.fd, buffer, message.length, 0, nspr.PR_INTERVAL_MAX);
   },
 
   close : function() {
