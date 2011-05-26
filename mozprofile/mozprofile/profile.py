@@ -184,6 +184,9 @@ class FirefoxProfile(Profile):
                    'extensions.checkCompatibility.6.0a' : False,
                    'extensions.checkCompatibility.6.0b' : False,
                    'extensions.checkCompatibility.6.0pre' : False,
+                   'extensions.checkCompatibility.7.0' : False,
+                   'extensions.checkCompatibility.7.0a' : False,
+                   'extensions.checkCompatibility.nightly': False
                    }
 
 class ThunderbirdProfile(Profile):
