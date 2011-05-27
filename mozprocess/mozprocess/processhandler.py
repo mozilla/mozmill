@@ -3,7 +3,6 @@ import os
 import signal
 import sys
 import select
-import types
 import threading
 import logging
 from Queue import Queue
@@ -14,23 +13,6 @@ if sys.platform == 'win32':
     from ctypes import sizeof, addressof, c_ulong, byref, POINTER, WinError
     import winprocess
     from qijo import JobObjectAssociateCompletionPortInformation, JOBOBJECT_ASSOCIATE_COMPLETION_PORT
-
-class ReportMsg():
-    """ Trying to work with the standard python logger didn't work well.
-        This just helps us print things to stdout.
-    """
-    @classmethod
-    def info(klass, msg):
-        print "INFO %s" % msg
-    @classmethod
-    def warn(klass, msg):
-        print "WARNING %s" % msg
-    @classmethod
-    def debug(klass, msg):
-        print "DEBUG %s" % msg
-    @classmethod
-    def error(klass, msg):
-        print "ERROR %s" % msg
  
 class ProcessHandler(object):
     """Class which represents a process to be executed."""
@@ -57,16 +39,9 @@ class ProcessHandler(object):
                      startupinfo=None,
                      creationflags=0,
                      ignore_children=False):
-            # Flip this for crazy debug output
-            self._debug = False 
 
             # Parameter for whether or not we should attempt to track child processes
             self._ignore_children = ignore_children
-            
-            self.logger = ReportMsg
-
-            # Odd workaround for mac - TODO: Figure out why this exists
-            self.kill_called = False
 
             if (not self._ignore_children and sys.platform != 'win32'):
                 # Set the process group id for linux systems
@@ -96,32 +71,31 @@ class ProcessHandler(object):
                     self.returncode = winprocess.GetExitCodeProcess(self._handle)
                 elif self._handle:
                     try:
-                        
                         winprocess.TerminateProcess(self._handle, winprocess.ERROR_CONTROL_C_EXIT)
                     except:
-                        # TODO: Throw?
-                        self.logger.warn("Could not terminate process")
+                        raise OSError("Could not terminate process")
                     finally:
                         self.returncode = winprocess.GetExitCodeProcess(self._handle)
                         self._cleanup()
                 else:
-                    self.logger.info("Process no longer exists")
+                    print "Process no longer exists"
             else:
-                # TODO: Figure out why mac needs this workaround
-                self.kill_called = True
                 if not self._ignore_children:
                     try:
                         os.killpg(self.pid, signal.SIGKILL)
                     except BaseException, e:
-                        print e
                         if getattr(e, "errno", None) != 3:
                             # Error 3 is "no such process", which is ok
-                            self.logger.warn("Could not kill process: %s" % self.pid)
+                            raise OSError("Could not kill process: %s" % self.pid)
                     finally:
-                        self.returncode = -9
+                        # Try to get the exit status
+                        (pid, sts) = os.waitpid(self.pid)
+                        # This sets self.returncode
+                        subprocess.Popen._handle_exitstatus(sts)
                 else:
                     os.kill(self.pid, signal.SIGKILL)
-                    self.returncode = -9
+                    (pid, sts) = os.waitpid(self.pid)
+                    subprocess.Popen._handle_exitstatus(sts)
             
             self._cleanup()
             return self.returncode
@@ -147,9 +121,9 @@ class ProcessHandler(object):
                                p2cread, p2cwrite,
                                c2pread, c2pwrite,
                                errread, errwrite):
-                if not isinstance(args, types.StringTypes):
+                if not isinstance(args, basestring):
                     args = subprocess.list2cmdline(args)
-                
+
                 # Always or in the create new process group
                 creationflags |= winprocess.CREATE_NEW_PROCESS_GROUP
 
@@ -173,19 +147,18 @@ class ProcessHandler(object):
                 # Ensure we write a warning message if we are falling back
                 if not canCreateJob and not self._ignore_children:
                     # We can't create job objects AND the user wanted us to
-                    # Warn the user about this. (this will end up on the console)
-                    self.logger.warn("ProcessManager UNABLE to use job objects to manage child processes")
+                    # Warn the user about this.
+                    print >> sys.stderr, "ProcessManager UNABLE to use job objects to manage child processes"
 
                 # set process creation flags
                 creationflags |= winprocess.CREATE_SUSPENDED
                 creationflags |= winprocess.CREATE_UNICODE_ENVIRONMENT
                 if canCreateJob:
-                    self.logger.info("ProcessManager using job objects to manage child processes")
                     creationflags |= winprocess.CREATE_BREAKAWAY_FROM_JOB
                 else:
                     # Since we've warned, we just log info here to inform you
                     # of the consequence of setting ignore_children = True
-                    self.logger.info("ProcessManager NOT managing child processes")
+                    print "ProcessManager NOT managing child processes"
 
                 # create the process
                 hp, ht, pid, tid = winprocess.CreateProcess(
@@ -207,6 +180,7 @@ class ProcessHandler(object):
                         # the process and any sub-processes                    
                         # Create the IO Completion Port
                         self._io_port = winprocess.CreateIoCompletionPort()
+                        print "+++++++++ NEW IO PORT +++++++++++"
                         self._job = winprocess.CreateJobObject()
 
                         # Now associate the io comp port and the job object
@@ -224,9 +198,9 @@ class ProcessHandler(object):
                         # Spin up our thread for managing the IO Completion Port
                         self._procmgrthread = threading.Thread(target = self._procmgr)
                     except:
-                        self.logger.warn("Exception trying to use job objects, \
+                        print >> sys.stderr, "Exception trying to use job objects, \
                                           falling back to not using job objects for \
-                                          managing child processes")
+                                          managing child processes"
                         # Ensure no dangling handles left behind
                         self._cleanup_job_io_port()
                 else:
@@ -240,8 +214,7 @@ class ProcessHandler(object):
                 for i in (p2cread, c2pwrite, errwrite):
                     if i is not None:
                         i.Close()
-                time.sleep(.1)
-          
+
             # Windows Process Manager - watches the IO Completion Port and
             # keeps track of child processes
             def _procmgr(self):
@@ -260,7 +233,7 @@ class ProcessHandler(object):
                 # Watch the IO Completion port for status
                 self._spawned_procs = {}
                 countdowntokill = 0
-                print "self.pid is: %s" % self.pid
+
                 while (True):
                     msgid = c_ulong(0)
                     compkey = c_ulong(0)
@@ -281,7 +254,8 @@ class ProcessHandler(object):
                         # don't want to mistake that situation for the situation of an unexpected
                         # parent abort (which is what we're looking for here).
                         if diff.seconds > 180:
-                            print >> sys.stderr, "Parent process exited without killing children, attempting to kill children"
+                            print >> sys.stderr, "Parent process exited without \
+                                                  killing children, attempting to kill children"
                             self.kill()
                             self._process_events.put({self.pid: 'FINISHED'})
 
@@ -291,18 +265,23 @@ class ProcessHandler(object):
                         if errcode == winprocess.ERROR_ABANDONED_WAIT_0:
                             # Then something has killed the port, break the loop
                             print >> sys.stderr, "IO Completion Port unexpectedly closed"
+                            print "+++++++Loop Break1++++++"
                             break
                         elif errcode == winprocess.WAIT_TIMEOUT:
-                            if self._debug: print "continuing polling"
                             # Timeouts are expected, just keep on polling
                             continue
                         else:
                             print "Error Code %s trying to query IO Completion Port, exiting" % errcode
-                            raise WinError(errcode)
+                            print "+++++++Loop break 2++++++"
+                            try:
+                              raise WinError(errcode)
+                            except:
+                              print "+++++ windows exception in break 2 +++++"
                             break
 
                     if compkey.value == winprocess.COMPKEY_TERMINATE.value:
                         # Then we're done
+                        print "+++++++++Loop break 3 +++++++"
                         break
 
                     # Check the status of the IO Port and do things based on it
@@ -311,20 +290,15 @@ class ProcessHandler(object):
                             # No processes left, time to shut down
                             # Signal anyone waiting on us that it is safe to shut down
                             self._process_events.put({self.pid: 'FINISHED'})
-                            if (self._debug): print "winproc: no procs left, shutting down"
                             break
                         elif (msgid.value == winprocess.JOB_OBJECT_MSG_NEW_PROCESS):
                             # New Process started
-                            if (self._debug): print "winproc: new process, pid: %s" % pid.value
-                            
                             # Add the child proc to our list in case our parent flakes out on us
                             # without killing everything.
                             if pid.value != self.pid:
                                 self._spawned_procs[pid.value] = 1
                         elif (msgid.value == winprocess.JOB_OBJECT_MSG_EXIT_PROCESS):
                             # One process exited normally
-                            if (self._debug): print "winproc: normal proc exit pid: %s" % pid.value
-                            
                             if pid.value == self.pid and len(self._spawned_procs) > 0:
                                 # Parent process dying, start countdown timer
                                 countdowntokill = datetime.now()
@@ -333,8 +307,6 @@ class ProcessHandler(object):
                                 del(self._spawned_procs[pid.value])
                         elif (msgid.value == winprocess.JOB_OBJECT_MSG_ABNORMAL_EXIT_PROCESS):
                             # One process existed abnormally
-                            if (self._debug): print "winproc: abnormal proc exit pid: %s" % pid.value
-
                             if pid.value == self.pid and len(self._spawned_procs) > 0:
                                 # Parent process dying, start countdown timer                            
                                 countdowntokill = datetime.now()
@@ -343,10 +315,8 @@ class ProcessHandler(object):
                                 del(self._spawned_procs[pid.value])                 
                         else:
                             # We don't care about anything else
-                            if (self._debug): print "winproc: caught else condition, keep polling"
                             pass
-                    
-                if self._debug: print "winproc: Exiting while loop, leaving thread"
+
                 self._cleanup_job_io_port()
             
             def _wait(self, timeout=None):
@@ -358,25 +328,16 @@ class ProcessHandler(object):
                     # Dude, the process is like totally dead!
                     return self.returncode
 
-                if self.returncode != winprocess.STILL_ACTIVE:
-                    # The process is already gone.  No need to wait
-                    self._cleanup()
-                    return self.returncode
-
                 if self._job and self._procmgrthread.is_alive():
                     # Then we are managing with IO Completion Ports
                     # wait on a signal so we know when we have seen the last
                     # process come through.
-                    if self._debug: print "Waiting for IO Port to let us know it is closed"
-                    
                     # We use queues to synchronize between the thread and this 
                     # function because events just didn't have robust enough error
                     # handling on pre-2.7 versions
                     try:
                         item = self._process_events.get(timeout=timeout)
-                        if self._debug: print "winproc: wait got item: %s" % item
                         if (item[self.pid] == 'FINISHED'):
-                            if self._debug: print "winprocc: finished item"
                             self._process_events.task_done()
                     except:
                         raise OSError("IO Completion Port failed to signal process shutdown")
@@ -388,6 +349,12 @@ class ProcessHandler(object):
                 else:
                     # Not managing with job objects, so all we can reasonably do
                     # is call waitforsingleobject and hope for the best
+
+                    # First, make sure we have not already ended
+                    if self.returncode != winprocess.STILL_ACTIVE:
+                        self._cleanup()
+                        return self.returncode
+
                     if timeout is None:
                         timeout = -1
                     else:
@@ -405,7 +372,7 @@ class ProcessHandler(object):
                         self.kill()
                     elif rc == winprocess.WAIT_OBJECT_0:
                         # We caught WAIT_OBJECT_0, which indicates all is well
-                        self.logger.info("Single process terminated successfully")
+                        print "Single process terminated successfully"
                         self.returncode = winprocess.GetExitCodeProcess(self._handle)
                     else:
                         # An error occured we should probably throw
@@ -432,8 +399,10 @@ class ProcessHandler(object):
                 if self._io_port and self._io_port != winprocess.INVALID_HANDLE_VALUE:
                     self._io_port.Close()
                     self._io_port = None
+                    print "++++++++ IO PORT GONE ++++"
                 else:
                     self._io_port = None
+                    print "++++++++ IO PORT GONE2 ++++"
 
                 if self._procmgrthread:
                     self._procmgrthread = None
@@ -479,7 +448,7 @@ class ProcessHandler(object):
                     else:
                         if subprocess.Popen.poll(self) is not None:
                             done = True
-                    #time.sleep(.5)
+
                     now = time.time()
                     diff = now - starttime
                 if not done:
@@ -499,7 +468,6 @@ class ProcessHandler(object):
                     try:
                         os.waitpid(self.pid, 0)
                     except OSError, e:
-                        # TODO: Should we just let this throw from here?
                         print >> sys.stderr, "Encountered error waiting for pid to close: %s" % e
                         return False
                     return True
@@ -512,7 +480,7 @@ class ProcessHandler(object):
 
         else:
             # An unrecognized platform, we will call the base class for everything
-            self.logger.warn("Unrecognized platform, process groups may not be managed properly")
+            print >> sys.stderr, "Unrecognized platform, process groups may not be managed properly"
 
             def _wait(self, timeout=timeout):
                 self.returncode = subprocess.Popen.wait(self)
@@ -569,18 +537,6 @@ class ProcessHandler(object):
     def output(self):
         """Gets the output of the process."""
         return self._output
-
-    @classmethod
-    def run_popen_directly(klass, *args, **kwargs):
-        """ This function allows you to retrieve a Popen object directly from our
-            class so that you get the group management/kill functionality.  It is
-            only recommended for uses where you want to run a simple one-off tool
-            that you don't care a ton about tracking/logging the output of.
-            
-            Parameters: Same as Popen
-            Returns: a Popen object
-        """
-        return klass.Process(*args, **kwargs)
                            
     def run(self):
         """Starts the process.  waitForFinish must be called to allow the
@@ -685,6 +641,7 @@ class ProcessHandler(object):
         else:
             self.onFinish()
 
+        #status = self.proc.returncode
         status = self.proc.wait()
         return status
 
@@ -709,7 +666,7 @@ class ProcessHandler(object):
                     if err == 38 or err == 109: # ERROR_HANDLE_EOF || ERROR_BROKEN_PIPE
                         return ('', False)
                     else:
-                        log.error("readWithTimeout got error: %d", err)
+                        raise OSError("readWithTimeout got error: %d", err)
                 if l.value > 0:
                     # we're assuming that the output is line-buffered,
                     # which is not unreasonable

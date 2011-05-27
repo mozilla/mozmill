@@ -224,15 +224,13 @@ class Runner(object):
         # - http://mozilla-xp.com/mozilla.dev.apps.firefox/Rules-for-when-firefox-bin-restarts-it-s-process
         # This run just calls through processhandler to popen directly as we 
         # are not particuarly cared in tracking this process
-        print "DEBUG:: about to start firstrun"
-        firstrun = ProcessHandler.run_popen_directly(self.command+['-silent', '-foreground'], env=self.env, **self.kp_kwargs)
+        firstrun = ProcessHandler.Process(self.command+['-silent', '-foreground'], env=self.env, **self.kp_kwargs)
         firstrun.wait()
-        print("DEBUG:: frist run should be ended")
 
         # now run for real, this run uses the managed processhandler
         self.process_handler = ProcessHandler(self.command+self.cmdargs, env=self.env, **self.kp_kwargs)
         self.process_handler.run()
-        print "started second run"
+ 
     def wait(self, timeout=None):
         """Wait for the app to exit."""
         if self.process_handler is None:
