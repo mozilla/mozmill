@@ -62,7 +62,10 @@ class ProcessHandler(object):
             if sys.platform == "win32":
                 if (self._handle):
                     self._internal_poll(_deadstate=_maxint)
-            
+                if (self._handle or self._job or self._io_port):
+                    self._cleanup()
+            subprocess.Popen.__del__(self)
+
         def kill(self):
             self.returncode = 0
             if sys.platform == 'win32':
@@ -180,7 +183,6 @@ class ProcessHandler(object):
                         # the process and any sub-processes                    
                         # Create the IO Completion Port
                         self._io_port = winprocess.CreateIoCompletionPort()
-                        print "+++++++++ NEW IO PORT +++++++++++"
                         self._job = winprocess.CreateJobObject()
 
                         # Now associate the io comp port and the job object
@@ -265,23 +267,17 @@ class ProcessHandler(object):
                         if errcode == winprocess.ERROR_ABANDONED_WAIT_0:
                             # Then something has killed the port, break the loop
                             print >> sys.stderr, "IO Completion Port unexpectedly closed"
-                            print "+++++++Loop Break1++++++"
                             break
                         elif errcode == winprocess.WAIT_TIMEOUT:
                             # Timeouts are expected, just keep on polling
                             continue
                         else:
                             print "Error Code %s trying to query IO Completion Port, exiting" % errcode
-                            print "+++++++Loop break 2++++++"
-                            try:
-                              raise WinError(errcode)
-                            except:
-                              print "+++++ windows exception in break 2 +++++"
+                            raise WinError(errcode)
                             break
 
                     if compkey.value == winprocess.COMPKEY_TERMINATE.value:
                         # Then we're done
-                        print "+++++++++Loop break 3 +++++++"
                         break
 
                     # Check the status of the IO Port and do things based on it
@@ -317,8 +313,6 @@ class ProcessHandler(object):
                             # We don't care about anything else
                             pass
 
-                self._cleanup_job_io_port()
-            
             def _wait(self, timeout=None):
                 
                 # First, check to see if the process is still running
@@ -399,10 +393,8 @@ class ProcessHandler(object):
                 if self._io_port and self._io_port != winprocess.INVALID_HANDLE_VALUE:
                     self._io_port.Close()
                     self._io_port = None
-                    print "++++++++ IO PORT GONE ++++"
                 else:
                     self._io_port = None
-                    print "++++++++ IO PORT GONE2 ++++"
 
                 if self._procmgrthread:
                     self._procmgrthread = None
