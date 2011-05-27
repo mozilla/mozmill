@@ -30,7 +30,12 @@ proclaunch: proclaunch.obj
 
 else
 CC      = gcc
+ifeq ($(UNAME), LINUX)
+CFLAGS  = -g -v -Iiniparser
+else
 CFLAGS  = -g -v -arch i386 -Iiniparser
+endif
+
 LFLAGS  = -L.. -liniparser
 AR	    = ar
 ARFLAGS = rcv
