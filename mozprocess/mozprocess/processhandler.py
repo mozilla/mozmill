@@ -5,11 +5,12 @@ import sys
 import select
 import threading
 import logging
+import time
 from Queue import Queue
 from datetime import datetime, timedelta
 
 if sys.platform == 'win32':
-    import ctypes, ctypes.wintypes, time, msvcrt
+    import ctypes, ctypes.wintypes, msvcrt
     from ctypes import sizeof, addressof, c_ulong, byref, POINTER, WinError
     import winprocess
     from qijo import JobObjectAssociateCompletionPortInformation, JOBOBJECT_ASSOCIATE_COMPLETION_PORT
@@ -92,13 +93,13 @@ class ProcessHandler(object):
                             raise OSError("Could not kill process: %s" % self.pid)
                     finally:
                         # Try to get the exit status
-                        (pid, sts) = os.waitpid(self.pid)
-                        # This sets self.returncode
-                        subprocess.Popen._handle_exitstatus(sts)
+                        if self.returncode is None:
+                            self.returncode = subprocess.Popen._internal_poll(self)
+
                 else:
                     os.kill(self.pid, signal.SIGKILL)
-                    (pid, sts) = os.waitpid(self.pid)
-                    subprocess.Popen._handle_exitstatus(sts)
+                    if self.returncode is None:
+                        self.returncode = subprocess.Popen._internal_poll(self)
             
             self._cleanup()
             return self.returncode
@@ -434,9 +435,9 @@ class ProcessHandler(object):
             
                 now = starttime = time.time()
                 diff = now - starttime
-                while (diff < timeout and done is False):
+                while (diff < timeout and not done):
                     if not self._ignore_children:
-                        done = callback_func(timeout)
+                        done = not callback_func(timeout)
                     else:
                         if subprocess.Popen.poll(self) is not None:
                             done = True
@@ -444,7 +445,9 @@ class ProcessHandler(object):
                     now = time.time()
                     diff = now - starttime
                 if not done:
-                    raise OSError("Timed out waiting for process to close")
+                    # We have timed out, attempt kill
+                    print >> sys.stderr, "Wait timed out, attempting kill"
+                    self.kill()
 
                 return self.returncode
 
@@ -460,8 +463,11 @@ class ProcessHandler(object):
                     try:
                         os.waitpid(self.pid, 0)
                     except OSError, e:
-                        print >> sys.stderr, "Encountered error waiting for pid to close: %s" % e
-                        return False
+                        if getattr(e, "errno", None) != 10:
+                            # Error 10 is "no child process", which could indicate normal 
+                            # close
+                            print >> sys.stderr, "Encountered error waiting for pid to close: %s" % e
+                            return False
                     return True
                 
                 self.returncode = self._timed_wait_callback(_wait_callback, timeout)
@@ -633,8 +639,7 @@ class ProcessHandler(object):
         else:
             self.onFinish()
 
-        #status = self.proc.returncode
-        status = self.proc.wait()
+        status = self.proc.wait(timeout)
         return status
 
     """

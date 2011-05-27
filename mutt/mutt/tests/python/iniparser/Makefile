@@ -9,7 +9,7 @@ ifeq ($(UNAME), MINGW32_NT-5.1)
 WIN32 = 1
 endif
 
-ifeq (($UNAME), Linux)
+ifeq ($(UNAME), Linux)
     # Compiler settings
     CC      = gcc
     # Ar settings to build the library
@@ -21,7 +21,7 @@ ifeq (($UNAME), Linux)
     LDFLAGS = -Wl,-rpath -Wl,/usr/lib -Wl,-rpath,/usr/lib
 endif
 
-ifeq (($UNAME), Darwin)
+ifeq ($(UNAME), Darwin)
     # Compiler settings
     CC      = gcc
     # Ar settings to build the library

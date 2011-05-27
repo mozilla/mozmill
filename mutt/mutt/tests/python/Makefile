@@ -39,9 +39,9 @@ RM      = rm -f
 
 default: all
 
-all: iniparser proclaunch
+all: libiniparser.a proclaunch
 
-iniparser:
+libiniparser.a:
 	$(MAKE) -C iniparser
 
 proclaunch: proclaunch.c

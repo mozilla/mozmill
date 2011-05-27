@@ -38,7 +38,7 @@ class ProcTest1(unittest.TestCase):
                                           "process_waittimeout.ini"],
                                           cwd=os.path.dirname(__file__))
         p.run()
-        p.waitForFinish(timeout=30)
+        p.waitForFinish(timeout=10)
 
         self.check_for_process()
     
