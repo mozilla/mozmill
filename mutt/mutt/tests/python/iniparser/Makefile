@@ -27,10 +27,10 @@ ifeq ($(UNAME), Darwin)
     # Ar settings to build the library
     AR	    = ar
     ARFLAGS = rcv
-    SHLD = ${CC} ${CFLAGS}
-    CFLAGS  = -v -arch i386 -fPIC -Wall -ansi -pedantic -lcxcore
-    LDSHFLAGS = -v -dylib
-    LDFLAGS = -Wl,-rpath -Wl,/usr/lib -Wl,-rpath,/usr/lib
+    #SHLD = ${CC} ${CFLAGS}
+    SHLD = libtool
+    CFLAGS  = -v -arch i386 -isysroot /Developer/SDKs/MacOSX10.6.sdk -fPIC -Wall -ansi -pedantic
+    LDFLAGS = -arch_only i386
 endif
 
 ifeq ($(WIN32), 1)
@@ -94,8 +94,13 @@ libiniparser.a:	$(OBJS)
 	@($(AR) $(ARFLAGS) libiniparser.a $(OBJS))
 	@($(RANLIB) libiniparser.a)
 
+ifeq ($(UNAME), Linux)
 libiniparser.so:	$(OBJS)
 	@$(SHLD) $(LDSHFLAGS) -o $@.0 $(OBJS) $(LDFLAGS)
+else
+libiniparser.so:	$(OBJS)
+	@$(SHLD) -o $@.0 $(LDFLAGS) $(OBJS)
+endif
 endif
 
 clean:
@@ -108,6 +113,6 @@ veryclean:
 
 docs:
 	@(cd doc ; $(MAKE))
-	
+
 check:
 	@(cd test ; $(MAKE))
