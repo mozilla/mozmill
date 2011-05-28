@@ -82,6 +82,10 @@ class JOBOBJECT_BASIC_LIMIT_INFORMATION(Structure):
                 ('SchedulingClass', DWORD)
                 ]
 
+class JOBOBJECT_ASSOCIATE_COMPLETION_PORT(Structure):
+    _fields_ = [('CompletionKey', c_ulong),
+                ('CompletionPort', HANDLE)]
+
 # see http://msdn.microsoft.com/en-us/library/ms684156%28VS.85%29.aspx
 class JOBOBJECT_EXTENDED_LIMIT_INFORMATION(Structure):
     _fields_ = [('BasicLimitInformation', JOBOBJECT_BASIC_LIMIT_INFORMATION),
@@ -91,19 +95,20 @@ class JOBOBJECT_EXTENDED_LIMIT_INFORMATION(Structure):
                 ('PeakProcessMemoryUsed', SIZE_T),
                 ('PeakJobMemoryUsed', SIZE_T)]
 
-# XXX Magical numbers like 8 should be documented
+# These numbers below come from:
+# http://msdn.microsoft.com/en-us/library/ms686216%28v=vs.85%29.aspx
+JobObjectAssociateCompletionPortInformation = 7
 JobObjectBasicAndIoAccountingInformation = 8
-
-# ...like magical number 9 comes from
-# http://community.flexerasoftware.com/archive/index.php?t-181670.html
-# I wish I had a more canonical source
 JobObjectExtendedLimitInformation = 9
 
 class JobObjectInfo(object):
     mapping = { 'JobObjectBasicAndIoAccountingInformation': 8,
-                'JobObjectExtendedLimitInformation': 9
+                'JobObjectExtendedLimitInformation': 9,
+                'JobObjectAssociateCompletionPortInformation': 7
                 }
-    structures = { 8: JOBOBJECT_BASIC_AND_IO_ACCOUNTING_INFORMATION,
+    structures = {
+                   7: JOBOBJECT_ASSOCIATE_COMPLETION_PORT,
+                   8: JOBOBJECT_BASIC_AND_IO_ACCOUNTING_INFORMATION,
                    9: JOBOBJECT_EXTENDED_LIMIT_INFORMATION
                    }
     def __init__(self, _class):

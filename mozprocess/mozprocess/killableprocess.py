@@ -138,6 +138,8 @@ class Popen(subprocess.Popen):
                 creationflags |= winprocess.CREATE_BREAKAWAY_FROM_JOB
 
             # create the process
+            import pdb
+            pdb.set_trace()
             hp, ht, pid, tid = winprocess.CreateProcess(
                 executable, args,
                 None, None, # No special security
