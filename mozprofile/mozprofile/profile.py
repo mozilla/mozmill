@@ -181,8 +181,11 @@ class FirefoxProfile(Profile):
                    'browser.tabs.warnOnClose' : False,
                    # Don't warn when exiting the browser
                    'browser.warnOnQuit': False,
-                   # Only install add-ons from the profile and the app folder
-                   'extensions.enabledScopes' : 5,
+                   # Only install add-ons from the profile
+                   'extensions.enabledScopes' : 1,
+                   # XXX: App-wide extensions are still installed until bug 660898
+                   #      is fixed. Use a workaround for now to disable it.
+                   'extensions.installDistroAddons' : False,
                    # Dont' run the add-on compatibility check during start-up
                    'extensions.showMismatchUI' : False,
                    # Don't automatically update add-ons
