@@ -44,7 +44,7 @@ desc = """Test Harness for Mozmill"""
 PACKAGE_NAME = "mutt"
 PACKAGE_VERSION = "0.1"
 
-deps = []
+deps = ['ManifestDestiny == 0.4.2']
 
 # we only support python 2 right now
 assert sys.version_info[0] == 2
