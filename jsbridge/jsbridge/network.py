@@ -39,7 +39,6 @@ import asyncore
 import inspect
 import socket
 import select
-import logging
 import uuid
 from time import sleep
 from threading import Thread
@@ -51,7 +50,6 @@ except ImportError:
     import simplejson
     from simplejson.encoder import encode_basestring_ascii, encode_basestring
 
-logger = logging.getLogger(__name__)
 
 class JavaScriptException(Exception): pass
 
@@ -62,7 +60,6 @@ class Telnet(asyncore.dispatcher):
         self.create_socket(socket.AF_INET, socket.SOCK_STREAM)
         self.connect((host, port))
         self.buffer = ''
-        self.logger = logger
 
     def __del__(self):
         self.close()
