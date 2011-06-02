@@ -6,11 +6,11 @@
   <script src="chrome://mozmill/content/overlay.js"/>
   
   <keyset>
-    <key id="open-mm" modifiers="accel shift" key="m" oncommand="MozMill.onMenuItemCommand(event);"/>
+    <key id="open-mozmill" modifiers="accel shift" key="m" oncommand="MozMill.onMenuItemCommand(event);"/>
   </keyset>
   
   <menupopup id="menu_ToolsPopup">
-    <menuitem key="open-mm" id="mozmill-mozmill" label="&mozmill;" 
+    <menuitem key="open-mozmill" id="mozmill-mozmill" label="&mozmill;" 
               oncommand="MozMill.onMenuItemCommand(event);"/>
   </menupopup>
 </overlay>
