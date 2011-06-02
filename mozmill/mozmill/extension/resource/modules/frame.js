@@ -35,7 +35,7 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','events', 
+var EXPORTED_SYMBOLS = ['loadFile','Collector','Runner','events', 
                         'jsbridge', 'runTestFile', 'log', 'getThread',
                         'timers', 'persisted'];
 
