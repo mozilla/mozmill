@@ -36,6 +36,7 @@
 # ***** END LICENSE BLOCK *****
 
 import asyncore
+import inspect
 import socket
 import select
 import logging
@@ -268,7 +269,9 @@ class BackChannel(Bridge):
         
     def fire_callbacks(self, obj):
         """Handle all callback fireing on json objects pulled from the data stream."""
-        self.fire_event(**dict([(str(key), value,) for key, value in obj.items()]))
+        args = inspect.getargspec(self.fire_event).args[1:] # no 'self' (key: 0)
+        self.fire_event(**dict([(str(key), value,) for key, value in obj.items()
+                                if key in args]))
 
     def add_listener(self, callback, uuid=None, eventType=None):
         if uuid is not None:
@@ -281,12 +284,11 @@ class BackChannel(Bridge):
 
     def fire_event(self, eventType=None, uuid=None, result=None, exception=None):
         Bridge.timeout_ctr = 0. # reset the counter
-        event = eventType
         if uuid is not None and self.uuid_listener_index.has_key(uuid):
             for callback in self.uuid_listener_index[uuid]:
                 callback(result)
-        if event is not None and self.event_listener_index.has_key(event):
-            for callback in self.event_listener_index[event]:
+        if eventType is not None and self.event_listener_index.has_key(eventType):
+            for callback in self.event_listener_index[eventType]:
                 callback(result)
         for listener in self.global_listeners:
             listener(eventType, result)
