@@ -452,10 +452,11 @@ class MozMill(object):
 def collect_tests(path):
     """find all tests for a given path"""
 
-    path = os.path.abspath(path)
+    path = os.path.realpath(path)
     if os.path.isfile(path):
         return [path]
 
+    assert os.path.isdir(path), "Not a valid test file or directory: %s" % path
     files = []
     for filename in sorted(os.listdir(path)):
         if filename.startswith("test"):
