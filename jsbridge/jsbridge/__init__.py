@@ -39,22 +39,14 @@
 import asyncore
 import socket
 import os
-import copy
 import sys
 
 from time import sleep
 from network import Bridge, BackChannel, create_network
 from jsobjects import JSObject
 
-import mozrunner
-
-settings_env = 'JSBRIDGE_SETTINGS_FILE'
-
 parent = os.path.abspath(os.path.dirname(__file__))
 extension_path = os.path.join(parent, 'extension')
-
-window_string = "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')"
-
 wait_to_create_timeout = 60
 
 def wait_and_create_network(host, port, timeout=wait_to_create_timeout):
