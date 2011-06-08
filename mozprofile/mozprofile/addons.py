@@ -128,36 +128,53 @@ class AddonManager(object):
         return the id for a given addon, or None if not found
         - addon_path : path to the addon directory
         """
+
+        # TODO: We don't use the unpack variable yet, but we should: bug 662683
+        # Code below is taken largely from hg.m.o/qa/mozmill-automation/tesrun.py:42
+        details = {
+            'id': None,
+            'unpack': None,
+            'name': None,
+            'version': None
+        }
+
+        def get_namespace_id(doc, url):
+            attributes = doc.documentElement.attributes
+            namespace = ""
+            for i in range(attributes.length):
+                if attributes.item(i).value == url:
+					if ":" in attributes.item(i).name:
+						# If the namespace is not the default one remove 'xlmns:'
+						namespace = attributes.item(i).name.split(':')[1] + ":"
+						break
+
+            return namespace
+
+        def get_text(element):
+            """Retrieve the text value of a given node"""
+
+            rc = []
+            for node in element.childNodes:
+                if node.nodeType == node.TEXT_NODE:
+                    rc.append(node.data)
+            return ''.join(rc).strip()
+
+        doc = minidom.parse(os.path.join(addon_path, 'install.rdf'))
         
-        def find_id(desc):
-            """finds the addon id give its description"""
-            
-            addon_id = None
-            for elem in desc:
-                apps = elem.getElementsByTagName('em:targetApplication')
-                apps.extend(elem.getElementsByTagName('targetApplication'))
-                if apps:
-                    for app in apps:
-                        # remove targetApplication nodes, they contain id's we aren't interested in
-                        elem.removeChild(app)
+        # Get the namespaces abbreviations
+        em = get_namespace_id(doc, "http://www.mozilla.org/2004/em-rdf#")
+        rdf = get_namespace_id(doc, "http://www.w3.org/1999/02/22-rdf-syntax-ns#")
 
-                    # find the id tag
-                    if elem.getElementsByTagName('em:id'):
-                        addon_id = str(elem.getElementsByTagName('em:id')[0].firstChild.data)
-                    elif elem.hasAttribute('em:id'):
-                        addon_id = str(elem.getAttribute('em:id'))
-                    elif elem.getElementsByTagName('id'):
-                        addon_id = str(elem.getElementsByTagName('id')[0].firstChild.data)
-                    
-            return addon_id
+        description = doc.getElementsByTagName(rdf + "Description").item(0)
+        for node in description.childNodes:
+            # Remove the namespace prefix from the tag for comparison
+            entry = node.nodeName.replace(em, "")
+            if entry in details.keys():
+                details.update({ entry: get_text(node) })
 
-        doc = minidom.parse(os.path.join(addon_path, 'install.rdf')) 
-
-        for tag in 'Description', 'RDF:Description':
-            desc = doc.getElementsByTagName(tag)
-            addon_id = find_id(desc)
-            if addon_id:
-                return addon_id
+        # We now have a bunch of stuff in details right now,
+        # we only care about the id, so...
+        return details["id"]
 
     def install_from_path(self, path):
         """
