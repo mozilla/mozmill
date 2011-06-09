@@ -89,7 +89,6 @@ var loadTestResources = function () {
 
 var loadFile = function(path, collector) {
   // load a test module from a file and add some candy
-
   var file = Components.classes["@mozilla.org/file/local;1"]
                        .createInstance(Components.interfaces.nsILocalFile);
   file.initWithPath(path);
@@ -148,7 +147,7 @@ var loadFile = function(path, collector) {
     events.fireEvent('endTest', obj);
     Components.utils.reportError(e);
   }
-  
+
   module.__file__ = path;
   module.__uri__ = uri;
   return module;
