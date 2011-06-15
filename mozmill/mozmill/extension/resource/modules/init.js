@@ -57,7 +57,7 @@ var windowObserver = {
  */
 function attachEventListeners(window) {
   window.addEventListener("load", function (event) {
-    window.documentLoaded = true;
+    window.mozmillDocumentLoaded = true;
  
     if (window.gBrowser) {
       // Page is ready
@@ -68,10 +68,10 @@ function attachEventListeners(window) {
 
         if (tab) {
           //dump("*** Loaded tab: location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
-          tab.documentLoaded = true;
+          tab.mozmillDocumentLoaded = true;
         } else {
           //dump("*** Loaded HTML location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
-          doc.defaultView.documentLoaded = true;
+          doc.defaultView.mozmillDocumentLoaded = true;
         }
       }, true);
  
@@ -87,7 +87,7 @@ function attachEventListeners(window) {
 
           var tab = window.gBrowser.getBrowserForDocument(event.target);
           if (tab)
-            tab.documentLoaded = true;
+            tab.mozmillDocumentLoaded = true;
         }
       }, true);
   
@@ -98,10 +98,10 @@ function attachEventListeners(window) {
 
         if (tab) {
           //dump("*** Unload tab: location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
-          tab.documentLoaded = false;
+          tab.mozmillDocumentLoaded = false;
         } else {
           //dump("*** Unload HTML location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
-          doc.defaultView.documentLoaded = false;
+          doc.defaultView.mozmillDocumentLoaded = false;
         }
 
       }, true);
@@ -128,7 +128,7 @@ function initialize() {
     // For windows or dialogs already open we have to explicitly set the property
     // otherwise windows which load really quick never gets the property set and
     // we fail to create the controller
-    win.documentLoaded = true;
+    win.mozmillDocumentLoaded = true;
   };
 }
 

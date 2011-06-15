@@ -309,8 +309,8 @@ var MozMillController = function (window) {
 
   utils.waitFor(function() {
     return window != null &&
-           ("documentLoaded" in window) &&
-           window.documentLoaded;
+           ("mozmillDocumentLoaded" in window) &&
+           window.mozmillDocumentLoaded;
   }, "controller(): Window could not be initialized.");
 
   if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined ) {
@@ -633,6 +633,10 @@ MozMillController.prototype.radio = function(el)
   frame.events.pass({'function':'Controller.radio(' + el.getInfo() + ')'});
   return true;
 }
+
+MozMillController.prototype.isLoaded = function() {
+  return this.window.mozmillDocumentLoaded;
+};
 
 MozMillController.prototype.waitFor = function(callback, message, timeout,
                                                interval, thisObject) {
@@ -1285,7 +1289,7 @@ function browserAdditions (controller) {
 
     // Wait until the content in the tab has been loaded
     this.waitFor(function() {
-      return ("documentLoaded" in owner && owner.documentLoaded);
+      return ("mozmillDocumentLoaded" in owner && owner.mozmillDocumentLoaded);
     }, "controller.waitForPageLoad(): Timeout waiting for page loaded.", timeout, aInterval);
 
     frame.events.pass({'function':'controller.waitForPageLoad()'});

@@ -253,7 +253,7 @@ RecorderConnector.prototype.unbindListeners = function(frame) {
 RecorderConnector.prototype.observer = {
   observe: function(subject,topic,data){
     var defer = function(){
-      controller.waitForEval("subject.documentLoaded == true", 10000, 100, subject)
+      controller.waitForEval("subject.mozmillDocumentLoaded == true", 10000, 100, subject)
       MozMillrec.bindListeners(subject);
     }
     window.setTimeout(defer, 500);
