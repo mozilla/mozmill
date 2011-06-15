@@ -253,7 +253,7 @@ RecorderConnector.prototype.observer = {
   observe: function(subject,topic,data){
     var defer = function(){
       controller.waitFor(function() {
-                           return subject.documentLoaded == true;
+                           return subject.mozmillDocumentLoaded == true;
                          }, undefined, 10000, 100);
       MozMillrec.bindListeners(subject);
     }

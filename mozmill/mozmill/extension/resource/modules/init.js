@@ -60,7 +60,7 @@ function attachEventListeners(window) {
   var pageShowHandler = function(event) {
     var tab = window.gBrowser.getBrowserForDocument(event.target);
     if (tab)
-      tab.documentLoaded = true;
+      tab.mozmillDocumentLoaded = true;
 
     // We need to add/remove the unload/pagehide event listeners to preserve caching.
     window.gBrowser.addEventListener("beforeunload", beforeUnloadHandler, true);
@@ -75,7 +75,7 @@ function attachEventListeners(window) {
 
       var tab = window.gBrowser.getBrowserForDocument(event.target);
       if (tab)
-        tab.documentLoaded = true;
+        tab.mozmillDocumentLoaded = true;
     
       // We need to add/remove the unload event listener to preserve caching.
       window.gBrowser.addEventListener("beforeunload", beforeUnloadHandler, true);
@@ -87,7 +87,7 @@ function attachEventListeners(window) {
   var beforeUnloadHandler = function(event) {
     var tab = window.gBrowser.getBrowserForDocument(event.target);
     if (tab)
-      tab.documentLoaded = false;
+      tab.mozmillDocumentLoaded = false;
 
     window.gBrowser.removeEventListener("beforeunload", beforeUnloadHandler, true);
   };
@@ -98,7 +98,7 @@ function attachEventListeners(window) {
     if (event.persisted) {
       var tab = window.gBrowser.getBrowserForDocument(event.target);
       if (tab)
-        tab.documentLoaded = false;
+        tab.mozmillDocumentLoaded = false;
 
       window.gBrowser.removeEventListener("beforeunload", beforeUnloadHandler, true);
     }
@@ -107,7 +107,7 @@ function attachEventListeners(window) {
   
   // Add the event handlers to the tabbedbrowser once its window has loaded
   window.addEventListener("load", function(event) {
-    window.documentLoaded = true;
+    window.mozmillDocumentLoaded = true;
 
 
     if (window.gBrowser) {
@@ -145,7 +145,7 @@ function initialize() {
     // For windows or dialogs already open we have to explicitly set the property
     // otherwise windows which load really quick never gets the property set and
     // we fail to create the controller
-    win.documentLoaded = true;
+    win.mozmillDocumentLoaded = true;
   };
 }
 
