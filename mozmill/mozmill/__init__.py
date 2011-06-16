@@ -496,6 +496,31 @@ class CLI(mozrunner.CLI):
         # add and parse options
         mozrunner.CLI.__init__(self, args)
 
+        # read tests from manifests (if any)
+        self.manifest = manifestparser.TestManifest(manifests=self.options.manifests)
+
+        # expand user directory and check existence for the test
+        for test in self.options.tests:
+            testpath = os.path.expanduser(test)
+            realpath = os.path.realpath(testpath)
+            if not os.path.exists(testpath):
+                raise Exception("Not a valid test file/directory: %s" % test)
+
+            # collect the tests
+            def testname(t):
+                if os.path.isdir(realpath):
+                    return os.path.join(test, os.path.relpath(t, testpath))
+                return test
+            tests = [{'name': testname(t), 'path': t}
+                     for t in collect_tests(testpath)]
+            self.manifest.tests.extend(tests)
+
+        # list the tests and exit if specified
+        if self.options.list_tests:
+            for test in self.manifest.tests:
+                print test['path']
+            self.parser.exit()
+
         # instantiate event handler plugins
         self.event_handlers = []
         for name, handler_class in self.handlers.items():
@@ -514,25 +539,6 @@ class CLI(mozrunner.CLI):
             if _handler is not None:
                 self.event_handlers.append(_handler)
 
-        # read tests from manifests (if any)
-        self.manifest = manifestparser.TestManifest(manifests=self.options.manifests)
-
-        # expand user directory and check existence for the test
-        for test in self.options.tests:
-            test = os.path.expanduser(test)
-            if not os.path.exists(test):
-                raise Exception("Not a valid test file/directory: %s" % test)
-
-            # collect the tests
-            tests = [{'test': os.path.basename(t), 'path': t}
-                     for t in collect_tests(test)]
-            self.manifest.tests.extend(tests)
-
-        # list the tests and exit if specified
-        if self.options.list_tests:
-            for test in self.manifest.tests:
-                print test['path']
-            self.parser.exit()
 
     def add_options(self, parser):
         """add command line options"""
