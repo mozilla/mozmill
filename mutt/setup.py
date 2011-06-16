@@ -38,13 +38,11 @@
 from setuptools import setup, find_packages
 import sys
 
-desc = """Test Harness for Mozmill"""
-
-
 PACKAGE_NAME = "mutt"
 PACKAGE_VERSION = "0.1"
+desc = """Test Harness for Mozmill"""
 
-deps = ['ManifestDestiny == 0.4.2']
+deps = ['ManifestDestiny == 0.5.1']
 
 # we only support python 2 right now
 assert sys.version_info[0] == 2

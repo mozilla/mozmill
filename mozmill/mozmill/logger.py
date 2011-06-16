@@ -31,7 +31,9 @@ class LoggerListener(object):
     self.custom_levels = {
      "TEST-START" : 21, # logging.INFO is 20
      "TEST-PASS": 22,
+     "TEST-EXPECTED-FAIL": 23,
      "TEST-UNEXPECTED-FAIL": 42,  # logging.ERROR is 40
+     "TEST-UNEXPECTED-PASS": 43,
     }
     for name in self.custom_levels:
       logging.addLevelName(self.custom_levels[name], name)
@@ -171,9 +173,15 @@ class LoggerListener(object):
     if test.get('skipped', False):
       self.logger.warning("%s | (SKIP) %s" % (test['name'], test.get('skipped_reason', '')))
     elif test['failed'] > 0:
-      self.logger.log(self.custom_levels["TEST-UNEXPECTED-FAIL"], "%s | %s" % (test['filename'], test['name']))
+      level = "TEST-UNEXPECTED-FAIL"
+      if self.mozmill.running_test.get('expected') == 'fail':
+        level = "TEST-EXPECTED-FAIL"
+      self.logger.log(self.custom_levels[level], "%s | %s" % (test['filename'], test['name']))
     else:
-      self.logger.log(self.custom_levels["TEST-PASS"], "%s | %s" % (test['filename'], test['name']))
+      level = "TEST-PASS"
+      if self.mozmill.running_test.get('expected') == 'fail':
+        level = "TEST-UNEXPECTED-PASS"
+      self.logger.log(self.custom_levels[level], "%s | %s" % (test['filename'], test['name']))
 
 
 class ColorFormatter(logging.Formatter):

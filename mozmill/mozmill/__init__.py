@@ -42,9 +42,9 @@ import socket
 import sys
 import traceback
 try:
-  import json
+    import json
 except:
-  import simplejson as json
+    import simplejson as json
 
 import jsbridge
 import manifestparser
@@ -111,9 +111,15 @@ class TestResults(object):
         if test.get('skipped', False):
             self.skipped.append(test)
         elif test['failed'] > 0:
-            self.fails.append(test)
+            if self.mozmill.running_test.get('expected') == 'fail':
+                self.passes.append(test)
+            else:
+                self.fails.append(test)
         else:
-            self.passes.append(test)
+            if self.mozmill.running_test.get('expected') == 'fail':
+                self.fails.append(test)
+            else:
+                self.passes.append(test)
 
 
 class MozMill(object):
@@ -191,6 +197,10 @@ class MozMill(object):
         self.handlers = [self.results]
         self.handlers.extend(handlers)
         for handler in self.handlers:
+          
+            # make the mozmill instance available to the handler
+            handler.mozmill = self
+            
             if hasattr(handler, 'events'):
                 for event, method in handler.events().items():
                     self.add_listener(method, eventType=event)
@@ -322,7 +332,7 @@ class MozMill(object):
         # run tests
         while tests:
             test = tests.pop(0)
-            
+            self.running_test = test
             if 'disabled' in test: # skip test
 
                 # see frame.js:events.endTest

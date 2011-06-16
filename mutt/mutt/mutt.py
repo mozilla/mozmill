@@ -40,9 +40,9 @@ import os
 import re
 import optparse
 import imp
+import tempfile
 import unittest
 
-from copy import copy
 from manifestparser import TestManifest
 from processhandler import ProcessHandler
 
@@ -206,23 +206,35 @@ def test_all_js(tests, options):
     # That just seems safer, no opportunity for cross-talk since
     # we are sorta using the framework to test itself
     results = JSResults()
+
     for t in tests:
+
+        # write a temporary manifest
+        manifest = TestManifest()
+        manifest.tests = [t]
+        fd, filename = tempfile.mkstemp(suffix='.ini')
+        os.close(fd)
+        fp = file(filename, 'w')
+        manifest.write(fp=fp)
+        fp.close()
 
         # get CLI arguments to mozmill
         args = []
-        if 'restart' in t:
-            args.append('--restart')
         if options.binary:
             args.extend(['-b', options.binary])
         args.append('--console-level=DEBUG')        
-        args.append('-t')
-        args.append(t['path'])
+        args.append('-m')
+        args.append(filename)
 
         # run the test
         proc = ProcessHandler("mozmill", args, os.getcwd())
         proc.run()
         status = proc.waitForFinish(timeout=300)
         results.acquire(t['name'], proc.output)
+
+        # remove the temporary manifest
+        os.remove(filename)
+        
     return results
 
 class JSResults(object):
@@ -243,8 +255,8 @@ class JSResults(object):
         self.text = {}
   
     def acquire(self, testname, buf):
-        passre = re.compile("^TEST-PASS.*")
-        failre = re.compile("^TEST-UNEXPECTED-FAIL.*")
+        passre = re.compile("^TEST-(PASS|EXPECTED-FAIL).*")
+        failre = re.compile("^TEST-UNEXPECTED-.*")
         tback = re.compile("^Traceback.*")
         excpt = re.compile("^Exception:.*")
 
