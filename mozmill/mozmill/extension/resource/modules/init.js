@@ -37,6 +37,44 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
+var frame = {};   Components.utils.import('resource://mozmill/modules/frame.js', frame);
+
+/**
+* Console listener which listens for error messages in the console and forwards
+* them to the Mozmill reporting system for output.
+*/
+function ConsoleListener() {
+ this.register();
+}
+ConsoleListener.prototype = {
+ observe: function(aMessage) {
+   var msg = aMessage.message;
+   var re = /^\[.*Error:.*(chrome|resource):\/\/.*/i;
+   if (msg.match(re)) {
+     frame.events.fail(aMessage);
+   }
+ },
+ QueryInterface: function (iid) {
+	if (!iid.equals(Components.interfaces.nsIConsoleListener) && !iid.equals(Components.interfaces.nsISupports)) {
+		throw Components.results.NS_ERROR_NO_INTERFACE;
+   }
+   return this;
+ },
+ register: function() {
+   var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"]
+                              .getService(Components.interfaces.nsIConsoleService);
+   aConsoleService.registerListener(this);
+ },
+ unregister: function() {
+   var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"]
+                              .getService(Components.interfaces.nsIConsoleService);
+   aConsoleService.unregisterListener(this);
+ }
+}
+
+// start listening
+var consoleListener = new ConsoleListener();
+
 var EXPORTED_SYMBOLS = ["mozmill"];
   
 const Cc = Components.classes;

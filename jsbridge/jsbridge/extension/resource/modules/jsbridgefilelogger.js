@@ -1,4 +1,7 @@
-var EXPORTED_SYMBOLS = ["gJsbridgeFileLogger"];
+var EXPORTED_SYMBOLS = ["JsbridgeFileLogger"];
+
+var Cc = Components.classes;
+var Ci = Components.interfaces;
 
 var gJsbridgeFileLogger = null;
 

@@ -6,5 +6,9 @@ var testErrorConsole = function() {
   controller.open("http://www.mozilla.org");
   controller.waitForPageLoad();
 
-  var syntaxError =
+  // syntax error
+  var syntaxError = ;
+  
+  // execution error
+  test();
 }
