@@ -197,7 +197,7 @@ class AddonManager(object):
         # if the addon is a directory, install all addons in it
         addons = [path]
         if not path.endswith('.xpi') and not os.path.exists(os.path.join(path, 'install.rdf')):
-            assert os.path.isdir(path)
+            assert os.path.isdir(path), "Addon '%s' cannot be installed" % path
             addons = [os.path.join(path, x) for x in os.listdir(path)]
 
         # install each addon

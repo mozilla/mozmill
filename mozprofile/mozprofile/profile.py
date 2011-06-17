@@ -85,7 +85,7 @@ class Profile(object):
         """
         self.cleanup()
         if self.create_new:
-            profile = None 
+            profile = None
         else:
             profile = self.profile
         self.__init__(profile=profile, addons=self.addon_manager.addons,

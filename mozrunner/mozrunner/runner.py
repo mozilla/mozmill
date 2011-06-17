@@ -47,7 +47,6 @@ import ConfigParser
 from utils import findInPath
 from mozprofile import *
 from mozprocess.processhandler import ProcessHandler
-from mozprocess.pid import get_pids
 
 ### python package method metadata by introspection
 try:
@@ -289,7 +288,7 @@ class ThunderbirdRunner(Runner):
 runners = {'firefox': FirefoxRunner,
            'thunderbird': ThunderbirdRunner}
 
-class CLI(object):
+class CLI(MozProfileCLI):
     """Command line interface."""
 
     module = "mozrunner"
@@ -324,16 +323,13 @@ class CLI(object):
     def add_options(self, parser):
         """add options to the parser"""
 
+        # add profile options
+        MozProfileCLI.add_options(self, parser)
+        
+        # add runner options
         parser.add_option('-b', "--binary",
                           dest="binary", help="Binary path.",
-                          metavar=None, default=None)        
-        parser.add_option('-p', "--profile",
-                         dest="profile", help="Profile path.",
-                         metavar=None, default=None)
-        parser.add_option('-a', "--addon", dest="addons",
-                         action='append',
-                         help="Addons paths to install",
-                         metavar=None, default=[])
+                          metavar=None, default=None)
         parser.add_option('--app', dest='app', default='firefox',
                           help="Application to use [DEFAULT: %default]")
         parser.add_option('--app-arg', dest='appArgs',
@@ -345,7 +341,8 @@ class CLI(object):
                               help="Print module information")
 
 
-    ### methods regarding introspecting data            
+    ### methods for introspecting data
+
     def get_metadata_from_egg(self):
         import pkg_resources
         ret = {}
@@ -365,11 +362,7 @@ class CLI(object):
                 print key + ": " + self.metadata[key]
 
     ### methods for running
-    def profile_args(self):
-        """arguments to instantiate the profile class"""
-        return dict(profile=self.options.profile,
-                    addons=self.options.addons)
-
+                
     def command_args(self):
         """additional arguments for the mozilla application"""
         return self.options.appArgs
