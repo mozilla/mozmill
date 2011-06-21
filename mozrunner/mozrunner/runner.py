@@ -277,6 +277,24 @@ class FirefoxRunner(Runner):
         names =['firefox']
     else:
         raise AssertionError("I don't know what platform you're on")
+    
+    def __init__(self, profile, **kwargs):
+        Runner.__init__(self, profile, **kwargs)
+
+        # Find application version number
+        if sys.platform == 'darwin':
+            appdir = os.path.join(os.path.realpath(self.binary), 'Contents', 'MacOS')
+        else:
+            appdir = os.path.dirname(os.path.realpath(self.binary))
+        appini = ConfigParser.RawConfigParser()
+        appini.read(os.path.join(appdir, 'application.ini'))
+        # Version needs to be of the form 3.6 or 4.0b and not the whole string
+        version = appini.get('App', 'Version').rstrip('0123456789pre').rstrip('.')
+        
+        # Disable compatibility check
+        preference = {'extensions.disableCompatibility.' + version: False}
+        self.profile.set_preferences(preference)
+        
 
 class ThunderbirdRunner(Runner):
     """Specialized Runner subclass for running Thunderbird"""
