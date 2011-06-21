@@ -108,13 +108,13 @@ var loadFile = function(path, collector) {
     Cr: Components.results,
     log: log,
     assert: new assertions.Assert(),
-    expect: new assertions.Expect(),
-    Expect: assertions.Expect,
-    Assert: assertions.Assert
+    expect: new assertions.Expect()
   }
+
   module.require = function (mod) {
     var loader = new securableModule.Loader({
-      rootPaths: [ios.newFileURI(file.parent).spec],
+      rootPaths: [ios.newFileURI(file.parent).spec,
+                  "resource://mozmill/modules/"],
       defaultPrincipal: "system",
       globals : { mozmill: mozmill,
                   elementslib: mozelement,      // This a quick hack to maintain backwards compatibility with 1.5.x
