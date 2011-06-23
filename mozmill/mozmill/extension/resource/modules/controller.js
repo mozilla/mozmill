@@ -308,10 +308,8 @@ var MozMillController = function (window) {
   Components.utils.import('resource://mozmill/modules/mozmill.js', this.mozmillModule);
 
   utils.waitFor(function() {
-    return window != null &&
-           ("mozmillDocumentLoaded" in window) &&
-           window.mozmillDocumentLoaded;
-  }, "controller(): Window could not be initialized.");
+    return window != null && this.isLoaded();
+  }, "controller(): Window could not be initialized.", undefined, undefined, this);
 
   if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined ) {
     this.prototype = new utils.Copy(this.prototype);
@@ -634,9 +632,16 @@ MozMillController.prototype.radio = function(el)
   return true;
 }
 
-MozMillController.prototype.isLoaded = function() {
-  return this.window.mozmillDocumentLoaded;
-};
+/**
+ * Checks if the specified window has been loaded
+ *
+ * @param {DOMWindow} [window=this.window] Window object to check for loaded state
+ */
+MozMillController.prototype.isLoaded = function (window) {
+  var win = window || this.window;
+
+  return ("mozmillDocumentLoaded" in win) && win.mozmillDocumentLoaded;
+}
 
 MozMillController.prototype.waitFor = function(callback, message, timeout,
                                                interval, thisObject) {
@@ -1289,9 +1294,9 @@ function browserAdditions (controller) {
 
     // Wait until the content in the tab has been loaded
     this.waitFor(function() {
-      return ("mozmillDocumentLoaded" in owner && owner.mozmillDocumentLoaded);
-    }, "controller.waitForPageLoad(): Timeout waiting for page loaded.", timeout, aInterval);
-
+      return this.isLoaded(owner);
+    }, "controller.waitForPageLoad(): Timeout waiting for page loaded.",
+      timeout, aInterval, this);
     frame.events.pass({'function':'controller.waitForPageLoad()'});
   }
 }
