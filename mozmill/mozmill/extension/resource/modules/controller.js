@@ -474,7 +474,16 @@ MozMillController.prototype.refresh = function(){
   return true;
 }
 
+function logDeprecated(funcName, message) {
+   frame.log({'function': funcName + '() - DEPRECATED', 'message': funcName + '() is deprecated' + message});
+}
+
+function logDeprecatedAssert(funcName) {
+   logDeprecated('controller.' + funcName, '. use the generic `assert` module instead');
+}
+
 MozMillController.prototype.assertText = function (el, text) {
+  logDeprecatedAssert("assertText");
   //this.window.focus();
   var n = el.getNode();
 
@@ -490,6 +499,8 @@ MozMillController.prototype.assertText = function (el, text) {
 
 //Assert that a specified node exists
 MozMillController.prototype.assertNode = function (el) {
+  logDeprecatedAssert("assertNode");
+  
   //this.window.focus();
   var element = el.getNode();
   if (!element){
@@ -502,6 +513,8 @@ MozMillController.prototype.assertNode = function (el) {
 
 // Assert that a specified node doesn't exist
 MozMillController.prototype.assertNodeNotExist = function (el) {
+  logDeprecatedAssert("assertNodeNotExist");
+  
   //this.window.focus();
   try {
     var element = el.getNode();
@@ -521,6 +534,8 @@ MozMillController.prototype.assertNodeNotExist = function (el) {
 
 //Assert that a form element contains the expected value
 MozMillController.prototype.assertValue = function (el, value) {
+  logDeprecatedAssert("assertValue");
+  
   //this.window.focus();
   var n = el.getNode();
 
@@ -537,6 +552,7 @@ MozMillController.prototype.assertValue = function (el, value) {
  */
 MozMillController.prototype.assert = function(callback, message, thisObject)
 {
+  logDeprecatedAssert("assert");
   utils.assert(callback, message, thisObject);
 
   frame.events.pass({'function': ": controller.assert('" + callback + "')"});
@@ -545,6 +561,8 @@ MozMillController.prototype.assert = function(callback, message, thisObject)
 
 //Assert that a provided value is selected in a select element
 MozMillController.prototype.assertSelected = function (el, value) {
+  logDeprecatedAssert("assertSelected");
+  
   //this.window.focus();
   var n = el.getNode();
   var validator = value;
@@ -559,6 +577,8 @@ MozMillController.prototype.assertSelected = function (el, value) {
 
 //Assert that a provided checkbox is checked
 MozMillController.prototype.assertChecked = function (el) {
+  logDeprecatedAssert("assertChecked");
+  
   //this.window.focus();
   var element = el.getNode();
 
@@ -572,6 +592,8 @@ MozMillController.prototype.assertChecked = function (el) {
 
 // Assert that a provided checkbox is not checked
 MozMillController.prototype.assertNotChecked = function (el) {
+  logDeprecatedAssert("assertNotChecked");
+  
   var element = el.getNode();
 
   if (!element) {
@@ -593,6 +615,8 @@ MozMillController.prototype.assertNotChecked = function (el) {
  * if val is specified, will return true if the property exists and has the correct value
  */
 MozMillController.prototype.assertJSProperty = function(el, attrib, val) {
+  logDeprecatedAssert("assertJSProperty");
+  
   var element = el.getNode();
   if (!element){
     throw new Error("could not find element " + el.getInfo());
@@ -616,6 +640,8 @@ MozMillController.prototype.assertJSProperty = function(el, attrib, val) {
  * if val is specified, will return true if the property doesn't exist or doesn't have the specified value
  */
 MozMillController.prototype.assertNotJSProperty = function(el, attrib, val) {
+  logDeprecatedAssert("assertNotJSProperty");
+  
   var element = el.getNode();
   if (!element){
     throw new Error("could not find element " + el.getInfo());
@@ -639,6 +665,8 @@ MozMillController.prototype.assertNotJSProperty = function(el, attrib, val) {
  * if val is specified, will return true if the property exists and has the correct value
  */
 MozMillController.prototype.assertDOMProperty = function(el, attrib, val) {
+  logDeprecatedAssert("assertDOMProperty");
+  
   var element = el.getNode();
   if (!element){
     throw new Error("could not find element " + el.getInfo());
@@ -666,6 +694,8 @@ MozMillController.prototype.assertDOMProperty = function(el, attrib, val) {
  * if val is specified, will return true if the property doesn't exist or doesn't have the specified value
  */
 MozMillController.prototype.assertNotDOMProperty = function(el, attrib, val) {
+  logDeprecatedAssert("assertNotDOMProperty");
+  
   var element = el.getNode();
   if (!element){
     throw new Error("could not find element " + el.getInfo());
@@ -687,15 +717,13 @@ MozMillController.prototype.assertNotDOMProperty = function(el, attrib, val) {
 
 // deprecated - Use assertNotJSProperty or assertNotDOMProperty instead
 MozMillController.prototype.assertProperty = function(el, attrib, val) {
-  frame.log({'function':'controller.assertProperty() - DEPRECATED', 
-                      'message':'assertProperty(el, attrib, val) is deprecated. Use assertJSProperty(el, attrib, val) or assertDOMProperty(el, attrib, val) instead'});
+  logDeprecatedAssert("assertProperty");
   return this.assertJSProperty(el, attrib, val);
 };
 
 // deprecated - Use assertNotJSProperty or assertNotDOMProperty instead
 MozMillController.prototype.assertPropertyNotExist = function(el, attrib) {
-  frame.log({'function':'controller.assertPropertyNotExist() - DEPRECATED',
-                   'message':'assertPropertyNotExist(el, attrib) is deprecated. Use assertNotJSProperty(el, attrib) or assertNotDOMProperty(el, attrib) instead'});
+  logDeprecatedAssert("assertPropertyNotExist");
   return this.assertNotJSProperty(el, attrib);
 };
 
@@ -703,6 +731,8 @@ MozMillController.prototype.assertPropertyNotExist = function(el, attrib) {
 // The Safari workaround results in additional requests
 // for broken images (in Safari only) but works reliably
 MozMillController.prototype.assertImageLoaded = function (el) {
+  logDeprecatedAssert("assertImageLoaded");
+  
   //this.window.focus();
   var img = el.getNode();
   if (!img || img.tagName != 'IMG') {
