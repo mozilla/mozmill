@@ -235,16 +235,12 @@ class Runner(object):
         """Wait for the app to exit."""
         if self.process_handler is None:
             return
-        print "DEBUG::Calling wait for finish now"
         self.process_handler.waitForFinish(timeout=timeout)
 
     def stop(self):
         """Kill the app"""
         if self.process_handler is None:
             return
-
-        print "DEBUG: stop is calling kill"
-
         self.process_handler.kill()
 
     def reset(self):
@@ -403,7 +399,7 @@ class CLI(MozProfileCLI):
         """Starts the runner and waits for Firefox to exitor Keyboard Interrupt.
         Shoule be overwritten to provide custom running of the runner instance."""
         runner.start()
-        print 'Started:', ' '.join(runner.command)
+        print 'Starting:', ' '.join(runner.command)
         try:
             runner.wait()
         except KeyboardInterrupt:
