@@ -918,9 +918,10 @@ function browserAdditions (controller) {
 
     // Wait until the content in the tab has been loaded
     this.waitFor(function() {
-      return this.isLoaded(owner);
-    }, "controller.waitForPageLoad(): Timeout waiting for page loaded.",
-      timeout, aInterval, this);
+        return this.isLoaded(tab);
+      },
+      "controller.waitForPageLoad(): Timeout waiting for page loaded.",
+       timeout, aInterval, this);
     frame.events.pass({'function':'controller.waitForPageLoad()'});
   }
 }
