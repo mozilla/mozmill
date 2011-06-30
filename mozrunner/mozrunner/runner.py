@@ -278,10 +278,7 @@ class FirefoxRunner(Runner):
         Runner.__init__(self, profile, **kwargs)
 
         # Find application version number
-        if sys.platform == 'darwin':
-            appdir = os.path.join(os.path.realpath(self.binary), 'Contents', 'MacOS')
-        else:
-            appdir = os.path.dirname(os.path.realpath(self.binary))
+        appdir = os.path.dirname(os.path.realpath(self.binary))
         appini = ConfigParser.RawConfigParser()
         appini.read(os.path.join(appdir, 'application.ini'))
         # Version needs to be of the form 3.6 or 4.0b and not the whole string
