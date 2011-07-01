@@ -81,7 +81,29 @@ const TEST_DATA = [
   { fun: "doesNotThrow", params: [function () { throw new Error(); }, Err, "Catches wrong error"],
     result: false, throws: Error},
   { fun: "doesNotThrow", params: [function () { throw new Error(); }, undefined, "Throws error"],
-    result: false, throws: Error}
+    result: false, throws: Error},
+
+  { fun: "isNumber", params: [1, "1 is a number"], result: true}, 
+  { fun: "isNumber", params: [NaN, "NaN is a number"], result: true}, 
+  { fun: "isNumber", params: [new Number('1'), "new Number is a number"], result: true}, 
+  { fun: "isNumber", params: ["1", "'1' is not a number"], result: false}, 
+  { fun: "isNumber", params: [false, "false is not a number"], result: false},
+
+  { fun: "isString", params: ["", "'' is a string"], result: true},
+  { fun: "isString", params: [new String(), "new String creates a string"], result: true},
+  { fun: "isString", params: [false, "false is not a string"], result: false},
+
+  { fun: "isArray", params: [[], "[] is an array"], result: true},
+  { fun: "isArray", params: [new Array(), "new Array creates an array"], result: true},
+  { fun: "isArray", params: ["", "A string is not an array"], result: false},
+
+  { fun: "isObject", params: [{}, "{} is an object"], result: true},
+  { fun: "isObject", params: [new Object(), "new Object creates an object"], result: true},
+  { fun: "isObject", params: [2, "A number is not an object"], result: false},
+
+  { fun: "isFunction", params: [function() {}, "function(){} is a function"], result: true},
+  { fun: "isFunction", params: [{}, "an object is not a function"], result: false}
+
 ];
 
 /**

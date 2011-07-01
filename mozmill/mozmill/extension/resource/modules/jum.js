@@ -38,7 +38,9 @@
 
 var EXPORTED_SYMBOLS = ["assert", "assertTrue", "assertFalse", "assertEquals", "assertNotEquals",
                         "assertNull", "assertNotNull", "assertUndefined", "assertNotUndefined",
-                        "assertNaN", "assertNotNaN", "assertArrayContains", "fail", "pass"];
+                        "assertNaN", "assertNotNaN", "assertArrayContains", "assertNumber", 
+                        "assertFunction", "assertArray", "assertObject", "assertString",
+                        "fail", "pass"];
 
 
 // Array.isArray comes with JavaScript 1.8.5 (Firefox 4)
@@ -232,6 +234,18 @@ var assertNotNaN = function (value, comment) {
   }
 }
 
+var assertArray = function(value, comment) {
+    if(Array.isArray(value)) {
+        frame.events.pass({'function': 'jum.assertArray', 'comment': comment,
+            'value':ifJSONable(value)});
+        return true;
+    } else {
+        frame.events.fail({'function': 'jum.assertArray', 'comment': comment,
+            'value':ifJSONable(value)});
+        return false;
+    }
+}
+
 var assertArrayContains = function(array, value, comment) {
   if (!Array.isArray(array)) {
     frame.events.fail({'function':'jum.assertArrayContains', 'comment':comment,
@@ -250,6 +264,54 @@ var assertArrayContains = function(array, value, comment) {
   frame.events.fail({'function':'jum.assertArrayContains', 'comment':comment,
                      'value1':ifJSONable(array), 'value2':ifJSONable(value)});
   return false;
+}
+
+var assertFunction = function(value, comment) {
+    if(typeof value === 'function') {
+        frame.events.pass({'function': 'jum.assertFunction', 'comment': comment,
+            'value':ifJSONable(value)});
+        return true;
+    } else {
+        frame.events.fail({'function': 'jum.assertFunction', 'comment': comment,
+            'value':ifJSONable(value)});
+        return false;
+    }
+}
+
+var assertNumber = function(value, comment) {
+    if(Object.prototype.toString.apply(value) === '[object Number]') {
+        frame.events.pass({'function': 'jum.assertNumber', 'comment': comment,
+            'value':ifJSONable(value)});
+        return true;
+    } else {
+        frame.events.fail({'function': 'jum.assertNumber', 'comment': comment,
+            'value':ifJSONable(value)});
+        return false;
+    }
+}
+
+var assertString = function(value, comment) {
+    if(Object.prototype.toString.apply(value) === '[object String]') {
+        frame.events.pass({'function': 'jum.assertString', 'comment': comment,
+            'value':ifJSONable(value)});
+        return true;
+    } else {
+        frame.events.fail({'function': 'jum.assertString', 'comment': comment,
+            'value':ifJSONable(value)});
+        return false;
+    }
+}
+
+var assertObject = function(value, comment) {
+    if(Object.prototype.toString.apply(value) === '[object Object]') {
+        frame.events.pass({'function': 'jum.assertObject', 'comment': comment,
+            'value':ifJSONable(value)});
+        return true;
+    } else {
+        frame.events.fail({'function': 'jum.assertObject', 'comment': comment,
+            'value':ifJSONable(value)});
+        return false;
+    }
 }
 
 var fail = function (comment) {
