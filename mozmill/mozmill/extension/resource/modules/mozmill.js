@@ -42,8 +42,7 @@ var EXPORTED_SYMBOLS = ["controller", "utils", "elementslib", "os",
                         "newMail3PaneController", "getMail3PaneController", 
                         "wm", "platform", "getAddrbkController", 
                         "getMsgComposeController", "getDownloadsController",
-                        "Application",
-                        "cleanQuit",
+                        "Application", "cleanQuit",
                         "getPlacesController", 'isMac', 'isLinux', 'isWindows',
                         "firePythonCallback"
                        ];
@@ -101,6 +100,20 @@ if (Application == undefined) {
   // Default to Firefox
   var Application = 'Firefox';
 }
+
+// get startup time if available
+// see http://blog.mozilla.com/tglek/2011/04/26/measuring-startup-speed-correctly/
+var startupInfo = {};
+try {
+    var _startupInfo = Components.classes["@mozilla.org/toolkit/app-startup;1"]
+        .getService(Components.interfaces.nsIAppStartup).getStartupInfo();
+    for (var i in _startupInfo) {
+        startupInfo[i] = _startupInfo[i].getTime(); // convert from Date object to ms since epoch
+    }
+} catch(e) {
+    startupInfo = null; 
+}
+
 
 // keep list of installed addons to send to jsbridge for test run report
 var addons = "null"; // this will be JSON parsed
