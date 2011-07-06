@@ -24,6 +24,9 @@ class ProcessHandler(object):
         It adds a kill() method which allows it to be stopped explicitly.
         """
 
+        MAX_IOCOMPLETION_PORT_NOTIFICATION_DELAY = 180
+        MAX_PROCESS_KILL_DELAY = 30
+
         def __init__(self,
                      args,
                      bufsize=0,
@@ -61,11 +64,12 @@ class ProcessHandler(object):
 
         def __del__(self, _maxint=sys.maxint):
             if sys.platform == "win32":
-                if (self._handle):
+                if self._handle:
                     self._internal_poll(_deadstate=_maxint)
-                if (self._handle or self._job or self._io_port):
+                if self._handle or self._job or self._io_port:
                     self._cleanup()
-            subprocess.Popen.__del__(self)
+            else:
+                subprocess.Popen.__del__(self)
 
         def kill(self):
             self.returncode = 0
@@ -82,7 +86,8 @@ class ProcessHandler(object):
                         self.returncode = winprocess.GetExitCodeProcess(self._handle)
                         self._cleanup()
                 else:
-                    print "Process no longer exists"
+                    pass
+                    # print "Process no longer exists"
             else:
                 if not self._ignore_children:
                     try:
@@ -104,14 +109,14 @@ class ProcessHandler(object):
             self._cleanup()
             return self.returncode
 
-        def wait(self, timeout=None):
+        def wait(self):
             """ Popen.wait
                 Called to wait for a running process to shut down and return
                 its exit code
                 Returns the main process's exit code
             """
             # This call will be different for each OS
-            self.returncode = self._wait(timeout=timeout)
+            self.returncode = self._wait()
             self._cleanup()
             return self.returncode
 
@@ -198,6 +203,10 @@ class ProcessHandler(object):
                         # Assign the job object to the process
                         winprocess.AssignProcessToJobObject(self._job, int(hp))
 
+                        # It's overkill, but we use Queue to signal between threads
+                        # because it handles errors more gracefully than event or condition.
+                        self._process_events = Queue()
+
                         # Spin up our thread for managing the IO Completion Port
                         self._procmgrthread = threading.Thread(target = self._procmgr)
                     except:
@@ -224,9 +233,6 @@ class ProcessHandler(object):
                 if not (self._io_port) or not (self._job):
                     return
 
-                # It's overkill, but we use Queue to signal between threads
-                # because it handles errors more gracefully than event or condition.
-                self._process_events = Queue()
                 try:
                     self._poll_iocompletion_port()
                 except KeyboardInterrupt:
@@ -256,7 +262,7 @@ class ProcessHandler(object):
                         # IO Completion port and actually killing the children, and we
                         # don't want to mistake that situation for the situation of an unexpected
                         # parent abort (which is what we're looking for here).
-                        if diff.seconds > 180:
+                        if diff.seconds > self.MAX_IOCOMPLETION_PORT_NOTIFICATION_DELAY:
                             print >> sys.stderr, "Parent process exited without \
                                                   killing children, attempting to kill children"
                             self.kill()
@@ -314,7 +320,7 @@ class ProcessHandler(object):
                             # We don't care about anything else
                             pass
 
-            def _wait(self, timeout=None):
+            def _wait(self):
                 
                 # First, check to see if the process is still running
                 if self._handle:
@@ -331,7 +337,10 @@ class ProcessHandler(object):
                     # function because events just didn't have robust enough error
                     # handling on pre-2.7 versions
                     try:
-                        item = self._process_events.get(timeout=timeout)
+                        # timeout is the max amount of time the procmgr thread will wait for
+                        # child processes to shutdown before killing them with extreme prejudice.
+                        item = self._process_events.get(timeout=self.MAX_IOCOMPLETION_PORT_NOTIFICATION_DELAY +
+                                                                self.MAX_PROCESS_KILL_DELAY)
                         if (item[self.pid] == 'FINISHED'):
                             self._process_events.task_done()
                     except:
@@ -350,19 +359,12 @@ class ProcessHandler(object):
                         self._cleanup()
                         return self.returncode
 
-                    if timeout is None:
-                        timeout = -1
-                    else:
-                        # We need that timeout in milliseconds
-                        timeout = timeout * 1000
-
                     rc = None
                     if self._handle:
-                        rc = winprocess.WaitForSingleObject(self._handle, timeout)
+                        rc = winprocess.WaitForSingleObject(self._handle, -1)
 
                     if rc == winprocess.WAIT_TIMEOUT:
-                        # Timed out waiting for process to close, attempt to kill
-                        # the process directly.
+                        # The process isn't dead, so kill it
                         print "Timed out waiting for process to close, attempting TerminateProcess"
                         self.kill()
                     elif rc == winprocess.WAIT_OBJECT_0:
@@ -415,63 +417,30 @@ class ProcessHandler(object):
                     self._handle = None
 
         elif sys.platform in ('darwin', 'linux2', 'sunos5', 'solaris'):
-            def _timed_wait_callback(self, callback_func, timeout):
-                """ This function is used by these platforms to handle their wait code.
-                    It runs a wait loop with the given timeout and calls back into
-                    a function (callback_func) with the given timeout parmeter
-                    Note that timeout is always in seconds
-                """
-                if timeout is None:
-                    if not self._ignore_children:
-                        if not callback_func(timeout):
-                            # The call failed, throw
-                            raise OSError("Error waiting for process to close")
-                        return self.returncode
-                    else:
-                        # For non-group wait, call base class
-                        subprocess.Popen.wait(self)
-                        return self.returncode
-                done = False
-            
-                now = starttime = time.time()
-                diff = now - starttime
-                while (diff < timeout and not done):
-                    if not self._ignore_children:
-                        done = not callback_func(timeout)
-                    else:
-                        if subprocess.Popen.poll(self) is not None:
-                            done = True
 
-                    now = time.time()
-                    diff = now - starttime
-                if not done:
-                    # We have timed out, attempt kill
-                    print >> sys.stderr, "Wait timed out, attempting kill"
-                    self.kill()
-
-                return self.returncode
-
-            def _wait(self, timeout=None):
+            def _wait(self):
                 """ Haven't found any reason to differentiate between these platforms
                     so they all use the same wait callback.  If it is necessary to
-                    craft different styles of wait, then a new wait callback
+                    craft different styles of wait, then a new _wait method
                     could be easily implemented.
                 """
-                
-                def _wait_callback(timeout):
-                    """ Returns True if wait completes successfully, false otherwise """
+
+                if not self._ignore_children:
                     try:
-                        os.waitpid(self.pid, 0)
+                        # os.waitpid returns a (pid, status) tuple
+                        return os.waitpid(self.pid, 0)[1]
                     except OSError, e:
                         if getattr(e, "errno", None) != 10:
                             # Error 10 is "no child process", which could indicate normal 
                             # close
                             print >> sys.stderr, "Encountered error waiting for pid to close: %s" % e
-                            return False
-                    return True
-                
-                self.returncode = self._timed_wait_callback(_wait_callback, timeout)
-                return self.returncode
+                            raise
+                        return 0
+                        
+                else:
+                    # For non-group wait, call base class
+                    subprocess.Popen.wait(self)
+                    return self.returncode
             
             def _cleanup(self):
                 pass
@@ -480,7 +449,7 @@ class ProcessHandler(object):
             # An unrecognized platform, we will call the base class for everything
             print >> sys.stderr, "Unrecognized platform, process groups may not be managed properly"
 
-            def _wait(self, timeout=timeout):
+            def _wait(self):
                 self.returncode = subprocess.Popen.wait(self)
                 return self.returncode
 
@@ -639,7 +608,7 @@ class ProcessHandler(object):
         else:
             self.onFinish()
 
-        status = self.proc.wait(timeout)
+        status = self.proc.wait()
         return status
 
     """
