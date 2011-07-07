@@ -28,3 +28,6 @@ class ModuleTest(unittest.TestCase):
         self.assertEqual(len(results.passes), passes, "Passes should match")
         self.assertEqual(len(results.fails), fails, "Fails should match")
         self.assertEqual(len(results.skipped), skips, "Skips should match")
+
+if __name__ == '__main__':
+    unittest.main()

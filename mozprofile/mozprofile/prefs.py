@@ -5,6 +5,7 @@ user preferences
 """
 
 import os
+import re
 from ConfigParser import SafeConfigParser as ConfigParser
 
 try:
@@ -17,6 +18,8 @@ class PreferencesReadError(Exception):
 
 
 class Preferences(object):
+    """assembly of preferences from various sources"""
+    
     def __init__(self, prefs=None):
         self._prefs = []
         if prefs:
@@ -38,7 +41,7 @@ class Preferences(object):
         self.add(self.read(path))
 
     def __call__(self):
-        return dict(self._prefs)
+        return self._prefs
 
     @classmethod
     def cast(cls, value):
@@ -51,6 +54,8 @@ class Preferences(object):
         - anything enclosed in single quotes will be treated as a string with the ''s removed from both sides
         """
 
+        if not isinstance(value, basestring):
+            return value # no op
         quote = "'"
         if value == 'true':
             return  True
@@ -101,6 +106,8 @@ class Preferences(object):
 
     @classmethod
     def read_ini(cls, path, section=None):
+        """read preferences from an .ini file"""
+        
         parser = ConfigParser()
         parser.read(path)
 
@@ -116,6 +123,8 @@ class Preferences(object):
 
     @classmethod
     def read_json(cls, path):
+        """read preferences from a JSON blob"""
+        
         prefs = json.loads(file(path).read())
 
         if type(prefs) not in [list, dict]:
@@ -133,6 +142,70 @@ class Preferences(object):
             if not [isinstance(i, j) for j in types]]:
             raise PreferencesReadError("Only bool, string, and int values allowed")
         return prefs
+
+    @classmethod
+    def read_prefs(cls, path, pref_setter='user_pref'):
+        """read preferences from (e.g.) prefs.js"""
+        
+        comment = re.compile('/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/', re.MULTILINE)
+
+        token = '##//' # magical token
+        lines = [i.strip() for i in file(path).readlines() if i.strip()]
+        _lines = []
+        for line in lines:
+            if line.startswith('#'):
+                continue
+            if '//' in line:
+                line = line.replace('//', token)
+            _lines.append(line)
+        string = '\n'.join(_lines)
+        string = re.sub(comment, '', string)
+
+        retval = []
+        def pref(a, b):
+            retval.append((a, b))
+        lines = [i.strip().rstrip(';') for i in string.split('\n') if i.strip()]
+            
+        _globals = {'retval': retval, 'true': True, 'false': False}
+        _globals[pref_setter] = pref
+        for line in lines:
+            try:
+                eval(line, _globals, {})
+            except SyntaxError:
+                print line
+                raise
+
+        # de-magic the token
+        for index, (key, value) in enumerate(retval):
+            if isinstance(value, basestring) and token in value:
+                retval[index] = (key, value.replace(token, '//'))
+                
+        return retval
+
+    @classmethod
+    def write(_file, prefs, pref_string='user_pref("%s", %s);'):
+        """write preferences to a file"""
+        
+        if isinstance(_file, basestring):
+            f = file(_file, 'w')
+        else:
+            f = _file
+
+        if isinstance(prefs, dict):
+            prefs = prefs.items()
+
+        for key, value in prefs:
+            if value is True:
+                print >> f, pref_string % (key, 'true')
+            elif value is False:
+                print >> f, pref_string % (key, 'false')
+            elif isinstance(value, basestring):
+                print >> f, pref_string % (key, repr(string(value)))
+            else:
+                print >> f, pref_string % (key, value) # should be numeric!
+
+        if isinstance(_file, basestring):
+            f.close()
 
 if __name__ == '__main__':
     pass
