@@ -71,6 +71,13 @@ extension_path = os.path.join(basedir, 'extension')
 
 mozmillModuleJs = "Components.utils.import('resource://mozmill/modules/mozmill.js')"
 
+try:
+    import pkg_resources
+    version = pkg_resources.get_distribution('mozmill').version
+except:
+    # pkg_resources not available
+    version = None
+
 class LoggerListener(object):
     cases = {
         'mozmill.pass':   lambda string: logger.info('Step Pass: ' + string),
@@ -401,6 +408,7 @@ class MozMill(object):
             self.endtime = datetime.utcnow()
 
         report = {'report_type': self.report_type,
+                  'mozmill_version': version,
                   'time_start': self.starttime.strftime(format),
                   'time_end': self.endtime.strftime(format),
                   'time_upload': 'n/a',
