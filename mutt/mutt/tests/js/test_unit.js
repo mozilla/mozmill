@@ -17,15 +17,6 @@ var testAsserts = function() {
   jum.assertNotNaN(4);
   jum.assertArrayContains(['a', 'k', 9, 25], 'a');
   jum.assertArrayContains(['a', 'k', 9, 25], 9);
-  jum.assertFunction(function(){});
-  jum.assertNumber(1);
-  jum.assertNumber(new Number('1'));
-  jum.assertString('');
-  jum.assertString(new String());
-  jum.assertArray([]);
-  jum.assertArray(new Array('1','2','3'));
-  jum.assertObject({});
-  jum.assertObject(new Object());
   jum.pass();
 }
 testAsserts.meta = {'litmusids':[2345678]}
@@ -55,10 +46,5 @@ var testNotAsserts = function() {
   jum.assertArrayContains(['a', 'k', 9], 25);
   jum.assertArrayContains(['a', 'k', 9, new Object()], 25);
   jum.assertArrayContains(['a', 'k', 9, new Object()], new Object());
-  jum.assertFunction(false);
-  jum.assertNumber(false);
-  jum.assertString(['a','b','c']);
-  jum.assertArray(false);
-  jum.assertObject(false);
   jum.fail();
 }
