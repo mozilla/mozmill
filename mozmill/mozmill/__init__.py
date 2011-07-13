@@ -441,14 +441,8 @@ class MozMill(object):
 
         # wait for the runner to stop
         self.runner.wait(timeout=timeout)
-        x = 0
-        while x < timeout:
-            if self.endRunnerCalled:
-                break
-            x += 0.25
-            sleep(0.25)
-        else:
-            raise Exception('endRunner was never called. There must have been a failure in the framework')
+        if self.runner.is_running():
+            raise Exception('client process shutdown unsucessful')
 
     def stop(self):
         """cleanup and invoking of final handlers"""

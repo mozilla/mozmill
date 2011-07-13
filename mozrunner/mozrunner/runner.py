@@ -211,7 +211,7 @@ class Runner(object):
 
         return repository
 
-    def is_running():
+    def is_running(self):
         return self.process_handler is not None
 
     def start(self):
