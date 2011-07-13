@@ -81,23 +81,24 @@ class JSObject(object):
         """
         result = create_jsobject(self._bridge_, name, override_set=True)
         return result
+
+    def __attributes__(self):
+        """returns the attributes in the object"""
+        return self._bridge_.describe(self._name_)['attributes']
         
     def __iter__(self):
-        attributes = self._bridge_.describe(self._name_)['attributes']
-        for i in attributes:
+        for i in self.__attributes__():
           yield getattr(self, i)
 
     def __getattr__(self, name):
         """Get the object from jsbridge. 
-        
         Handles lazy loading of all attributes of self."""
+
         # A little hack so that ipython returns all the names.
         if name == '_getAttributeNames':
-            return lambda : self._bridge_.describe(self._name_)['attributes']
+            return self.__attributes__
             
-        attributes = self._bridge_.describe(self._name_)['attributes']
-
-        if name in attributes:
+        if name in self.__attributes__():
             return self.__jsget__(self._name_ + '["'+ name +'"]')
         else:
             raise AttributeError(name + " is undefined.")

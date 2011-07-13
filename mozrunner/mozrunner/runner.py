@@ -85,7 +85,7 @@ class Runner(object):
         # find the binary
         self.binary = self.__class__.get_binary(binary)
         if not os.path.exists(self.binary):
-            raise Exception("Binary path does not exist "+self.binary)
+            raise OSError("Binary path does not exist: %s" % self.binary)
 
         self.cmdargs = cmdargs or []
         _cmdargs = [i for i in self.cmdargs
@@ -151,7 +151,7 @@ class Runner(object):
             except: # XXX not sure what type of exception this should be
                 pass
 
-            # search for the binary in the path            
+            # search for the binary in the path
             for name in reversed(cls.names):
                 binary = findInPath(name)
                 if sys.platform == 'cygwin':
@@ -194,7 +194,6 @@ class Runner(object):
 
     def get_repositoryInfo(self):
         """Read repository information from application.ini and platform.ini."""
-        # TODO: I think we should keep this, but I think Jeff's patch moves it to the top of the fileimport ConfigParser
 
         config = ConfigParser.RawConfigParser()
         dirname = os.path.dirname(self.binary)
@@ -211,6 +210,9 @@ class Runner(object):
                     repository['%s_%s' % (file, id)] = None
 
         return repository
+
+    def is_running():
+        return self.process_handler is not None
 
     def start(self):
         """Run self.command in the proper environment."""
@@ -236,12 +238,14 @@ class Runner(object):
         if self.process_handler is None:
             return
         self.process_handler.waitForFinish(timeout=timeout)
+        self.process_handler = None
 
     def stop(self):
         """Kill the app"""
         if self.process_handler is None:
             return
         self.process_handler.kill()
+        self.process_handler = None
 
     def reset(self):
         """
