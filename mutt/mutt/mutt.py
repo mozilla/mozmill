@@ -205,7 +205,8 @@ def test_all_js(tests, options):
         proc = ProcessHandler("mozmill", args, os.getcwd())
         proc.run()
         status = proc.waitForFinish(timeout=300)
-        results.acquire(t['name'], proc.output)
+        command = proc.commandline
+        results.acquire(t['name'], proc.output, status, command)
 
         # remove the temporary manifest
         os.remove(filename)
@@ -228,8 +229,15 @@ class JSResults(object):
         self.passes = []
         self.info = []
         self.text = {}
-  
-    def acquire(self, testname, buf):
+
+    def acquire(self, testname, buf, status, command):
+
+        # record failures based on exit status
+        if status:
+            self.failures.append("Exit %s: %s" % (status, command))
+
+        # scan test log for magical tokens
+        # see also: http://hg.mozilla.org/automation/logparser/
         passre = re.compile("^TEST-(PASS|EXPECTED-FAIL).*")
         failre = re.compile("^TEST-UNEXPECTED-.*")
         tback = re.compile("^Traceback.*")
@@ -250,7 +258,7 @@ class JSResults(object):
             else:
                 self.info.append(line)
             self.text[testname].append(line)
-                
+        
 
 def run(arguments=sys.argv[1:]):
 

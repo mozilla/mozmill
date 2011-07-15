@@ -57,7 +57,7 @@ class ProcessHandler(object):
 
   def __init__(self, cmd, args=None, cwd=None):
     self.cmd = cmd
-    self.args = args
+    self.args = args or []
     self.cwd = cwd
     self.didTimeout = False
     self._output = []
@@ -71,6 +71,10 @@ class ProcessHandler(object):
   def output(self):
     """Gets the output of the process."""
     return self._output
+
+  @property
+  def commandline(self):
+    return subprocess.list2cmdline([self.cmd] + self.args)
 
   def run(self):
     """Starts the process.  waitForFinish must be called to allow the
