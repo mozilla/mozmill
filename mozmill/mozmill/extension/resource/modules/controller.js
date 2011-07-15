@@ -924,33 +924,36 @@ Tabs.prototype.selectTabIndex = function(i) {
 function browserAdditions (controller) {
   controller.tabs = new Tabs(controller);
 
-  controller.waitForPageLoad = function(aTabDocument, aTimeout, aInterval) {
+  controller.waitForPageLoad = function(aDocument, aTimeout, aInterval) {
     var timeout = aTimeout || 30000;
-    var tab = null;
+    var owner;
 
     // If a user tries to do waitForPageLoad(2000), this will assign the
     // interval the first arg which is most likely what they were expecting
-    if (typeof(aTabDocument) == "number"){
-      timeout = aTabDocument;
+    if (typeof(aDocument) == "number"){
+      timeout = aDocument;
     }
 
-    // Find the browser element for the given aTabDocument
-    if (aTabDocument && typeof(aTabDocument) == "object") {
-      tab = this.window.gBrowser.getBrowserForDocument(aTabDocument);
+    // If the document is a tab find the corresponding browser element.
+    // Otherwise we have to handle an embedded web page.
+    if (aDocument && typeof(aDocument) == "object") {
+      owner = this.window.gBrowser.getBrowserForDocument(aDocument);
 
-      if (!tab) {
-        throw new Error("controller.waitForPageLoad(): Specified tab hasn't been found.");
-      }
-    }
+      if (!owner) {
+        // If the document doesn't belong to a tab it will be a
+        // HTML element (e.g. iframe) embedded inside a tab.
+        // In such a case use the default window of the document.
+        owner = aDocument.defaultView;
+       }
+     }
 
-    // If no tab has been specified, fallback to the selected browser
-    tab = tab || this.window.gBrowser.selectedBrowser;
+    // If no owner has been specified, fallback to the selected tab browser
+    owner = owner || this.window.gBrowser.selectedBrowser;
 
     // Wait until the content in the tab has been loaded
     this.waitFor(function() {
-        return this.isLoaded(tab);
-      },
-      "controller.waitForPageLoad(): Timeout waiting for page loaded.",
+        return this.isLoaded(owner);
+    }, "controller.waitForPageLoad(): Timeout waiting for page loaded.",
        timeout, aInterval, this);
     frame.events.pass({'function':'controller.waitForPageLoad()'});
   }

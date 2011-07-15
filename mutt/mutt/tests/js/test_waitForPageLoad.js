@@ -1,58 +1,46 @@
 const LOCATIONS = [
   // Normal pages
-  {url : "http://www.google.de", type: "id", value : "logo"},
-  {url : "https://addons.mozilla.org/en-US/firefox/?browse=featured", type: "id", value : "query"},
-  {url : "http://addons.mozilla.org", type: "id", value : "query"},
+  {url : "https://encrypted.google.com/", type: "ID", value : "hplogo"},
+  {url : "https://addons.mozilla.org/en-US/firefox/?browse=featured", type: "ID", value : "search-q"},
+  {url : "http://addons.mozilla.org", type: "ID", value : "search-q"},
 
   // FTP pages
-  {url : "ftp://ftp.mozilla.org/pub/", type : "link", value : "firefox" },
+  {url : "ftp://ftp.mozilla.org/pub/", type : "Link", value : "firefox" },
 
   // Error pages
- {url : "https://mur.at", type: "id", value : "cert_domain_link"},
- {url : "http://www.mozilla.com/firefox/its-a-trap.html", type: "id", value : "ignoreWarningButton"},
- //{url : "https://mozilla.org/", type: "id", value : "getMeOutOfHereButton"}
+  {url : "https://mur.at", type: "ID", value : "cert_domain_link"},
+  {url : "http://www.mozilla.com/firefox/its-a-trap.html", type: "ID", value : "ignoreWarningButton"},
+  {url : "https://mozilla.org/", type: "ID", value : "getMeOutOfHereButton"}
 ];
+
+
 var setupTest = function() {
   controller = mozmill.getBrowserController();
 }
 
 var testWaitForPageLoad = function() {
+  var win = new elementslib.MozMillElement("Elem", controller.window);
 
   /**
    * PART I - Check different types of pages
    */
-  for each (var location in LOCATIONS) {
+  LOCATIONS.forEach(function (location) {
     controller.open(location.url);
     controller.waitForPageLoad();
-  
+
     // Check that the expected element exists
-    if (location.type) {
-      var elem = null;
-  
-      switch (location.type) {
-        case "link":
-          elem = new elementslib.Link(controller.tabs.activeTab, location.value);
-          break;
-        case "name":
-          elem = new elementslib.Name(controller.tabs.activeTab, location.value);
-          break;
-        case "id":
-          elem = new elementslib.ID(controller.tabs.activeTab, location.value);
-          break;
-        default:
-      }
-  
-      controller.assertNode(elem);
-    }
-  }
-  
+    var elem = new elementslib.MozMillElement(location.type, location.value,
+                                              {document: controller.tabs.activeTab});
+    expect.ok(elem.exists(), "Element '" + location.value + "' has been found.");
+  });
+
   /**
    * PART II - Test different parameter sets
    */ 
   var location = LOCATIONS[0];
   for (var i = 0; i < 7; i++) {
     controller.open(location.url);
-  
+
     switch (i) {
       case 0:
         controller.waitForPageLoad(controller.tabs.activeTab);
@@ -77,28 +65,30 @@ var testWaitForPageLoad = function() {
         break;
     }
   }
-  
+
   /**
    * PART III - Check that we correctly handle timeouts for waitForPageLoad
    */
   try {
     controller.open(LOCATIONS[0].url);
     controller.waitForPageLoad(0);
-  
+
     throw new Error("controller.waitForPageLoad() not timed out for timeout=0.");
   } catch (ex) {}
 
   /**
    * PART IV - Make sure we don't fail when clicking links on a page
    */ 
-  controller.open("http://www.mozilla.org");
+  controller.open("http://www.lipsum.com/");
   controller.waitForPageLoad();
 
-  var link = new elementslib.Link(controller.tabs.activeTab, "Get Involved");
+  var link = new elementslib.MozMillElement("Selector", "a.de",
+                                            {document: controller.tabs.activeTab});
   controller.click(link);
   controller.waitForPageLoad();
 
-  var target = new elementslib.Name(controller.tabs.activeTab, "area");
+  var target = new elementslib.MozMillElement("Selector", "#Banner",
+                                            {document: controller.tabs.activeTab});
   controller.waitForElement(target, 1000);
 
   /**
@@ -109,18 +99,43 @@ var testWaitForPageLoad = function() {
   controller.waitForPageLoad();
   controller.waitForPageLoad(500);
 
- 
   /**
    * PART VI - Loading a page in another tab should wait for its completion
    */
+  var bgTab = controller.tabs.activeTab;
   controller.open(LOCATIONS[1].url);
- 
-  controller.keypress(null, "t", {accelKey: true});
+
+  controller.keypress(win, "t", {accelKey: true});
   controller.open(LOCATIONS[0].url);
- 
-  var firstTab = controller.tabs.getTab(0);
-  var element = new elementslib.ID(firstTab, LOCATIONS[1].value);
-  controller.waitForPageLoad(firstTab);
-  controller.assertNode(element);
+
+  controller.waitForPageLoad(bgTab);
+  var element = new elementslib.MozMillElement(LOCATIONS[1].type, LOCATIONS[1].value,
+                                               {document: bgTab});
+  expect.ok(element.exists(), "Element '" + LOCATIONS[1].value + "'in background tab has been found");
+
+  controller.keypress(win, "w", {accelKey: true});
+
+  /**
+   * PART VII - Loading an iFrame
+   */
+
+  // Load the container page
+  var page = collector.addHttpResource('./files/') + "iframe.html";
+  controller.open(page);
+  controller.waitForPageLoad();
+
+  // Get trigger element and the controller for the iFrame
+  var trigger = new elementslib.Selector(controller.tabs.activeTab, "#load");
+  var frame = new elementslib.Selector(controller.tabs.activeTab, "#iframe");
+  var frameWindow = frame.getNode().contentWindow;
+  var frameController = new mozmill.controller.MozMillController(frameWindow);
+
+  // Trigger the loading of the iframe from the main controller
+  controller.click(trigger);
+  controller.waitForPageLoad(frameController.window.document);
+
+  // Once the iframe has been loaded assert that the element exists
+  var home = new elementslib.MozMillElement("ID", "home", {document: frameWindow.document});
+  expect.ok(home.exists(), "Node in iFrame has been found");
 }
 
