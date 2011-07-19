@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # ***** BEGIN LICENSE BLOCK *****
 # Version: MPL 1.1/GPL 2.0/LGPL 2.1
 #
@@ -173,34 +171,3 @@ def QueryInformationJobObject(hJob, JobObjectInfoClass):
     if not result:
         raise WinError()
     return SubscriptableReadOnlyStruct(jobinfo.info)
-
-def test_qijo():
-    from killableprocess import Popen
-
-    popen = Popen('c:\\windows\\notepad.exe')
-
-    try:
-        result = QueryInformationJobObject(0, 8)
-        raise AssertionError('throw should occur')
-    except WindowsError, e:
-        pass
-
-    try:
-        result = QueryInformationJobObject(0, 1)
-        raise AssertionError('throw should occur')
-    except NotImplementedError, e:
-        pass
-
-    result = QueryInformationJobObject(popen._job, 8)
-    if result['BasicInfo']['ActiveProcesses'] != 1:
-        raise AssertionError('expected ActiveProcesses to be 1')
-    popen.kill()
-
-    result = QueryInformationJobObject(popen._job, 8)
-    if result.BasicInfo.ActiveProcesses != 0:
-        raise AssertionError('expected ActiveProcesses to be 0')
-
-if __name__ == '__main__':
-    print "testing."
-    test_qijo()
-    print "success!"

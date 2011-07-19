@@ -455,14 +455,3 @@ def child():
     limitflags = jobinfo['BasicLimitInformation']['LimitFlags']
     print 'LimitFlags: %s' % limitflags
     process.kill()
-
-if __name__ == '__main__':
-    import sys
-    from killableprocess import Popen
-    nargs = len(sys.argv[1:])
-    if nargs:
-        if nargs != 1 or sys.argv[1] != '-child':
-            raise AssertionError('Wrong flags; run like `python /path/to/winprocess.py`')
-        child()
-    else:
-        parent()
