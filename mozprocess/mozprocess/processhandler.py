@@ -9,6 +9,8 @@ import time
 from Queue import Queue
 from datetime import datetime, timedelta
 
+__all__ = ['ProcessHandler']
+
 if sys.platform == 'win32':
     import ctypes, ctypes.wintypes, msvcrt
     from ctypes import sizeof, addressof, c_ulong, byref, POINTER, WinError
@@ -504,6 +506,11 @@ class ProcessHandler(object):
     def output(self):
         """Gets the output of the process."""
         return self._output
+
+    @property
+    def commandline(self):
+        """the string value of the command line"""
+        return subprocess.list2cmdline([self.cmd] + self.args)
                            
     def run(self):
         """Starts the process.  waitForFinish must be called to allow the

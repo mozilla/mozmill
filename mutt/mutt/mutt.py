@@ -44,7 +44,7 @@ import tempfile
 import unittest
 
 from manifestparser import TestManifest
-from processhandler import ProcessHandler
+from mozprocess import ProcessHandler
 
 usage = """
 %prog [options] command [command-specific options]
