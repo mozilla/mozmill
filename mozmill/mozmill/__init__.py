@@ -359,7 +359,9 @@ class MozMill(object):
                     # signal that the runner is stopped
                     started = False
                 else:
-                    raise
+                    self.report_disconnect()
+                    self.stop_runner()
+                    started = False
 
         # stop the runner
         if started:
