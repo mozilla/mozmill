@@ -288,6 +288,10 @@ class MozMill(object):
         print "TEST-START | %s | %s" % (test['filename'], test['name'])
 
     def endTest_listener(self, test):
+        fname = os.path.split(test['filename'])[1]
+        if fname:
+            test['name'] = "%s::%s" % (fname, test['name'])
+
         self.alltests.append(test)
         if test.get('skipped', False):
             print "WARNING | %s | (SKIP) %s" % (test['name'], test.get('skipped_reason', ''))
