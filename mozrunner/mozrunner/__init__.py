@@ -140,7 +140,10 @@ class Profile(object):
 
         self.create_new = not(bool(profile))
         if profile:
-            self.profile = profile
+            # Ensure we have a full path to the profile
+            self.profile = os.path.abspath(os.path.expanduser(profile))
+            if not os.path.exists(self.profile):
+                os.makedirs(self.profile)
         else:
             self.profile = self.create_new_profile(self.binary)
 
