@@ -1,17 +1,18 @@
-import subprocess
-import os
-import signal
-import sys
-import select
-import threading
 import logging
+import mozinfo
+import os
+import select
+import signal
+import subprocess
+import sys
+import threading
 import time
 from Queue import Queue
 from datetime import datetime, timedelta
 
 __all__ = ['ProcessHandler']
 
-if sys.platform == 'win32':
+if mozinfo.isWin:
     import ctypes, ctypes.wintypes, msvcrt
     from ctypes import sizeof, addressof, c_ulong, byref, POINTER, WinError
     import winprocess
@@ -49,7 +50,7 @@ class ProcessHandler(object):
             # Parameter for whether or not we should attempt to track child processes
             self._ignore_children = ignore_children
 
-            if (not self._ignore_children and sys.platform != 'win32'):
+            if (not self._ignore_children and not mozinfo.isWin):
                 # Set the process group id for linux systems
                 # Sets process group id to the pid of the parent process
                 # NOTE: This prevents you from using preexec_fn and managing 
@@ -65,7 +66,7 @@ class ProcessHandler(object):
                                       universal_newlines, startupinfo, creationflags)
 
         def __del__(self, _maxint=sys.maxint):
-            if sys.platform == "win32":
+            if mozinfo.isWin:
                 if self._handle:
                     self._internal_poll(_deadstate=_maxint)
                 if self._handle or self._job or self._io_port:
@@ -75,7 +76,7 @@ class ProcessHandler(object):
 
         def kill(self):
             self.returncode = 0
-            if sys.platform == 'win32':
+            if mozinfo.isWin:
                 if not self._ignore_children and self._handle and self._job:
                     winprocess.TerminateJobObject(self._job, winprocess.ERROR_CONTROL_C_EXIT)
                     self.returncode = winprocess.GetExitCodeProcess(self._handle)
@@ -89,7 +90,6 @@ class ProcessHandler(object):
                         self._cleanup()
                 else:
                     pass
-                    # print "Process no longer exists"
             else:
                 if not self._ignore_children:
                     try:
@@ -124,7 +124,7 @@ class ProcessHandler(object):
 
         """ Private Members of Process class """
 
-        if sys.platform == 'win32':
+        if mozinfo.isWin:
             # Redefine the execute child so that we can track process groups
             def _execute_child(self, args, executable, preexec_fn, close_fds,
                                cwd, env, universal_newlines, startupinfo,
@@ -212,16 +212,15 @@ class ProcessHandler(object):
                         # Spin up our thread for managing the IO Completion Port
                         self._procmgrthread = threading.Thread(target = self._procmgr)
                     except:
-                        print >> sys.stderr, "Exception trying to use job objects, \
-                                          falling back to not using job objects for \
-                                          managing child processes"
+                        print >> sys.stderr, """Exception trying to use job objects;
+falling back to not using job objects for managing child processes"""
                         # Ensure no dangling handles left behind
                         self._cleanup_job_io_port()
                 else:
                     self._job = None
                         
                 winprocess.ResumeThread(int(ht))
-                if (self._procmgrthread):
+                if self._procmgrthread:
                     self._procmgrthread.start()
                 ht.Close()
 
@@ -245,7 +244,7 @@ class ProcessHandler(object):
                 self._spawned_procs = {}
                 countdowntokill = 0
 
-                while (True):
+                while True:
                     msgid = c_ulong(0)
                     compkey = c_ulong(0)
                     pid = c_ulong(0)
@@ -257,7 +256,7 @@ class ProcessHandler(object):
   
                     # If the countdowntokill has been activated, we need to check
                     # if we should start killing the children or not.
-                    if (countdowntokill != 0):
+                    if countdowntokill != 0:
                         diff = datetime.now() - countdowntokill
                         # Arbitrarily wait 3 minutes for windows to get its act together
                         # Windows sometimes takes a small nap between notifying the 
@@ -270,7 +269,7 @@ class ProcessHandler(object):
                             self.kill()
                             self._process_events.put({self.pid: 'FINISHED'})
 
-                    if (not portstatus):
+                    if not portstatus:
                         # Check to see what happened
                         errcode = winprocess.GetLastError()
                         if errcode == winprocess.ERROR_ABANDONED_WAIT_0:
@@ -281,7 +280,7 @@ class ProcessHandler(object):
                             # Timeouts are expected, just keep on polling
                             continue
                         else:
-                            print "Error Code %s trying to query IO Completion Port, exiting" % errcode
+                            print >> sys.stderr, "Error Code %s trying to query IO Completion Port, exiting" % errcode
                             raise WinError(errcode)
                             break
 
@@ -290,19 +289,19 @@ class ProcessHandler(object):
                         break
 
                     # Check the status of the IO Port and do things based on it
-                    if (compkey.value == winprocess.COMPKEY_JOBOBJECT.value):
-                        if (msgid.value == winprocess.JOB_OBJECT_MSG_ACTIVE_PROCESS_ZERO):
+                    if compkey.value == winprocess.COMPKEY_JOBOBJECT.value:
+                        if msgid.value == winprocess.JOB_OBJECT_MSG_ACTIVE_PROCESS_ZERO:
                             # No processes left, time to shut down
                             # Signal anyone waiting on us that it is safe to shut down
                             self._process_events.put({self.pid: 'FINISHED'})
                             break
-                        elif (msgid.value == winprocess.JOB_OBJECT_MSG_NEW_PROCESS):
+                        elif msgid.value == winprocess.JOB_OBJECT_MSG_NEW_PROCESS:
                             # New Process started
                             # Add the child proc to our list in case our parent flakes out on us
                             # without killing everything.
                             if pid.value != self.pid:
                                 self._spawned_procs[pid.value] = 1
-                        elif (msgid.value == winprocess.JOB_OBJECT_MSG_EXIT_PROCESS):
+                        elif msgid.value == winprocess.JOB_OBJECT_MSG_EXIT_PROCESS:
                             # One process exited normally
                             if pid.value == self.pid and len(self._spawned_procs) > 0:
                                 # Parent process dying, start countdown timer
@@ -310,14 +309,14 @@ class ProcessHandler(object):
                             elif pid.value in self._spawned_procs:
                                 # Child Process died remove from list
                                 del(self._spawned_procs[pid.value])
-                        elif (msgid.value == winprocess.JOB_OBJECT_MSG_ABNORMAL_EXIT_PROCESS):
+                        elif msgid.value == winprocess.JOB_OBJECT_MSG_ABNORMAL_EXIT_PROCESS:
                             # One process existed abnormally
                             if pid.value == self.pid and len(self._spawned_procs) > 0:
                                 # Parent process dying, start countdown timer                            
                                 countdowntokill = datetime.now()
                             elif pid.value in self._spawned_procs:
                                 # Child Process died remove from list
-                                del(self._spawned_procs[pid.value])                 
+                                del self._spawned_procs[pid.value]
                         else:
                             # We don't care about anything else
                             pass
@@ -343,7 +342,7 @@ class ProcessHandler(object):
                         # child processes to shutdown before killing them with extreme prejudice.
                         item = self._process_events.get(timeout=self.MAX_IOCOMPLETION_PORT_NOTIFICATION_DELAY +
                                                                 self.MAX_PROCESS_KILL_DELAY)
-                        if (item[self.pid] == 'FINISHED'):
+                        if item[self.pid] == 'FINISHED':
                             self._process_events.task_done()
                     except:
                         raise OSError("IO Completion Port failed to signal process shutdown")
@@ -418,7 +417,7 @@ class ProcessHandler(object):
                 else:
                     self._handle = None
 
-        elif sys.platform in ('darwin', 'linux2', 'sunos5', 'solaris'):
+        elif mozinfo.isMac or mozinfo.isUnix:
 
             def _wait(self):
                 """ Haven't found any reason to differentiate between these platforms
@@ -557,7 +556,7 @@ class ProcessHandler(object):
     def processOutputLine(self, line):
         """Called for each line of output that a process sends to stdout/stderr.
         """
-        pass
+        pass 
 
     def onTimeout(self):
         """Called when a process times out."""
@@ -621,7 +620,7 @@ class ProcessHandler(object):
     """
       Private Functions From here on down. Thar be dragons.
     """
-    if sys.platform == 'win32':
+    if mozinfo.isWin:
         # Windows Specific private functions are defined in this block
         PeekNamedPipe = ctypes.windll.kernel32.PeekNamedPipe
         GetLastError = ctypes.windll.kernel32.GetLastError

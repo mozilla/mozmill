@@ -44,7 +44,7 @@ desc = """Reliable start/stop/configuration of Mozilla Applications (Firefox, Th
 PACKAGE_NAME = "mozrunner"
 PACKAGE_VERSION = "3.0a"
 
-deps = ['mozprocess', 'mozprofile']
+deps = ['mozprocess', 'mozprofile', 'mozinfo']
 
 # we only support python 2 right now
 assert sys.version_info[0] == 2

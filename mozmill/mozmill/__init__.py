@@ -541,7 +541,6 @@ class CLI(mozrunner.CLI):
             if _handler is not None:
                 self.event_handlers.append(_handler)
 
-
     def add_options(self, parser):
         """add command line options"""
         

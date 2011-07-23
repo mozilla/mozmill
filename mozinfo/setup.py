@@ -7,7 +7,7 @@ try:
 except IOError:
     description = None
 
-version = '0.3'
+version = '0.3.1'
 
 deps = []
 try:

@@ -167,7 +167,7 @@ js_type_cases = {'function'  :(JSFunction, False,),
                   'null'     :(JSObject, False,),
                   }
 py_type_cases = {unicode  :JSString,
-                  str     :JSString,
-                  int     :JSInt,
-                  float   :JSFloat,
-                  }
+                 str     :JSString,
+                 int     :JSInt,
+                 float   :JSFloat,
+                 }

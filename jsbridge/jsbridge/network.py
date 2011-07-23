@@ -105,6 +105,7 @@ class JSObjectEncoder(simplejson.JSONEncoder):
             return simplejson.JSONEncoder.encode(self, o)
 
     def _iterencode(self, o, markers=None):
+        # XXX verbosely copied from simplejson
         import jsobjects
         if isinstance(o, jsobjects.JSObject):
             yield o._name_
@@ -181,7 +182,6 @@ class Bridge(Telnet):
 
     def run(self, _uuid, exec_string, interval=.2, raise_exeption=True):
 
-
         exec_string += '\r\n'
         self.send(exec_string)
 
@@ -253,6 +253,7 @@ class Bridge(Telnet):
             if self.parsing:
                 self.fire_callbacks(obj)
                 self.sbuffer = self.sbuffer[index:]
+
         
 class BackChannel(Bridge):
     

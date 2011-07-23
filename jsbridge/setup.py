@@ -61,10 +61,7 @@ setup(name=PACKAGE_NAME,
       include_package_data=True,
       package_data = {'': ['*.js', '*.css', '*.html', '*.txt', '*.xpi', '*.rdf', '*.xul', '*.jsm', '*.xml' 'extension'],},
       zip_safe=False,
-      entry_points="""
-          [console_scripts]
-          jsbridge = jsbridge:cli
-        """,
+      entry_points="",
       platforms =['Any'],
       install_requires = requires,
       classifiers=['Development Status :: 4 - Beta',

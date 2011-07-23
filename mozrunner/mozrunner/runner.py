@@ -39,6 +39,7 @@
 
 __all__ = ['Runner', 'ThunderbirdRunner', 'FirefoxRunner', 'runners', 'CLI', 'cli', 'get_metadata_from_egg', 'package_metadata']
 
+import mozinfo
 import optparse
 import os
 import sys
@@ -115,7 +116,7 @@ class Runner(object):
             else:
                 self.env['LD_LIBRARY_PATH'] = dirname
 
-        # arguments for killableprocess
+        # arguments for ProfessHandler.Process
         self.kp_kwargs = kp_kwargs or {}
 
     @classmethod
@@ -123,7 +124,7 @@ class Runner(object):
         """determine the binary"""
         if binary is None:
             return cls.find_binary()
-        elif sys.platform == 'darwin' and binary.find('Contents/MacOS/') == -1:
+        elif mozinfo.isMac and binary.find('Contents/MacOS/') == -1:
             return os.path.join(binary, 'Contents/MacOS/%s-bin' % cls.names[0])
         else:
             return binary
@@ -133,15 +134,14 @@ class Runner(object):
         """Finds the binary for class names if one was not provided."""
 
         binary = None
-        if sys.platform in ('linux2', 'sunos5', 'solaris'):
+        if mozinfo.isUnix:
             for name in reversed(cls.names):
                 binary = findInPath(name)
-        elif os.name == 'nt' or sys.platform == 'cygwin':
+        elif mozinfo.isWin:
 
             # find the default executable from the windows registry
             try:
-                # assumes cls.app_name is defined, as it should be for
-                # implementors
+                # assumes cls.app_name is defined, as it should be for implementors
                 import _winreg
                 app_key = _winreg.OpenKey(_winreg.HKEY_LOCAL_MACHINE, r"Software\Mozilla\Mozilla %s" % cls.app_name)
                 version, _type = _winreg.QueryValueEx(app_key, "CurrentVersion")
@@ -169,7 +169,7 @@ class Runner(object):
                         if os.path.isfile(path):
                             binary = path
                             break
-        elif sys.platform == 'darwin':
+        elif mozinfo.isMac:
             for name in reversed(cls.names):
                 appdir = os.path.join('Applications', name.capitalize()+'.app')
                 if os.path.isdir(os.path.join(os.path.expanduser('~/'), appdir)):
@@ -203,7 +203,7 @@ class Runner(object):
             config.read(os.path.join(dirname, '%s.ini' % file))
 
             for key, id in [('SourceRepository', 'repository'),
-                           ('SourceStamp', 'changeset')]:
+                            ('SourceStamp', 'changeset')]:
                 try:
                     repository['%s_%s' % (file, id)] = config.get(section, key);
                 except:
@@ -269,11 +269,11 @@ class FirefoxRunner(Runner):
     profile_class = FirefoxProfile
 
     # (platform-dependent) names of binary
-    if sys.platform == 'darwin':
+    if mozinfo.isMac:
         names = ['firefox', 'minefield', 'shiretoko']
-    elif sys.platform in ('linux2', 'sunos5', 'solaris'):
+    elif mozinfo.isUnix:
         names = ['firefox', 'mozilla-firefox', 'iceweasel']
-    elif os.name == 'nt' or sys.platform == 'cygwin':
+    elif mozinfo.isWin:
         names =['firefox']
     else:
         raise AssertionError("I don't know what platform you're on")
@@ -355,7 +355,6 @@ class CLI(MozProfileCLI):
                               action="store_true",
                               help="Print module information")
 
-
     ### methods for introspecting data
 
     def get_metadata_from_egg(self):
@@ -397,7 +396,7 @@ class CLI(MozProfileCLI):
         runner.cleanup()
 
     def start(self, runner):
-        """Starts the runner and waits for Firefox to exitor Keyboard Interrupt.
+        """Starts the runner and waits for Firefox to exit or Keyboard Interrupt.
         Shoule be overwritten to provide custom running of the runner instance."""
         runner.start()
         print 'Starting:', ' '.join(runner.command)

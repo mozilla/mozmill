@@ -34,6 +34,7 @@
 # the terms of any one of the MPL, the GPL or the LGPL.
 #
 # ***** END LICENSE BLOCK *****
+
 """
 Creates and/or modifies a Firefox profile.
 The profile can be modified by passing in addons to install or preferences to set.
@@ -41,13 +42,12 @@ If no profile is specified, a new profile is created and the path of the resulti
 """
 
 import sys
-from optparse import OptionParser
-from profile import Profile
 from addons import AddonManager
+from optparse import OptionParser
 from prefs import Preferences
+from profile import Profile
 
 __all__ = ['MozProfileCLI', 'cli']
-
 
 class MozProfileCLI(object):
 

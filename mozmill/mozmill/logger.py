@@ -205,7 +205,7 @@ class ColorFormatter(logging.Formatter):
     'TEST-START': BLUE
   }
 
-  def formatter_msg(self, msg, use_color = True):
+  def formatter_msg(self, msg, use_color=True):
     if use_color:
       msg = msg.replace("$RESET", self.RESET_SEQ).replace("$BOLD", self.BOLD_SEQ)
     else:
@@ -224,8 +224,3 @@ class ColorFormatter(logging.Formatter):
       levelname_color = self.COLOR_SEQ % fore_color + levelname + self.RESET_SEQ
       record.levelname = levelname_color
     return logging.Formatter.format(self, record)
-
-    
-
-
-    

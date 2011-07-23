@@ -38,6 +38,8 @@
 # ***** END LICENSE BLOCK *****
 
 import httplib
+import mozinfo
+import platform
 import sys
 import urllib
 import urlparse
@@ -48,7 +50,6 @@ try:
 except:
   import simplejson as json
 
-from info import get_platform_information
 from handlers import HandlerMatchException
 
 class Report(object):
@@ -90,7 +91,13 @@ class Report(object):
               }
 
     report.update(results.appinfo)
-    report['system_info'] = get_platform_information()
+    report['system_info'] = {"bits": str(mozinfo.bits),
+                             "hostname": platform.node(),
+                             "processor": mozinfo.processor,
+                             "service_pack": getattr(mozinfo, 'service_pack', ''),
+                             "system": mozinfo.os.title(),
+                             "version": mozinfo.version
+                             }
     
     return report
 
@@ -139,6 +146,4 @@ class Report(object):
         return data
     except Exception, e:
         print "Sending results to '%s' failed (%s)." % (report_url, e)
-
-
     
