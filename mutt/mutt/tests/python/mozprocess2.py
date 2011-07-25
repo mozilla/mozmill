@@ -6,8 +6,10 @@ from time import sleep
 
 from mozprocess import processhandler
 
-### TODO: The way mutt works you need these helper functions in your file
-###       for mozprocess tests
+# This tests specifically the case reported in bug 671316
+# TODO: Because of the way mutt works we can't just load a utils.py in here.
+#       so, for all process handler tests, copy these two 
+#       utility functions to to the top of your source.
 
 def make_proclaunch(aDir):
     """ 
@@ -27,7 +29,7 @@ def make_proclaunch(aDir):
 
 def check_for_process(processName):
     """
-        Use to determine if process of the given name is still running.
+        Use to determine if process is still running.
         
         Returns:
         detected -- True if process is detected to exist, False otherwise
@@ -58,64 +60,45 @@ def check_for_process(processName):
 
     return detected, output
 
+class ProcTest2(unittest.TestCase):
 
-class ProcTest1(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         
         # Ideally, I'd use setUpClass but that only exists in 2.7.
         # So, we'll do this make step now.
         self.proclaunch = make_proclaunch(os.path.dirname(__file__))
         unittest.TestCase.__init__(self, *args, **kwargs)
-
-    def test_process_normal_finish(self):
-        """ Process is started, runs to completion while we wait for it 
+        
+    def test_process_waittimeout(self):
+        """ Process is started, runs to completion before our wait times out
         """
-        p = processhandler.ProcessHandler(self.proclaunch, 
-                                          ["process_normal_finish.ini"],
+        p = processhandler.ProcessHandler([self.proclaunch,
+                                          "process_waittimeout_10s.ini"],
+                                          cwd=os.path.dirname(__file__))
+        p.run()
+        p.waitForFinish(timeout=30)
+
+        detected, output = check_for_process(self.proclaunch)
+        self.determine_status(detected,
+                              output,
+                              p.proc.returncode,
+                              p.didTimeout)
+
+    def test_process_waitnotimeout(self):
+        """ Process is started runs to completion while we wait indefinitely
+        """
+
+        p = processhandler.ProcessHandler([self.proclaunch,
+                                          "process_waittimeout_10s.ini"],
                                           cwd=os.path.dirname(__file__))
         p.run()
         p.waitForFinish()
-
-        detected, output = check_for_process(self.proclaunch)
-        self.determine_status(detected,
-                              output,
-                              p.proc.returncode,
-                              p.didTimeout)
-
-    def test_process_waittimeout(self):
-        """ Process is started, runs but we time out waiting on it
-            to complete
-        """
-        p = processhandler.ProcessHandler([self.proclaunch,
-                                          "process_waittimeout.ini"],
-                                          cwd=os.path.dirname(__file__))
-        p.run()
-        p.waitForFinish(timeout=10)
-
-        detected, output = check_for_process(self.proclaunch)
-        self.determine_status(detected,
-                              output,
-                              p.proc.returncode,
-                              p.didTimeout,
-                              False,
-                              ['returncode', 'didtimeout'])
         
-    
-    def test_process_kill(self):
-        """ Process is started, we kill it
-        """
-        p = processhandler.ProcessHandler(self.proclaunch,
-                                          ["process_normal_finish.ini"],
-                                          cwd=os.path.dirname(__file__))
-        p.run()
-        p.kill()
-
         detected, output = check_for_process(self.proclaunch)
-        self.determine_status(detected,
-                              output,
-                              p.proc.returncode,
+        self.determine_status(detected, 
+                              output, 
+                              p.proc.returncode, 
                               p.didTimeout)
-       
 
     def determine_status(self, 
                          detected=False,
