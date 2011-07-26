@@ -582,6 +582,10 @@ falling back to not using job objects for managing child processes"""
            If logfile is not None, the output produced by the process will be 
            appended to the given file.
         """
+
+        if not hasattr(self, 'proc'):
+            self.run()
+        
         self.didTimeout = False
         logsource = self.proc.stdout
 

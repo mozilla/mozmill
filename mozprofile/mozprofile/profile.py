@@ -61,7 +61,7 @@ class Profile(object):
         self.create_new = not profile
         if profile:
             # Ensure we have a full path to the profile
-            self.profile = os.path.expanduser(profile)
+            self.profile = os.path.abspath(os.path.expanduser(profile))
             if not os.path.exists(self.profile):
                 os.makedirs(self.profile)
         else:
