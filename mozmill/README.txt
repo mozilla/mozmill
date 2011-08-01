@@ -7,3 +7,8 @@ Python command-line tool. The addon provides an IDE for writing and
 running the JavaScript tests and the Python package provides a
 mechanism for running the tests from the command line as well as
 providing a way to test restarting the application. 
+
+# Accumulating Results
+
+# Pluggable Event Handlers
+
