@@ -38,11 +38,16 @@
 from setuptools import setup, find_packages
 import sys
 
-desc = """Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)"""
-
-
 PACKAGE_NAME = "mozrunner"
 PACKAGE_VERSION = "3.0a"
+
+desc = """Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)"""
+# take description from README
+here = os.path.dirname(os.path.abspath(__file__))
+try:
+    description = file(os.path.join(here, 'README.txt')).read()
+except OSError:
+    description = ''
 
 deps = ['mozprocess', 'mozprofile', 'mozinfo']
 
@@ -52,7 +57,7 @@ assert sys.version_info[0] == 2
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
       description=desc,
-      long_description=desc,
+      long_description=description,
       author='Mikeal Rogers, Mozilla',
       author_email='mikeal.rogers@gmail.com',
       url='http://github.com/mozautomation/mozmill',
