@@ -218,18 +218,19 @@ class PermissionsManager(object):
         """
 
         # Grant God-power to all the privileged servers on which tests run.
-        prefs = {}
+        prefs = []
         privileged = filter(lambda loc: "privileged" in loc.options, self._locations)
         for (i, l) in itertools.izip(itertools.count(1), privileged):
-            prefs["capability.principal.codebase.p%s.granted" % i] = "UniversalPreferencesWrite UniversalXPConnect UniversalPreferencesRead"
+            prefs.append(("capability.principal.codebase.p%s.granted" % i, "UniversalPreferencesWrite UniversalXPConnect UniversalPreferencesRead"))
 
             # TODO: do we need the port?
-            prefs["capability.principal.codebase.p%s.id" % i] = l.scheme + "://" + l.host
-            prefs["capability.principal.codebase.p%s.subjectName" % i] = ""
+            prefs.append(("capability.principal.codebase.p%s.id" % i, l.scheme + "://" + l.host))
+            prefs.append(("capability.principal.codebase.p%s.subjectName" % i, ""))
 
-        user_prefs = {}
         if proxy:
-            user_prefs.update(self.pacPrefs())
+            user_prefs = self.pacPrefs()
+        else:
+            user_prefs = []
 
         return prefs, user_prefs
 
@@ -239,7 +240,7 @@ class PermissionsManager(object):
         http://mxr.mozilla.org/mozilla-central/source/build/automation.py.in
         """
 
-        prefs = {}
+        prefs = []
 
         # We need to proxy every server but the primary one.
         origins = ["'%s'" % l.url()
@@ -295,8 +296,8 @@ function FindProxyForURL(url, host)
          "sslport": sslPort }
         pacURL = "".join(pacURL.splitlines())
 
-        prefs["network.proxy.type"] = 2
-        prefs["network.proxy.autoconfig_url"] = pacURL
+        prefs.append(("network.proxy.type", 2))
+        prefs.append(("network.proxy.autoconfig_url", pacURL))
 
         return prefs
 
