@@ -12,3 +12,4 @@ providing a way to test restarting the application.
 
 # Pluggable Event Handlers
 
+# Python Callbacks
