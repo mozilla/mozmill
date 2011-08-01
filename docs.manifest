@@ -1,1 +1,9 @@
-mozinfo/README.txt 
+#/usr/bin/env document_it.py
+
+mozinfo/README.txt    https://developer.mozilla.org/en/Mozinfo
+mozprocess/README.txt https://developer.mozilla.org/en/Mozprocess
+mozprofile/README.md  https://developer.mozilla.org/en/Mozprofile
+mozrunner/README.txt  https://developer.mozilla.org/en/Mozrunner
+jsbridge/README.txt   https://developer.mozilla.org/en/JSbridge
+mozmill/README.txt    https://developer.mozilla.org/en/Mozmill
+mozmill/docs/         https://developer.mozilla.org/en/Mozmill/

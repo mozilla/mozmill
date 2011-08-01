@@ -9,6 +9,11 @@ import sys
 import urllib2
 from optparse import OptionParser
 
+# necessary imports
+try:
+    import markdown
+except ImportError:
+
 DEST='http://developer.mozilla.org/'
 DIR=os.path.dirname(os.path.abspath(__file__))
 README=['README.md', 'README.txt', 'README']
