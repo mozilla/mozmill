@@ -16,7 +16,7 @@ Install the command-line client via either setuptools or pip ([detailed instruct
 To work with the development version of Mozmill, check out the code from the [Github repo](http://github.com/mozautomation/mozmill):
 	git clone http://github.com/mozautomation/mozmill.git
 	cd mozmill
-	./setup_development.sh
+	./setup_development.py
 	
 # Usage
 After installing the Python package you can run Mozmill with the `mozmill` command:

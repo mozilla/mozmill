@@ -2,11 +2,17 @@ from setuptools import setup, find_packages
 
 version = '0.1a'
 
+# take description from README
+here = os.path.dirname(os.path.abspath(__file__))
+try:
+    description = file(os.path.join(here, 'README.txt')).read()
+except OSError:
+    description = ''
+
 setup(name='mozprocess',
       version=version,
       description="Mozilla-authored process handling",
-      long_description="""
-""",
+      long_description=description,
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='',
       author='Mozilla Automation and Testing Team',
