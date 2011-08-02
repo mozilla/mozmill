@@ -16,3 +16,16 @@ To use mozprofile as an API you can import
 [Profile](https://github.com/mozautomation/mozmill/tree/master/mozprofile/mozprofile/profile.py)
 and/or
 [AddonManager](https://github.com/mozautomation/mozmill/tree/master/mozprofile/mozprofile/addons.py). 
+
+### Installing Addons
+
+### Setting Preferences
+
+Preferences can be set in several ways:
+
+- using the API: You can pass preferences in to the Profile class's
+  constructor.
+- using JSON
+- using a .ini file
+
+### Reseting the Profile
