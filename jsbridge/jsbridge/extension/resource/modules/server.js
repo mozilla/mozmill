@@ -215,14 +215,15 @@ function log(msg) {
   
   if (DO_FILE_LOGGING) {
     if (!gJsbridgeFileLogger) {
-      // TODO: You want to change this before you turn it on!!!
-      gJsbridgeFileLogger = new JsbridgeFileLogger("/media/Storage/projects/jsbridge.log");
+        // TODO
+        return;
     }
     gJsbridgeFileLogger.write(msg);
   } 
 }
 
 function startServer(port) {
-  var server = new Server(port)
-  server.start()
+    var server = new Server(port);
+    server.start();
+    return server;
 }

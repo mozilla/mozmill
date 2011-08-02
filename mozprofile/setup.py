@@ -43,7 +43,7 @@ version = '0.1a'
 # we only support python 2 right now
 assert sys.version_info[0] == 2
 
-deps = ["ManifestDestiny >= 0.3"]
+deps = ["ManifestDestiny == 0.5.4"]
 # version-dependent dependencies
 if sys.version_info[1] < 6:
     deps.append('simplejson')

@@ -55,13 +55,11 @@ function Session (client) {
   sandbox.openPreferences = hwindow.openPreferences;
 
   client.onMessage(function(data) {
-    //log("jsbridge received: " + data)
     data = toUnicode(data, "utf-8");
     Components.utils.evalInSandbox(data, sandbox);
   });
 }
 Session.prototype.send = function(string) {
-  // log("jsbridge write: " + string)
   if (typeof(string) != "string") {
     throw "jsbridge can only send strings";
   }
@@ -105,11 +103,7 @@ var sessions = {
 };
 
 var Server = function(port) {
-  try {
     this.server = new socket.ServerSocket(port);
-  } catch(e) {
-    log('jsbridge: Exception: ' + e);
-  }
 }
 
 Server.prototype.start = function () {
@@ -119,19 +113,15 @@ Server.prototype.start = function () {
 }
 
 Server.prototype.stop = function () {
-    //log('jsbridge: Closing...');
     this.server.close();
-    this.sessions.quit();
+    sessions.quit();
     this.server = undefined;
 }
 
 function startServer(port) {
     var server = new Server(port);
     server.start();
-}
-
-function log(msg) {
-    dump(msg + '\n');
+    return server;
 }
 
 var toUnicode = function(text, charset) {

@@ -44,6 +44,7 @@ var EventUtils = {}; Components.utils.import('resource://mozmill/stdlib/EventUti
 
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
+var mozelement = {}; Components.utils.import('resource://mozmill/modules/mozelement.js', mozelement);
 var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
@@ -118,7 +119,7 @@ var Menu = function(controller, menuSelector, document) {
   if (node) {
     // We don't unwrap nodes automatically yet (Bug 573185)
     node = node.wrappedJSObject || node;
-    this._menu = new elementslib.Elem(node);
+    this._menu = new mozelement.Elem(node);
   }
   else {
     throw new Error("Menu element '" + menuSelector + "' not found.");
@@ -182,7 +183,7 @@ Menu.prototype = {
       throw new Error("Menu entry '" + itemSelector + "' not found.");
     }
 
-    return new elementslib.Elem(node);
+    return new mozelement.Elem(node);
   },
 
   /**
@@ -399,11 +400,8 @@ MozMillController.prototype.__defineGetter__("mainMenu", function() {
 });
 
 MozMillController.prototype.__defineGetter__("menus", function() {
-  frame.log({'property': 'controller.menus - DEPRECATED',
-             'message': 'Use controller.mainMenu instead.'});
+        throw('controller.menus - DEPRECATED Use controller.mainMenu instead.');
 
-  var menubar = this.window.document.querySelector("menubar");
-  return new MenuTree(this.window, menubar);
 });
 
 MozMillController.prototype.waitForImage = function (elem, timeout, interval) {

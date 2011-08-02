@@ -267,7 +267,7 @@ def run(arguments=sys.argv[1:]):
     (options, command) = parse_args(**parser_kwargs)
 
     # Parse the manifest
-    mp = TestManifest(manifests=(options.manifest,))
+    mp = TestManifest(manifests=(options.manifest,), strict=False)
 
     # run + report
     if command == "testpy":
