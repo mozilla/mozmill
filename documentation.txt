@@ -76,10 +76,40 @@ We would love any sort of help with our documentation!
   is the most direct way to ensure that your documentation is included 
 
 - edit the MDN documents: we will go to some effort to include edits
-  in the upstream documentation
+  in the upstream documentation.  In the future, I will probably write
+  a script to help with this, but as-is, we'll just mine by hand
 
 
 ### How to Update Documentation on MDN
 
 The documents for the mozmill repository are enumerated in the
-`docs.manifest` file for mirroring to MDN
+`docs.manifest` file for mirroring to MDN. This `docs.manifest` file
+is used by the [DocumentIt] (http://k0s.org/mozilla/hg/DocumentIt)
+program to render the contents using
+[Markdown](http://daringfireball.net/projects/markdown/) and upload it
+to http://developer.mozilla.org/ using the API:
+
+http://developer.mindtouch.com/en/ref/MindTouch_API/POST%3Apages%2F%2F%7Bpageid%7D%2F%2Fcontents
+
+After you install DocumentIt, you should be able to run:
+
+    document-it -u jhammel -p notmypassword docs.manifest 
+
+To update the documentation on MDN.
+
+The advantage of having this as a script is that documentation is
+updated when desired so that the active version can be respected.
+
+
+### Guiding Principles
+
+- markdown should be easy to read as text.  If we want HTML documents,
+  we should use HTML documents.  So ensure that the associated
+  markdown documents are easy to read as text
+
+- the canonical absolute URLs should still point to the MDN
+  documentation
+
+- contribute to documentation!  If you see something that should be
+  documented, contribute it!  Don't tell someone else to do it!  We're
+  all in this together.
