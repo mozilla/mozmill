@@ -1,4 +1,5 @@
 #!/usr/bin/env document_it.py
+# documentation manifest for the Mozmill repo
 
 mozinfo/README.txt    https://developer.mozilla.org/en/Mozinfo
 mozprocess/README.txt https://developer.mozilla.org/en/Mozprocess
