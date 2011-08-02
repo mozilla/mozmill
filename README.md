@@ -10,40 +10,60 @@ providing a way to test restarting the application.
 
 # Installation
 
-Install the command-line client via either setuptools or pip ([detailed instructions](https://developer.mozilla.org/en/Mozmill#The_Command_Line_Client)):
-	pip install mozmill
+Install the command-line client via either setuptools or pip
+([detailed instructions](https://developer.mozilla.org/en/Mozmill#The_Command_Line_Client)): 
+
+    pip install mozmill
 	
-To work with the development version of Mozmill, check out the code from the [Github repo](http://github.com/mozautomation/mozmill):
-	git clone http://github.com/mozautomation/mozmill.git
-	cd mozmill
-	./setup_development.py
+To work with the development version of Mozmill, check out the code
+from the [Github repo](http://github.com/mozautomation/mozmill):
+
+    git clone http://github.com/mozautomation/mozmill.git
+    cd mozmill
+    ./setup_development.py
+
 	
 # Usage
+
 After installing the Python package you can run Mozmill with the `mozmill` command:
-	mozmill -t ~/tests/testBookmarks.js
+
+    mozmill -t ~/tests/testBookmarks.js
+
+More information about running the harness is available via `mozmill --help` and 
+in-depth documentation is here: https://developer.mozilla.org/en/Mozmill
+
 
 # Python Packages
+
 Mozmill uses several Python packages:
 
 ### mozprofile
+
 Creates and manages user profiles for Mozilla apps:
+
 	from mozprofile import FirefoxProfile
 	
 	# create new profile to pass to mozmill/mozrunner
 	profile = FirefoxProfile(addons=["adblock.xpi"])
 	
 ### mozrunner
+
 Handles start/stop automation of Mozilla applications:
-	from mozrunner import FirefoxRunner
+
+    from mozrunner import FirefoxRunner
 	
-	# start Firefox on a new profile
-	runner = FirefoxRunner()
-	runner.start()
+    # start Firefox on a new profile
+    runner = FirefoxRunner()
+    runner.start()
 	
 ### mozprocess
-Generic OS process management.
+
+Generic cross-platform  process management.
 
 ### jsbridge
+
 Python to JavaScript bridge used by Mozmill to communicate test run information.
 
 ### mozinfo
+
+Gathers system information

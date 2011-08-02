@@ -1,8 +1,9 @@
-### mozrunner
+# mozrunner
+
 Handles start/stop automation of Mozilla applications:
 
-	from mozrunner import FirefoxRunner
+    from mozrunner import FirefoxRunner
 	
-	# start Firefox on a new profile
-	runner = FirefoxRunner()
-	runner.start()
+    # start Firefox on a new profile
+    runner = FirefoxRunner()
+    runner.start()

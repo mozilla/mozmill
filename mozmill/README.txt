@@ -8,10 +8,34 @@ running the JavaScript tests and the Python package provides a
 mechanism for running the tests from the command line as well as
 providing a way to test restarting the application. 
 
-# Accumulating Results
+### Simple API Usage
 
-# Pluggable Event Handlers
+### Accumulating Results
 
-# Python Callbacks
+### Pluggable Event Handlers
 
-# User restart and shutdown
+Three event handlers are included with Mozmill by default via
+the setuptools entry point 'mozmill.event_handlers':
+
+- Logging
+
+- Report
+
+- PythonCallbacks
+
+When running from the command line, these are on by default.  However,
+you may use the '--disable' command line flag to turn them off:
+
+    mozmill -t foo.js --disable Logging --report stdout 
+
+This command line will dump just the JSON of the report to stdout.
+
+
+### Getting Data to and From the Tests
+
+- persisted
+
+### Python Callbacks
+
+### User restart and shutdown
+
