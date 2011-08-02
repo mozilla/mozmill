@@ -1,4 +1,4 @@
-#/usr/bin/env document_it.py
+#!/usr/bin/env document_it.py
 
 mozinfo/README.txt    https://developer.mozilla.org/en/Mozinfo
 mozprocess/README.txt https://developer.mozilla.org/en/Mozprocess
