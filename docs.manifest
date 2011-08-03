@@ -1,11 +1,11 @@
 #!/usr/bin/env document_it.py
 # documentation manifest for the Mozmill repo
 
-mozinfo/README.txt    https://developer.mozilla.org/en/Mozinfo
-mozprocess/README.txt https://developer.mozilla.org/en/Mozprocess
-mozprofile/README.md  https://developer.mozilla.org/en/Mozprofile
-mozrunner/README.txt  https://developer.mozilla.org/en/Mozrunner
-jsbridge/README.txt   https://developer.mozilla.org/en/JSbridge
-mozmill/README.txt    https://developer.mozilla.org/en/Mozmill
-mozmill/docs/         https://developer.mozilla.org/en/Mozmill/
-documentation.txt     https://developer.mozilla.org/en/Mozmill/Documentation
+mozinfo/README.txt    Mozinfo
+mozprocess/README.txt Mozprocess
+mozprofile/README.md  Mozprofile
+mozrunner/README.txt  Mozrunner
+jsbridge/README.txt   JSbridge
+mozmill/README.txt    Mozmill
+mozmill/docs/         Mozmill/
+documentation.txt     Mozmill/Documentation
