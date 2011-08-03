@@ -5,7 +5,8 @@ mozinfo/README.md     en/Mozinfo
 mozprocess/README.md  en/Mozprocess
 mozprofile/README.md  en/Mozprofile
 mozrunner/README.md   en/Mozrunner
-jsbridge/README.md    en/JSbridge
+jsbridge/README.md    en/jsbridge
 mozmill/README.md     en/Mozmill
 mozmill/docs/event_handlers.txt         en/Mozmill/EventHandlers
+mozmill/docs/INSTALL.txt en/Mozmill/Installation
 documentation.txt     en/Mozmill/Documentation

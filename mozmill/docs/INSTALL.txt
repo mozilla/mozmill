@@ -1,0 +1,5 @@
+# Installing Mozmill
+
+Mozmill can be installed as an extension or from python source.
+
+## 
