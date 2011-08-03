@@ -1,5 +1,29 @@
 # Installing Mozmill
 
-Mozmill can be installed as an extension or from python source.
+[Mozmill](https://developer.mozilla.org/en/Mozmill) 
+can be installed as an extension or from the python source.
 
-## 
+## Installing the Extenstion
+
+The Mozmill extension can be installed from 
+[its home on addons.mozilla.org](https://addons.mozilla.org/en-US/firefox/addon/9018).
+Or open the "Get Add-ons" tab of the Add-ons Manager and search for
+Mozmill.
+
+
+## Installing the Mozmill Python Package
+
+If you have [python](http://python.org) on your computer you will be
+able to install and utilize the Mozmill python package.
+
+Depending on your needs, you may want to install Mozmill from its
+[Python Package Index page](http://pypi.python.org/pypi/mozmill) or
+its [github repository](https://github.com/mozautomation/mozmill). In
+either case, you will need 
+[setuptools](http://peak.telecommunity.com/DevCenter/setuptools) and
+it is highly recommended that you use 
+[virtualenv](http://www.virtualenv.org/) to keep your python
+environment separate from your system packages.
+
+### Using virtualenv
+

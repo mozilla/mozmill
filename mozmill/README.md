@@ -45,6 +45,7 @@ tools, and a graphical interface to run the tests.
 
 An example is available at https://github.com/mozautomation/mozmill/tree/master/mozmill
 
+
 ## Architecture
 
 Mozmill is built of a number of different packages:
@@ -52,6 +53,9 @@ Mozmill is built of a number of different packages:
 - [jsbridge](./jsbridge)
 - [mozrunner](./Mozrunner)
 - [mozinfo](./Mozinfo)
+
+The Mozmill python package bundles the Mozmill and jsbridge extensions
+into a profile on running.
 
 
 ## Pluggable Event Handlers
