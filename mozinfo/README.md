@@ -29,10 +29,10 @@ available as module globals:
 In addition, mozinfo exports a dictionary, `mozinfo.info`, that
 contain these values.  mozinfo also exports:
 
- - `choices`: a dictionary of possible values for os, bits, and
-   processor
- - `main`: the console_script entry point for mozinfo
- - `unknown`: a singleton denoting a value that cannot be determined
+- `choices`: a dictionary of possible values for os, bits, and
+  processor
+- `main`: the console_script entry point for mozinfo
+- `unknown`: a singleton denoting a value that cannot be determined
 
 `unknown` has the string representation `"UNKNOWN"`. unknown will evaluate
 as `False` in python:
@@ -48,7 +48,6 @@ diagnose one's current system.
 Example output:
 
     os: linux
-    hostname: jhammel-THINK
     version: Ubuntu 10.10
     bits: 32
     processor: x86
