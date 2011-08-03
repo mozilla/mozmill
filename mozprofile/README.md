@@ -19,6 +19,8 @@ and/or
 
 ## Installing Addons
 
+Addons may be installed individually or from a manifest
+
 ## Setting Preferences
 
 Preferences can be set in several ways:
@@ -27,4 +29,8 @@ Preferences can be set in several ways:
   constructor.
 - using a JSON blob
 - using a `.ini` file
-- via command line switches
+- via command line switches: `--pref key:value --pref key:value [...]`
+
+When setting preferences from  an `.ini` file or the `--pref` switch,
+the value will be interpolated as an integer or a boolean
+(`true`/`false`) if possible.
