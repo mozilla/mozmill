@@ -1,11 +1,11 @@
 #!/usr/bin/env document-it
 # documentation manifest for the Mozmill repo
 
-mozinfo/README.md     Mozinfo
-mozprocess/README.md  Mozprocess
-mozprofile/README.md  Mozprofile
-mozrunner/README.md   Mozrunner
-jsbridge/README.md    JSbridge
-mozmill/README.md     Mozmill
-mozmill/docs/event_handlers.txt         Mozmill/EventHandlers
-documentation.txt     Mozmill/Documentation
+mozinfo/README.md     en/Mozinfo
+mozprocess/README.md  en/Mozprocess
+mozprofile/README.md  en/Mozprofile
+mozrunner/README.md   en/Mozrunner
+jsbridge/README.md    en/JSbridge
+mozmill/README.md     en/Mozmill
+mozmill/docs/event_handlers.txt         en/Mozmill/EventHandlers
+documentation.txt     en/Mozmill/Documentation
