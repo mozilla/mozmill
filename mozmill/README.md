@@ -34,6 +34,13 @@ Also the Mozilla Messaging team has an active project which handles
 See [Installation](./Installation) .
 
 
+## The Extension
+
+[The Mozmill extension](https://addons.mozilla.org/en-US/firefox/addon/9018)
+comes with an integrated development environment, some test authoring
+tools, and a graphical interface to run the tests. 
+
+
 ## Simple API Usage
 
 An example is available at https://github.com/mozautomation/mozmill/tree/master/mozmill
