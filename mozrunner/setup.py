@@ -35,8 +35,9 @@
 #
 # ***** END LICENSE BLOCK *****
 
-from setuptools import setup, find_packages
+import os
 import sys
+from setuptools import setup, find_packages
 
 PACKAGE_NAME = "mozrunner"
 PACKAGE_VERSION = "3.0a"
