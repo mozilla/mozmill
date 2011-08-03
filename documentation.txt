@@ -10,6 +10,8 @@ There are several entry points where it is desirable to have documentation avail
 
 - in a source checkout alongside the code
 
+- using python's `help()`
+
 - on the AMO page: https://addons.mozilla.org/en-US/firefox/addon/9018/
 
 Currently, our documentation is inconsistent and incomplete, with
@@ -43,7 +45,7 @@ Several packages exist in the [mozmill repository](http://github.com/mozautomati
   repo
 
 Each of these packages contains a 'README' file as well as 
-possibly various other documentation files in a 'docs/'
+possibly various other documentation files in a `docs/`
 directory. These markdown files serve as the documentation canon. 
 
 
@@ -95,7 +97,7 @@ After you install DocumentIt, you should be able to run:
 
     document-it -u jhammel -p notmypassword docs.manifest 
 
-To update the documentation on MDN.
+to update the documentation on MDN.
 
 The advantage of having this as a script is that documentation is
 updated when desired so that the active version can be respected.
