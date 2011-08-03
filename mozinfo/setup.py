@@ -6,7 +6,7 @@ version = '0.3.2'
 # get documentation from the README
 try:
     here = os.path.dirname(os.path.abspath(__file__))
-    description = file(os.path.join(here, 'README.txt')).read()
+    description = file(os.path.join(here, 'README.md')).read()
 except IOError:
     description = ''
 
