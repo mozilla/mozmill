@@ -1,11 +1,11 @@
-#!/usr/bin/env document_it.py
+#!/usr/bin/env document-it
 # documentation manifest for the Mozmill repo
 
-mozinfo/README.md    Mozinfo
-mozprocess/README.md Mozprocess
+mozinfo/README.md     Mozinfo
+mozprocess/README.md  Mozprocess
 mozprofile/README.md  Mozprofile
-mozrunner/README.md  Mozrunner
-jsbridge/README.md   JSbridge
-mozmill/README.md    Mozmill
+mozrunner/README.md   Mozrunner
+jsbridge/README.md    JSbridge
+mozmill/README.md     Mozmill
 mozmill/docs/event_handlers.txt         Mozmill/EventHandlers
 documentation.txt     Mozmill/Documentation
