@@ -5,7 +5,7 @@ version = '0.1a'
 # take description from README
 here = os.path.dirname(os.path.abspath(__file__))
 try:
-    description = file(os.path.join(here, 'README.txt')).read()
+    description = file(os.path.join(here, 'README.md')).read()
 except OSError:
     description = ''
 
