@@ -7,5 +7,5 @@ mozprofile/README.md  Mozprofile
 mozrunner/README.txt  Mozrunner
 jsbridge/README.txt   JSbridge
 mozmill/README.txt    Mozmill
-mozmill/docs/         Mozmill/
+mozmill/docs/event_handlers.txt         Mozmill/EventHandlers
 documentation.txt     Mozmill/Documentation

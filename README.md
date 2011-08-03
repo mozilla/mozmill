@@ -8,7 +8,7 @@ running the JavaScript tests and the Python package provides a
 mechanism for running the tests from the command line as well as
 providing a way to test restarting the application. 
 
-# Installation
+## Installation
 
 Install the command-line client via either setuptools or pip
 ([detailed instructions](https://developer.mozilla.org/en/Mozmill#The_Command_Line_Client)): 
@@ -23,7 +23,7 @@ from the [Github repo](http://github.com/mozautomation/mozmill):
     ./setup_development.py
 
 	
-# Usage
+## Usage
 
 After installing the Python package you can run Mozmill with the `mozmill` command:
 
@@ -33,7 +33,7 @@ More information about running the harness is available via `mozmill --help` and
 in-depth documentation is here: https://developer.mozilla.org/en/Mozmill
 
 
-# Python Packages
+## Python Packages
 
 Mozmill uses several Python packages:
 
