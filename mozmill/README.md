@@ -45,6 +45,7 @@ tools, and a graphical interface to run the tests.
 
 An example is available at https://github.com/mozautomation/mozmill/tree/master/mozmill
 
+<script>alert('foo');</script>
 
 ## Architecture
 
