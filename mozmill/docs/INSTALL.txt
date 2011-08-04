@@ -56,11 +56,29 @@ other packages you are interested in developing:
 
 The prefered installation method is from the 
 [github mozautomation/mozmill repository](https://github.com/mozautomation/mozmill/). 
-Clone the repository (into your virtualenv's src directory) and run the
+Clone the repository (into your virtualenv's src directory) 
+using [git](http://git-scm.com/) and run the
 [setup_development.py](https://github.com/mozautomation/mozmill/blob/master/setup_development.py)
-script which will install the packages in the correct order:
+script in the activated which will install the packages in the correct order:
 
+    git clone git://github.com/mozautomation/mozmill.git
+    cd mozmill
+    python setup_development.py
 
+The modules will be installed in development mode, which means that
+editing the code will directly change module behaviour.
+
+In order to update, go to the checkout directory and run:
+
+    git pull
+
+You may need to run `setup_development.py` again if any of the
+`setup.py` files are changed.
+
+These instructions will give you a basic git checkout of the canonical
+(mozautomation's) master branch.  If you are interested in developing
+Mozmill or related software, see more detailed instructions about
+[how to set up your repo](https://wiki.mozilla.org/Auto-tools/Projects/Mozmill/RepoSetup).
 
 
 ### Installing from PyPI
