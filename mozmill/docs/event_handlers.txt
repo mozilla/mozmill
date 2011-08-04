@@ -1,5 +1,4 @@
-Pluggable Events
-================
+# Pluggable Events
 
 With the addition of pluggable events, mozmill has mostly become a
 python event dispatcher system.  Mozmill is run like

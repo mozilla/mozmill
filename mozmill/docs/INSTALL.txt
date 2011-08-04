@@ -40,7 +40,16 @@ Mozmill, e.g.:
 
     virtualenv mozmill
 
-It is recommended that you put 
+Run the activate script for your platform.  For e.g. linux:
+
+    cd mozmill
+    . bin/activate
+
+It is recommended that you make a `src` directory for Mozmill and
+other packages you are interested in developing:
+
+    mkdir src
+    cd src
 
 
 ### Installing from github
@@ -49,5 +58,15 @@ The prefered installation method is from the
 [github mozautomation/mozmill repository](https://github.com/mozautomation/mozmill/). 
 
 
+### Installing from PyPI
 
+If you have `easy_install` or `pip` (both of which come packaged with
+virtualenv), you can install mozmill and its dependencies with a
+single command:
+
+    easy_install mozmill
+
+or:
+
+    pip install mozmill
 
