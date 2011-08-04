@@ -41,8 +41,11 @@ See [Installation](./Installation) for instructions.
 comes with an integrated development environment, some test authoring
 tools, and a graphical interface to run the tests. 
 
+## Python Client
 
-## Simple API Usage
+Mozmill is a python package
+
+### Simple API Usage
 
 An example is available at https://github.com/mozautomation/mozmill/tree/master/mozmill
 
@@ -67,9 +70,7 @@ Three event handlers are included with Mozmill by default via
 the setuptools entry point `mozmill.event_handlers`:
 
 - [Logging](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/logger.py)
-
 - [Report](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/report.py)
-
 - [PythonCallbacks](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/python_callbacks.py)
 
 When running from the command line, these are on by default.  However,

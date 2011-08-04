@@ -3,15 +3,10 @@
 There are several entry points where it is desirable to have documentation available:
 
 - the MDN project page(s) for mozmill: https://developer.mozilla.org/en/Mozmill
-
 - the mozmill github repository: http://github.com/mozautomation/mozmill
-
 - the python package index: http://pypi.python.org/pypi/mozmill
-
 - in a source checkout alongside the code
-
 - using python's `help()`
-
 - on the AMO page: https://addons.mozilla.org/en-US/firefox/addon/9018/
 
 Currently, our documentation is inconsistent and incomplete, with
