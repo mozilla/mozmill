@@ -56,7 +56,19 @@ try:
         ret = {}
         dist = pkg_resources.get_distribution(module)
         if dist.has_metadata("PKG-INFO"):
-            for line in dist.get_metadata_lines("PKG-INFO"):
+            key = None
+            for line in dist.get_metadata("PKG-INFO").splitlines():
+                # see http://www.python.org/dev/peps/pep-0314/
+                if key == 'Description':
+                    # descriptions can be long
+                    if not line or line[0].isspace():
+                        value += '\n' + line
+                        continue
+                    else:
+                        key = key.strip()
+                        value = value.strip()
+                        ret[key] = value
+
                 key, value = line.split(':', 1)
                 key = key.strip()
                 value = value.strip()
