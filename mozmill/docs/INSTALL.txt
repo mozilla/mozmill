@@ -3,6 +3,7 @@
 [Mozmill](https://developer.mozilla.org/en/Mozmill) 
 can be installed as an extension or from the python source.
 
+
 ## Installing the Extenstion
 
 The Mozmill extension can be installed from 
@@ -92,4 +93,22 @@ single command:
 or:
 
     pip install mozmill
+
+This will install the latest version from
+[pypi](http://pypi.python.org/pypi/mozmill).
+
+If you don't have
+[easy_install](http://pypi.python.org/pypi/setuptools), you can get it
+by downloading and running
+http://peak.telecommunity.com/dist/ez_setup.py . For example:
+
+    curl -O http://peak.telecommunity.com/dist/ez_setup.py
+    python ez_setup.py
+
+Note again, that `easy_install` and the rest of setuptools comes with
+virtualenv, so if you use virtualenv you won't have this amongst many
+other problems.
+
+You can upgrade a package (e.g. mozmill) by using `easy_install -u $PACKAGE` or 
+`pip install --upgrade $PACKAGE`.
 
