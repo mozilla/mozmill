@@ -73,19 +73,20 @@ The Mozmill python package bundles the Mozmill and jsbridge extensions
 into a profile on running.
 
 
-## Pluggable Event Handlers
+### Event Dispatching
 
-See [Event Handlers](./EventHandlers).
+Mozmill dispatches events from the JavaScript tests and modules to the python runner. See [Event Handlers](./EventHandlers).
 
-## Getting Data to and From the Tests
+
+### Python Callbacks
+
+JavaScript may invoke arbitrary python using the PythonCallbacks [event handler](./EventHandlers) included with Mozmill.
+
+
+### Getting Data to and From the Tests
 
 - [event handlers](./EventHandlers)
 - persisted object: a JSObject
-
-
-## Python Callbacks
-
-JavaScript may invoke arbitrary python using the PythonCallbacks [event handler](./EventHandlers) included with Mozmill.
 
 
 ## Restart and Shutdown
@@ -101,6 +102,8 @@ JavaScript tests may initiate shutdown and restart of the browser. There are two
 See the notes on our [documentation strategy](./Documentation) .
 
 ## Links
+
+Several online resources exist for Mozmill:
 
 - github repository
 - pypi page
