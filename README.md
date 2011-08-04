@@ -29,22 +29,15 @@ After installing the Python package you can run Mozmill with the `mozmill` comma
 
     mozmill -t ~/tests/testBookmarks.js
 
-More information about running the harness is available via `mozmill --help` and 
-in-depth documentation is here: https://developer.mozilla.org/en/Mozmill
+More information about running the harness is available via `mozmill --help` 
+and in-depth documentation is here: https://developer.mozilla.org/en/Mozmill
 
 
 ## Python Packages
 
 Mozmill uses several Python packages:
 
-### mozprofile
-
-Creates and manages user profiles for Mozilla apps:
-
-	from mozprofile import FirefoxProfile
-	
-	# create new profile to pass to mozmill/mozrunner
-	profile = FirefoxProfile(addons=["adblock.xpi"])
+- [mozprofile](mozprofile) : creates and manages user profiles for Mozilla apps
 	
 ### mozrunner
 

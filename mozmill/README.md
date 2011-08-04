@@ -31,7 +31,8 @@ Also the Mozilla Messaging team has an active project which handles
 
 ## Installation
 
-See [Installation](./Installation) .
+Mozmill is available as an addon and a standard python package.
+See [Installation](./Installation) for instructions.
 
 
 ## The Extension
@@ -59,6 +60,8 @@ into a profile on running.
 
 
 ## Pluggable Event Handlers
+
+See [Event Handlers](./EventHandlers).
 
 Three event handlers are included with Mozmill by default via
 the setuptools entry point `mozmill.event_handlers`:
