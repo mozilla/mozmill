@@ -35,6 +35,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
+import os
 import sys
 from setuptools import setup, find_packages
 
@@ -57,8 +58,8 @@ except OSError:
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
-      description="Python to JavaScript bridge interface"
-      long_description=summ,
+      description="Python to JavaScript bridge interface",
+      long_description=description,
       author='Mikeal Rogers, Mozilla',
       author_email='mikeal.rogers@gmail.com',
       url='http://github.com/mozautomation/mozmill',
