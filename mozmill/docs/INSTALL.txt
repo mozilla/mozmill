@@ -56,6 +56,11 @@ other packages you are interested in developing:
 
 The prefered installation method is from the 
 [github mozautomation/mozmill repository](https://github.com/mozautomation/mozmill/). 
+Clone the repository (into your virtualenv's src directory) and run the
+[setup_development.py](https://github.com/mozautomation/mozmill/blob/master/setup_development.py)
+script which will install the packages in the correct order:
+
+
 
 
 ### Installing from PyPI
