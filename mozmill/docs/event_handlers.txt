@@ -44,17 +44,22 @@ Mozmill allows python modules to plug into the event listener system.
 This is done by denoting them as a setuptools entry point with the key
 `mozmill.event_handlers` (see mozmill's setup.py for examples).
 
-(TODO: document support for allowing handlers to live in free-standing
-files)
+(*TODO: document support for allowing handlers to live in free-standing
+files*)
 
-Currently, when invoking mozmill through the command line, all
-setuptools entry points with the `mozmill.event_handlers` are
-added unless disabled with the `--disable` flag.
+Three event handlers are included with Mozmill by default via
+the setuptools entry point `mozmill.event_handlers`:
 
-MozMill has three built-in listener plugins:
+- [Logging](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/logger.py)
+- [Report](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/report.py)
+- [PythonCallbacks](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/python_callbacks.py)
 
- - a logger (`mozmill.logger:LoggerListener`)
- - a JSON reporting module (`mozmill.report:Report`)
+When running from the command line, these are on by default.  However,
+you may use the `--disable` command line argument to turn them off:
+
+    mozmill -t foo.js --disable Logging --report stdout 
+
+This command line will dump the JSON of the report to stdout.
 
 You can see how these are instantiated in mozmill's setup.py in the
 `entry_points` section.

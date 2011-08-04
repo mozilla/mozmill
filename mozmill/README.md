@@ -45,14 +45,25 @@ tools, and a graphical interface to run the tests.
 
 Mozmill is a python package
 
+
+### Running the command line client 
+
+See `mozmill --help` for command-line options.
+
+
+### Control flow
+
+(*TODO*)
+
+
 ### Simple API Usage
 
 An example is available at https://github.com/mozautomation/mozmill/tree/master/mozmill
 
 
-## Architecture
+### Architecture
 
-Mozmill is built of a number of different packages:
+The Mozmill python package is built of a number of different package dependencies:
 
 - [jsbridge](./jsbridge)
 - [mozrunner](./Mozrunner)
@@ -66,28 +77,24 @@ into a profile on running.
 
 See [Event Handlers](./EventHandlers).
 
-Three event handlers are included with Mozmill by default via
-the setuptools entry point `mozmill.event_handlers`:
-
-- [Logging](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/logger.py)
-- [Report](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/report.py)
-- [PythonCallbacks](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/python_callbacks.py)
-
-When running from the command line, these are on by default.  However,
-you may use the `--disable` command line argument to turn them off:
-
-    mozmill -t foo.js --disable Logging --report stdout 
-
-This command line will dump just the JSON of the report to stdout.
-
-
 ## Getting Data to and From the Tests
 
-- persisted
+- [event handlers](./EventHandlers)
+- persisted object: a JSObject
+
 
 ## Python Callbacks
 
-## User restart and shutdown
+JavaScript may invoke arbitrary python using the PythonCallbacks [event handler](./EventHandlers) included with Mozmill.
+
+
+## Restart and Shutdown
+
+JavaScript tests may initiate shutdown and restart of the browser. There are two types of shutdown/restart events:
+
+- user shutdown
+- runner shutdown
+
 
 ## Updating the Documentation
 
