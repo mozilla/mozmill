@@ -74,9 +74,9 @@ This will do the following:
 - the application, in this case `firefox`, will be looked for (see:
   mozrunner)
 
-- a profile object will be created of the approriate type 
+- a [profile](Mozprofile) object will be created of the approriate type 
 
-- a python-javascript bridge will be created (see: jsbridge)
+- a [python-javascript bridge](./jsbridge) will be created
 
 - the `test.js` file will be sent over the jsbridge where it is
   loaded and executed (see: resource://mozmill/modules/frame.js )
@@ -87,7 +87,10 @@ This will do the following:
 
 ### Simple API Usage
 
-An example is available at https://github.com/mozautomation/mozmill/tree/master/mozmill
+Since Mozmill 2.0, the 
+[MozMill class](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py)
+is usable as a robust API. An example is available at
+https://github.com/mozautomation/mozmill/tree/master/mozmill .
 
 
 ### Architecture
@@ -116,12 +119,22 @@ JavaScript may invoke arbitrary python using the PythonCallbacks
 
 ### Getting Data to and From the Tests
 
+It is often desirable to transfer data to and from the tests.  There
+are a few mechanisms to do so:
+
 - [event handlers](./EventHandlers) send data from the JavaScript
   application layer to the python harness
-
-- `persisted` object: a JSObject that is persisted between test runs
+- `persisted` object: a 
+  [JSObject](https://github.com/mozautomation/mozmill/blob/master/jsbridge/jsbridge/jsobjects.py) 
+  that is persisted between test runs
   even if the application under test is shutdown or restarted. Each
-  `MozMill` instance carries a `persisted` object.
+  [MozMill](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py)
+  instance carries a `persisted` object. The amount of
+  persisted data must be kept small, however, or [jsbridge](./jsbridge) will fail.
+- create your own 
+  [JSObject](https://github.com/mozautomation/mozmill/blob/master/jsbridge/jsbridge/jsobjects.py) 
+  for finer-tuned control getting data to and from the tests.  
+    
 
 
 ### Restart and Shutdown
@@ -129,7 +142,7 @@ JavaScript may invoke arbitrary python using the PythonCallbacks
 JavaScript tests may initiate shutdown and restart of the
 browser. There are two types of shutdown/restart events:
 
-- user shutdown
+- user shutdown : 
 - runner shutdown
 
 
@@ -142,6 +155,7 @@ browser. There are two types of shutdown/restart events:
   [mozmill tests](http://hg.mozilla.org/qa/mozmill-tests/)
 
 There is API documentation for the Mozmill JavaScript tests.
+
 
 ### Mozmill Test API
 
@@ -158,12 +172,18 @@ There is API documentation for the Mozmill JavaScript tests.
 
 ## Finding and Reporting Bugs
 
-Mozmill is in an active stage of development. 
-If you think you've found a bug, please check the list of
-existing bugs. If your found bug is not listed there, please file a
-new bug under the "Testing" Product and "Mozmill" Component. Please
+Mozmill is in an active stage of development. Check out the 
+[Auto-tools Mozmill project page](https://wiki.mozilla.org/Auto-tools/Projects/Mozmill)
+for information on development. If you think you've found a bug in Mozmill,
+please check the 
+[list of existing bugs](https://bugzilla.mozilla.org/buglist.cgi?resolution=---&component=Mozmill&product=Testing). 
+If your found bug is not listed there, please 
+[file a new bug](https://bugzilla.mozilla.org/enter_bug.cgi?product=Testing&component=Mozmill)
+in [bugzilla](https://bugzilla.mozilla.org/)
+under the "Testing" Product and "Mozmill" Component. Please
 provide as much as possible details and attach the Mozmill test if
-available, which shows the problem. Thanks for filing! 
+available, which shows the problem. Thanks for helping us make Mozmill
+better! 
 
 
 ## Updating the Documentation
