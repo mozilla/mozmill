@@ -23,23 +23,17 @@ and high-quality resource.
 
 Several packages exist in the [mozmill repository](http://github.com/mozautomation/mozmill):
 
-* [mozmill](https://developer.mozilla.org/en/Mozmill) : driver,
+- [mozmill](https://developer.mozilla.org/en/Mozmill) : driver,
   event-dispatcher, and test harness
-
-* jsbridge : python to JavaScript bridge interface
-
-* mozrunner : Handles start/stop automation of Mozilla applications
-
-* mozprofile : handling of Mozilla XUL app profiles
-
-* mozprocess : low-level process management
-
-* mozinfo : gather system information
-
-* mutt : test harness for mozmill and other denizens of the Mozmill
+- jsbridge : python to JavaScript bridge interface
+- mozrunner : Handles start/stop automation of Mozilla applications
+- mozprofile : handling of Mozilla XUL app profiles
+- mozprocess : low-level process management
+- mozinfo : gather system information
+- mutt : test harness for mozmill and other denizens of the Mozmill
   repo
 
-Each of these packages contains a 'README' file as well as 
+Each of these packages contains a `README` file as well as 
 possibly various other documentation files in a `docs/`
 directory. These markdown files serve as the documentation canon. 
 
@@ -50,12 +44,11 @@ By being careful in how we organize and present information, we can
 use the canonical sources in the repo to give a complete and
 consistent documentation story:
 
-- github will automation display README files present in directories
-
-- the python `setup.py` files can read the contents of the README
+- [github](https://github.com) will automation display `README.md` 
+  files present in directories
+- the python `setup.py` files can read the contents of the `README`
   files in their directories and they will be available when the
-  package is distributed to PyPI
-
+  package is distributed to [PyPI](http://pypi.python.org/pypi/)
 - the markdown will be rendered and uploaded to
   http://developer.mozilla.org in accordance to a manifest
 
@@ -81,7 +74,7 @@ We would love any sort of help with our documentation!
 
 The documents for the mozmill repository are enumerated in the
 `docs.manifest` file for mirroring to MDN. This `docs.manifest` file
-is used by the [DocumentIt] (http://k0s.org/mozilla/hg/DocumentIt)
+is used by the [document-it](http://k0s.org/mozilla/hg/DocumentIt)
 program to render the contents using
 [Markdown](http://daringfireball.net/projects/markdown/) and upload it
 to http://developer.mozilla.org/ using the API:

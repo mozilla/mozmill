@@ -134,7 +134,9 @@ are a few mechanisms to do so:
 - create your own 
   [JSObject](https://github.com/mozautomation/mozmill/blob/master/jsbridge/jsbridge/jsobjects.py) 
   for finer-tuned control getting data to and from the tests.  
-    
+
+See also 
+[Bug 668550 - python should have some way of transfering data to the test on the JS side](https://bugzilla.mozilla.org/show_bug.cgi?id=668550)
 
 
 ### Restart and Shutdown
@@ -142,8 +144,11 @@ are a few mechanisms to do so:
 JavaScript tests may initiate shutdown and restart of the
 browser. There are two types of shutdown/restart events:
 
-- user shutdown : 
-- runner shutdown
+- user shutdown : the test indicates a shutdown or restart.  This does
+  not stop the browser but indicates that a further action will cause
+  a restart or shutdown (such as triggering `Ctrl+Q`)
+- runner shutdown : the test tells the runner to shutdown or restart, 
+  potentially giving a next test to run in the same file.
 
 
 ## Learning Mozmill Testing
