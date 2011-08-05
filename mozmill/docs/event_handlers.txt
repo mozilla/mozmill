@@ -1,7 +1,9 @@
 # Events Handlers
 
-Mozmill is an event dispatcher system, using jsbridge to communicate
+[Mozmill](https://developer.mozilla.org/en/Mozmill) 
+is an event dispatcher system, using jsbridge to communicate
 events triggered in JavaScript to the python harness.
+
 
 ## Events
 
@@ -75,7 +77,10 @@ disabled with the `--disable` flag) as well as any classes designated
 via `--handler PATH:CLASS` when constructing a `MozMill` object.
 
 When instantiating `MozMill` as an API, you must instantiate
-and pass in the handlers that you want to use.  
+and pass in the handlers that you want to use.
+
+You can also call `MozMill.add_listener(...)` or 
+`MozMill.add_global_listener(...)` following object construction.
 
 
 ## Structure of an Event Handler
@@ -94,13 +99,13 @@ constructor signature should match those in `add_options` if you
 wished them to be controllable from the command line.
 
 If an event handler is callable, then all events and their event types
-will be passed to the `__call__` method.  It is a global event handler
+will be passed to the `__call__` method.  It is a global event handler.
 
 The event handler should have an `events` method.  This should
 return a dict of names of events to listen for mapped to the methods
 that listen to these events.
 
-Ccurrently the event type is a string by convention only.  We
+Ccurrently the event type is a string by convention only.  There
 have no catalog of events to be listened for.  A list of applicable
 events should be maintained as well as when each is called by the
 tests.  It would be even better if this was programmatic.
@@ -124,7 +129,8 @@ information (it is a handler-factory).  If the handler raises a
 `mozmill.handlers.HandlerMatchException` the handler is not
 instantiated or passed to the MozMill constructor.
 
-As an example, see the constructor of `mozmill.report.Report`.  If
-`report` is `None`, as it would be if not specified via the command
+As an example, see the constructor of 
+[mozmill.report.Report](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/report.py).  
+If `report` is `None`, as it would be if not specified via the command
 line (see the class's `add_options` method for `--report`), then
 the class is not instantiated or utilized.

@@ -1,13 +1,13 @@
 # Mozmill
 
 [Mozmill](https://developer.mozilla.org/en/Mozmill) is a test tool and
-UI Automation framework for writing tests and other automation scripts
+UI automation framework for writing tests and other automation scripts
 for Gecko based applications like Firefox and Thunderbird. 
 It's built as an
 [addon](https://addons.mozilla.org/en-US/firefox/addon/9018/) 
-and a Python command-line tool. The addon provides an IDE 
+and a [python](http://python.org) command-line tool. The addon provides an IDE 
 (Integrated Development Environment) for writing and
-running the JavaScript tests and the Python package provides a
+running the JavaScript tests and the python package provides a
 mechanism for running the tests from the command line as well as
 providing a way to test restarting the application. 
 Mozmill has an extensive API to help you write functional tests that 
@@ -21,8 +21,7 @@ or have a look at the
 to get an impression of how to contribute in writing and running 
 [Mozmill tests](https://developer.mozilla.org/en/Mozmill_Tests). 
 Existing tests get run in the 
-[release
-testing](https://developer.mozilla.org/en/Mozmill/Release_Testing)
+[release testing](https://developer.mozilla.org/en/Mozmill/Release_Testing)
 cycle for new major or security releases of Firefox. 
 
 Also the Mozilla Messaging team has an active project which handles
@@ -46,7 +45,8 @@ tools, and a graphical interface to run the tests.
 ## Python Client
 
 There is a [Mozmill python package](http://pypi.python.org/pypi/mozmill) 
-that invokes and runs a Gecko application 
+that invokes and runs a Gecko application, performing automatic test scripting,
+and accumulating and reporting results.
 
 
 ### Running the command line client 
@@ -91,6 +91,8 @@ An example is available at https://github.com/mozautomation/mozmill/tree/master/
 
 
 ### Architecture
+
+Python Mozmill is a test harness and an event dispatcher.
 
 The Mozmill python package is built of a number of different package dependencies:
 
@@ -139,19 +141,30 @@ browser. There are two types of shutdown/restart events:
   how to setup and run the [QA](http://quality.mozilla.org/) 
   [mozmill tests](http://hg.mozilla.org/qa/mozmill-tests/)
 
-There is API documentation for the Mozmill JavaScript tests
+There is API documentation for the Mozmill JavaScript tests.
 
 ### Mozmill Test API
 
 - [controller object reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Controller_Object)
-- [element object reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Element_Object) (Mozmill 2.0+)
-- [finding mozmill elements](https://developer.mozilla.org/en/Mozmill/Finding_Mozmill_Elements) (Mozmill 2.0+)
+- [element object reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Element_Object) (**Mozmill 2.0+**)
+- [finding mozmill elements](https://developer.mozilla.org/en/Mozmill/Finding_Mozmill_Elements) (**Mozmill 2.0+**)
 - [mozmill object reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Base_Object_Interfaces)
 - [extending the element hierarchy](https://developer.mozilla.org/en/Mozmill/Mozmill_Element_Object/Extending_the_MozMill_element_hierarchy)
 - [elementslib object reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Elements_Library_Object)
-  (deprecated in Mozmill 2.0 - see 
+  (*deprecated in Mozmill 2.0* - see 
   [finding mozmill elements](https://developer.mozilla.org/en/Mozmill/Finding_Mozmill_Elements))
-- [jum API reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Unit_Test_Framework) (deprecated in Mozmill 2.0)
+- [jum API reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Unit_Test_Framework) (*deprecated in Mozmill 2.0*)
+
+
+## Finding and Reporting Bugs
+
+Mozmill is in an active stage of development. 
+If you think you've found a bug, please check the list of
+existing bugs. If your found bug is not listed there, please file a
+new bug under the "Testing" Product and "Mozmill" Component. Please
+provide as much as possible details and attach the Mozmill test if
+available, which shows the problem. Thanks for filing! 
+
 
 ## Updating the Documentation
 
