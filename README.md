@@ -1,4 +1,4 @@
-# Mozmill
+# Automation + Tools Mozmill Repository
 
 [Mozmill](https://developer.mozilla.org/en/Mozmill) is a UI Automation
 framework for Mozilla apps like Firefox and Thunderbird. It's both an
@@ -7,6 +7,7 @@ Python command-line tool. The addon provides an IDE for writing and
 running the JavaScript tests and the Python package provides a
 mechanism for running the tests from the command line as well as
 providing a way to test restarting the application. 
+
 
 ## Installation
 
@@ -35,28 +36,12 @@ and in-depth documentation is here: https://developer.mozilla.org/en/Mozmill
 
 ## Python Packages
 
-Mozmill uses several Python packages:
+The mozmill repository contains several Python packages:
 
-- [mozprofile](mozprofile) : creates and manages user profiles for Mozilla apps
-	
-### mozrunner
+- mozprofile : creates and manages user profiles for Mozilla apps
+- mozrunner : handles start/stop automation of Mozilla applications:
+- mozprocess : Generic cross-platform  process management.
+- jsbridge : python to JavaScript bridge used by Mozmill to communicate test run information.
+- mozinfo : Gathers system information
 
-Handles start/stop automation of Mozilla applications:
-
-    from mozrunner import FirefoxRunner
-	
-    # start Firefox on a new profile
-    runner = FirefoxRunner()
-    runner.start()
-	
-### mozprocess
-
-Generic cross-platform  process management.
-
-### jsbridge
-
-Python to JavaScript bridge used by Mozmill to communicate test run information.
-
-### mozinfo
-
-Gathers system information
+Each of these packages contains a `README.md` file in markdown syntax.

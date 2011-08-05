@@ -33,10 +33,10 @@ Also the Mozilla Messaging team has an active project which handles
 
 Mozmill is available as an addon and a standard python package.
 See [the installation page](./Installation) for instructions for how
-to get it set up on your system.
+to get Mozmill set up on your system.
 
 
-## The Extension
+## The Mozmill Extension
 
 [The Mozmill extension](https://addons.mozilla.org/en-US/firefox/addon/9018)
 comes with an integrated development environment, some test authoring
@@ -49,12 +49,19 @@ that invokes and runs a Gecko application
 
 ### Running the command line client 
 
-See `mozmill --help` for command-line options.
+The `mozmill` command is run with one or more test (`-t mytest.js`) or 
+test manifest (`-m manifest.ini`):
+
+    mozmill -m functional_tests.ini 
+    mozmill -t mytest.js -t myothertest.js
+
+`mozmill --help` displays the available command-line options.
 
 
 ### Control flow
 
-(*TODO*)
+The Mozmill python package bundles the Mozmill and jsbridge extensions
+into a profile on running.
 
 
 ### Simple API Usage
@@ -66,12 +73,10 @@ An example is available at https://github.com/mozautomation/mozmill/tree/master/
 
 The Mozmill python package is built of a number of different package dependencies:
 
-- [jsbridge](./jsbridge)
-- [mozrunner](./Mozrunner)
-- [mozinfo](./Mozinfo)
-
-The Mozmill python package bundles the Mozmill and jsbridge extensions
-into a profile on running.
+- [jsbridge](./jsbridge) : python to JavaScript bridge interface
+- [mozrunner](Mozrunner) : Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)
+- [mozinfo](Mozinfo) : unified Mozilla interface to system information
+- [manifestparser](http://hg.mozilla.org/automation/ManifestDestiny) : parses test and addon manifests
 
 
 ### Event Dispatching
@@ -88,8 +93,12 @@ JavaScript may invoke arbitrary python using the PythonCallbacks
 
 ### Getting Data to and From the Tests
 
-- [event handlers](./EventHandlers) send data from 
-- persisted object: a JSObject
+- [event handlers](./EventHandlers) send data from the JavaScript
+  application layer to the python harness
+
+- `persisted` object: a JSObject that is persisted between test runs
+  even if the application under test is shutdown or restarted. Each
+  `MozMill` instance carries a `persisted` object.
 
 
 ### Restart and Shutdown
@@ -105,7 +114,6 @@ browser. There are two types of shutdown/restart events:
 
 - [Introduction to Mozmill](https://developer.mozilla.org/en/Mozmill/First_Steps/Tutorial%3a_Introduction_to_Mozmill) :
   detailed tutorial that walks through introducing each Mozmill API object as it is needed
-
 - [Mozmill tests](https://developer.mozilla.org/en/Mozmill_Tests) :
   how to setup and run the [QA](http://quality.mozilla.org/) 
   [mozmill tests](http://hg.mozilla.org/qa/mozmill-tests/)
