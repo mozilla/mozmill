@@ -32,7 +32,8 @@ Also the Mozilla Messaging team has an active project which handles
 ## Installation
 
 Mozmill is available as an addon and a standard python package.
-See [Installation](./Installation) for instructions.
+See [the installation page](./Installation) for instructions for how
+to get it set up on your system.
 
 
 ## The Extension
@@ -43,8 +44,8 @@ tools, and a graphical interface to run the tests.
 
 ## Python Client
 
-Mozmill is a python package
-
+There is a [Mozmill python package](http://pypi.python.org/pypi/mozmill) 
+that invokes and runs a Gecko application 
 
 ### Running the command line client 
 
@@ -75,36 +76,64 @@ into a profile on running.
 
 ### Event Dispatching
 
-Mozmill dispatches events from the JavaScript tests and modules to the python runner. See [Event Handlers](./EventHandlers).
+Mozmill dispatches events from the JavaScript tests and modules to the
+python runner. See [Event Handlers](./EventHandlers).
 
 
 ### Python Callbacks
 
-JavaScript may invoke arbitrary python using the PythonCallbacks [event handler](./EventHandlers) included with Mozmill.
+JavaScript may invoke arbitrary python using the PythonCallbacks
+[event handler](./EventHandlers) included with Mozmill. 
 
 
 ### Getting Data to and From the Tests
 
-- [event handlers](./EventHandlers)
+- [event handlers](./EventHandlers) send data from 
 - persisted object: a JSObject
 
 
-## Restart and Shutdown
+### Restart and Shutdown
 
-JavaScript tests may initiate shutdown and restart of the browser. There are two types of shutdown/restart events:
+JavaScript tests may initiate shutdown and restart of the
+browser. There are two types of shutdown/restart events:
 
 - user shutdown
 - runner shutdown
 
 
+## Learning Mozmill Testing
+
+- [Introduction to Mozmill](https://developer.mozilla.org/en/Mozmill/First_Steps/Tutorial%3a_Introduction_to_Mozmill) :
+  detailed tutorial that walks through introducing each Mozmill API object as it is needed
+
+- [Mozmill tests](https://developer.mozilla.org/en/Mozmill_Tests) :
+  how to setup and run the [QA](http://quality.mozilla.org/) 
+  [mozmill tests](http://hg.mozilla.org/qa/mozmill-tests/)
+
+There is API documentation for the Mozmill JavaScript tests
+
+### Mozmill Test API
+
+- [controller object reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Controller_Object)
+- [element object reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Element_Object) (Mozmill 2.0+)
+- [finding mozmill elements](https://developer.mozilla.org/en/Mozmill/Finding_Mozmill_Elements) (Mozmill 2.0+)
+- [mozmill object reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Base_Object_Interfaces)
+- [extending the element hierarchy](https://developer.mozilla.org/en/Mozmill/Mozmill_Element_Object/Extending_the_MozMill_element_hierarchy)
+- [elementslib object reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Elements_Library_Object)
+  (deprecated in Mozmill 2.0 - see 
+  [finding mozmill elements](https://developer.mozilla.org/en/Mozmill/Finding_Mozmill_Elements))
+- [jum API reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Unit_Test_Framework) (deprecated in Mozmill 2.0)
+
 ## Updating the Documentation
 
 See the notes on our [documentation strategy](./Documentation) .
 
-## Links
+
+## Resources
 
 Several online resources exist for Mozmill:
 
-- github repository
-- pypi page
-- project page
+- [github repository](https://github.com/mozautomation/mozmill)
+- [Python Package Index page](http://pypi.python.org/pypi/mozmill)
+- [Auto-tools Mozmill project page](https://wiki.mozilla.org/Auto-tools/Projects/Mozmill) 
+  for the development of Mozmill
