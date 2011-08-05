@@ -1,35 +1,12 @@
-# Pluggable Events
+# Events Handlers
 
 Mozmill is an event dispatcher system, using jsbridge to communicate
 events triggered in JavaScript to the python harness.
-Mozmill is run like:
-
- mozmill -app firefox -t path/to/test.js [options]
-
-This will do the following:
-
- - the application, in this case `firefox`, will be looked for (see:
-   mozrunner)
-
- - a profile object will be created of the approriate type (see:
-   mozprofile)
-
- - a python-javascript bridge will be created (see: jsbridge)
-
- - the `test.js` file will be sent over the jsbridge where it is
-   loaded and executed (see: resource://mozmill/modules/frame.js )
-
- - events will be sent from JavaScript back to python where they will
-   be listened for (see: resource://mozmill/modules/frame.js )  
-
-Note that except a few conventions, mozmill is more driver code and
-event handling than a testing framework.
-
 
 ## Events
 
 Events send the signature `(eventType, obj)`.  `eventType` is
-the string name of the event (e.g. `mozmill.endTest`) and ``obj` is
+the string name of the event (e.g. `mozmill.endTest`) and `obj` is
 an object sent with the event.  A python callable signature for a given event
 takes `obj` as an argument, e.g:
 
@@ -37,22 +14,29 @@ takes `obj` as an argument, e.g:
     def persist_listener(self, obj):
         self.persisted = obj
 
+Several events are added in the 
+[Mozmill constructor](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py)
+vital for test harness functionality. In addition, handlers may be
+passed to the constructor from which event listeners may be added.
+
 
 ## Pluggable Event Listeners
 
-Mozmill allows python modules to plug into the event listener system.
-This is done by denoting them as a setuptools entry point with the key
-`mozmill.event_handlers` (see mozmill's setup.py for examples).
-
-(*TODO: document support for allowing handlers to live in free-standing
-files*)
+Mozmill allows python classes to plug into the event listener system.
+This is done by denoting them as a 
+[setuptools entry point](http://peak.telecommunity.com/DevCenter/setuptools#dynamic-discovery-of-services-and-plugins)
+with the key `mozmill.event_handlers` in the `entry_points` section (see mozmill's 
+[setup.py](https://github.com/mozautomation/mozmill/blob/master/mozmill/setup.py)).
 
 Three event handlers are included with Mozmill by default via
 the setuptools entry point `mozmill.event_handlers`:
 
-- [Logging](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/logger.py)
-- [Report](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/report.py)
-- [PythonCallbacks](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/python_callbacks.py)
+- [Logging](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/logger.py) :
+  log results to stdout or a file in a [format appropriate to Mozilla tests](https://developer.mozilla.org/en/Test_log_format)
+- [Report](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/report.py) :
+  generate a JSON report of the run
+- [PythonCallbacks](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/python_callbacks.py) :
+  call a python module and method from JavaScript
 
 When running from the command line, these are on by default.  However,
 you may use the `--disable` command line argument to turn them off:
@@ -61,26 +45,19 @@ you may use the `--disable` command line argument to turn them off:
 
 This command line will dump the JSON of the report to stdout.
 
-You can see how these are instantiated in mozmill's setup.py in the
-`entry_points` section.
+You can also add free-standing python modules as pluggable event
+listeners from the command line using the switch
+`--handler=PATH:CLASS`, where `PATH` is the path to the python file
+and `CLASS` is the name of the event handler class in the file
 
+As an example, if you want to override the default reporting handler
+and replace with your own reporting handler, `NewReport`, in
+`myreport.py`, you would invoke mozmill as such:
 
-## Command Line Invocation Infrastructure
+    mozmill --disable Report --handler myreport.py:NewReport [...]
 
-Event handlers may add events via an `add_options` class method to
-which the parser is passed (see: `mozmill.CLI.add_options`).
-When driving via the command line, the handlers are instantiated with
-the passed-in options.  `mozmill.handlers.instantiate_handler`
-introspects the passed in handler to determine which command line
-options are needed and constructs the object based on this
-information (it is a handler-factory).  If the handler raises a
-`mozmill.handlers.HandlerMatchException` the handler is not
-instantiated or passed to the MozMill constructor.
-
-As an example, see the constructor of `mozmill.report.Report`.  If
-`report` is `None`, as it would be if not specified via the command
-line (see the class's `add_options` method for `--report`), then
-the class is not instantiated or utilized.
+`NewReport` could conceivably subclass from `mozmill.report:Report` as
+desired.
 
 
 ## API Usage
@@ -92,13 +69,21 @@ significant chunk of code needed to be replicated, which of course
 relies on innards not changing to be maintainable) to invoke MozMill
 programmatically at all and impossible to extend it in many ways.
 
+The `mozmill.CLI` command line controller inserts the (global) handlers as
+designated by the `mozmill.event_handlers` entry point (unless
+disabled with the `--disable` flag) as well as any classes designated
+via `--handler PATH:CLASS` when constructing a `MozMill` object.
+
+When instantiating `MozMill` as an API, you must instantiate
+and pass in the handlers that you want to use.  
+
 
 ## Structure of an Event Handler
 
-The basic methods for an event handler is given in
-`mozmill.handlers.EventHandler`.  While this class is never
-inherited from, it shows the basic methods that event handlers can
-have.  
+The basic methods for an event handler is given and documented in
+[mozmill.handlers.EventHandler](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/handlers.py).  
+While this class is never inherited from, it shows the basic methods that event handlers can
+have and documentation on what they are used for.
 
 The `add_options` method is used to add options to the command line
 parser.
@@ -125,3 +110,21 @@ end of the test run internally to python (no JS communication is done
 here).  Whether the stop is fatal or not (something bad has happened,
 e.g. an exception) is passed in.  This gives event handlers the
 opportunity to output final statistics and otherwise do cleanup.
+
+
+### Command Line Arguments
+
+Event handlers may add arguments via an `add_options` class method to
+which the parser is passed (see: `mozmill.CLI.add_options`).
+When driving via the command line, the handlers are instantiated with
+the passed-in options.  `mozmill.handlers.instantiate_handler`
+introspects the passed in handler to determine which command line
+options are needed and constructs the object based on this
+information (it is a handler-factory).  If the handler raises a
+`mozmill.handlers.HandlerMatchException` the handler is not
+instantiated or passed to the MozMill constructor.
+
+As an example, see the constructor of `mozmill.report.Report`.  If
+`report` is `None`, as it would be if not specified via the command
+line (see the class's `add_options` method for `--report`), then
+the class is not instantiated or utilized.

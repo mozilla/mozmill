@@ -42,10 +42,12 @@ to get Mozmill set up on your system.
 comes with an integrated development environment, some test authoring
 tools, and a graphical interface to run the tests. 
 
+
 ## Python Client
 
 There is a [Mozmill python package](http://pypi.python.org/pypi/mozmill) 
 that invokes and runs a Gecko application 
+
 
 ### Running the command line client 
 
@@ -62,6 +64,25 @@ test manifest (`-m manifest.ini`):
 
 The Mozmill python package bundles the Mozmill and jsbridge extensions
 into a profile on running.
+
+Mozmill is run like:
+
+    mozmill -app firefox -t path/to/test.js [options]
+
+This will do the following:
+
+- the application, in this case `firefox`, will be looked for (see:
+  mozrunner)
+
+- a profile object will be created of the approriate type 
+
+- a python-javascript bridge will be created (see: jsbridge)
+
+- the `test.js` file will be sent over the jsbridge where it is
+  loaded and executed (see: resource://mozmill/modules/frame.js )
+
+- events will be sent from JavaScript back to python where they will
+  be listened for (see: resource://mozmill/modules/frame.js )  
 
 
 ### Simple API Usage
