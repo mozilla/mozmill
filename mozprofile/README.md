@@ -7,8 +7,12 @@ from the command line or as an API.
 
 ## Command Line Usage
 
+mozprofile may be used to create profiles, set preferences in
+profiles, or install addons into profiles.
+
 To run mozprofile from the command line enter:
 `mozprofile --help` for a list of options.
+
 
 ## API
 
@@ -42,3 +46,6 @@ Preferences can be set in several ways:
 When setting preferences from  an `.ini` file or the `--pref` switch,
 the value will be interpolated as an integer or a boolean
 (`true`/`false`) if possible.
+
+## Setting Permissions
+
