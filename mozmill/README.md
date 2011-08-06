@@ -51,13 +51,15 @@ and accumulating and reporting results.
 
 ### Running the command line client 
 
+After installing the Python package you can run Mozmill with the `mozmill` command.
 The `mozmill` command is run with one or more test (`-t mytest.js`) or 
 test manifest (`-m manifest.ini`):
 
     mozmill -m functional_tests.ini 
     mozmill -t mytest.js -t myothertest.js
 
-`mozmill --help` displays the available command-line options.
+`mozmill --help` displays the available command-line options and more
+in-depth information about the command line utility.
 
 
 ### Control flow
