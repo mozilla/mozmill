@@ -44,7 +44,7 @@ tools, and a graphical interface to run the tests.
 
 ## Python Client
 
-There is a [Mozmill python package](http://pypi.python.org/pypi/mozmill) 
+There is also a [Mozmill python package](http://pypi.python.org/pypi/mozmill) 
 that invokes and runs a Gecko application, performing automatic test scripting,
 and accumulating and reporting results.
 
@@ -64,8 +64,8 @@ in-depth information about the command line utility.
 
 ### Control flow
 
-The Mozmill python package bundles the Mozmill and jsbridge extensions
-into a profile on running.
+The Mozmill python package bundles the Mozmill and [jsbridge](./jsbridge)
+extensions into a profile on invocation.
 
 Mozmill is run like:
 
@@ -73,12 +73,15 @@ Mozmill is run like:
 
 This will do the following:
 
-- the application, in this case `firefox`, will be looked for (see:
-  mozrunner)
+- the application, in this case `firefox`, will be looked for by
+  [mozrunner](Mozrunner)
 
-- a [profile](Mozprofile) object will be created of the approriate type 
+- a [profile](Mozprofile) object will be created of the type
+  appropriate to the application under test
 
-- a [python-javascript bridge](./jsbridge) will be created
+- a [python-javascript bridge](./jsbridge) will be created which will
+  be used to communicate between the python runner and the JavaScript
+  testing environment
 
 - the `test.js` file will be sent over the jsbridge where it is
   loaded and executed (see: resource://mozmill/modules/frame.js )
@@ -91,7 +94,7 @@ This will do the following:
 
 Since Mozmill 2.0, the 
 [MozMill class](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py)
-is usable as a robust API. An example is available at
+is usable as a robust API. An example API usage is available at
 https://github.com/mozautomation/mozmill/tree/master/mozmill .
 
 
@@ -121,7 +124,7 @@ JavaScript may invoke arbitrary python using the PythonCallbacks
 
 ### Getting Data to and From the Tests
 
-It is often desirable to transfer data to and from the tests.  There
+It is desirable to transfer data to and from the tests.  There
 are a few mechanisms to do so:
 
 - [event handlers](./EventHandlers) send data from the JavaScript
@@ -152,6 +155,10 @@ browser. There are two types of shutdown/restart events:
 - runner shutdown : the test tells the runner to shutdown or restart, 
   potentially giving a next test to run in the same file.
 
+Additionally, `mozmill --restart` signals a harness restart between
+every test file.  This is good for isolating test behaviour, but
+negative in that the browser restart causes the run to take longer.
+
 
 ## Learning Mozmill Testing
 
@@ -179,7 +186,7 @@ There is API documentation for the Mozmill JavaScript tests.
 
 ## Finding and Reporting Bugs
 
-Mozmill is in an active stage of development. Check out the 
+Mozmill is under active development. Check out the 
 [Auto-tools Mozmill project page](https://wiki.mozilla.org/Auto-tools/Projects/Mozmill)
 for information on development. If you think you've found a bug in Mozmill,
 please check the 
@@ -195,6 +202,8 @@ better!
 
 ## Updating the Documentation
 
+The [MDN](http://developer.mozilla.org/en/Mozmill) pages are mirrored
+from the [mozmill repository](https://github.com/mozautomation/mozmill).
 See the notes on our [documentation strategy](./Documentation) .
 
 
@@ -202,7 +211,11 @@ See the notes on our [documentation strategy](./Documentation) .
 
 Several online resources exist for Mozmill:
 
+- [MDN Mozmill page](http://developer.mozilla.org/en/Mozmill)
 - [github repository](https://github.com/mozautomation/mozmill)
 - [Python Package Index page](http://pypi.python.org/pypi/mozmill)
 - [Auto-tools Mozmill project page](https://wiki.mozilla.org/Auto-tools/Projects/Mozmill) 
   for the development of Mozmill
+
+In addition a `#mozmill` channel exists on irc://irc.mozilla.org/
+. Please stop by and say hi!
