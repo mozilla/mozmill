@@ -10,6 +10,15 @@ from the command line or as an API.
 mozprofile may be used to create profiles, set preferences in
 profiles, or install addons into profiles.
 
+The profile to be operated on may be specified with the `--profile`
+switch. If a profile is not specified, one will be created in a
+temporary directory which will be echoed to the terminal:
+
+    (mozmill)│mozprofile 
+    /tmp/tmp4q1iEU.mozrunner
+    (mozmill)│ls /tmp/tmp4q1iEU.mozrunner
+    user.js
+
 To run mozprofile from the command line enter:
 `mozprofile --help` for a list of options.
 
