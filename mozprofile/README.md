@@ -1,6 +1,6 @@
 # Mozprofile
 
-Mozprofile is tool for creating and managing the profiles of Mozilla's
+Mozprofile is python tool for creating and managing the profiles of Mozilla's
 applications (Firefox, Thunderbird). Aside from creating profiles,
 mozprofile can install addons and set preferences.  It can be used
 from the command line or as an API.
@@ -58,3 +58,16 @@ the value will be interpolated as an integer or a boolean
 
 ## Setting Permissions
 
+(*TODO* document this)
+
+
+## Resources
+
+Other Mozilla programs offer additional and overlapping functionality
+for profiles.  There is also substantive documentation on profiles and
+their management.
+
+- ProfileManager : XULRunner application for managing
+  profiles. Has a GUI and CLI.
+- python-profilemanager : python CLI interface similar to ProfileManager
+- profile documentation :
