@@ -1,0 +1,5 @@
+# Mozmill Architecture
+
+## Command line inheritence
+
+## Factory methods

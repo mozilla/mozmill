@@ -1,6 +1,6 @@
 #!/usr/bin/env document-it
 # documentation manifest for the Mozmill repo
-# To generate HTML from this markdown, use document-it:
+# To generate HTML from this markdown, use document_it:
 # http://pypi.python.org/pypi/document_it
 
 mozinfo/README.md     en/Mozinfo
@@ -10,5 +10,6 @@ mozrunner/README.md   en/Mozrunner
 jsbridge/README.md    en/Mozmill/jsbridge
 mozmill/README.md     en/Mozmill
 mozmill/docs/event_handlers.txt         en/Mozmill/EventHandlers
+mozmill/docs/architecture.txt en/Mozmill/Architecture
 mozmill/docs/INSTALL.txt en/Mozmill/Installation
 documentation.txt     en/Mozmill/Documentation
