@@ -20,11 +20,11 @@ service pack in use is available on the windows platform.
 
 MozInfo is a python package.  Downloading the software and running
 `python setup.py develop` will allow you to do `import mozinfo`
-from python.  mozinfo.py is the only file contained is this package,
+from python.  `mozinfo.py` is the only file contained is this package,
 so if you need a single-file solution, you can just download or call
 this file through the web.
 
-The top level attributes (os, version, bits, processor, hostname) are
+The top level attributes (`os`, `version`, `bits`, `processor`) are
 available as module globals:
 
     if mozinfo.os == 'win': ...
@@ -43,7 +43,7 @@ as `False` in python:
     if not mozinfo.os: ... # unknown!
 
 
-# Command Line Usage
+## Command Line Usage
 
 MozInfo comes with a command line, `mozinfo` which may be used to
 diagnose one's current system.
