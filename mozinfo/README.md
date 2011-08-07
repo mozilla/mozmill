@@ -1,16 +1,19 @@
 # MozInfo
 
-Throughout mozmill and other mozilla python code, checks for various
+Throughout [mozmill](https://developer.mozilla.org/en/Mozmill)
+and other Mozilla python code, checks for various
 platforms are done in many different ways.  The various checks needed
 lead to a lot of copy+pasting, leaving the reader to wonder....is this
 specific check necessary for (e.g.) an operating system?  Because
 information is not consolidated, checks are not done consistently, nor
 is it defined what we are checking for.
 
-MozInfo proposes to solve this problem.  The current
-implementation gives five key, values: os, hostname, version, bits,
-and processor. (Additionally, the service pack is available on
-windows.)
+MozInfo proposes to solve this problem.  MozInfo is a bridge interface,
+making the underlying (complex) plethora of OS and architecture
+combinations conform to a subset of values of relavence to 
+Mozilla software. The current implementation exposes relavent key,
+values: `os`, `version`, `bits`, and `processor`.  Additionally, the
+service pack in use is available on the windows platform.
 
 
 ## API Usage
