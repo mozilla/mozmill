@@ -1,6 +1,7 @@
 # mozprocess
 
-mozprocess provides process management in an OS-transparent interface.
+mozprocess provides python process management via an operating system 
+and platform transparent interface to Mozilla platforms of interest.
 Mozprocess aims to ensure the ability to robustly terminate a process
 on Windows, OS X, and Linux.  Mozprocess utilizes and extends
 `subprocess.Popen` to these ends
