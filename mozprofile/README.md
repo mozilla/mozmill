@@ -26,9 +26,14 @@ To run mozprofile from the command line enter:
 ## API
 
 To use mozprofile as an API you can import
-[Profile](https://github.com/mozautomation/mozmill/tree/master/mozprofile/mozprofile/profile.py)
-and/or
+[mozprofile.profile](https://github.com/mozautomation/mozmill/tree/master/mozprofile/mozprofile/profile.py)
+and/or the
 [AddonManager](https://github.com/mozautomation/mozmill/tree/master/mozprofile/mozprofile/addons.py). 
+
+`mozprofile.profile` features a generic `Profile` class.  In addition,
+subclasses `FirefoxProfile` and `ThundebirdProfile` with preset
+preferences for those applications.
+
 
 ## Installing Addons
 
