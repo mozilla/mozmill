@@ -41,7 +41,7 @@ desc = """UI Automation tool for Mozilla applications."""
 summ = """A tool for full UI automation of Mozilla applications."""
 
 PACKAGE_NAME = "mozmill"
-PACKAGE_VERSION = "2.0a"
+PACKAGE_VERSION = "2.0b1"
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
@@ -65,8 +65,8 @@ setup(name=PACKAGE_NAME,
           callbacks = mozmill.python_callbacks:PythonCallbacks
         """,
       platforms =['Any'],
-      install_requires = ['jsbridge == 3.0a',
-                          'mozrunner == 3.0a',
+      install_requires = ['jsbridge == 3.0b1',
+                          'mozrunner == 3.0b1',
                           'ManifestDestiny == 0.5.4',
                           'mozinfo'],
       classifiers=['Development Status :: 4 - Beta',

@@ -38,7 +38,7 @@
 from setuptools import setup, find_packages
 import sys
 
-version = '0.1a'
+version = '0.1b1'
 
 # we only support python 2 right now
 assert sys.version_info[0] == 2

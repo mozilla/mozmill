@@ -42,7 +42,7 @@ desc = """Reliable start/stop/configuration of Mozilla Applications (Firefox, Th
 
 
 PACKAGE_NAME = "mozrunner"
-PACKAGE_VERSION = "3.0a"
+PACKAGE_VERSION = "3.0b1"
 
 deps = ['mozprocess', 'mozprofile', 'mozinfo']
 
