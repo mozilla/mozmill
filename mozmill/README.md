@@ -45,13 +45,14 @@ tools, and a graphical interface to run the tests.
 ## Python Client
 
 There is also a [Mozmill python package](http://pypi.python.org/pypi/mozmill) 
-that invokes and runs a Gecko application, performing automatic test scripting,
-and accumulating and reporting results.
+that invokes and runs a Gecko application, performs automatic test scripting,
+and accumulates and reports results.
 
 
 ### Running the command line client 
 
-After installing the Python package you can run Mozmill with the `mozmill` command.
+After [installing](./Installation)
+the Python package you can run Mozmill with the `mozmill` command.
 The `mozmill` command is run with one or more test (`-t mytest.js`) or 
 test manifest (`-m manifest.ini`):
 
@@ -59,7 +60,9 @@ test manifest (`-m manifest.ini`):
     mozmill -t mytest.js -t myothertest.js
 
 `mozmill --help` displays the available command-line options and more
-in-depth information about the command line utility.
+in-depth information about the command line utility.  For the format
+and usage of test manifests, see
+http://hg.mozilla.org/automation/ManifestDestiny/file/tip/README.txt .
 
 
 ### Control flow
@@ -109,7 +112,7 @@ Python Mozmill is a test harness and an event dispatcher.
 
 The Mozmill python package is built of a number of different package dependencies:
 
-- [jsbridge](jsbridge) : python to JavaScript bridge interface
+- [jsbridge](./jsbridge) : python to JavaScript bridge interface
 - [mozrunner](Mozrunner) : Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)
 - [mozinfo](Mozinfo) : unified Mozilla interface to system information
 - [manifestparser](http://hg.mozilla.org/automation/ManifestDestiny) : parses test and addon manifests
