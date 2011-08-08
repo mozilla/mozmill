@@ -13,6 +13,9 @@ The Mozmill python package is built of a number of different package dependencie
 - [manifestparser](http://hg.mozilla.org/automation/ManifestDestiny) : parses test and addon manifests
 
 
+## TestResults Class
+
+
 ## Command line inheritence
 
 The mozmill command line controller,
@@ -28,3 +31,10 @@ available upstream to mozmill.
 
 
 ## Factory methods
+
+In order to be usable as an API, 
+[MozMill](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py)
+and
+[mozrunner.Runner](https://github.com/mozautomation/mozmill/blob/master/mozrunner/mozrunner/runner.py)
+expose a class method, `create(...)`, which provides for the
+instantiation of the corresponding object.
