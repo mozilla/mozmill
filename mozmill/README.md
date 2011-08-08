@@ -7,7 +7,7 @@ It's built as an
 [addon](https://addons.mozilla.org/en-US/firefox/addon/9018/) 
 and a [python](http://python.org) command-line tool. The addon provides an IDE 
 (Integrated Development Environment) for writing and
-running the JavaScript tests and the python package provides a
+running JavaScript tests and the python package provides a
 mechanism for running the tests from the command line as well as
 providing a way to test restarting the application. 
 Mozmill has an extensive API to help you write functional tests that 
@@ -124,12 +124,6 @@ Mozmill dispatches events from the JavaScript tests and modules to the
 python runner. See [Event Handlers](./EventHandlers) for how this works.
 
 
-### Python Callbacks
-
-JavaScript tests may invoke arbitrary python using the `PythonCallbacks`
-[event handler](./EventHandlers) included with Mozmill. 
-
-
 ### Getting Data to and From the Tests
 
 It is desirable to transfer data to and from the JavaScript tests.  There
@@ -152,6 +146,32 @@ See also
 [Bug 668550 - python should have some way of transfering data to the test on the JS side](https://bugzilla.mozilla.org/show_bug.cgi?id=668550)
 
 
+### Python Callbacks
+
+JavaScript tests may invoke arbitrary python using the `PythonCallbacks`
+[event handler](./EventHandlers) included with Mozmill. The 
+[mozmill JavaScript module](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/extension/resource/modules/mozmill.js)
+has the `firePythonCallback()` function, which takes the `filename`,
+the name of the `method` in the file, a list of ordered `args`, and a
+`kwargs` object.  This function will dispatch a
+`mozmill.firePythonCallback` [event](./EventHandlers) to the
+[mozmill.python_callbacks module](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/python_callbacks.py)
+which will import and fire the appropriate callback.  The `filename`
+is relative to the location of the JavaScript test file. Note that any
+return value from the python callback will not be sent to the
+JavaScript test or otherwise utilized.
+
+
+See the `mutt` 
+[test_python_callbacks.js test](https://github.com/mozautomation/mozmill/blob/master/mutt/mutt/tests/js/test_python_callbacks.js)
+and accompanying [tests_python_callbacks.py](https://github.com/mozautomation/mozmill/blob/master/mutt/mutt/tests/js/test_python_callbacks.py)
+for an example.
+
+It is important for successful runs that the python callback is fired
+successfully. Otherwise a [jsbridge](./jsbridge) error will occur via
+the python error and the harness will fail.
+
+
 ### Restart and Shutdown
 
 JavaScript tests may initiate shutdown and restart of the
@@ -162,6 +182,25 @@ browser. There are two types of shutdown/restart events:
   a restart or shutdown (such as triggering `Ctrl+Q`)
 - runner shutdown : the test tells the runner to shutdown or restart, 
   potentially giving a next test to run in the same file.
+
+Both cases fire an [event](./EventHandlers), `mozmill.userShutdown`,
+that lets the python harness anticipate the type of shutdown or
+restart.  The following parameters are sent with the event:
+
+- `user` : true or false; whether the shutdown was signalled by a
+  "user" event
+- `restart`: true or false; whether the shutdown is a restart or not
+- `next`: name of the next test function to run, in the current test
+  file, if any; otherwise the next test file (if any) will be run
+- `resetProfile`: true or false; whether to reset the profile to the
+  beginning state.  Note that this is not available to user restart
+  events as there is a race condition that does not permit the profile
+  to be reliably reset before application restart
+
+See the methods `startUserShutdown`, `restartApplication`, and
+`stopApplication` on the  
+[MozMillController](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/extension/resource/modules/controller.js)
+for specifics.
 
 Additionally, `mozmill --restart` signals a harness restart between
 every test file.  This is good for isolating test behaviour, but
