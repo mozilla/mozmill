@@ -9,7 +9,7 @@ can be installed as an extension or from the python source.
 The Mozmill extension can be installed from 
 [its home on addons.mozilla.org](https://addons.mozilla.org/en-US/firefox/addon/9018).
 Or open the "Get Add-ons" tab of the Add-ons Manager and search for
-Mozmill.
+"Mozmill".
 
 
 ## Installing the Mozmill Python Package
