@@ -113,8 +113,8 @@ Python Mozmill is a test harness and an event dispatcher.
 The Mozmill python package is built of a number of different package dependencies:
 
 - [jsbridge](./jsbridge) : python to JavaScript bridge interface
-- [mozrunner](Mozrunner) : Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)
-- [mozinfo](Mozinfo) : unified Mozilla interface to system information
+- [mozrunner](/en/Mozrunner) : Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)
+- [mozinfo](/en/Mozinfo) : unified Mozilla interface to system information
 - [manifestparser](http://hg.mozilla.org/automation/ManifestDestiny) : parses test and addon manifests
 
 See [Architecture](./Architecture) for additional information on 
