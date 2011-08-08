@@ -109,6 +109,9 @@ The Mozmill python package is built of a number of different package dependencie
 - [mozinfo](Mozinfo) : unified Mozilla interface to system information
 - [manifestparser](http://hg.mozilla.org/automation/ManifestDestiny) : parses test and addon manifests
 
+See [Architecture](./Architecture) for additional information on 
+program design.
+
 
 ### Event Dispatching
 
