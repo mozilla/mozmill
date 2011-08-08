@@ -69,14 +69,14 @@ extensions into a profile on invocation.
 
 Mozmill is run like:
 
-    mozmill -app firefox -t path/to/test.js [options]
+    mozmill -app firefox -b path/to/binary -t path/to/test.js [options]
 
 This will do the following:
 
 - the application, in this case `firefox`, will be looked for by
-  [mozrunner](Mozrunner)
+  mozrunner
 
-- a [profile](Mozprofile) object will be created of the type
+- a profile object will be created of the type
   appropriate to the application under test
 
 - a [python-javascript bridge](./jsbridge) will be created which will
@@ -84,13 +84,18 @@ This will do the following:
   testing environment
 
 - the `test.js` file will be sent over the jsbridge where it is
-  loaded and executed (see: resource://mozmill/modules/frame.js )
+  loaded and executed (see: 
+  [resource://mozmill/modules/frame.js](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/extension/resource/modules/frame.js) )
 
 - events will be sent from JavaScript back to python where they will
-  be listened for (see: resource://mozmill/modules/frame.js )  
+  be listened for 
+  (see: [resource://mozmill/modules/frame.js](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/extension/resource/modules/frame.js) )  
+
+- upon test run conclusion, the results will be reported by 
+  [pluggable event handlers](./EventHandlers)
 
 
-### Simple API Usage
+### Example API Usage
 
 Since Mozmill 2.0, the 
 [MozMill class](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py)
@@ -104,7 +109,7 @@ Python Mozmill is a test harness and an event dispatcher.
 
 The Mozmill python package is built of a number of different package dependencies:
 
-- [jsbridge](./jsbridge) : python to JavaScript bridge interface
+- [jsbridge](jsbridge) : python to JavaScript bridge interface
 - [mozrunner](Mozrunner) : Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)
 - [mozinfo](Mozinfo) : unified Mozilla interface to system information
 - [manifestparser](http://hg.mozilla.org/automation/ManifestDestiny) : parses test and addon manifests
@@ -116,25 +121,25 @@ program design.
 ### Event Dispatching
 
 Mozmill dispatches events from the JavaScript tests and modules to the
-python runner. See [Event Handlers](./EventHandlers).
+python runner. See [Event Handlers](./EventHandlers) for how this works.
 
 
 ### Python Callbacks
 
-JavaScript may invoke arbitrary python using the PythonCallbacks
+JavaScript tests may invoke arbitrary python using the `PythonCallbacks`
 [event handler](./EventHandlers) included with Mozmill. 
 
 
 ### Getting Data to and From the Tests
 
-It is desirable to transfer data to and from the tests.  There
+It is desirable to transfer data to and from the JavaScript tests.  There
 are a few mechanisms to do so:
 
 - [event handlers](./EventHandlers) send data from the JavaScript
   application layer to the python harness
-- `persisted` object: a 
+- the `persisted` object: a 
   [JSObject](https://github.com/mozautomation/mozmill/blob/master/jsbridge/jsbridge/jsobjects.py) 
-  that is persisted between test runs
+  that is persisted between tests
   even if the application under test is shutdown or restarted. Each
   [MozMill](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py)
   instance carries a `persisted` object. The amount of

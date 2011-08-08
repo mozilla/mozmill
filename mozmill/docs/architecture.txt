@@ -15,6 +15,20 @@ The Mozmill python package is built of a number of different package dependencie
 
 ## TestResults Class
 
+The 
+[TestResults class](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py)
+is used to accumulate results from one or more `MozMill` test run.
+The passing, failed, and skipped tests are recorded.  `TestResults` is
+an [event handler](EventHandlers) that listens to the
+`mozmill.endTest` event to accumulate results. Additionally, since
+`TestResults` is persisted across test runs, it is the appropriate
+place to handle the post-run `stop()` method of 
+[event handlers](EventHandlers).  Call `TestResults.finish()` with the
+handlers which have `stop()` methods following the run.
+You may pass a `TestResults` instance to the `MozMill` constructor, or
+`MozMill.__init__` will create one for you.  The `TestResults`
+instance is returned from `MozMill.run(...)`. 
+
 
 ## Command line inheritence
 
