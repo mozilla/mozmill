@@ -1,11 +1,13 @@
-# Mozmill Architecture
+Python Mozmill is a test harness and an [event dispatcher](./EventHandlers).
+Mozmill is built as an [extension][https://github.com/mozautomation/mozmill/tree/master/mozmill/mozmill/extension]
+which, paired with the 
+[jsbridge extension](https://github.com/mozautomation/mozmill/tree/master/jsbridge/jsbridge/extension)
+can run JavaScript tests from the python harness.
 
-Python Mozmill is a test harness and an event dispatcher.
 
+# Components
 
-## Components
-
-The Mozmill python package is built of a number of different package dependencies:
+The Mozmill python package is built from a number of different package dependencies:
 
 - [jsbridge](./jsbridge) : python to JavaScript bridge interface
 - [mozrunner](Mozrunner) : Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)
@@ -13,7 +15,7 @@ The Mozmill python package is built of a number of different package dependencie
 - [manifestparser](http://hg.mozilla.org/automation/ManifestDestiny) : parses test and addon manifests
 
 
-## TestResults Class
+# TestResults Class
 
 The 
 [TestResults class](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py)
@@ -30,7 +32,7 @@ You may pass a `TestResults` instance to the `MozMill` constructor, or
 instance is returned from `MozMill.run(...)`. 
 
 
-## Command line inheritence
+# Command line arguments and inheritence
 
 The mozmill command line controller,
 [mozmill.CLI](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py),
@@ -44,7 +46,7 @@ independent command line programs while making the breadth of options
 available upstream to mozmill.
 
 
-## Factory methods
+# Factory methods
 
 In order to be usable as an API, 
 [MozMill](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py)
