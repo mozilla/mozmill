@@ -10,7 +10,7 @@ Or open the "Get Add-ons" tab of the Add-ons Manager and search for
 "Mozmill".
 
 
-# Installing the Mozmill Python Package
+# Installing the Python Package
 
 If you have [python](http://python.org) on your computer you will be
 able to install and utilize the Mozmill python package.
@@ -75,8 +75,9 @@ You may need to run `setup_development.py` again if any of the
 `setup.py` files are changed.
 
 These instructions will give you a basic git checkout of the canonical
-(mozautomation's) master branch.  If you are interested in developing
-Mozmill or related software, see more detailed instructions about
+(mozautomation's) master branch.  If you are interested in 
+[developing Mozmill](https://wiki.mozilla.org/Auto-tools/Projects/Mozmill)
+or related software, see more detailed instructions about
 [how to set up your repo](https://wiki.mozilla.org/Auto-tools/Projects/Mozmill/RepoSetup).
 
 
