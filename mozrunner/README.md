@@ -8,6 +8,9 @@ mozrunner may be used from the command line or programmatically as an API.
 
 # Command line Usage
 
+The `mozrunner` command will launch the application (specified by
+`--app`) from a binary specified with `-b` or as located on the `PATH`.
+
 Run `mozrunner --help` for detailed information on the command line
 program.
 
