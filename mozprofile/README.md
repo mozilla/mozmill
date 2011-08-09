@@ -1,11 +1,10 @@
-# Mozprofile
-
 Mozprofile is python tool for creating and managing the profiles of Mozilla's
 applications (Firefox, Thunderbird). Aside from creating profiles,
-mozprofile can install addons and set preferences.  It can be used
-from the command line or as an API.
+mozprofile can install [addons](https://developer.mozilla.org/en/addons)
+and set [preferences](https://developer.mozilla.org/En/A_Brief_Guide_to_Mozilla_Preferences).  
+It can be used from the command line or as an API.
 
-## Command Line Usage
+# Command Line Usage
 
 mozprofile may be used to create profiles, set preferences in
 profiles, or install addons into profiles.
@@ -23,7 +22,7 @@ To run mozprofile from the command line enter:
 `mozprofile --help` for a list of options.
 
 
-## API
+# API
 
 To use mozprofile as an API you can import
 [mozprofile.profile](https://github.com/mozautomation/mozmill/tree/master/mozprofile/mozprofile/profile.py)
@@ -35,7 +34,7 @@ subclasses `FirefoxProfile` and `ThundebirdProfile` with preset
 preferences for those applications.
 
 
-## Installing Addons
+# Installing Addons
 
 Addons may be installed individually or from a manifest
 
@@ -47,7 +46,7 @@ Example:
 	profile = FirefoxProfile(addons=["adblock.xpi"])
 
 
-## Setting Preferences
+# Setting Preferences
 
 Preferences can be set in several ways:
 
@@ -61,18 +60,19 @@ When setting preferences from  an `.ini` file or the `--pref` switch,
 the value will be interpolated as an integer or a boolean
 (`true`/`false`) if possible.
 
-## Setting Permissions
+# Setting Permissions
 
-(*TODO* document this)
+mozprofile also takes care of adding permissions to the profile.
+See https://github.com/mozautomation/mozmill/blob/master/mozprofile/mozprofile/permissions.py
 
 
-## Resources
+# Resources
 
 Other Mozilla programs offer additional and overlapping functionality
 for profiles.  There is also substantive documentation on profiles and
 their management.
 
-- ProfileManager : XULRunner application for managing
-  profiles. Has a GUI and CLI.
-- python-profilemanager : python CLI interface similar to ProfileManager
-- profile documentation :
+- [ProfileManager](https://developer.mozilla.org/en/Profile_Manager) : 
+  XULRunner application for managing profiles. Has a GUI and CLI.
+- [python-profilemanager](http://k0s.org/mozilla/hg/profilemanager/) : python CLI interface similar to ProfileManager
+- profile documentation : http://support.mozilla.com/en-US/kb/Profiles

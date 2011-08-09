@@ -1,5 +1,3 @@
-# Mozmill
-
 [Mozmill](https://developer.mozilla.org/en/Mozmill) is a test tool and
 UI automation framework for writing tests and other automation scripts
 for Gecko based applications like Firefox and Thunderbird. 
@@ -28,28 +26,28 @@ Also the Mozilla Messaging team has an active project which handles
 [Thunderbird Testing with Mozmill](https://developer.mozilla.org/en/Thunderbird/Thunderbird_MozMill_Testing).
 
 
-## Installation
+# Installation
 
-Mozmill is available as an addon and a standard python package.
+Mozmill is available as an addon and a python package.
 See [the installation page](./Installation) for instructions for how
 to get Mozmill set up on your system.
 
 
-## The Mozmill Extension
+# The Mozmill Extension
 
 [The Mozmill extension](https://addons.mozilla.org/en-US/firefox/addon/9018)
 comes with an integrated development environment, some test authoring
 tools, and a graphical interface to run the tests. 
 
 
-## Python Client
+# Python Client
 
 There is also a [Mozmill python package](http://pypi.python.org/pypi/mozmill) 
 that invokes and runs a Gecko application, performs automatic test scripting,
 and accumulates and reports results.
 
 
-### Running the command line client 
+## Running the command line client 
 
 After [installing](./Installation)
 the Python package you can run Mozmill with the `mozmill` command.
@@ -65,7 +63,7 @@ and usage of test manifests, see
 http://hg.mozilla.org/automation/ManifestDestiny/file/tip/README.txt .
 
 
-### Control flow
+## Control flow
 
 The Mozmill python package bundles the Mozmill and [jsbridge](./jsbridge)
 extensions into a profile on invocation.
@@ -77,7 +75,7 @@ Mozmill is run like:
 This will do the following:
 
 - the application, in this case `firefox`, will be looked for by
-  mozrunner
+  [mozrunner](/en/Mozrunner)
 
 - a profile object will be created of the type
   appropriate to the application under test
@@ -98,7 +96,7 @@ This will do the following:
   [pluggable event handlers](./EventHandlers)
 
 
-### Example API Usage
+## Example API Usage
 
 Since Mozmill 2.0, the 
 [MozMill class](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py)
@@ -106,7 +104,7 @@ is usable as a robust API. An example API usage is available at
 https://github.com/mozautomation/mozmill/tree/master/mozmill .
 
 
-### Architecture
+## Architecture
 
 Python Mozmill is a test harness and an event dispatcher.
 
@@ -121,13 +119,13 @@ See [Architecture](./Architecture) for additional information on
 program design.
 
 
-### Event Dispatching
+## Event Dispatching
 
 Mozmill dispatches events from the JavaScript tests and modules to the
 python runner. See [Event Handlers](./EventHandlers) for how this works.
 
 
-### Getting Data to and From the Tests
+## Getting Data to and From the Tests
 
 It is desirable to transfer data to and from the JavaScript tests.  There
 are a few mechanisms to do so:
@@ -149,7 +147,7 @@ See also
 [Bug 668550 - python should have some way of transfering data to the test on the JS side](https://bugzilla.mozilla.org/show_bug.cgi?id=668550)
 
 
-### Python Callbacks
+## Python Callbacks
 
 JavaScript tests may invoke arbitrary python using the `PythonCallbacks`
 [event handler](./EventHandlers) included with Mozmill. The 
@@ -175,7 +173,7 @@ successfully. Otherwise a [jsbridge](./jsbridge) error will occur via
 the python error and the harness will fail.
 
 
-### Restart and Shutdown
+## Restart and Shutdown
 
 JavaScript tests may initiate shutdown and restart of the
 browser. There are two types of shutdown/restart events:
@@ -210,7 +208,7 @@ every test file.  This is good for isolating test behaviour, but
 negative in that the browser restart causes the run to take longer.
 
 
-## Learning Mozmill Testing
+# Learning Mozmill Testing
 
 - [Introduction to Mozmill](https://developer.mozilla.org/en/Mozmill/First_Steps/Tutorial%3a_Introduction_to_Mozmill) :
   detailed tutorial that walks through introducing each Mozmill API object as it is needed
@@ -221,7 +219,7 @@ negative in that the browser restart causes the run to take longer.
 There is API documentation for the Mozmill JavaScript tests.
 
 
-### Mozmill Test API
+## Mozmill Test API
 
 - [controller object reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Controller_Object)
 - [element object reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Element_Object) (**Mozmill 2.0+**)
@@ -234,7 +232,7 @@ There is API documentation for the Mozmill JavaScript tests.
 - [jum API reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Unit_Test_Framework) (*deprecated in Mozmill 2.0*)
 
 
-## Finding and Reporting Bugs
+# Finding and Reporting Bugs
 
 Mozmill is under active development. Check out the 
 [Auto-tools Mozmill project page](https://wiki.mozilla.org/Auto-tools/Projects/Mozmill)
@@ -250,14 +248,14 @@ available, which shows the problem. Thanks for helping us make Mozmill
 better! 
 
 
-## Updating the Documentation
+# Updating the Documentation
 
 The [MDN](http://developer.mozilla.org/en/Mozmill) pages are mirrored
 from the [mozmill repository](https://github.com/mozautomation/mozmill).
 See the notes on our [documentation strategy](./Documentation) .
 
 
-## Resources
+# Resources
 
 Several online resources exist for Mozmill:
 
