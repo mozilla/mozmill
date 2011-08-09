@@ -1,6 +1,6 @@
 [Mozprofile](https://github.com/mozautomation/mozmill/tree/master/mozprofile)
-is python tool for creating and managing the profiles of Mozilla's
-applications (Firefox, Thunderbird). In addition to creating profiles,
+is python tool for creating and managing profiles for Mozilla's
+applications (Firefox, Thunderbird, etc.). In addition to creating profiles,
 mozprofile can install [addons](https://developer.mozilla.org/en/addons)
 and set [preferences](https://developer.mozilla.org/En/A_Brief_Guide_to_Mozilla_Preferences).  
 Mozprofile can be utilized from the command line or as an API.
@@ -31,13 +31,13 @@ and/or the
 [AddonManager](https://github.com/mozautomation/mozmill/tree/master/mozprofile/mozprofile/addons.py). 
 
 `mozprofile.profile` features a generic `Profile` class.  In addition,
-subclasses `FirefoxProfile` and `ThundebirdProfile` with preset
-preferences for those applications.
+subclasses `FirefoxProfile` and `ThundebirdProfile` are available
+with preset preferences for those applications.
 
 
 # Installing Addons
 
-Addons may be installed individually or from a manifest
+Addons may be installed individually or from a manifest.
 
 Example:
 
@@ -52,10 +52,10 @@ Example:
 Preferences can be set in several ways:
 
 - using the API: You can pass preferences in to the Profile class's
-  constructor.
-- using a JSON blob
-- using a `.ini` file
-- via command line switches: `--pref key:value --pref key:value [...]`
+  constructor: `obj = FirefoxProfile(preferences=[("accessibility.typeaheadfind.flashBar", 0)])`
+- using a JSON blob file: `mozprofile --preferences myprefs.json`
+- using a `.ini` file: `mozprofile --preferences myprefs.ini`
+- via the command line: `mozprofile --pref key:value --pref key:value [...]`
 
 When setting preferences from  an `.ini` file or the `--pref` switch,
 the value will be interpolated as an integer or a boolean

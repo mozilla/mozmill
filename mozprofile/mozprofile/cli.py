@@ -61,7 +61,7 @@ class MozProfileCLI(object):
     def add_options(self, parser):
         
         parser.add_option("-p", "--profile", dest="profile",
-                          help="The profile to operate on. If none, creates a new profile in temp directory")
+                          help="The path to the profile to operate on. If none, creates a new profile in temp directory")
         parser.add_option("-a", "--addon", dest="addons",
                           action="append", default=[],
                           help="Addon paths to install. Can be a filepath, a directory containing addons, or a url")
@@ -70,7 +70,7 @@ class MozProfileCLI(object):
                           help="An addon manifest to install")
         parser.add_option("--pref", dest="prefs",
                           action='append', default=[],
-                          help="A string preference to set. Must be a key-value pair separated by a ':'")
+                          help="A preference to set. Must be a key-value pair separated by a ':'")
         parser.add_option("--preferences", dest="prefs_files",
                           action='append', default=[],
                           metavar="FILE",
