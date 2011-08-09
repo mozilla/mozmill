@@ -1,20 +1,18 @@
-# mozrunner
-
 mozrunner handles running of Mozilla applications.
+mozrunner utilizes [mozprofile](/en/Mozprofile)
+for managing application profiles
+and [mozprocess](/en/Mozprocess) for robust process control. 
 
-mozrunner utilizes mozprofile for managing application profiles
-and mozprocess for robust process control. 
-
-mozrunner may be used from the command line or programmatically as an API
+mozrunner may be used from the command line or programmatically as an API.
 
 
-## Command line Usage
+# Command line Usage
 
 Run `mozrunner --help` for detailed information on the command line
 program.
 
 
-## API Usage
+# API Usage
 
 mozrunner features a base class, 
 [mozrunner.runner.Runner](https://github.com/mozautomation/mozmill/blob/master/mozrunner/mozrunner/runner.py) 

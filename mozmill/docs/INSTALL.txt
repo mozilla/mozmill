@@ -32,7 +32,7 @@ environment separate from your system packages.
 [virtualenv](http://www.virtualenv.org/) is a tool to create isolated
 Python environments. If you have `pip` or `easy_install` on your
 system, you can run `pip install virtualenv` or `easy_install
-virtualenv` to install it, or download and install frmo the source on
+virtualenv` to install it, or download and install from the source on
 [pypi](http://pypi.python.org/pypi/virtualenv) or the
 [github repository](https://github.com/pypa/virtualenv).
 
