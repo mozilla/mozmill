@@ -9,9 +9,7 @@ There are several entry points where it is desirable to have documentation avail
 - using python's `help()`
 - on the AMO page: https://addons.mozilla.org/en-US/firefox/addon/9018/
 
-Currently, our documentation is inconsistent and incomplete, with
-different pieces of documentation living in different places.  Going
-forward, we should make this documentation consistent and available at
+Going forward, we should make this documentation consistent and available at
 each of these places.  We should make it easy for developers to update
 and add documentation as well as having accurate documentation
 versioned with the repository and aspire to the principle of DRY as
@@ -19,7 +17,7 @@ much as practicable.  Documentation should be a maintainable
 and high-quality resource.
 
 
-### Where the Documentation Lives
+## Where the Documentation Lives
 
 Several packages exist in the [mozmill repository](http://github.com/mozautomation/mozmill):
 
@@ -38,10 +36,10 @@ possibly various other documentation files in a `docs/`
 directory. These markdown files serve as the documentation canon. 
 
 
-### Where the Documentation Goes
+## Where the Documentation Goes
 
 By being careful in how we organize and present information, we can
-use the canonical sources in the repo to give a complete and
+use the canonical sources in the repository to give a complete and
 consistent documentation story:
 
 - [github](https://github.com) will automation display `README.md` 
@@ -57,7 +55,7 @@ is probably best to have a `mozmill/docs/extension.txt`, but until we
 work out that story this will be done by hand.
 
 
-### How to Update Documentation
+## How to Update Documentation
 
 We would love any sort of help with our documentation!  
 
@@ -70,7 +68,7 @@ We would love any sort of help with our documentation!
   a script to help with this, but as-is, we'll just mine by hand
 
 
-### How to Update Documentation on MDN
+## How to Update Documentation on MDN
 
 The documents for the mozmill repository are enumerated in the
 `docs.manifest` file for mirroring to MDN. This `docs.manifest` file
@@ -91,7 +89,7 @@ The advantage of having this as a script is that documentation is
 updated when desired so that the active version can be respected.
 
 
-### Guiding Principles
+## Guiding Principles
 
 - markdown should be easy to read as text.  If we want HTML documents,
   we should use HTML documents.  So ensure that the associated
