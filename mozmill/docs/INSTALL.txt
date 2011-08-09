@@ -1,10 +1,8 @@
-# Installing Mozmill
-
 [Mozmill](https://developer.mozilla.org/en/Mozmill) 
 can be installed as an extension or from the python source.
 
 
-## Installing the Extenstion
+# Installing the Extension
 
 The Mozmill extension can be installed from 
 [its home on addons.mozilla.org](https://addons.mozilla.org/en-US/firefox/addon/9018).
@@ -12,7 +10,7 @@ Or open the "Get Add-ons" tab of the Add-ons Manager and search for
 "Mozmill".
 
 
-## Installing the Mozmill Python Package
+# Installing the Mozmill Python Package
 
 If you have [python](http://python.org) on your computer you will be
 able to install and utilize the Mozmill python package.
@@ -27,7 +25,7 @@ it is highly recommended that you use
 environment separate from your system packages.
 
 
-### Using virtualenv
+## Using virtualenv
 
 [virtualenv](http://www.virtualenv.org/) is a tool to create isolated
 Python environments. If you have `pip` or `easy_install` on your
@@ -53,7 +51,7 @@ other packages you are interested in developing:
     cd src
 
 
-### Installing from github
+## Installing from github
 
 The prefered installation method is from the 
 [github mozautomation/mozmill repository](https://github.com/mozautomation/mozmill/). 
@@ -82,7 +80,7 @@ Mozmill or related software, see more detailed instructions about
 [how to set up your repo](https://wiki.mozilla.org/Auto-tools/Projects/Mozmill/RepoSetup).
 
 
-### Installing from PyPI
+## Installing from PyPI
 
 If you have `easy_install` or `pip` (both of which come packaged with
 virtualenv), you can install mozmill and its dependencies with a
@@ -111,4 +109,3 @@ other problems.
 
 You can upgrade a package (e.g. mozmill) by using `easy_install -u $PACKAGE` or 
 `pip install --upgrade $PACKAGE`.
-
