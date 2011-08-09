@@ -1,5 +1,3 @@
-# MozInfo
-
 Throughout [mozmill](https://developer.mozilla.org/en/Mozmill)
 and other Mozilla python code, checks for various
 platforms are done in many different ways.  The various checks needed
@@ -8,7 +6,8 @@ specific check necessary for (e.g.) an operating system?  Because
 information is not consolidated, checks are not done consistently, nor
 is it defined what we are checking for.
 
-MozInfo proposes to solve this problem.  MozInfo is a bridge interface,
+[MozInfo](https://github.com/mozautomation/mozmill/tree/master/mozinfo)
+proposes to solve this problem.  MozInfo is a bridge interface,
 making the underlying (complex) plethora of OS and architecture
 combinations conform to a subset of values of relavence to 
 Mozilla software. The current implementation exposes relavent key,
@@ -16,11 +15,13 @@ values: `os`, `version`, `bits`, and `processor`.  Additionally, the
 service pack in use is available on the windows platform.
 
 
-## API Usage
+# API Usage
 
 MozInfo is a python package.  Downloading the software and running
 `python setup.py develop` will allow you to do `import mozinfo`
-from python.  `mozinfo.py` is the only file contained is this package,
+from python.  
+[mozinfo.py](https://github.com/mozautomation/mozmill/blob/master/mozinfo/mozinfo.py)
+is the only file contained is this package,
 so if you need a single-file solution, you can just download or call
 this file through the web.
 
@@ -43,7 +44,7 @@ as `False` in python:
     if not mozinfo.os: ... # unknown!
 
 
-## Command Line Usage
+# Command Line Usage
 
 MozInfo comes with a command line, `mozinfo` which may be used to
 diagnose one's current system.

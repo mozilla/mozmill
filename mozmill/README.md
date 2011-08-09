@@ -77,7 +77,7 @@ This will do the following:
 - the application, in this case `firefox`, will be looked for by
   [mozrunner](/en/Mozrunner)
 
-- a profile object will be created of the type
+- a [profile object](/en/Mozprofile) will be created of the type
   appropriate to the application under test
 
 - a [python-javascript bridge](./jsbridge) will be created which will
