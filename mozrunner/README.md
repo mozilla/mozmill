@@ -1,4 +1,5 @@
-mozrunner is a [python package](http://pypi.python.org/pypi/mozrunner)
+[mozrunner](https://github.com/mozautomation/mozmill/tree/master/mozrunner)
+is a [python package](http://pypi.python.org/pypi/mozrunner)
 which handles running of Mozilla applications.
 mozrunner utilizes [mozprofile](/en/Mozprofile)
 for managing application profiles
@@ -7,7 +8,7 @@ and [mozprocess](/en/Mozprocess) for robust process control.
 mozrunner may be used from the command line or programmatically as an API.
 
 
-# Command line Usage
+# Command Line Usage
 
 The `mozrunner` command will launch the application (specified by
 `--app`) from a binary specified with `-b` or as located on the `PATH`.
