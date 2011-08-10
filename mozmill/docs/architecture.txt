@@ -21,7 +21,7 @@ The
 [TestResults class](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py)
 is used to accumulate results from one or more `MozMill` test run.
 The passing, failed, and skipped tests are recorded.  `TestResults` is
-an [event handler](EventHandlers) that listens to the
+an [event handler](/en/Mozmill/EventHandlers) that listens to the
 `mozmill.endTest` event to accumulate results. Additionally, since
 `TestResults` is persisted across test runs, it is the appropriate
 place to handle the post-run `stop()` method of 
