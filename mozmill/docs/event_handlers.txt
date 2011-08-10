@@ -1,11 +1,9 @@
-# Events Handlers
-
 [Mozmill](https://developer.mozilla.org/en/Mozmill) 
 is an event dispatcher system, using jsbridge to communicate
 events triggered in JavaScript to the python harness.
 
 
-## Events
+# Events
 
 Events send the signature `(eventType, obj)`.  `eventType` is
 the string name of the event (e.g. `mozmill.endTest`) and `obj` is
@@ -16,13 +14,13 @@ takes `obj` as an argument, e.g:
     def persist_listener(self, obj):
         self.persisted = obj
 
-Several events are added in the 
+Several event listeners are added in the 
 [Mozmill constructor](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py)
 vital for test harness functionality. In addition, handlers may be
 passed to the constructor from which event listeners may be added.
 
 
-## Pluggable Event Listeners
+# Pluggable Event Listeners
 
 Mozmill allows python classes to plug into the event listener system.
 This is done by denoting them as a 
@@ -62,11 +60,11 @@ and replace with your own reporting handler, `NewReport`, in
 desired.
 
 
-## API Usage
+# API Usage
 
 One of the primary motiviations for the restructuring of the command
 line handling as well as adding pluggable events is to make writing
-APIs around Mozmill easier.  Previously, it was difficult (a
+APIs around Mozmill easier.  Prior to Mozmill 2.0, it was difficult (a
 significant chunk of code needed to be replicated, which of course
 relies on innards not changing to be maintainable) to invoke MozMill
 programmatically at all and impossible to extend it in many ways.
@@ -83,7 +81,7 @@ You can also call `MozMill.add_listener(...)` or
 `MozMill.add_global_listener(...)` following object construction.
 
 
-## Structure of an Event Handler
+# Structure of an Event Handler
 
 The basic methods for an event handler is given and documented in
 [mozmill.handlers.EventHandler](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/handlers.py).  
@@ -117,7 +115,7 @@ e.g. an exception) is passed in.  This gives event handlers the
 opportunity to output final statistics and otherwise do cleanup.
 
 
-### Command Line Arguments
+## Command Line Arguments
 
 Event handlers may add arguments via an `add_options` class method to
 which the parser is passed (see: `mozmill.CLI.add_options`).

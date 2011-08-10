@@ -7,7 +7,7 @@ can run JavaScript tests from the python harness.
 
 # Components
 
-The Mozmill python package is built from a number of different package dependencies:
+The Mozmill python package is built from a number of python dependencies:
 
 - [jsbridge](/en/Mozmill/jsbridge) : python to JavaScript bridge interface
 - [mozrunner](/en/Mozrunner) : Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)
