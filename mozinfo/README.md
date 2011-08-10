@@ -1,6 +1,6 @@
 Throughout [mozmill](https://developer.mozilla.org/en/Mozmill)
-and other Mozilla python code, checks for various
-platforms are done in many different ways.  The various checks needed
+and other Mozilla python code, checking the underlying
+platform is done in many different ways.  The various checks needed
 lead to a lot of copy+pasting, leaving the reader to wonder....is this
 specific check necessary for (e.g.) an operating system?  Because
 information is not consolidated, checks are not done consistently, nor
