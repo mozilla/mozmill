@@ -9,7 +9,7 @@ There are several entry points where it is desirable to have documentation avail
 - using python's `help()`
 - on the AMO page: https://addons.mozilla.org/en-US/firefox/addon/9018/
 
-Going forward, we should make this documentation consistent and available at
+This documentation should be consistent and available at
 each of these places.  We should make it easy for developers to update
 and add documentation as well as having accurate documentation
 versioned with the repository and aspire to the principle of DRY as
