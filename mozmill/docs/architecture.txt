@@ -53,4 +53,11 @@ In order to be usable as an API,
 and
 [mozrunner.Runner](https://github.com/mozautomation/mozmill/blob/master/mozrunner/mozrunner/runner.py)
 expose a class method, `create(...)`, which provides for the
-instantiation of the corresponding object.
+instantiation of the corresponding object.  Since `MozMill` requires
+the runner to be passed in to its constructor (`__init__` function)
+and the `Runner` requires the [profile](/en/Mozprofile) to be passed
+in to its constructor, the `create()` factory methods enable the
+construction of these objects in a cascading fashion with arbitrary
+parameters without compromising the control flow or flexibility of the
+API of the underlying objects.
+
