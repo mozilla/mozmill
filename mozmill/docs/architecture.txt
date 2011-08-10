@@ -1,7 +1,7 @@
-Python Mozmill is a test harness and an [event dispatcher](./EventHandlers).
+Python Mozmill is a test harness and an [event dispatcher](/en/Mozmill/EventHandlers).
 Mozmill is built as an [extension](https://github.com/mozautomation/mozmill/tree/master/mozmill/mozmill/extension)
 which, paired with the 
-[jsbridge extension](https://github.com/mozautomation/mozmill/tree/master/jsbridge/jsbridge/extension)
+[jsbridge extension](https://github.com/mozautomation/mozmill/tree/master/jsbridge/jsbridge/extension),
 can run JavaScript tests from the python harness.
 
 
