@@ -103,8 +103,8 @@ The event handler should have an `events` method.  This should
 return a dict of names of events to listen for mapped to the methods
 that listen to these events.
 
-Ccurrently the event type is a string by convention only.  There
-have no catalog of events to be listened for.  A list of applicable
+Currently the event type is a convention-based string.  There
+is no catalog of events to be listened for.  A list of applicable
 events should be maintained as well as when each is called by the
 tests.  It would be even better if this was programmatic.
 

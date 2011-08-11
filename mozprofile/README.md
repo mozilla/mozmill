@@ -1,9 +1,10 @@
 [Mozprofile](https://github.com/mozautomation/mozmill/tree/master/mozprofile)
-is python tool for creating and managing profiles for Mozilla's
+is a python tool for creating and managing profiles for Mozilla's
 applications (Firefox, Thunderbird, etc.). In addition to creating profiles,
 mozprofile can install [addons](https://developer.mozilla.org/en/addons)
 and set [preferences](https://developer.mozilla.org/En/A_Brief_Guide_to_Mozilla_Preferences).  
 Mozprofile can be utilized from the command line or as an API.
+
 
 # Command Line Usage
 

@@ -42,7 +42,7 @@ object appropriate to the application under test (e.g. `FirefoxRunner`).
 Additionally, `mozrunner.CLI` consumes and exposes the arguments from
 [MozProfileCLI](https://github.com/mozautomation/mozmill/blob/master/mozprofile/mozprofile/cli.py) .
 This architecture allows mozrunner and mozprofile to exist as
-independent command line programs while making the breadth of options
+independent command line programs while making their breadth of options
 available upstream to mozmill.
 
 

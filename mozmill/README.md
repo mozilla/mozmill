@@ -50,7 +50,7 @@ and accumulates and reports results.
 ## Running the command line client 
 
 After [installing](./Installation)
-the Python package you can run Mozmill with the `mozmill` command.
+the python package you can run Mozmill with the `mozmill` command.
 The `mozmill` command is run with one or more test (`-t mytest.js`) or 
 test manifest (`-m manifest.ini`):
 

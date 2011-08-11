@@ -43,7 +43,7 @@ The mozmill repository contains several Python packages:
 - mozinfo : gathers system information
 - mozprocess : generic cross-platform  process management
 - mozprofile : creates and manages user profiles for Mozilla apps
-- mozrunner : handles start/stop automation of Mozilla applications:
+- mozrunner : handles start/stop automation of Mozilla applications
 - jsbridge : python to JavaScript bridge used by Mozmill to communicate test run information.
 - mozmill : Mozilla test harness and event dispatcher
 - mutt : test framework for Mozmill and related utilities
@@ -56,7 +56,7 @@ for installation.  It is highly recommended that you use
 [virtualenv](http://www.virtualenv.org/) to keep your python
 environment separate from your system packages.  In this way, you can
 keep multiple versions of packages around without worrying about
-cross-contamination and versioning woes
+cross-contamination and versioning woes.
 
 
 ### Repository Management

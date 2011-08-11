@@ -11,7 +11,7 @@ The python component opens the same port and communication takes place.
 
 [JSObject](https://github.com/mozautomation/mozmill/blob/master/jsbridge/jsbridge/jsobjects.py)s 
 (`jsbridge.jsbobject:JSObject`) may be used to mirror
-objects across the between python and JavaScript.
+objects across between python and JavaScript.
 
 jsbridge is utilized by 
 [Mozmill](https://developer.mozilla.org/en/Mozmill) as part of its
