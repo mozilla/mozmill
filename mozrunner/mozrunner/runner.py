@@ -37,7 +37,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
-__all__ = ['Runner', 'ThunderbirdRunner', 'FirefoxRunner', 'runners', 'CLI', 'cli', 'get_metadata_from_egg', 'package_metadata']
+__all__ = ['Runner', 'ThunderbirdRunner', 'FirefoxRunner', 'runners', 'CLI', 'cli', 'package_metadata']
 
 import mozinfo
 import optparse
@@ -45,29 +45,11 @@ import os
 import sys
 import ConfigParser
 
+from utils import get_metadata_from_egg
 from utils import findInPath
 from mozprofile import *
 from mozprocess.processhandler import ProcessHandler
 
-### python package method metadata by introspection
-try:
-    import pkg_resources
-    def get_metadata_from_egg(module):
-        ret = {}
-        dist = pkg_resources.get_distribution(module)
-        if dist.has_metadata("PKG-INFO"):
-            for line in dist.get_metadata_lines("PKG-INFO"):
-                key, value = line.split(':', 1)
-                key = key.strip()
-                value = value.strip()
-                ret[key] = value
-        if dist.has_metadata("requires.txt"):
-            ret["Dependencies"] = "\n" + dist.get_metadata("requires.txt")    
-        return ret
-except ImportError:
-    # package resources not avaialable
-    def get_metadata_from_egg(module):
-        return {}
 package_metadata = get_metadata_from_egg('mozrunner')
 
 class Runner(object):
