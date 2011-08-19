@@ -167,7 +167,7 @@ def main(args=None):
 
     # parse the command line
     from optparse import OptionParser
-    parser = OptionParser()
+    parser = OptionParser(description=__doc__)
     for key in choices:
         parser.add_option('--%s' % key, dest=key,
                           action='store_true', default=False,

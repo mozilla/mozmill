@@ -52,8 +52,9 @@ import mozrunner
 import mozprofile
 import handlers
 
-from jsbridge.network import JSBridgeDisconnectError
 from datetime import datetime, timedelta
+from jsbridge.network import JSBridgeDisconnectError
+from mozrunner.utils import get_metadata_from_egg
 from optparse import OptionGroup
 from time import sleep
 
@@ -61,7 +62,7 @@ from time import sleep
 basedir = os.path.abspath(os.path.dirname(__file__))
 extension_path = os.path.join(basedir, 'extension')
 mozmillModuleJs = "Components.utils.import('resource://mozmill/modules/mozmill.js')"
-package_metadata = mozrunner.get_metadata_from_egg('mozmill')
+package_metadata = get_metadata_from_egg('mozmill')
 
 # defaults
 ADDONS = [extension_path, jsbridge.extension_path]

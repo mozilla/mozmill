@@ -10,13 +10,19 @@ class EventHandler(object):
     """abstract base class for handling MozMill events"""
 
     def __init__(self):
-        pass
+        """
+        any named arguments given will be populated from command
+        line options
+        """
 
     def __call__(self, eventName, obj):
         """handle global events"""
 
     def events(self):
-        """returns a mapping of event types (strings) to methods"""
+        """
+        returns a mapping of event types (strings) to methods
+        e.g. return {'mozmill.endTest': self.endTestEventHandler}
+        """
         return {}
 
     def stop(self, results, fatal):

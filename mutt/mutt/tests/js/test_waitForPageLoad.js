@@ -102,15 +102,18 @@ var testWaitForPageLoad = function() {
   /**
    * PART VI - Loading a page in another tab should wait for its completion
    */
-  var bgTab = controller.tabs.activeTab;
+  var bkgndTabIndex = controller.tabs.activeTabIndex;
   controller.open(LOCATIONS[1].url);
 
+  // Open a new tab now
   controller.keypress(win, "t", {accelKey: true});
   controller.open(LOCATIONS[0].url);
 
-  controller.waitForPageLoad(bgTab);
+  // Wait for our old tab to load in the background
+  controller.waitForPageLoad(controller.tabs.getTab(bkgndTabIndex));
+
   var element = new elementslib.MozMillElement(LOCATIONS[1].type, LOCATIONS[1].value,
-                                               {document: bgTab});
+                                               {document: controller.tabs.getTab(bkgndTabIndex)});
   expect.ok(element.exists(), "Element '" + LOCATIONS[1].value + "'in background tab has been found");
 
   controller.keypress(win, "w", {accelKey: true});
