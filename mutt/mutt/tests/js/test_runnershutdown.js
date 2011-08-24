@@ -1,11 +1,11 @@
 /*
  test shutting down and restarting internal to JS:
  https://bugzilla.mozilla.org/show_bug.cgi?id=638989
- Currently, there should be four passing tests:
+ Currently, there should be two passing tests:
  Firefox run 1:
- - setupModule + testRunnerRestart
+ - testRunnerRestart
  Firefox run 2:
- - setupModule + testFinal
+ - testFinal
  */
 
 var setupModule = function(module) {

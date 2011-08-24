@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import mozmill
 import os
 import tempfile
@@ -21,4 +23,5 @@ class TestMozmillAPI(unittest.TestCase):
         results = m.run(dict(path=path))
         self.assertTrue(len(results.passes) == passes)
 
-    
+if __name__ == '__main__':
+    unittest.main()

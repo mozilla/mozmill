@@ -339,6 +339,13 @@ events.removeListener = function(listener) {
     }
   }
 }
+events.persist = function() {
+    try {
+        this.fireEvent('persist', persisted);
+    } catch(e) {
+        this.fireEvent('error', "persist serialization failed.")
+    }
+}
 
 var log = function (obj) {
   events.fireEvent('log', obj);
@@ -465,11 +472,7 @@ Runner.prototype.runTestFile = function (filename, name) {
   this.runTestModule(this.collector.test_modules_by_filename[filename]);
 }
 Runner.prototype.end = function () {
-  try {
-    events.fireEvent('persist', persisted);
-  } catch(e) {
-    events.fireEvent('error', "persist serialization failed.");
-  }
+  events.persist();
   this.collector.stopHttpd();
   events.fireEvent('endRunner', true);
 }
