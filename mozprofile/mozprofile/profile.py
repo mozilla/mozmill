@@ -98,6 +98,10 @@ class Profile(object):
         self.addon_manager = AddonManager(self.profile)
         self.addon_manager.install_addons(addons, addon_manifests)
 
+    def exists(self):
+        """returns whether the profile exists or not"""
+        return os.path.exists(self.profile)
+
     def reset(self):
         """
         reset the profile to the beginning state

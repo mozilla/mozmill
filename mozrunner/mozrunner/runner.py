@@ -65,6 +65,8 @@ class Runner(object):
         self.profile = profile
         self.clean_profile = clean_profile
 
+        self.firstrun = False
+
         # find the binary
         self.binary = self.__class__.get_binary(binary)
         if not os.path.exists(self.binary):
@@ -202,14 +204,21 @@ class Runner(object):
         # ensure you are stopped
         self.stop()
 
+        # ensure the profile exists
+        if not self.profile.exists():
+            self.profile.reset()
+            self.firstrun = False
+
         # run once to register any extensions
         # see:
         # - http://hg.mozilla.org/releases/mozilla-1.9.2/file/915a35e15cde/build/automation.py.in#l702
         # - http://mozilla-xp.com/mozilla.dev.apps.firefox/Rules-for-when-firefox-bin-restarts-it-s-process
         # This run just calls through processhandler to popen directly as we 
         # are not particuarly cared in tracking this process
-        firstrun = ProcessHandler.Process(self.command+['-silent', '-foreground'], env=self.env, **self.kp_kwargs)
-        firstrun.wait()
+        if not self.firstrun:
+            firstrun = ProcessHandler.Process(self.command+['-silent', '-foreground'], env=self.env, **self.kp_kwargs)
+            firstrun.wait()
+            self.firstrun = True
 
         # now run for real, this run uses the managed processhandler
         self.process_handler = ProcessHandler(self.command+self.cmdargs, env=self.env, **self.kp_kwargs)
