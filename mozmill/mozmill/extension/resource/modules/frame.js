@@ -108,7 +108,8 @@ var loadFile = function(path, collector) {
     Cr: Components.results,
     log: log,
     assert: new assertions.Assert(),
-    expect: new assertions.Expect()
+    expect: new assertions.Expect(),
+    Expect: assertions.Expect
   }
 
   module.require = function (mod) {

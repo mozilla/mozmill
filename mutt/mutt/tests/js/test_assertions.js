@@ -57,6 +57,15 @@ const TEST_DATA = [
   { fun: "equal", params: [true, false, "true is not equal to false"], result: false},
   { fun: "equal", params: [null, undefined, "null is not equal to undefined"], result: false},
 
+  { fun: "deepEqual", params: [{a: 1, b: ["y", "z"]}, {a: 1, b: ["y", "z"]}, "objects should be equivalent"], result: true},
+  { fun: "deepEqual", params: [[3, 4], [3, 4], "two arrays should be equivalent"], result: true},
+  { fun: "deepEqual", params: ["str", "str", "strings should be equal"], result: true},
+  { fun: "deepEqual", params: [[5, 4], [4, 5], "array in wrong order"], result: false},
+  { fun: "deepEqual", params: [undefined, false, "objects not equal"], result: false},
+
+  { fun: "notDeepEqual", params: [{}, {a: 4}, "objects aren't equal"], result: true},
+  { fun: "notDeepEqual", params: [{}, {}, "objects should be equal"], result: false},
+
   { fun: "notEqual", params: [true, true, "true is equal to true"], result: false},
   { fun: "notEqual", params: [true, false, "true is not equal to false"], result: true},
   { fun: "notEqual", params: [undefined, null, "undefined is not equal to null"], result: true},
@@ -98,6 +107,7 @@ SoftExpect.prototype._logFail = function SoftExpect__logFail(aResult) {
   // return values of the _test function
 };
 SoftExpect.prototype.constructor = SoftExpect;
+
 var softExpect = new SoftExpect();
 
 /**
