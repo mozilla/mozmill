@@ -35,24 +35,31 @@
 #
 # ***** END LICENSE BLOCK *****
 
+import os
 import sys
 from setuptools import setup, find_packages
 
-desc = """Python to JavaScript bridge interface."""
-summ = """A powerful and extensible Python to JavaScript bridge interface."""
-
 PACKAGE_NAME = "jsbridge"
-PACKAGE_VERSION = "3.0a"
+PACKAGE_VERSION = "3.0b1"
 
-requires = ['mozrunner == 3.0a']
-
-if not sys.version.startswith('2.6'):
+# package dependencies
+requires = ['mozrunner == 3.0b1']
+try:
+    import json
+except ImportError:
     requires.append('simplejson')
+
+# take description from README
+here = os.path.dirname(os.path.abspath(__file__))
+try:
+    description = file(os.path.join(here, 'README.md')).read()
+except OSError:
+    description = ''
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
-      description=desc,
-      long_description=summ,
+      description="Python to JavaScript bridge interface",
+      long_description=description,
       author='Mikeal Rogers, Mozilla',
       author_email='mikeal.rogers@gmail.com',
       url='http://github.com/mozautomation/mozmill',

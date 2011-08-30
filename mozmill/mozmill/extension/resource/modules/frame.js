@@ -95,21 +95,23 @@ var loadFile = function(path, collector) {
   var uri = ios.newFileURI(file).spec;
 
   loadTestResources();
-  var assertions = moduleLoader.require("./assertions");
-  var module = {  
-    collector:  collector,
-    mozmill: mozmill,
-    elementslib: mozelement,
-    findElement: mozelement,
-    persisted: persisted,
+  var assertions = moduleLoader.require("assertions");
+
+  var module = {
+    assert: new assertions.Assert(),
     Cc: Components.classes,
     Ci: Components.interfaces,
-    Cu: Components.utils,
     Cr: Components.results,
-    log: log,
-    assert: new assertions.Assert(),
+    Cu: Components.utils,
+    collector:  collector,
+    driver: moduleLoader.require("driver"),
+    elementslib: mozelement,
     expect: new assertions.Expect(),
-    Expect: assertions.Expect
+    Expect: assertions.Expect,
+    findElement: mozelement,
+    log: log,
+    mozmill: mozmill,
+    persisted: persisted
   }
 
   module.require = function (mod) {
@@ -143,7 +145,7 @@ var loadFile = function(path, collector) {
       'failed':true,
       'passes':0,
       'fails' :1,
-      'name'  :'Unknown Test',
+      'name'  :'Unknown Test'
     };
     events.fireEvent('endTest', obj);
     Components.utils.reportError(e);
@@ -338,6 +340,13 @@ events.removeListener = function(listener) {
     }
   }
 }
+events.persist = function() {
+    try {
+        this.fireEvent('persist', persisted);
+    } catch(e) {
+        this.fireEvent('error', "persist serialization failed.")
+    }
+}
 
 var log = function (obj) {
   events.fireEvent('log', obj);
@@ -464,11 +473,7 @@ Runner.prototype.runTestFile = function (filename, name) {
   this.runTestModule(this.collector.test_modules_by_filename[filename]);
 }
 Runner.prototype.end = function () {
-  try {
-    events.fireEvent('persist', persisted);
-  } catch(e) {
-    events.fireEvent('error', "persist serialization failed.");
-  }
+  events.persist();
   this.collector.stopHttpd();
   events.fireEvent('endRunner', true);
 }

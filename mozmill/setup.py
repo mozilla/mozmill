@@ -35,18 +35,23 @@
 #
 # ***** END LICENSE BLOCK *****
 
+import os
 from setuptools import setup, find_packages
 
-desc = """UI Automation tool for Mozilla applications."""
-summ = """A tool for full UI automation of Mozilla applications."""
-
 PACKAGE_NAME = "mozmill"
-PACKAGE_VERSION = "2.0a"
+PACKAGE_VERSION = "2.0b1"
+
+# take description from README
+here = os.path.dirname(os.path.abspath(__file__))
+try:
+    description = file(os.path.join(here, 'README.md')).read()
+except OSError:
+    description = ''
 
 setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
-      description=desc,
-      long_description=summ,
+      description="UI Automation tool for Mozilla applications",
+      long_description=description,
       author='Mozilla, Mikeal Rogers',
       author_email='mikeal.rogers@gmail.com',
       url='http://github.com/mozautomation/mozmill',
@@ -65,9 +70,9 @@ setup(name=PACKAGE_NAME,
           callbacks = mozmill.python_callbacks:PythonCallbacks
         """,
       platforms =['Any'],
-      install_requires = ['jsbridge == 3.0a',
-                          'mozrunner == 3.0a',
-                          'ManifestDestiny == 0.5.1',
+      install_requires = ['jsbridge == 3.0b1',
+                          'mozrunner == 3.0b1',
+                          'ManifestDestiny == 0.5.4',
                           'mozinfo'],
       classifiers=['Development Status :: 4 - Beta',
                    'Environment :: Console',

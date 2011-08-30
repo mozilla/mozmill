@@ -52,8 +52,9 @@ import mozrunner
 import mozprofile
 import handlers
 
-from jsbridge.network import JSBridgeDisconnectError
 from datetime import datetime, timedelta
+from jsbridge.network import JSBridgeDisconnectError
+from mozrunner.utils import get_metadata_from_egg
 from optparse import OptionGroup
 from time import sleep
 
@@ -61,7 +62,7 @@ from time import sleep
 basedir = os.path.abspath(os.path.dirname(__file__))
 extension_path = os.path.join(basedir, 'extension')
 mozmillModuleJs = "Components.utils.import('resource://mozmill/modules/mozmill.js')"
-package_metadata = mozrunner.get_metadata_from_egg('mozmill')
+package_metadata = get_metadata_from_egg('mozmill')
 
 # defaults
 ADDONS = [extension_path, jsbridge.extension_path]
@@ -357,6 +358,17 @@ class MozMill(object):
                 if self.shutdownMode:
                     # if the test initiates shutdown and there are other tests
                     # signal that the runner is stopped
+                    if self.shutdownMode.get('user'):
+                        # horrible hack
+                        # see https://bugzilla.mozilla.org/show_bug.cgi?id=640435
+                        obj = {'filename': test['path'],
+                               'passed': 1,
+                               'failed': 0,
+                               'passes': [self.current_test['name']],
+                               'fails': [],
+                               'name': self.current_test['name'],
+                               'skipped': False}
+                        self.fire_event('endTest', obj)
                     started = False
                 else:
                     self.report_disconnect()
@@ -499,7 +511,7 @@ class CLI(mozrunner.CLI):
         mozrunner.CLI.__init__(self, args)
 
         # read tests from manifests (if any)
-        self.manifest = manifestparser.TestManifest(manifests=self.options.manifests)
+        self.manifest = manifestparser.TestManifest(manifests=self.options.manifests, strict=False)
 
         # expand user directory and check existence for the test
         for test in self.options.tests:

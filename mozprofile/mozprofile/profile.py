@@ -41,8 +41,9 @@ __all__ = ['Profile', 'FirefoxProfile', 'ThunderbirdProfile']
 
 import os
 import tempfile
-from shutil import rmtree
 from addons import AddonManager
+from permissions import PermissionsManager
+from shutil import rmtree
 
 try:
     import simplejson
@@ -53,7 +54,8 @@ class Profile(object):
     """Handles all operations regarding profile. Created new profiles, installs extensions,
     sets preferences and handles cleanup."""
 
-    def __init__(self, profile=None, addons=None, addon_manifests=None, preferences=None, restore=True):
+    def __init__(self, profile=None, addons=None, addon_manifests=None, preferences=None, locations=None, proxy=False, restore=True):
+        
         # if true, remove installed addons/prefs afterwards
         self.restore = restore
 
@@ -61,29 +63,44 @@ class Profile(object):
         self.create_new = not profile
         if profile:
             # Ensure we have a full path to the profile
-            self.profile = os.path.expanduser(profile)
+            self.profile = os.path.abspath(os.path.expanduser(profile))
             if not os.path.exists(self.profile):
                 os.makedirs(self.profile)
         else:
             self.profile = self.create_new_profile()
 
-        # set preferences from class preferences
+        # set preferences
         if hasattr(self.__class__, 'preferences'):
-            self.preferences = self.__class__.preferences.items()
-        else:
-            self.preferences = []
+            # class preferences
+            self.set_preferences(self.__class__.preferences)
+        self._preferences = preferences
         if preferences:
+            # supplied preferences
             if isinstance(preferences, dict):
                 # unordered
                 preferences = preferences.items()
+            # sanity check
             assert not [i for i in preferences
                         if len(i) != 2]
-            self.preferences.extend(preferences)
-        self.set_preferences(self.preferences)
+        else:
+            preferences = []
+        self.set_preferences(preferences)
+
+        # set permissions
+        self._locations = locations # store this for reconstruction
+        self._proxy = proxy
+        self.permission_manager = PermissionsManager(self.profile, locations)
+        prefs_js, user_js = self.permission_manager.getNetworkPreferences(proxy)
+        self.set_preferences(prefs_js, 'prefs.js')
+        self.set_preferences(user_js)
  
         # handle addon installation
         self.addon_manager = AddonManager(self.profile)
         self.addon_manager.install_addons(addons, addon_manifests)
+
+    def exists(self):
+        """returns whether the profile exists or not"""
+        return os.path.exists(self.profile)
 
     def reset(self):
         """
@@ -94,8 +111,12 @@ class Profile(object):
             profile = None
         else:
             profile = self.profile
-        self.__init__(profile=profile, addons=self.addon_manager.addons,
-                      addon_manifests=self.addon_manager.manifests, preferences=self.preferences)
+        self.__init__(profile=profile,
+                      addons=self.addon_manager.addons,
+                      addon_manifests=self.addon_manager.manifests,
+                      preferences=self._preferences,
+                      locations=self._locations,
+                      proxy = self._proxy)
 
     def create_new_profile(self):
         """Create a new clean profile in tmp which is a simple empty folder"""
@@ -105,21 +126,18 @@ class Profile(object):
 
     ### methods for preferences
 
-    def set_preferences(self, preferences):
+    def set_preferences(self, preferences, filename='user.js'):
         """Adds preferences dict to profile preferences"""
         
-        prefs_file = os.path.join(self.profile, 'user.js')
-        
-        # Ensure that the file exists first otherwise create an empty file
-        if os.path.isfile(prefs_file):
-            f = open(prefs_file, 'a+')
-        else:
-            f = open(prefs_file, 'w')
+        # append to the file
+        prefs_file = os.path.join(self.profile, filename)
+        f = open(prefs_file, 'a')
 
         if isinstance(preferences, dict):
             # order doesn't matter
             preferences = preferences.items()
 
+        # write the preferences
         if preferences:
             f.write('\n#MozRunner Prefs Start\n')
             _prefs = [(simplejson.dumps(k), simplejson.dumps(v) )
@@ -209,6 +227,7 @@ class Profile(object):
             else:
                 self.clean_preferences()
                 self.addon_manager.clean_addons()
+                self.permission_manager.clean_permissions()
 
     __del__ = cleanup
 

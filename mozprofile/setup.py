@@ -35,24 +35,33 @@
 #
 # ***** END LICENSE BLOCK *****
 
-from setuptools import setup, find_packages
+import os
 import sys
+from setuptools import setup, find_packages
 
-version = '0.1a'
+version = '0.1b1'
 
 # we only support python 2 right now
 assert sys.version_info[0] == 2
 
-deps = ["ManifestDestiny >= 0.3"]
+deps = ["ManifestDestiny == 0.5.4"]
 # version-dependent dependencies
-if sys.version_info[1] < 6:
+try:
+    import json
+except ImportError:
     deps.append('simplejson')
+
+# take description from README
+here = os.path.dirname(os.path.abspath(__file__))
+try:
+    description = file(os.path.join(here, 'README.md')).read()
+except OSError:
+    description = ''
 
 setup(name='mozprofile',
       version=version,
       description="handling of Mozilla XUL app profiles",
-      long_description="""\
-""",
+      long_description=description,
       classifiers=[], # Get strings from http://pypi.python.org/pypi?%3Aaction=list_classifiers
       keywords='',
       author='Mozilla Automation + Testing Team',

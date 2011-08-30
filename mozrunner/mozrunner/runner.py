@@ -37,7 +37,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
-__all__ = ['Runner', 'ThunderbirdRunner', 'FirefoxRunner', 'runners', 'CLI', 'cli', 'get_metadata_from_egg', 'package_metadata']
+__all__ = ['Runner', 'ThunderbirdRunner', 'FirefoxRunner', 'runners', 'CLI', 'cli', 'package_metadata']
 
 import mozinfo
 import optparse
@@ -45,29 +45,11 @@ import os
 import sys
 import ConfigParser
 
+from utils import get_metadata_from_egg
 from utils import findInPath
 from mozprofile import *
 from mozprocess.processhandler import ProcessHandler
 
-### python package method metadata by introspection
-try:
-    import pkg_resources
-    def get_metadata_from_egg(module):
-        ret = {}
-        dist = pkg_resources.get_distribution(module)
-        if dist.has_metadata("PKG-INFO"):
-            for line in dist.get_metadata_lines("PKG-INFO"):
-                key, value = line.split(':', 1)
-                key = key.strip()
-                value = value.strip()
-                ret[key] = value
-        if dist.has_metadata("requires.txt"):
-            ret["Dependencies"] = "\n" + dist.get_metadata("requires.txt")    
-        return ret
-except ImportError:
-    # package resources not avaialable
-    def get_metadata_from_egg(module):
-        return {}
 package_metadata = get_metadata_from_egg('mozrunner')
 
 class Runner(object):
@@ -82,6 +64,8 @@ class Runner(object):
         self.process_handler = None
         self.profile = profile
         self.clean_profile = clean_profile
+
+        self.firstrun = False
 
         # find the binary
         self.binary = self.__class__.get_binary(binary)
@@ -220,14 +204,21 @@ class Runner(object):
         # ensure you are stopped
         self.stop()
 
+        # ensure the profile exists
+        if not self.profile.exists():
+            self.profile.reset()
+            self.firstrun = False
+
         # run once to register any extensions
         # see:
         # - http://hg.mozilla.org/releases/mozilla-1.9.2/file/915a35e15cde/build/automation.py.in#l702
         # - http://mozilla-xp.com/mozilla.dev.apps.firefox/Rules-for-when-firefox-bin-restarts-it-s-process
         # This run just calls through processhandler to popen directly as we 
         # are not particuarly cared in tracking this process
-        firstrun = ProcessHandler.Process(self.command+['-silent', '-foreground'], env=self.env, **self.kp_kwargs)
-        firstrun.wait()
+        if not self.firstrun:
+            firstrun = ProcessHandler.Process(self.command+['-silent', '-foreground'], env=self.env, **self.kp_kwargs)
+            firstrun.wait()
+            self.firstrun = True
 
         # now run for real, this run uses the managed processhandler
         self.process_handler = ProcessHandler(self.command+self.cmdargs, env=self.env, **self.kp_kwargs)

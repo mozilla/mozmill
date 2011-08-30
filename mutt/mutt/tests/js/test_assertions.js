@@ -33,7 +33,11 @@
  * the terms of any one of the MPL, the GPL or the LGPL.
  *
  * ***** END LICENSE BLOCK ***** */
- 
+
+// Include necessary modules
+var assertions = require("assertions");
+
+
 function Err() {
   // exception used for testing throws()
 }
@@ -97,7 +101,7 @@ const TEST_DATA = [
  * Expect class for assertions which doesn't add failing and passing frames
  */
 var SoftExpect = function() {}
-SoftExpect.prototype = new Expect()
+SoftExpect.prototype = new assertions.Expect()
 SoftExpect.prototype._logPass = function SoftExpect__logPass(aResult) {
   // We do not want to add a passing frame but only take care of the
   // return values of the _test method

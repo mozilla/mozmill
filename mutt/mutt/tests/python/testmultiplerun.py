@@ -16,10 +16,11 @@ class TestMozmillAPI(unittest.TestCase):
         os.close(fd)
         return path
 
-    def test_api(self):
-        passes = 1
+    def test_runtwice(self):
+        passes = 2
         path = self.make_test()
         m = mozmill.MozMill.create()
+        m.run(dict(path=path))
         results = m.run(dict(path=path))
         self.assertTrue(len(results.passes) == passes)
 

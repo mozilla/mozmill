@@ -97,7 +97,7 @@ class ProcessHandler(object):
                     except BaseException, e:
                         if getattr(e, "errno", None) != 3:
                             # Error 3 is "no such process", which is ok
-                            raise OSError("Could not kill process: %s" % self.pid)
+                            print >> sys.stderr, "Could not kill process, could not find pid: %s" % self.pid
                     finally:
                         # Try to get the exit status
                         if self.returncode is None:
@@ -582,6 +582,10 @@ falling back to not using job objects for managing child processes"""
            If logfile is not None, the output produced by the process will be 
            appended to the given file.
         """
+
+        if not hasattr(self, 'proc'):
+            self.run()
+        
         self.didTimeout = False
         logsource = self.proc.stdout
 
