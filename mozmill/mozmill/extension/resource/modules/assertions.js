@@ -363,7 +363,7 @@ Expect.prototype = {
    */
   deepEqual: function deepEqual(actual, expected, aMessage) {
     let condition = this._deepEqual(actual, expected);
-    let diagnosis = "got '" + JSON.stringify(actual) + "', not expected '"
+    let diagnosis = "got '" + JSON.stringify(actual) + "', expected '"
       + JSON.stringify(expected) + "'";
 
     return this._test(condition, aMessage, diagnosis);
