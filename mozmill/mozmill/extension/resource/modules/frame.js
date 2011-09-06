@@ -107,7 +107,6 @@ var loadFile = function(path, collector) {
     driver: moduleLoader.require("driver"),
     elementslib: mozelement,
     expect: new assertions.Expect(),
-    Expect: assertions.Expect,
     findElement: mozelement,
     log: log,
     mozmill: mozmill,
