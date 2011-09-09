@@ -59,20 +59,12 @@ function attachEventListeners(window) {
   window.addEventListener("load", function (event) {
     window.mozmillDocumentLoaded = true;
  
-    if (window.gBrowser) {
+    if ("gBrowser" in window) {
       // Page is ready
       window.gBrowser.addEventListener("load", function (event) {
-        // this is the content document of the loaded page.
         var doc = event.originalTarget;
-        var tab = window.gBrowser.getBrowserForDocument(doc);
-
-        if (tab) {
-          //dump("*** Loaded tab: location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
-          tab.mozmillDocumentLoaded = true;
-        } else {
-          //dump("*** Loaded HTML location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
-          doc.defaultView.mozmillDocumentLoaded = true;
-        }
+        doc.defaultView.mozmillDocumentLoaded = true;
+        // dump("*** Window content loaded: " + doc.location + ", baseURI=" + doc.baseURI + "\n");
       }, true);
  
       // Note: Error pages will never fire a "load" event. For those we
@@ -80,30 +72,23 @@ function attachEventListeners(window) {
       // Error pages will always have a baseURI starting with
       // "about:" followed by "error" or "blocked".
       window.gBrowser.addEventListener("DOMContentLoaded", function (event) {
+        var doc = event.originalTarget;
+
         var errorRegex = /about:.+(error)|(blocked)\?/;
-        if (errorRegex.exec(event.target.baseURI)) {
+        if (errorRegex.exec(doc.baseURI)) {
           // Wait about 1s to be sure the DOM is ready
           mozmill.utils.sleep(1000);
 
-          var tab = window.gBrowser.getBrowserForDocument(event.target);
-          if (tab)
-            tab.mozmillDocumentLoaded = true;
+          doc.defaultView.mozmillDocumentLoaded = true;
+          // dump("*** Window content loaded: " + doc.location + ", baseURI=" + doc.baseURI + "\n");
         }
       }, true);
   
       // Page is about to get unloaded
       window.gBrowser.addEventListener("beforeunload", function (event) {
         var doc = event.originalTarget;
-        var tab = window.gBrowser.getBrowserForDocument(event.target);
-
-        if (tab) {
-          //dump("*** Unload tab: location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
-          tab.mozmillDocumentLoaded = false;
-        } else {
-          //dump("*** Unload HTML location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
-          doc.defaultView.mozmillDocumentLoaded = false;
-        }
-
+        doc.defaultView.mozmillDocumentLoaded = false;
+        // dump("*** Window content unloaded: " + doc.location + ", baseURI=" + doc.baseURI + "\n");
       }, true);
     }
   }, false);
