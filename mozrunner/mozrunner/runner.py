@@ -280,7 +280,8 @@ class FirefoxRunner(Runner):
         version = appini.get('App', 'Version').rstrip('0123456789pre').rstrip('.')
         
         # Disable compatibility check
-        preference = {'extensions.disableCompatibility.' + version: False}
+        # See: http://kb.mozillazine.org/Extensions.checkCompatibility
+        preference = {'extensions.checkCompatibility.' + version: False}
         self.profile.set_preferences(preference)
         
 
