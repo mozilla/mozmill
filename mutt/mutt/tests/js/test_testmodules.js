@@ -39,17 +39,9 @@ var setupModule = function(module) {
   assert.pass("SetupModule passes");
 }
 
-var setupTest = function(module) {
-  assert.pass("SetupTest passes");
-}
-
 var testTestStep = function() {
   assert.pass("test Passes");
   controller.open("http://www.mozilla.org");
-}
-
-var teardownTest = function () {
-  assert.pass("teardownTest passes");
 }
 
 var teardownModule = function() {

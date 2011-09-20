@@ -1,4 +1,4 @@
-var setupTest = function() {
+var setupModule = function(module) {
   controller = mozmill.getBrowserController();
 
   // Create a new menu instance for the context menu

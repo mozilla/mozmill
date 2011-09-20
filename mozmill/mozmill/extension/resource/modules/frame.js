@@ -188,7 +188,7 @@ var events = {
 }
 events.setState = function (v) {
    return stateChangeBase(['dependencies', 'setupModule', 'teardownModule', 
-                           'setupTest', 'teardownTest', 'test', 'collection'], 
+                           'test', 'collection'], 
                            null, 'currentState', 'setState', v);
 }
 events.toggleUserShutdown = function (obj){
@@ -238,8 +238,6 @@ events.endTest = function (test) {
   var shouldSkipReporting = false;
   if (test.__passes__ && 
       (test.__name__ == 'setupModule' ||
-       test.__name__ == 'setupTest' ||
-       test.__name__ == 'teardownTest' ||
        test.__name__ == 'teardownModule')) {
     shouldSkipReporting = true;
   }
@@ -292,8 +290,7 @@ events.fail = function (obj) {
   events.fireEvent('fail', obj);
 }
 events.skip = function (reason) {
-  // this is used to report skips associated with setupModule and setupTest
-  // and nothing else
+  // this is used to report skips associated with setupModule and nothing else
   events.currentTest.skipped = true;
   events.currentTest.skipped_reason = reason;
   for each(var timer in timers) {
@@ -414,12 +411,8 @@ Collector.prototype.initTestModule = function (filename, name) {
   for (var i in test_module) {
     if (typeof(test_module[i]) == "function") {
       test_module[i].__name__ = i;
-      if (i == "setupTest") {
-        test_module.__setupTest__ = test_module[i];
-      } else if (i == "setupModule") {
+      if (i == "setupModule") {
         test_module.__setupModule__ = test_module[i];
-      } else if (i == "teardownTest") {
-        test_module.__teardownTest__ = test_module[i];
       } else if (i == "teardownModule") {
         test_module.__teardownModule__ = test_module[i];
       } else if (withs.startsWith(i, "test")) {
@@ -543,31 +536,13 @@ Runner.prototype.runTestModule = function (module) {
       // TODO: introduce per-test timeout:
       // https://bugzilla.mozilla.org/show_bug.cgi?id=574871
 
-      if (module.__setupTest__) { 
-        events.setState('setupTest');
-        events.setTest(module.__setupTest__);
-        this.wrapper(module.__setupTest__, test); 
-        var setupTestPassed = (events.currentTest.__fails__.length == 0 && !events.currentTest.skipped);
-        events.endTest(module.__setupTest__);
-      } else {
-        var setupTestPassed = true;
-      }  
       events.setState('test'); 
       events.setTest(test, this.invokedFromIDE);
-      if (setupTestPassed) {
-        this.wrapper(test);
-        if (events.userShutdown && !events.userShutdown['user']) {
-            events.endTest(test);
-            break;
-        }
-      } else {
-        events.skip("setupTest failed.");
-      }
-      if (module.__teardownTest__) {
-        events.setState('teardownTest'); 
-        events.setTest(module.__teardownTest__);
-        this.wrapper(module.__teardownTest__, test); 
-        events.endTest(module.__teardownTest__);
+
+      this.wrapper(test);
+      if (events.userShutdown && !events.userShutdown['user']) {
+          events.endTest(test);
+          break;
       }
       events.endTest(test)
     }

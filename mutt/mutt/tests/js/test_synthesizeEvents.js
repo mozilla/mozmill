@@ -1,4 +1,4 @@
-var setupTest = function() {
+var setupModule = function(module) {
   controller = mozmill.getBrowserController();
 }
 
