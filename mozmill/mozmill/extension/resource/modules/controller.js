@@ -1275,7 +1275,9 @@ function browserAdditions (controller) {
     if (typeof(aDocument) === "number")
       timeout = aDocument;
 
-    if (aDocument && "defaultView" in aDocument)
+    // If we have a real document use its default view
+    if (aDocument && (typeof(aDocument) === "object") &&
+        "defaultView" in aDocument)
       win = aDocument.defaultView;
 
     // If no document has been specified, fallback to the default view of the
