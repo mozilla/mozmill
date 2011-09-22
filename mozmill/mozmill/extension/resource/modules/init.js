@@ -97,15 +97,8 @@ function attachEventListeners(window) {
   // These are the event handlers
   function pageShowHandler(event) {
     var doc = event.originalTarget;
-    var tab = window.gBrowser.getBrowserForDocument(doc);
-
-    if (tab) {
-      //log("*** Loaded tab: location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
-      tab.mozmillDocumentLoaded = true;
-    } else {
-      //log("*** Loaded HTML location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
-      doc.defaultView.mozmillDocumentLoaded = true;
-    }
+    doc.defaultView.mozmillDocumentLoaded = true;
+    // dump("*** Window content loaded: " + doc.location + ", baseURI=" + doc.baseURI + "\n");
 
     // We need to add/remove the unload/pagehide event listeners to preserve caching.
     window.gBrowser.addEventListener("beforeunload", beforeUnloadHandler, true);
@@ -113,15 +106,16 @@ function attachEventListeners(window) {
   };
 
   var DOMContentLoadedHandler = function(event) {
+    var doc = event.originalTarget;
+
     var errorRegex = /about:.+(error)|(blocked)\?/;
-    if (errorRegex.exec(event.target.baseURI)) {
+    if (errorRegex.exec(doc.baseURI)) {
       // Wait about 1s to be sure the DOM is ready
       mozmill.utils.sleep(1000);
 
-      var tab = window.gBrowser.getBrowserForDocument(event.target);
-      if (tab)
-        tab.mozmillDocumentLoaded = true;
-    
+      doc.defaultView.mozmillDocumentLoaded = true;
+      // dump("*** Window content loaded: " + doc.location + ", baseURI=" + doc.baseURI + "\n");
+
       // We need to add/remove the unload event listener to preserve caching.
       window.gBrowser.addEventListener("beforeunload", beforeUnloadHandler, true);
     }
@@ -131,15 +125,8 @@ function attachEventListeners(window) {
   // still use pagehide for cases when beforeunload doesn't get fired
   function beforeUnloadHandler(event) {
     var doc = event.originalTarget;
-    var tab = window.gBrowser.getBrowserForDocument(event.target);
-
-    if (tab) {
-      //log("*** Unload tab: location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
-      tab.mozmillDocumentLoaded = false;
-    } else {
-      //log("*** Unload HTML location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
-      doc.defaultView.mozmillDocumentLoaded = false;
-    }
+    doc.defaultView.mozmillDocumentLoaded = false;
+    // dump("*** Window content unloaded: " + doc.location + ", baseURI=" + doc.baseURI + "\n");
 
     window.gBrowser.removeEventListener("beforeunload", beforeUnloadHandler, true);
   };
@@ -149,15 +136,8 @@ function attachEventListeners(window) {
     // and there is no need for this event handler.
     if (event.persisted) {
       var doc = event.originalTarget;
-      var tab = window.gBrowser.getBrowserForDocument(event.target);
-
-      if (tab) {
-        //log("*** Unload tab: location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
-        tab.mozmillDocumentLoaded = false;
-      } else {
-        //log("*** Unload HTML location=" + doc.location + ", baseURI=" + doc.baseURI + "\n");
-        doc.defaultView.mozmillDocumentLoaded = false;
-      }
+      doc.defaultView.mozmillDocumentLoaded = false;
+      // dump("*** Window content unloaded: " + doc.location + ", baseURI=" + doc.baseURI + "\n");
 
       window.gBrowser.removeEventListener("beforeunload", beforeUnloadHandler, true);
     }
@@ -168,8 +148,7 @@ function attachEventListeners(window) {
   window.addEventListener("load", function(event) {
     window.mozmillDocumentLoaded = true;
 
-
-    if (window.gBrowser) {
+    if ("gBrowser" in window) {
       // Page is ready
       window.gBrowser.addEventListener("pageshow", pageShowHandler, true);
  

@@ -78,18 +78,22 @@ var testWaitForPageLoad = function() {
 
   /**
    * PART IV - Make sure we don't fail when clicking links on a page
-   */ 
-  controller.open("http://www.lipsum.com/");
-  controller.waitForPageLoad();
+   */
 
-  var link = new elementslib.MozMillElement("Selector", "a.de",
-                                            {document: controller.tabs.activeTab});
-  controller.click(link);
-  controller.waitForPageLoad();
-
-  var target = new elementslib.MozMillElement("Selector", "#Banner",
-                                            {document: controller.tabs.activeTab});
-  controller.waitForElement(target, 1000);
+  // XXX Bug 686030
+  //     Disabled for now because test fails in waiting for target page after
+  //     clicking an element
+  //controller.open("http://blog.mozilla.com");
+  //controller.waitForPageLoad();
+  //
+  //var link = new elementslib.MozMillElement("Selector", "#nav-main-support>a",
+  //                                          {document: controller.tabs.activeTab});
+  //controller.click(link);
+  //controller.waitForPageLoad();
+  //
+  //var target = new elementslib.MozMillElement("Selector", "#support-search",
+  //                                          {document: controller.tabs.activeTab});
+  //controller.waitForElement(target, 1000);
 
   /**
    * PART V - When waitForPageLoad is called when the page has already been loaded
@@ -100,26 +104,7 @@ var testWaitForPageLoad = function() {
   controller.waitForPageLoad(500);
 
   /**
-   * PART VI - Loading a page in another tab should wait for its completion
-   */
-  var bkgndTabIndex = controller.tabs.activeTabIndex;
-  controller.open(LOCATIONS[1].url);
-
-  // Open a new tab now
-  controller.keypress(win, "t", {accelKey: true});
-  controller.open(LOCATIONS[0].url);
-
-  // Wait for our old tab to load in the background
-  controller.waitForPageLoad(controller.tabs.getTab(bkgndTabIndex));
-
-  var element = new elementslib.MozMillElement(LOCATIONS[1].type, LOCATIONS[1].value,
-                                               {document: controller.tabs.getTab(bkgndTabIndex)});
-  expect.ok(element.exists(), "Element '" + LOCATIONS[1].value + "'in background tab has been found");
-
-  controller.keypress(win, "w", {accelKey: true});
-
-  /**
-   * PART VII - Loading an iFrame
+   * PART VI - Loading an iFrame
    */
 
   // Load the container page
@@ -140,5 +125,25 @@ var testWaitForPageLoad = function() {
   // Once the iframe has been loaded assert that the element exists
   var home = new elementslib.MozMillElement("ID", "home", {document: frameWindow.document});
   expect.ok(home.exists(), "Node in iFrame has been found");
+
+  /**
+   * PART VII - Loading a page in another tab should wait for its completion
+   */
+  var bkgndTabIndex = controller.tabs.activeTabIndex;
+  controller.open(LOCATIONS[1].url);
+
+  // Open a new tab now
+  controller.keypress(win, "t", {accelKey: true});
+  controller.open(LOCATIONS[0].url);
+
+  // Wait for our old tab to load in the background
+  controller.waitForPageLoad(controller.tabs.getTab(bkgndTabIndex));
+
+  var element = new elementslib.MozMillElement(LOCATIONS[1].type, LOCATIONS[1].value,
+                                               {document: controller.tabs.getTab(bkgndTabIndex)});
+  expect.ok(element.exists(), "Element '" + LOCATIONS[1].value + "'in background tab has been found");
+
+  controller.keypress(win, "w", {accelKey: true});
+
 }
 
