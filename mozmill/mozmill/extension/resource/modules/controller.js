@@ -280,6 +280,13 @@ var MozMillController = function (window) {
   }
 }
 
+// constructs a MozMillElement from the controller's window
+MozMillController.prototype.__defineGetter__("windowElement", function() {
+  if (this._windowElement == undefined) 
+    this._windowElement = new mozelement.MozMillElement(undefined, undefined, {'element': this.window});
+  return this._windowElement;
+});
+
 MozMillController.prototype.sleep = utils.sleep;
 
 // Open the specified url in the current tab
@@ -968,11 +975,21 @@ MozMillController.prototype.select = function (elem, index, option, value) {
 };
 
 MozMillController.prototype.keypress = function(aTarget, aKey, aModifiers, aExpectedEvent) {
+  if (aTarget == null) { aTarget = this.windowElement; }
   return aTarget.keypress(aKey, aModifiers, aExpectedEvent);
 }
 
 MozMillController.prototype.type = function (aTarget, aText, aExpectedEvent) {
-  return aTarget.sendKeys(aText, aExpectedEvent);
+  if (aTarget == null) { aTarget = this.windowElement; }
+
+  var that = this;
+  var retval = true;
+  Array.forEach(aText, function(letter) {
+    if (!that.keypress(aTarget, letter, {}, aExpectedEvent)) {
+      retval = false; }
+  });
+
+  return retval;
 }
 
 MozMillController.prototype.mouseEvent = function(aTarget, aOffsetX, aOffsetY, aEvent, aExpectedEvent) {
