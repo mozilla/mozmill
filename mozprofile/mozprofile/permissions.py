@@ -305,7 +305,7 @@ function FindProxyForURL(url, host)
         """Removed permissions added by mozprofile."""
 
         # Open database and create table
-        permDB = sqlite3.connect(os.path.join(self.profile, "permissions.sqlite"))
+        permDB = sqlite3.connect(os.path.join(self._profileDir, "permissions.sqlite"))
         cursor = permDB.cursor();
 
         # TODO: only delete values that we add, this would require sending in the full permissions object
