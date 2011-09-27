@@ -56,12 +56,16 @@ class Runner(object):
     """Handles all running operations. Finds bins, runs and kills the process."""
 
     @classmethod
-    def create(cls, binary=None, cmdargs=None, env=None, kp_kwargs=None, profile_args=None, clean_profile=True):
+    def create(cls, binary=None, cmdargs=None, env=None, kp_kwargs=None, profile_args=None, 
+                                               clean_profile=True, process_class=ProcessHandler):
         profile = cls.profile_class(**(profile_args or {}))
-        return cls(profile, binary=binary, cmdargs=cmdargs, env=env, kp_kwargs=kp_kwargs, clean_profile=clean_profile)
+        return cls(profile, binary=binary, cmdargs=cmdargs, env=env, kp_kwargs=kp_kwargs, 
+                                           clean_profile=clean_profile, process_class=process_class)
 
-    def __init__(self, profile, binary=None, cmdargs=None, env=None, kp_kwargs=None, clean_profile=True):
+    def __init__(self, profile, binary=None, cmdargs=None, env=None,
+                 kp_kwargs=None, clean_profile=True, process_class=ProcessHandler):
         self.process_handler = None
+        self.process_class = process_class
         self.profile = profile
         self.clean_profile = clean_profile
 
@@ -221,7 +225,7 @@ class Runner(object):
             self.firstrun = True
 
         # now run for real, this run uses the managed processhandler
-        self.process_handler = ProcessHandler(self.command+self.cmdargs, env=self.env, **self.kp_kwargs)
+        self.process_handler = self.process_class(self.command+self.cmdargs, env=self.env, **self.kp_kwargs)
         self.process_handler.run()
  
     def wait(self, timeout=None):
