@@ -63,7 +63,7 @@ function getBrowserWindow(aOpenIfNone) {
   }
 
   // If implicit open is off, turn on strict checking, and vice versa.
-  let win = getTopmostWindow(windowFilterByType("navigator:browser"), !aOpenIfNone);
+  let win = getTopmostWindowByType("navigator:browser", !aOpenIfNone);
 
   // Can just assume automatic open here. If we didn't want it and nothing found,
   // we already raised above when getTopmostWindow was called.
@@ -73,6 +73,20 @@ function getBrowserWindow(aOpenIfNone) {
   return win;
 }
 
+
+/**
+ * Retrieves the hidden window on OS X
+ *
+ * @memberOf driver
+ * @returns {DOMWindow} The hidden window
+ */
+function getHiddenWindow() {
+  return Cc["@mozilla.org/appshell/appShellService;1"].
+            getService(Ci.nsIAppShellService).
+            hiddenDOMWindow;
+}
+
+
 /**
  * Opens a new browser window
  *
@@ -80,11 +94,12 @@ function getBrowserWindow(aOpenIfNone) {
  * @returns {DOMWindow}
  */
 function openBrowserWindow() {
-  let hWindow = Cc["@mozilla.org/appshell/appShellService;1"].
-                getService(Ci.nsIAppShellService).
-                hiddenDOMWindow;
-
-  return hWindow.OpenBrowserWindow();
+  // On OS X we have to be able to create a new browser window even with no other
+  // window open. Therefore we have to use the hidden window. On other platforms
+  // at least one remaining browser window has to exist.
+  var win = mozmill.isMac ? getHiddenWindow() :
+                            getTopmostWindowByType("navigator:browser", true);
+  return win.OpenBrowserWindow();
 }
 
 
@@ -113,6 +128,7 @@ var waitFor = utils.waitFor;
  * and filter.
  *
  * @private
+ * @memberOf driver
  * @param {nsISimpleEnumerator} aEnumerator Window enumerator to use.
  * @param {Function} [aFilterCallback] Function which is used to filter windows.
  * @param {Boolean} [aStrict=true] Throw an error if no windows found
@@ -155,6 +171,7 @@ function _getWindows(aEnumerator, aFilterCallback, aStrict) {
 /**
  * Generator of a closure to filter a window based by a method
  *
+ * @memberOf driver
  * @param {String} aName Name of the method in the window object.
  * @returns {Boolean} True if the condition is met.
  */
@@ -177,6 +194,7 @@ function windowFilterByTitle(aTitle) {
 /**
  * Generator of a closure to filter a window based by the its type
  *
+ * @memberOf driver
  * @param {String} aType Type of the window.
  * @returns {Boolean} True if the condition is met.
  */
@@ -195,6 +213,7 @@ function windowFilterByType(aType) {
  * Retrieves a sorted list of open windows based on their age (newest to oldest),
  * optionally matching filter criteria.
  *
+ * @memberOf driver
  * @param {Function} [aFilterCallback] Function which is used to filter windows.
  * @param {Boolean} [aStrict=true] Throw an error if no windows found
  *
@@ -213,6 +232,7 @@ function getWindowsByAge(aFilterCallback, aStrict) {
  * Retrieves a sorted list of open windows based on their z order (topmost first),
  * optionally matching filter criteria.
  *
+ * @memberOf driver
  * @param {Function} [aFilterCallback] Function which is used to filter windows.
  * @param {Boolean} [aStrict=true] Throw an error if no windows found
  *
@@ -230,6 +250,7 @@ function getWindowsByZOrder(aFilterCallback, aStrict) {
 /**
  * Retrieves the last opened window, optionally matching filter criteria.
  *
+ * @memberOf driver
  * @param {Function} [aFilterCallback] Function which is used to filter windows.
  * @param {Boolean} [aStrict=true] If true, throws error if no window found.
  *
@@ -243,6 +264,7 @@ function getNewestWindow(aFilterCallback, aStrict) {
 /**
  * Retrieves the topmost window, optionally matching filter criteria.
  *
+ * @memberOf driver
  * @param {Function} [aFilterCallback] Function which is used to filter windows.
  * @param {Boolean} [aStrict=true] If true, throws error if no window found.
  *
@@ -254,8 +276,37 @@ function getTopmostWindow(aFilterCallback, aStrict) {
 }
 
 
+/**
+ * Retrieves the topmost window given by the window type
+ *
+ * XXX: Bug 462222
+ *      This function has to be used instead of getTopmostWindow until the
+ *      underlying platform bug has been fixed.
+ *
+ * @memberOf driver
+ * @param {String} [aWindowType=null] Window type to query for
+ * @param {Boolean} [aStrict=true] Throw an error if no windows found
+ *
+ * @returns {DOMWindow} The window, or null if none found and aStrict == false
+ */
+function getTopmostWindowByType(aWindowType, aStrict) {
+  if (typeof aStrict === 'undefined')
+    aStrict = true;
+
+  var win = services.wm.getMostRecentWindow(aWindowType);
+
+  if (win === null && aStrict) {
+    var message = 'No windows of type "' + aWindowType + '" were found';
+    throw new errors.UnexpectedError(message);
+  }
+
+  return win;
+}
+
+
 // Export of functions
 driver.getBrowserWindow = getBrowserWindow;
+driver.getHiddenWindow = getHiddenWindow;
 driver.openBrowserWindow = openBrowserWindow;
 driver.sleep = sleep;
 driver.waitFor = waitFor;
@@ -265,6 +316,11 @@ driver.windowFilterByTitle = windowFilterByTitle;
 driver.windowFilterByType = windowFilterByType;
 
 driver.getWindowsByAge = getWindowsByAge;
-driver.getWindowsByZOrder = getWindowsByZOrder;
 driver.getNewestWindow = getNewestWindow;
-driver.getTopmostWindow = getTopmostWindow;
+driver.getTopmostWindowByType = getTopmostWindowByType;
+
+
+// XXX Bug: 462222
+//     Currently those functions cannot be used. So they shouldn't be exported.
+//driver.getWindowsByZOrder = getWindowsByZOrder;
+//driver.getTopmostWindow = getTopmostWindow;
