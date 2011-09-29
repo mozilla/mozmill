@@ -84,6 +84,7 @@ level of the repository to help keep repository management sane:
   [document-it](http://k0s.org/mozilla/hg/DocumentIt) script (not 
   included in the repository).  See `documentation.txt` for details
 
+- versionbump.py : bump the version of mozmill. Use ``python versionbump.py --help`` for help
 
 ## Help and Contributing
 
