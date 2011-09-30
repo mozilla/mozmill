@@ -142,12 +142,31 @@ class LoggerListener(object):
           self.find_stack(child)
 
   def format_stack(self, stack):
-    stack = stack.split("\n")
-    matches = [self.stack_regex.search(call) for call in stack]
-    return [{'function': match.group(1),
-             'filename': match.group(3) or match.group(2),
-             'lineno': match.group(4)}
-           for match in matches if match and (match.group(3) or self.debug)]
+    return self.clean_stack(stack)
+
+  def clean_stack(self, caller):
+    newcaller = {}
+
+    # The name and sourceLine attributes are often None, only include if they
+    # exist.
+    # There is also a language attribute which we drop in favor of using
+    # laguageName which is more descriptive
+    if caller['name']:
+      newcaller['name'] = caller['name']
+    if caller['sourceLine']:
+      newcaller['sourceLine'] = caller['sourceLine']
+
+    # Move the attributes we care about - note this unusual order is important
+    # This causes the output to be visually sane.
+    newcaller['lineNumber'] = caller['lineNumber']
+    newcaller['languageName'] = caller['languageName']
+    newcaller['filename'] = caller['filename']
+
+    if caller['caller'] == None:
+      # Then we have reached the first node of the stack, roll up
+      return newcaller
+    newcaller['caller'] = self.clean_stack(caller['caller'])
+    return newcaller
 
   def events(self):
     return { 'mozmill.setTest': self.startTest,
@@ -157,9 +176,9 @@ class LoggerListener(object):
     """print pass/failed/skipped statistics"""
 
     if fatal:
-      self.logger.log(self.custom_levels["TEST-UNEXPECTED-FAIL"], 
+      self.logger.log(self.custom_levels["TEST-UNEXPECTED-FAIL"],
         'Disconnect Error: Application unexpectedly closed')
-    
+
     self.logger.info("Passed: %d" % len(results.passes))
     self.logger.info("Failed: %d" % len(results.fails))
     self.logger.info("Skipped: %d" % len(results.skipped))

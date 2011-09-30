@@ -38,6 +38,7 @@
 var mozmillFrame = {};
 Cu.import('resource://mozmill/modules/frame.js', mozmillFrame);
 
+var stack = require('stack');
 
 /**
  * @name assertions
@@ -110,12 +111,14 @@ Expect.prototype = {
       message = aMessage ? message + " - " + diagnosis : diagnosis;
 
     // Build result data
-    let frame = Components.stack;
+    let frame = stack.findCallerFrame(Components.stack);
+
     let result = {
       'fileName'   : frame.filename.replace(/(.*)-> /, ""),
-      'function'   : frame.name,
+      'function'   : Components.stack.name,  // findCallerFrame nulls this out, so access it directly
       'lineNumber' : frame.lineNumber,
-      'message'    : message
+      'message'    : message,
+      'stack'      : Components.stack,
     };
 
     // Log test result
