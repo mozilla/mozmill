@@ -71,7 +71,7 @@ class ProcTest1(unittest.TestCase):
         """ Process is started, runs to completion while we wait for it 
         """
         p = processhandler.ProcessHandler(self.proclaunch, 
-                                          ["process_normal_finish.ini"],
+                                          args=["process_normal_finish.ini"],
                                           cwd=os.path.dirname(__file__))
         p.run()
         p.waitForFinish()

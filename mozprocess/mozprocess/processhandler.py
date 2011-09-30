@@ -10,7 +10,7 @@ import time
 from Queue import Queue
 from datetime import datetime, timedelta
 
-__all__ = ['ProcessHandler']
+__all__ = ['ProcessHandlerMixin', 'ProcessHandler']
 
 if mozinfo.isWin:
     import ctypes, ctypes.wintypes, msvcrt
@@ -18,7 +18,7 @@ if mozinfo.isWin:
     import winprocess
     from qijo import JobObjectAssociateCompletionPortInformation, JOBOBJECT_ASSOCIATE_COMPLETION_PORT
  
-class ProcessHandler(object):
+class ProcessHandlerMixin(object):
     """Class which represents a process to be executed."""
 
     class Process(subprocess.Popen):
@@ -50,7 +50,7 @@ class ProcessHandler(object):
             # Parameter for whether or not we should attempt to track child processes
             self._ignore_children = ignore_children
 
-            if (not self._ignore_children and not mozinfo.isWin):
+            if not self._ignore_children and not mozinfo.isWin:
                 # Set the process group id for linux systems
                 # Sets process group id to the pid of the parent process
                 # NOTE: This prevents you from using preexec_fn and managing 
@@ -461,32 +461,40 @@ falling back to not using job objects for managing child processes"""
                  cmd,
                  args=None,
                  cwd=None,
-                 env = os.environ,
+                 env=os.environ.copy(),
                  ignore_children = False,
-                 logname = None,
+                 processOutputLine=(),
+                 onTimeout=(),
+                 onFinish=(),
                  **kwargs):
-        """ Process Manager Class
-            cmd = Command to run (defaults to None)
-            args = array of arguments (defaults to None)
-            cwd = working directory for cmd (defaults to None)
-            env = environment to use for the process (defaults to os.environ)
-            ignore_children = when True, causes system to ignore child processes,
-                              defaults to False (which tracks child processes)
-            kwargs = keyword args to pass directly into Popen
-            
-            NOTE: Child processes will be tracked by default.  If for any reason
-            we are unable to track child processes and ignore_children is set to False,
-            then we will fall back to only tracking the root process.  The fallback
-            will be logged.
+        """
+        cmd = Command to run
+        args = array of arguments (defaults to None)
+        cwd = working directory for cmd (defaults to None)
+        env = environment to use for the process (defaults to os.environ)
+        ignore_children = when True, causes system to ignore child processes,
+        defaults to False (which tracks child processes)
+        processOutputLine = handlers to process the output line
+        onTimeout = handlers for timeout event
+        kwargs = keyword args to pass directly into Popen
+        
+        NOTE: Child processes will be tracked by default.  If for any reason
+        we are unable to track child processes and ignore_children is set to False,
+        then we will fall back to only tracking the root process.  The fallback
+        will be logged.
         """
         self.cmd = cmd
         self.args = args
         self.cwd = cwd
         self.env = env
         self.didTimeout = False
-        self._output = []
         self._ignore_children = ignore_children
         self.keywordargs = kwargs
+
+        # handlers
+        self.processOutputLineHandlers = list(processOutputLine)
+        self.onTimeoutHandlers = list(onTimeout)
+        self.onFinishHandlers = list(onFinish)
 
         # It is common for people to pass in the entire array with the cmd and
         # the args together since this is how Popen uses it.  Allow for that.
@@ -502,11 +510,6 @@ falling back to not using job objects for managing child processes"""
         return self.didTimeout
 
     @property
-    def output(self):
-        """Gets the output of the process."""
-        return self._output
-
-    @property
     def commandline(self):
         """the string value of the command line"""
         return subprocess.list2cmdline([self.cmd] + self.args)
@@ -516,13 +519,12 @@ falling back to not using job objects for managing child processes"""
            process to complete.
         """
         self.didTimeout = False
-        self.ouptut = []
         self.startTime = datetime.now()
         self.proc = self.Process(self.cmd,
-                                 stdout = subprocess.PIPE,
-                                 stderr = subprocess.STDOUT,
+                                 stdout=subprocess.PIPE,
+                                 stderr=subprocess.STDOUT,
                                  cwd=self.cwd,
-                                 env = self.env,
+                                 env=self.env,
                                  ignore_children = self._ignore_children,
                                  **self.keywordargs)
 
@@ -556,31 +558,29 @@ falling back to not using job objects for managing child processes"""
     def processOutputLine(self, line):
         """Called for each line of output that a process sends to stdout/stderr.
         """
-        pass 
+        for handler in self.processOutputLineHandlers:
+            handler(line)
 
     def onTimeout(self):
         """Called when a process times out."""
-        pass
+        for handler in self.onTimeoutHandlers:
+            handler()
 
     def onFinish(self):
         """Called when a process finishes without a timeout."""
-        pass
+        for handler in self.onFinishHandlers:
+            handler()
 
-    def waitForFinish(self, timeout=None, outputTimeout=None, storeOutput=True, logfile=None):
-        """Handle process output until the process terminates or times out.
-    
-           If timeout is not None, the process will be allowed to continue for
-           that number of seconds before being killed.
+    def waitForFinish(self, timeout=None, outputTimeout=None):
+        """
+        Handle process output until the process terminates or times out.
+        
+        If timeout is not None, the process will be allowed to continue for
+        that number of seconds before being killed.
        
-           If outputTimeout is not None, the process will be allowed to continue
-           for that number of seconds without producing any output before
-           being killed.
-       
-           If storeOutput=True, the output produced by the process will be saved
-           as self.output.
-       
-           If logfile is not None, the output produced by the process will be 
-           appended to the given file.
+        If outputTimeout is not None, the process will be allowed to continue
+        for that number of seconds without producing any output before
+        being killed.
         """
 
         if not hasattr(self, 'proc'):
@@ -595,22 +595,13 @@ falling back to not using job objects for managing child processes"""
         elif outputTimeout:
             lineReadTimeout = outputTimeout
 
-        if logfile is not None:
-            log = open(logfile, 'a')
-
         (line, self.didTimeout) = self.readWithTimeout(logsource, lineReadTimeout)
         while line != "" and not self.didTimeout:
-            if storeOutput:
-                self._output.append(line.rstrip())
-            if logfile is not None:
-                log.write(line)
-            self.processOutputLine(line)
+            self.processOutputLine(line.rstrip())
             if timeout:
                 lineReadTimeout = timeout - (datetime.now() - self.startTime).seconds
             (line, self.didTimeout) = self.readWithTimeout(logsource, lineReadTimeout)
 
-        if logfile is not None:
-            log.close()
 
         if self.didTimeout:
             self.proc.kill()
@@ -621,9 +612,9 @@ falling back to not using job objects for managing child processes"""
         status = self.proc.wait()
         return status
 
-    """
-      Private Functions From here on down. Thar be dragons.
-    """
+
+    ### Private methods from here on down. Thar be dragons.
+
     if mozinfo.isWin:
         # Windows Specific private functions are defined in this block
         PeekNamedPipe = ctypes.windll.kernel32.PeekNamedPipe
@@ -662,3 +653,63 @@ falling back to not using job objects for managing child processes"""
             if len(r) == 0:
                 return ('', True)
             return (f.readline(), False)
+
+
+### default output handlers
+### these should be callables that take the output line
+
+def print_output(line):
+    print line
+
+class StoreOutput(object):
+    """accumulate stdout"""
+
+    def __init__(self):
+        self.output = []
+
+    def __call__(self, line):
+        self.output.append(line)
+
+class LogOutput(object):
+    """pass output to a file"""
+
+    def __init__(self, filename):
+        self.filename = filename
+        self.file = None
+
+    def __call__(self, line):
+        if self.file is None:
+            self.file = file(self.filename, 'a')
+        self.file.write(line + '\n')
+        self.file.flush()
+
+    def __del__(self):
+        if self.file is not None:
+            self.file.close()
+
+### front end class with the default handlers
+
+class ProcessHandler(ProcessHandlerMixin):
+
+    def __init__(self, cmd, logfile=None, storeOutput=True, **kwargs):
+        """
+        If storeOutput=True, the output produced by the process will be saved
+        as self.output.
+       
+        If logfile is not None, the output produced by the process will be 
+        appended to the given file.
+        """
+
+        kwargs.setdefault('processOutputLine', []).append(print_output)
+
+        if logfile:
+            logoutput = LogOutput(logfile)
+            kwargs['processOutputLine'].append(logoutput)
+
+        self.output = None
+        if storeOutput:
+            storeoutput = StoreOutput()
+            self.output = storeoutput.output
+            kwargs['processOutputLine'].append(storeoutput)
+
+        ProcessHandlerMixin.__init__(self, cmd, **kwargs)

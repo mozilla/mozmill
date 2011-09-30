@@ -202,7 +202,7 @@ def test_all_js(tests, options):
         args.append(filename)
 
         # run the test
-        proc = ProcessHandler("mozmill", args, os.getcwd())
+        proc = ProcessHandler("mozmill", args=args)
         proc.run()
         status = proc.waitForFinish(timeout=300)
         command = proc.commandline
