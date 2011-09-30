@@ -51,27 +51,31 @@ var windowObserver = {
     attachEventListeners(subject);
   }
 };
-  
+
 /**
  * Attach event listeners
  */
-function attachEventListeners(window) {
-  window.addEventListener("load", function (event) {
-    window.mozmillDocumentLoaded = true;
+function attachEventListeners(aWindow) {
+  aWindow.addEventListener("load", function (event) {
+    aWindow.mozmillDocumentLoaded = true;
  
-    if ("gBrowser" in window) {
+    if ("gBrowser" in aWindow) {
       // Page is ready
-      window.gBrowser.addEventListener("load", function (event) {
+      aWindow.gBrowser.addEventListener("load", function (event) {
         var doc = event.originalTarget;
-        doc.defaultView.mozmillDocumentLoaded = true;
-        // dump("*** Window content loaded: " + doc.location + ", baseURI=" + doc.baseURI + "\n");
+
+        // Only update the flag if we have a document as target
+        if ("defaultView" in doc) {
+          // dump("*** Window content loaded: " + doc + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
+          doc.defaultView.mozmillDocumentLoaded = true;
+        }
       }, true);
  
       // Note: Error pages will never fire a "load" event. For those we
       // have to wait for the "DOMContentLoaded" event. That's the final state.
       // Error pages will always have a baseURI starting with
       // "about:" followed by "error" or "blocked".
-      window.gBrowser.addEventListener("DOMContentLoaded", function (event) {
+      aWindow.gBrowser.addEventListener("DOMContentLoaded", function (event) {
         var doc = event.originalTarget;
 
         var errorRegex = /about:.+(error)|(blocked)\?/;
@@ -79,16 +83,23 @@ function attachEventListeners(window) {
           // Wait about 1s to be sure the DOM is ready
           mozmill.utils.sleep(1000);
 
-          doc.defaultView.mozmillDocumentLoaded = true;
-          // dump("*** Window content loaded: " + doc.location + ", baseURI=" + doc.baseURI + "\n");
+          // Only update the flag if we have a document as target
+          if ("defaultView" in doc) {
+            // dump("*** Window content loaded: " + doc + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
+            doc.defaultView.mozmillDocumentLoaded = true;
+          }
         }
       }, true);
   
       // Page is about to get unloaded
-      window.gBrowser.addEventListener("beforeunload", function (event) {
+      aWindow.gBrowser.addEventListener("beforeunload", function (event) {
         var doc = event.originalTarget;
-        doc.defaultView.mozmillDocumentLoaded = false;
-        // dump("*** Window content unloaded: " + doc.location + ", baseURI=" + doc.baseURI + "\n");
+
+        // Only update the flag if we have a document as target
+        if ("defaultView" in doc) {
+          // dump("*** Window content unloaded: " + doc + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
+          doc.defaultView.mozmillDocumentLoaded = false;
+        }
       }, true);
     }
   }, false);
