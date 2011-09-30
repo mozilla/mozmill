@@ -14,7 +14,7 @@ const LOCATIONS = [
 ];
 
 
-var setupTest = function() {
+var setupModule = function(module) {
   controller = mozmill.getBrowserController();
 }
 
@@ -123,7 +123,7 @@ var testWaitForPageLoad = function() {
   controller.waitForPageLoad(frameController.window.document);
 
   // Once the iframe has been loaded assert that the element exists
-  var home = new elementslib.MozMillElement("ID", "home", {document: frameWindow.document});
+  var home = new elementslib.MozMillElement("ID", "home-fx", {document: frameWindow.document});
   expect.ok(home.exists(), "Node in iFrame has been found");
 
   /**
