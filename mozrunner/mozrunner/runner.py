@@ -283,9 +283,11 @@ class FirefoxRunner(Runner):
         # Version needs to be of the form 3.6 or 4.0b and not the whole string
         version = appini.get('App', 'Version').rstrip('0123456789pre').rstrip('.')
         
-        # Disable compatibility check
-        # See: http://kb.mozillazine.org/Extensions.checkCompatibility
-        preference = {'extensions.checkCompatibility.' + version: False}
+        # Disable compatibility check. See:
+        # - http://kb.mozillazine.org/Extensions.checkCompatibility
+        # - https://bugzilla.mozilla.org/show_bug.cgi?id=659048
+        preference = {'extensions.checkCompatibility.' + version: False,
+                      'extensions.checkCompatibility.nightly': False}
         self.profile.set_preferences(preference)
         
 
