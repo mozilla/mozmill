@@ -98,14 +98,13 @@ function attachEventListeners(window) {
   function pageShowHandler(event) {
     var doc = event.originalTarget;
     doc.defaultView.mozmillDocumentLoaded = true;
-    // dump("*** Window content loaded: " + doc.location + ", baseURI=" + doc.baseURI + "\n");
 
     // We need to add/remove the unload/pagehide event listeners to preserve caching.
     window.gBrowser.addEventListener("beforeunload", beforeUnloadHandler, true);
     window.gBrowser.addEventListener("pagehide", pageHideHandler, true);
   };
 
-  var DOMContentLoadedHandler = function(event) {
+  function DOMContentLoadedHandler(event) {
     var doc = event.originalTarget;
 
     var errorRegex = /about:.+(error)|(blocked)\?/;
@@ -114,7 +113,6 @@ function attachEventListeners(window) {
       mozmill.utils.sleep(1000);
 
       doc.defaultView.mozmillDocumentLoaded = true;
-      // dump("*** Window content loaded: " + doc.location + ", baseURI=" + doc.baseURI + "\n");
 
       // We need to add/remove the unload event listener to preserve caching.
       window.gBrowser.addEventListener("beforeunload", beforeUnloadHandler, true);
@@ -126,18 +124,16 @@ function attachEventListeners(window) {
   function beforeUnloadHandler(event) {
     var doc = event.originalTarget;
     doc.defaultView.mozmillDocumentLoaded = false;
-    // dump("*** Window content unloaded: " + doc.location + ", baseURI=" + doc.baseURI + "\n");
 
     window.gBrowser.removeEventListener("beforeunload", beforeUnloadHandler, true);
   };
 
-  var pageHideHandler = function(event) {
+  function pageHideHandler(event) {
     // If event.persisted is false, the beforeUnloadHandler should fire
     // and there is no need for this event handler.
     if (event.persisted) {
       var doc = event.originalTarget;
       doc.defaultView.mozmillDocumentLoaded = false;
-      // dump("*** Window content unloaded: " + doc.location + ", baseURI=" + doc.baseURI + "\n");
 
       window.gBrowser.removeEventListener("beforeunload", beforeUnloadHandler, true);
     }

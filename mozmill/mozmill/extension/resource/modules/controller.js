@@ -951,7 +951,13 @@ function browserAdditions (controller) {
 
     // Wait until the content in the tab has been loaded
     this.waitFor(function () {
-        return this.isLoaded(win);
+        var loaded = this.isLoaded(win);
+        var firstRun = !('mozmillWaitForPageLoad' in win);
+        var ret = firstRun && loaded;
+        if (ret) {
+          win.mozmillWaitForPageLoad = true;
+        }
+        return ret;
     }, "controller.waitForPageLoad(): Timeout waiting for page loaded.",
         timeout, aInterval, this);
 

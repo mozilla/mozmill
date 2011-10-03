@@ -33,7 +33,7 @@ var testWaitForPageLoad = function() {
                                               {document: controller.tabs.activeTab});
     expect.ok(elem.exists(), "Element '" + location.value + "' has been found.");
   });
-
+  
   /**
    * PART II - Test different parameter sets
    */ 
@@ -80,31 +80,20 @@ var testWaitForPageLoad = function() {
    * PART IV - Make sure we don't fail when clicking links on a page
    */
 
-  // XXX Bug 686030
-  //     Disabled for now because test fails in waiting for target page after
-  //     clicking an element
-  //controller.open("http://blog.mozilla.com");
-  //controller.waitForPageLoad();
-  //
-  //var link = new elementslib.MozMillElement("Selector", "#nav-main-support>a",
-  //                                          {document: controller.tabs.activeTab});
-  //controller.click(link);
-  //controller.waitForPageLoad();
-  //
-  //var target = new elementslib.MozMillElement("Selector", "#support-search",
-  //                                          {document: controller.tabs.activeTab});
-  //controller.waitForElement(target, 1000);
-
-  /**
-   * PART V - When waitForPageLoad is called when the page has already been loaded
-   * we shouldn't fail
-   */
-  controller.open(LOCATIONS[0].url);
+  controller.open("http://blog.mozilla.com");
   controller.waitForPageLoad();
-  controller.waitForPageLoad(500);
+  
+  var link = new elementslib.MozMillElement("Selector", "#nav-main-support>a",
+                                            {document: controller.tabs.activeTab});
+  controller.click(link);
+  controller.waitForPageLoad();
+  
+  var target = new elementslib.MozMillElement("Selector", "#support-search",
+                                           {document: controller.tabs.activeTab});
+  controller.waitForElement(target, 1000);
 
   /**
-   * PART VI - Loading an iFrame
+   * PART V - Loading an iFrame
    */
 
   // Load the container page
@@ -127,7 +116,7 @@ var testWaitForPageLoad = function() {
   expect.ok(home.exists(), "Node in iFrame has been found");
 
   /**
-   * PART VII - Loading a page in another tab should wait for its completion
+   * PART VI - Loading a page in another tab should wait for its completion
    */
   var bkgndTabIndex = controller.tabs.activeTabIndex;
   controller.open(LOCATIONS[1].url);
