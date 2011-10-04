@@ -1,13 +1,13 @@
 import os
 from setuptools import setup
 
-version = '0.3.2'
+version = '0.3.3'
 
 # get documentation from the README
 try:
     here = os.path.dirname(os.path.abspath(__file__))
     description = file(os.path.join(here, 'README.md')).read()
-except IOError:
+except (OSError, IOError):
     description = ''
 
 # dependencies

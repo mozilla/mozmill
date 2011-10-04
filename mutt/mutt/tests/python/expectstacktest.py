@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import os
 import re
 import json
@@ -33,10 +35,12 @@ class ModuleTest(unittest.TestCase):
                     else:
                         if "caller" in node:
                             node = node["caller"]
-                            self.assertIsNot(node, None, 
-                                             msg="No stackframe contained our test")
+                            self.assertTrue(node is not None, 
+                                            msg="No stackframe contained our test")
                         else:
                             self.assertTrue(False, msg="Invalid stack detected") 
 
 
 
+if __name__ == '__main__':
+    unittest.main()

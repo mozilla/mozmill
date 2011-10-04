@@ -53,7 +53,7 @@ except ImportError:
 here = os.path.dirname(os.path.abspath(__file__))
 try:
     description = file(os.path.join(here, 'README.md')).read()
-except OSError:
+except (OSError, IOError):
     description = ''
 
 setup(name=PACKAGE_NAME,

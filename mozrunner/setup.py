@@ -47,7 +47,7 @@ desc = """Reliable start/stop/configuration of Mozilla Applications (Firefox, Th
 here = os.path.dirname(os.path.abspath(__file__))
 try:
     description = file(os.path.join(here, 'README.md')).read()
-except OSError:
+except (OSError, IOError):
     description = ''
 
 deps = ['mozprocess', 'mozprofile', 'mozinfo']

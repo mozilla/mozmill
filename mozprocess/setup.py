@@ -1,13 +1,13 @@
 import os
 from setuptools import setup, find_packages
 
-version = '0.1b1'
+version = '0.1b2'
 
 # take description from README
 here = os.path.dirname(os.path.abspath(__file__))
 try:
     description = file(os.path.join(here, 'README.md')).read()
-except OSError:
+except (OSError, IOError):
     description = ''
 
 setup(name='mozprocess',
