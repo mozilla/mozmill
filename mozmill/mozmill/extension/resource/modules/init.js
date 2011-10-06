@@ -93,15 +93,20 @@ var windowObserver = {
 /**
  * Attach event listeners
  */
-function attachEventListeners(window) {
+function attachEventListeners(aWindow) {
   // These are the event handlers
   function pageShowHandler(event) {
     var doc = event.originalTarget;
-    doc.defaultView.mozmillDocumentLoaded = true;
+
+    // Only update the flag if we have a document as target
+    // see https://bugzilla.mozilla.org/show_bug.cgi?id=690829
+    if ("defaultView" in doc) {
+      doc.defaultView.mozmillDocumentLoaded = true;
+    }
 
     // We need to add/remove the unload/pagehide event listeners to preserve caching.
-    window.gBrowser.addEventListener("beforeunload", beforeUnloadHandler, true);
-    window.gBrowser.addEventListener("pagehide", pageHideHandler, true);
+    aWindow.gBrowser.addEventListener("beforeunload", beforeUnloadHandler, true);
+    aWindow.gBrowser.addEventListener("pagehide", pageHideHandler, true);
   };
 
   function DOMContentLoadedHandler(event) {
@@ -112,10 +117,13 @@ function attachEventListeners(window) {
       // Wait about 1s to be sure the DOM is ready
       mozmill.utils.sleep(1000);
 
-      doc.defaultView.mozmillDocumentLoaded = true;
+      // Only update the flag if we have a document as target
+      if ("defaultView" in doc) {
+        doc.defaultView.mozmillDocumentLoaded = true;
+      }
 
       // We need to add/remove the unload event listener to preserve caching.
-      window.gBrowser.addEventListener("beforeunload", beforeUnloadHandler, true);
+      aWindow.gBrowser.addEventListener("beforeunload", beforeUnloadHandler, true);
     }
   };
   
@@ -123,9 +131,13 @@ function attachEventListeners(window) {
   // still use pagehide for cases when beforeunload doesn't get fired
   function beforeUnloadHandler(event) {
     var doc = event.originalTarget;
-    doc.defaultView.mozmillDocumentLoaded = false;
 
-    window.gBrowser.removeEventListener("beforeunload", beforeUnloadHandler, true);
+    // Only update the flag if we have a document as target
+    if ("defaultView" in doc) {
+      doc.defaultView.mozmillDocumentLoaded = false;
+    }
+
+    aWindow.gBrowser.removeEventListener("beforeunload", beforeUnloadHandler, true);
   };
 
   function pageHideHandler(event) {
@@ -133,29 +145,33 @@ function attachEventListeners(window) {
     // and there is no need for this event handler.
     if (event.persisted) {
       var doc = event.originalTarget;
-      doc.defaultView.mozmillDocumentLoaded = false;
 
-      window.gBrowser.removeEventListener("beforeunload", beforeUnloadHandler, true);
+      // Only update the flag if we have a document as target
+      if ("defaultView" in doc) {
+        doc.defaultView.mozmillDocumentLoaded = false;
+      }
+
+      aWindow.gBrowser.removeEventListener("beforeunload", beforeUnloadHandler, true);
     }
 
   };
   
   // Add the event handlers to the tabbedbrowser once its window has loaded
-  window.addEventListener("load", function(event) {
-    window.mozmillDocumentLoaded = true;
+  aWindow.addEventListener("load", function(event) {
+    aWindow.mozmillDocumentLoaded = true;
 
-    if ("gBrowser" in window) {
+    if ("gBrowser" in aWindow) {
       // Page is ready
-      window.gBrowser.addEventListener("pageshow", pageShowHandler, true);
+      aWindow.gBrowser.addEventListener("pageshow", pageShowHandler, true);
  
       // Note: Error pages will never fire a "load" event. For those we
       // have to wait for the "DOMContentLoaded" event. That's the final state.
       // Error pages will always have a baseURI starting with
       // "about:" followed by "error" or "blocked".
-      window.gBrowser.addEventListener("DOMContentLoaded", DOMContentLoadedHandler, true);
+      aWindow.gBrowser.addEventListener("DOMContentLoaded", DOMContentLoadedHandler, true);
       
       // Leave page (use caching)
-      window.gBrowser.addEventListener("pagehide", pageHideHandler, true);
+      aWindow.gBrowser.addEventListener("pagehide", pageHideHandler, true);
     }
   }, false);
 }
