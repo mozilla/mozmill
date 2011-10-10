@@ -39,7 +39,7 @@ import os
 from setuptools import setup, find_packages
 
 PACKAGE_NAME = "mozmill"
-PACKAGE_VERSION = "2.0b3"
+PACKAGE_VERSION = "2.0rc1"
 
 # take description from README
 here = os.path.dirname(os.path.abspath(__file__))
@@ -70,8 +70,8 @@ setup(name=PACKAGE_NAME,
           callbacks = mozmill.python_callbacks:PythonCallbacks
         """,
       platforms =['Any'],
-      install_requires = ['jsbridge == 3.0b3',
-                          'mozrunner == 3.0b3',
+      install_requires = ['jsbridge == 3.0rc1',
+                          'mozrunner == 3.0rc1',
                           'ManifestDestiny == 0.5.4',
                           'mozinfo'],
       classifiers=['Development Status :: 4 - Beta',
