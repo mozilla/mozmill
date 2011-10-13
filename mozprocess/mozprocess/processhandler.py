@@ -59,11 +59,15 @@ class ProcessHandlerMixin(object):
                     os.setpgid(0, 0)
                 preexec_fn = setpgidfn
 
-            subprocess.Popen.__init__(self, args, bufsize, executable,
-                                      stdin, stdout, stderr,
-                                      preexec_fn, close_fds,
-                                      shell, cwd, env,
-                                      universal_newlines, startupinfo, creationflags)
+            try:
+                subprocess.Popen.__init__(self, args, bufsize, executable,
+                                          stdin, stdout, stderr,
+                                          preexec_fn, close_fds,
+                                          shell, cwd, env,
+                                          universal_newlines, startupinfo, creationflags)
+            except OSError, e:
+                print >> sys.stderr, args
+                raise
 
         def __del__(self, _maxint=sys.maxint):
             if mozinfo.isWin:

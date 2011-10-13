@@ -228,11 +228,11 @@ class Runner(object):
         self.process_handler = self.process_class(self.command+self.cmdargs, env=self.env, **self.kp_kwargs)
         self.process_handler.run()
  
-    def wait(self, timeout=None):
+    def wait(self, timeout=None, outputTimeout=None):
         """Wait for the app to exit."""
         if self.process_handler is None:
             return
-        self.process_handler.waitForFinish(timeout=timeout)
+        self.process_handler.waitForFinish(timeout=timeout, outputTimeout=outputTimeout)
         self.process_handler = None
 
     def stop(self):
