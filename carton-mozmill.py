@@ -4,6 +4,7 @@
 create a mozmill carton
 """
 
+import optparse
 import os
 import shutil
 import sys
@@ -48,11 +49,17 @@ MOZMILL = 'git://github.com/mozautomation/mozmill.git'
 def main(args=sys.argv[1:]):
     assert git, 'git executable not found!'
 
+    # parse command line options
+    parser = optparse.OptionParser()
+    parser.add_option('--name', dest='name', default='mozmill-env',
+                      help='name of the environment')
+    options, args = parser.parse_args(args)
+
     # checkout mozmill
     tempdir = tempfile.mkdtemp()
     mozmilldir = os.path.join(tempdir, 'mozmill')
     call([git, 'clone', MOZMILL, mozmilldir])
-    carton.main(['mozmill-env', mozmilldir, '--python-script', 'src/mozmill/setup_development.py'])
+    carton.main([options.name, mozmilldir, '--python-script', 'src/mozmill/setup_development.py'])
 
     # remove vestiges
     shutil.rmtree(tempdir)
@@ -60,4 +67,3 @@ def main(args=sys.argv[1:]):
 
 if __name__ == '__main__':
     main()
-    
