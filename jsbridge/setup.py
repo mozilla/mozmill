@@ -40,10 +40,10 @@ import sys
 from setuptools import setup, find_packages
 
 PACKAGE_NAME = "jsbridge"
-PACKAGE_VERSION = "3.0b3"
+PACKAGE_VERSION = "3.0rc1"
 
 # package dependencies
-requires = ['mozrunner == 3.0b3']
+requires = ['mozrunner == 3.0rc1']
 try:
     import json
 except ImportError:
