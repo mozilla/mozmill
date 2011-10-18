@@ -51,7 +51,7 @@ var EXPORTED_SYMBOLS = ["controller", "utils", "elementslib", "os",
 var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
 var utils = {};       Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
-var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
+var broker = {};      Components.utils.import('resource://mozmill/modules/msgbroker.js', broker);
 var os = {}; Components.utils.import('resource://mozmill/stdlib/os.js', os);
 
 try {
@@ -237,10 +237,9 @@ function getAddrbkController () {
 
 function firePythonCallback (filename, method, args, kwargs) {
   obj = {'filename': filename, 'method': method};
-  obj['test'] = frame.events.currentModule.__file__;
   obj['args'] = args || [];
   obj['kwargs'] = kwargs || {};
-  frame.events.fireEvent("firePythonCallback", obj);
+  broker.sendMessage("firePythonCallback", obj);
 }
 
 function timer (name) {

@@ -45,6 +45,7 @@ var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js'
 var arrays = {};  Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var withs = {};   Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
 var utils = {};   Components.utils.import('resource://mozmill/modules/utils.js', utils);
+var broker = {};  Components.utils.import('resource://mozmill/modules/msgbroker.js', broker);
 var securableModule = {};  Components.utils.import('resource://mozmill/stdlib/securable-module.js', securableModule);
 
 var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
@@ -202,6 +203,10 @@ events.toggleUserShutdown = function (obj){
 events.isUserShutdown = function () {
   return Boolean(this.userShutdown);
 }
+events.startUserShutdown = function(obj) {
+  events.toggleUserShutdown(obj);
+  events.fireEvent('userShutdown', obj);
+}
 events.setTest = function (test, invokedFromIDE) {
   test.__passes__ = [];
   test.__fails__ = [];
@@ -214,6 +219,11 @@ events.setTest = function (test, invokedFromIDE) {
   events.fireEvent('setTest', obj);
 }
 events.endTest = function (test) {
+  // use the current test unless specified
+  if (test === undefined) {
+    test = events.currentTest;
+  }  
+
   // report the end of a test
   test.status = 'done';
   events.currentTest = null; 
@@ -339,16 +349,43 @@ events.removeListener = function(listener) {
   }
 }
 events.persist = function() {
-    try {
-        this.fireEvent('persist', persisted);
-    } catch(e) {
-        this.fireEvent('error', "persist serialization failed.")
+  try {
+    events.fireEvent('persist', persisted);
+  } catch(e) {
+    events.fireEvent('error', "persist serialization failed.")
+  }
+}
+events.firePythonCallback = function(obj) {
+  obj['test'] = events.currentModule.__file__;
+  events.fireEvent('firePythonCallback', obj);
+}
+events.screenShot = function(obj) { 
+  // Find the name of the test function
+  for (var attr in events.currentModule) {
+    if (events.currentModule[attr] == events.currentTest) {
+      var testName = attr;
+      break;
     }
+  }
+  obj['test_file'] = events.currentModule.__file__;
+  obj['test_name'] = testName;
+  events.fireEvent('screenShot', obj);
 }
 
 var log = function (obj) {
   events.fireEvent('log', obj);
 }
+
+// Register the listeners
+broker.addObject({'pass': events.pass,
+                  'fail': events.fail,
+                  'log': log,
+                  'persist': events.persist,
+                  'endTest': events.endTest,
+                  'userShutdown': events.startUserShutdown,
+                  'firePythonCallback': events.firePythonCallback,
+                  'screenShot': events.screenShot
+});
 
 try {
   var jsbridge = {}; Components.utils.import('resource://jsbridge/modules/events.js', jsbridge);

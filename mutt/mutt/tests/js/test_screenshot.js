@@ -11,12 +11,12 @@ var testContentScreenshot = function() {
 
   var mngb = findElement.ID(controller.tabs.activeTab, "mngb");
   var gb_1 = findElement.ID(controller.tabs.activeTab, "gb_1");
-  var fctr = findElement.ID(controller.tabs.activeTab, "fctr");
+  var lga = findElement.ID(controller.tabs.activeTab, "lga");
   var about = findElement.Link(controller.tabs.activeTab, "About Google");
 
   controller.screenShot(controller.window, "screen1", true, [logo, searchForm]);
   controller.screenShot(mngb, "screen2", true, [gb_1]);
-  controller.screenShot(fctr, "screen3", true, [about]);
+  controller.screenShot(lga, "screen3", true, [about]);
 }
 
 // screenshots of top chrome

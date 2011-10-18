@@ -45,7 +45,7 @@ var EventUtils = {}; Components.utils.import('resource://mozmill/stdlib/EventUti
 var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
 var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
 var mozelement = {}; Components.utils.import('resource://mozmill/modules/mozelement.js', mozelement);
-var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
+var broker = {}; Components.utils.import('resource://mozmill/modules/msgbroker.js', broker);
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
                 .getService(Components.interfaces.nsIAppShellService)
@@ -303,7 +303,7 @@ MozMillController.prototype.open = function(url)
       throw new Error("MozMillController.open not supported.");
   }
 
-  frame.events.pass({'function':'Controller.open()'});
+  broker.pass({'function':'Controller.open()'});
 }
 
 /**
@@ -346,14 +346,6 @@ MozMillController.prototype.screenShot = function _screenShot(node, name, save, 
     throw new Error("controller.screenShot() failed: " + e);
   }
 
-  // Find the name of the test function
-  for (var attr in frame.events.currentModule) {
-    if (frame.events.currentModule[attr] == frame.events.currentTest) {
-      var testName = attr;
-      break;
-    }
-  }
-
   // Create a timestamp
   var d = new Date();
   // Report object
@@ -361,13 +353,10 @@ MozMillController.prototype.screenShot = function _screenShot(node, name, save, 
               "dataURL": dataURL,
               "name": name,
               "timestamp": d.toLocaleString(),
-              "test_file": frame.events.currentModule.__file__,
-              "test_name": testName,
             }
   // Send the screenshot object to python over jsbridge
-  this.fireEvent("screenShot", obj);
-
-  frame.events.pass({'function':'controller.screenShot()'});
+  broker.sendMessage("screenShot", obj);
+  broker.pass({'function':'controller.screenShot()'});
 }
 
 /**
@@ -385,7 +374,7 @@ MozMillController.prototype.waitFor = function(callback, message, timeout,
                                                interval, thisObject) {
   utils.waitFor(callback, message, timeout, interval, thisObject);
 
-  frame.events.pass({'function':'controller.waitFor()'});
+  broker.pass({'function':'controller.waitFor()'});
 }
 
 MozMillController.prototype.__defineGetter__("waitForEvents", function() {
@@ -416,25 +405,18 @@ MozMillController.prototype.waitForImage = function (elem, timeout, interval) {
     return elem.getNode().complete == true;
   }, "timeout exceeded for waitForImage " + elem.getInfo(), timeout, interval);
 
-  frame.events.pass({'function':'Controller.waitForImage()'});
-}
-
-MozMillController.prototype.fireEvent = function (name, obj) {
-  if (name == "userShutdown") {
-    frame.events.toggleUserShutdown(obj);
-  }
-  frame.events.fireEvent(name, obj);
+  broker.pass({'function':'Controller.waitForImage()'});
 }
 
 MozMillController.prototype.startUserShutdown = function (timeout, restart, next, resetProfile) {
   if (restart && resetProfile) {
       throw new Error("You can't have a user-restart and reset the profile; there is a race condition");
   }
-  this.fireEvent('userShutdown', {'user': true,
+  broker.sendMessage('userShutdown', {'user': true,
                                   'restart': Boolean(restart),
                                   'next': next,
                                   'resetProfile': Boolean(resetProfile)});
-  this.window.setTimeout(this.fireEvent, timeout, 'userShutdown', 0);
+  this.window.setTimeout(broker.sendMessage, timeout, 'userShutdown', 0);
 }
 
 MozMillController.prototype.restartApplication = function (next, resetProfile) 
@@ -442,12 +424,12 @@ MozMillController.prototype.restartApplication = function (next, resetProfile)
   // restart the application via the python runner
   // - next : name of the next test function to run after restart
   // - resetProfile : whether to reset the profile after restart
-  this.fireEvent('userShutdown', {'user': false,
+  broker.sendMessage('userShutdown', {'user': false,
                                   'restart': true,
                                   'next': next,
                                   'resetProfile': Boolean(resetProfile)});
-  frame.events.endTest(frame.events.currentTest);
-  frame.events.persist();
+  broker.sendMessage('endTest');
+  broker.sendMessage('persist');
   utils.getMethodInWindows('goQuitApplication')();
 }
 
@@ -455,33 +437,33 @@ MozMillController.prototype.stopApplication = function (resetProfile)
 {
   // stop the application via the python runner
   // - resetProfile : whether to reset the profile after shutdown
-  this.fireEvent('userShutdown', {'user': false,
+  broker.sendMessage('userShutdown', {'user': false,
                                   'restart': false,
                                   'resetProfile': Boolean(resetProfile)});
-  frame.events.endTest(frame.events.currentTest);
-  frame.events.persist();
+  broker.sendMessage('endTest');
+  broker.sendMessage('persist');
   utils.getMethodInWindows('goQuitApplication')();
 }
 
 //Browser navigation functions
 MozMillController.prototype.goBack = function(){
   this.window.content.history.back();
-  frame.events.pass({'function':'Controller.goBack()'});
+  broker.pass({'function':'Controller.goBack()'});
   return true;
 }
 MozMillController.prototype.goForward = function(){
   this.window.content.history.forward();
-  frame.events.pass({'function':'Controller.goForward()'});
+  broker.pass({'function':'Controller.goForward()'});
   return true;
 }
 MozMillController.prototype.refresh = function(){
   this.window.content.location.reload(true);
-  frame.events.pass({'function':'Controller.refresh()'});
+  broker.pass({'function':'Controller.refresh()'});
   return true;
 }
 
 function logDeprecated(funcName, message) {
-   frame.log({'function': funcName + '() - DEPRECATED', 'message': funcName + '() is deprecated' + message});
+   broker.log({'function': funcName + '() - DEPRECATED', 'message': funcName + '() is deprecated' + message});
 }
 
 function logDeprecatedAssert(funcName) {
@@ -494,7 +476,7 @@ MozMillController.prototype.assertText = function (el, text) {
   var n = el.getNode();
 
   if (n && n.innerHTML == text){
-    frame.events.pass({'function':'Controller.assertText()'});
+    broker.pass({'function':'Controller.assertText()'});
     return true;
    }
 
@@ -513,7 +495,7 @@ MozMillController.prototype.assertNode = function (el) {
     throw new Error("could not find element " + el.getInfo());
     return false;
   }
-  frame.events.pass({'function':'Controller.assertNode()'});
+  broker.pass({'function':'Controller.assertNode()'});
   return true;
 };
 
@@ -525,7 +507,7 @@ MozMillController.prototype.assertNodeNotExist = function (el) {
   try {
     var element = el.getNode();
   } catch(err){
-    frame.events.pass({'function':'Controller.assertNodeNotExist()'});
+    broker.pass({'function':'Controller.assertNodeNotExist()'});
     return true;
   }
 
@@ -533,7 +515,7 @@ MozMillController.prototype.assertNodeNotExist = function (el) {
     throw new Error("Unexpectedly found element " + el.getInfo());
     return false;
   } else {
-    frame.events.pass({'function':'Controller.assertNodeNotExist()'});
+    broker.pass({'function':'Controller.assertNodeNotExist()'});
     return true;
   }
 };
@@ -546,7 +528,7 @@ MozMillController.prototype.assertValue = function (el, value) {
   var n = el.getNode();
 
   if (n && n.value == value){
-    frame.events.pass({'function':'Controller.assertValue()'});
+    broker.pass({'function':'Controller.assertValue()'});
     return true;
   }
   throw new Error("could not validate element " + el.getInfo()+" with value "+ value);
@@ -561,7 +543,7 @@ MozMillController.prototype.assert = function(callback, message, thisObject)
   logDeprecatedAssert("assert");
   utils.assert(callback, message, thisObject);
 
-  frame.events.pass({'function': ": controller.assert('" + callback + "')"});
+  broker.pass({'function': ": controller.assert('" + callback + "')"});
   return true;
 }
 
@@ -574,7 +556,7 @@ MozMillController.prototype.assertSelected = function (el, value) {
   var validator = value;
 
   if (n && n.options[n.selectedIndex].value == validator){
-    frame.events.pass({'function':'Controller.assertSelected()'});
+    broker.pass({'function':'Controller.assertSelected()'});
     return true;
     }
   throw new Error("could not assert value for element " + el.getInfo()+" with value "+ value);
@@ -589,7 +571,7 @@ MozMillController.prototype.assertChecked = function (el) {
   var element = el.getNode();
 
   if (element && element.checked == true){
-    frame.events.pass({'function':'Controller.assertChecked()'});
+    broker.pass({'function':'Controller.assertChecked()'});
     return true;
     }
   throw new Error("assert failed for checked element " + el.getInfo());
@@ -607,7 +589,7 @@ MozMillController.prototype.assertNotChecked = function (el) {
   }
 
   if (!element.hasAttribute("checked") || element.checked != true){
-    frame.events.pass({'function':'Controller.assertNotChecked()'});
+    broker.pass({'function':'Controller.assertNotChecked()'});
     return true;
     }
   throw new Error("assert failed for not checked element " + el.getInfo());
@@ -631,7 +613,7 @@ MozMillController.prototype.assertJSProperty = function(el, attrib, val) {
   var value = element[attrib];
   var res = (value !== undefined && (val === undefined ? true : String(value) == String(val)));
   if (res) {
-    frame.events.pass({'function':'Controller.assertJSProperty("' + el.getInfo() + '") : ' + val});
+    broker.pass({'function':'Controller.assertJSProperty("' + el.getInfo() + '") : ' + val});
   } else {
     throw new Error("Controller.assertJSProperty(" + el.getInfo() + ") : " + 
                      (val === undefined ? "property '" + attrib + "' doesn't exist" : val + " == " + value));
@@ -656,7 +638,7 @@ MozMillController.prototype.assertNotJSProperty = function(el, attrib, val) {
   var value = element[attrib];
   var res = (val === undefined ? value === undefined : String(value) != String(val));
   if (res) {
-    frame.events.pass({'function':'Controller.assertNotProperty("' + el.getInfo() + '") : ' + val});
+    broker.pass({'function':'Controller.assertNotProperty("' + el.getInfo() + '") : ' + val});
   } else {
     throw new Error("Controller.assertNotJSProperty(" + el.getInfo() + ") : " +
                      (val === undefined ? "property '" + attrib + "' exists" : val + " != " + value));
@@ -685,7 +667,7 @@ MozMillController.prototype.assertDOMProperty = function(el, attrib, val) {
   }   
  
   if (res) {
-    frame.events.pass({'function':'Controller.assertDOMProperty("' + el.getInfo() + '") : ' + val});
+    broker.pass({'function':'Controller.assertDOMProperty("' + el.getInfo() + '") : ' + val});
   } else {
     throw new Error("Controller.assertDOMProperty(" + el.getInfo() + ") : " + 
                      (val === undefined ? "property '" + attrib + "' doesn't exist" : val + " == " + value));
@@ -713,7 +695,7 @@ MozMillController.prototype.assertNotDOMProperty = function(el, attrib, val) {
     res = (String(value) == String(val));
   }   
   if (!res) {
-    frame.events.pass({'function':'Controller.assertNotDOMProperty("' + el.getInfo() + '") : ' + val});
+    broker.pass({'function':'Controller.assertNotDOMProperty("' + el.getInfo() + '") : ' + val});
   } else {
     throw new Error("Controller.assertNotDOMProperty(" + el.getInfo() + ") : " + 
                      (val == undefined ? "property '" + attrib + "' exists" : val + " == " + value));
@@ -777,7 +759,7 @@ MozMillController.prototype.assertImageLoaded = function (el) {
     ret = true;
   }
   if (ret) {
-    frame.events.pass({'function':'Controller.assertImageLoaded'});
+    broker.pass({'function':'Controller.assertImageLoaded'});
   } else {
     throw new Error('Controller.assertImageLoaded() failed.')
   }
@@ -819,7 +801,7 @@ MozMillController.prototype.mouseMove = function (doc, start, dest) {
   // Do the initial move to the drag element position
   triggerMouseEvent(doc.body, start[0], start[1]);
   triggerMouseEvent(doc.body, dest[0], dest[1]);
-  frame.events.pass({'function':'Controller.mouseMove()'});
+  broker.pass({'function':'Controller.mouseMove()'});
   return true;
 }
 
@@ -961,7 +943,7 @@ function browserAdditions (controller) {
     }, "controller.waitForPageLoad(): Timeout waiting for page loaded.",
         timeout, aInterval, this);
 
-    frame.events.pass({'function':'controller.waitForPageLoad()'});
+    broker.pass({'function':'controller.waitForPageLoad()'});
   }
 }
 
