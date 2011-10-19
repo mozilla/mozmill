@@ -1,7 +1,7 @@
-var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
-var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
-var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
+var controller = {};  Components.utils.import('resource://mozmill/driver/controller.js', controller);
+var elementslib = {}; Components.utils.import('resource://mozmill/driver/elementslib.js', elementslib);
 var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
+var utils = {}; Components.utils.import('resource://mozmill/stdlib/utils.js', utils);
 
 var that = this;
 

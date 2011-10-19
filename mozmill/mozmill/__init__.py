@@ -61,7 +61,7 @@ from time import sleep
 # metadata
 basedir = os.path.abspath(os.path.dirname(__file__))
 extension_path = os.path.join(basedir, 'extension')
-mozmillModuleJs = "Components.utils.import('resource://mozmill/modules/mozmill.js')"
+mozmillModuleJs = "Components.utils.import('resource://mozmill/driver/mozmill.js')"
 package_metadata = get_metadata_from_egg('mozmill')
 
 # defaults

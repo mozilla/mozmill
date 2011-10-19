@@ -40,7 +40,7 @@ var EXPORTED_SYMBOLS = ["Elem", "ID", "Link", "XPath", "Selector", "Name", "Anon
                         "Lookup", "_byID", "_byName", "_byAttrib", "_byAnonAttrib",
                        ];
 
-var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
+var utils = {}; Components.utils.import('resource://mozmill/stdlib/utils.js', utils);
 var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js', strings);
 var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var json2 = {}; Components.utils.import('resource://mozmill/stdlib/json2.js', json2);

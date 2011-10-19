@@ -42,10 +42,10 @@ var EXPORTED_SYMBOLS = ["MozMillController", "globalEventRegistry", "sleep"];
 
 var EventUtils = {}; Components.utils.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
 
-var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
-var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
-var mozelement = {}; Components.utils.import('resource://mozmill/modules/mozelement.js', mozelement);
-var broker = {}; Components.utils.import('resource://mozmill/modules/msgbroker.js', broker);
+var utils = {}; Components.utils.import('resource://mozmill/stdlib/utils.js', utils);
+var elementslib = {}; Components.utils.import('resource://mozmill/driver/elementslib.js', elementslib);
+var mozelement = {}; Components.utils.import('resource://mozmill/driver/mozelement.js', mozelement);
+var broker = {}; Components.utils.import('resource://mozmill/driver/msgbroker.js', broker);
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
                 .getService(Components.interfaces.nsIAppShellService)
@@ -267,7 +267,7 @@ var MozMillController = function (window) {
   this.window = window;
 
   this.mozmillModule = {};
-  Components.utils.import('resource://mozmill/modules/mozmill.js', this.mozmillModule);
+  Components.utils.import('resource://mozmill/driver/mozmill.js', this.mozmillModule);
 
   utils.waitFor(function() {
     return window != null && this.isLoaded();

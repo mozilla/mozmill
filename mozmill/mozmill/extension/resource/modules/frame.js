@@ -44,8 +44,8 @@ var os = {};      Components.utils.import('resource://mozmill/stdlib/os.js', os)
 var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js', strings);
 var arrays = {};  Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var withs = {};   Components.utils.import('resource://mozmill/stdlib/withs.js', withs);
-var utils = {};   Components.utils.import('resource://mozmill/modules/utils.js', utils);
-var broker = {};  Components.utils.import('resource://mozmill/modules/msgbroker.js', broker);
+var utils = {};   Components.utils.import('resource://mozmill/stdlib/utils.js', utils);
+var broker = {};  Components.utils.import('resource://mozmill/driver/msgbroker.js', broker);
 var securableModule = {};  Components.utils.import('resource://mozmill/stdlib/securable-module.js', securableModule);
 
 var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
@@ -80,11 +80,11 @@ var loadTestResources = function () {
   // load resources we want in our tests
   if (mozmill == undefined) {
     mozmill = {};
-    Components.utils.import("resource://mozmill/modules/mozmill.js", mozmill);
+    Components.utils.import("resource://mozmill/driver/mozmill.js", mozmill);
   }
   if (mozelement == undefined) {
     mozelement = {};
-    Components.utils.import("resource://mozmill/modules/mozelement.js", mozelement);
+    Components.utils.import("resource://mozmill/driver/mozelement.js", mozelement);
   }
 }
 
@@ -495,7 +495,7 @@ function Runner (collector, invokedFromIDE) {
   this.collector = collector;
   this.invokedFromIDE = invokedFromIDE
   events.fireEvent('startRunner', true);
-  var m = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', m);
+  var m = {}; Components.utils.import('resource://mozmill/driver/mozmill.js', m);
   this.platform = m.platform;
 }
 

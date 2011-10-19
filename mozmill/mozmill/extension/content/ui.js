@@ -1,4 +1,4 @@
-var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
+var utils = {}; Components.utils.import('resource://mozmill/stdlib/utils.js', utils);
 
 var copyInspector = function() {
   MozMilldx.inspectorToClipboard();

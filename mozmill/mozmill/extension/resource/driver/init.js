@@ -37,7 +37,7 @@
  * 
  * ***** END LICENSE BLOCK ***** */
 
-var broker = {}; Components.utils.import('resource://mozmill/modules/msgbroker.js', broker);
+var broker = {}; Components.utils.import('resource://mozmill/driver/msgbroker.js', broker);
 
 /**
 * Console listener which listens for error messages in the console and forwards
@@ -81,7 +81,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
   
-var mozmill = Cu.import('resource://mozmill/modules/mozmill.js');
+var mozmill = Cu.import('resource://mozmill/driver/mozmill.js');
   
 // Observer for new top level windows
 var windowObserver = {

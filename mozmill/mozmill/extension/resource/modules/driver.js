@@ -41,7 +41,7 @@
 var driver = exports;
 
 // Temporarily include utils module to re-use sleep and waitFor
-var utils = {};   Components.utils.import('resource://mozmill/modules/utils.js', utils);
+var utils = {};   Components.utils.import('resource://mozmill/stdlib/utils.js', utils);
 
 
 var wm = Cc["@mozilla.org/appshell/window-mediator;1"].

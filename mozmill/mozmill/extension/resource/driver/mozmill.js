@@ -48,10 +48,10 @@ var EXPORTED_SYMBOLS = ["controller", "utils", "elementslib", "os",
                        ];
                         
 // imports
-var controller = {};  Components.utils.import('resource://mozmill/modules/controller.js', controller);
-var utils = {};       Components.utils.import('resource://mozmill/modules/utils.js', utils);
-var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
-var broker = {};      Components.utils.import('resource://mozmill/modules/msgbroker.js', broker);
+var controller = {};  Components.utils.import('resource://mozmill/driver/controller.js', controller);
+var elementslib = {}; Components.utils.import('resource://mozmill/driver/elementslib.js', elementslib);
+var broker = {};      Components.utils.import('resource://mozmill/driver/msgbroker.js', broker);
+var utils = {};       Components.utils.import('resource://mozmill/stdlib/utils.js', utils);
 var os = {}; Components.utils.import('resource://mozmill/stdlib/os.js', os);
 
 try {

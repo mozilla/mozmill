@@ -37,10 +37,10 @@
 
 var EXPORTED_SYMBOLS = ["inspectElement"]
 
-var elementslib = {}; Components.utils.import('resource://mozmill/modules/elementslib.js', elementslib);
-var mozmill = {}; Components.utils.import('resource://mozmill/modules/mozmill.js', mozmill);
-var utils = {}; Components.utils.import('resource://mozmill/modules/utils.js', utils);
+var elementslib = {}; Components.utils.import('resource://mozmill/driver/elementslib.js', elementslib);
+var mozmill = {}; Components.utils.import('resource://mozmill/driver/mozmill.js', mozmill);
 
+var utils = {}; Components.utils.import('resource://mozmill/stdlib/utils.js', utils);
 var arrays = {}; Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
 var dom = {}; Components.utils.import('resource://mozmill/stdlib/dom.js', dom);
 var objects = {}; Components.utils.import('resource://mozmill/stdlib/objects.js', objects);
