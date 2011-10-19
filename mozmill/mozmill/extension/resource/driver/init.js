@@ -155,25 +155,32 @@ function attachEventListeners(aWindow) {
     }
 
   };
-  
-  // Add the event handlers to the tabbedbrowser once its window has loaded
-  aWindow.addEventListener("load", function(event) {
+
+  function onWindowLoaded(event) {
     aWindow.mozmillDocumentLoaded = true;
 
     if ("gBrowser" in aWindow) {
       // Page is ready
       aWindow.gBrowser.addEventListener("pageshow", pageShowHandler, true);
- 
+
       // Note: Error pages will never fire a "load" event. For those we
       // have to wait for the "DOMContentLoaded" event. That's the final state.
       // Error pages will always have a baseURI starting with
       // "about:" followed by "error" or "blocked".
       aWindow.gBrowser.addEventListener("DOMContentLoaded", DOMContentLoadedHandler, true);
-      
+    
       // Leave page (use caching)
       aWindow.gBrowser.addEventListener("pagehide", pageHideHandler, true);
     }
-  }, false);
+
+  }
+
+  // Add the event handlers to the tabbedbrowser once its window has loaded
+  if (aWindow.content) {
+    onWindowLoaded();
+  } else {
+    aWindow.addEventListener("load", onWindowLoaded, false);
+  }
 }
   
 /**
