@@ -18,15 +18,7 @@ var testMozElement = function(){
   controller.click(button);
   controller.waitForPageLoad();
   
-  var radio = findElement.ID(undefined, "www");
-  button = elementslib.XPath(undefined, "/html/body/div/table/tbody/tr/td/table/tbody/tr/td[2]/table/tbody/tr[2]/td/input[7]");
-  
-  radio.select();
-  
-  button.keypress("VK_RETURN", {});
-  controller.waitForPageLoad();
-  
-  var logo = findElement.XPath(undefined, "/html/body/div/table/tbody/tr/td/table/tbody/tr/td/a/img");
+  var logo = findElement.ID(undefined, "cse-logo");
   logo.click();
   controller.waitForPageLoad();
 
@@ -36,7 +28,7 @@ var testMozElement = function(){
   var urlBar = new elementslib.Lookup(controller.window.document, URL_BAR);
   
   urlBar.keypress("a", {accelKey:true});
-  urlBar.sendKeys("http://www.mozilla.org");
+  urlBar.sendKeys("http://www.google.com");
   urlBar.keypress("VK_RETURN", {});
   controller.waitForPageLoad();
 };

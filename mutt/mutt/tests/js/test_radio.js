@@ -3,11 +3,14 @@ var setupModule = function(module) {
 }
 
 var testHTMLRadio = function() {
-  controller.open('http://www.google.com/cse?cx=002443141534113389537%3Aysdmevkkknw&cof=FORID%3A0&q=mozmill&x=0&y=0');
+  let page = collector.addHttpResource('./files/') + "radio_button.html";
+  controller.open(page);
   controller.waitForPageLoad();
   
-  var radio = findElement.ID(controller.tabs.activeTab, "www");
-  radio.select();
+  let radio1 = findElement.ID(controller.tabs.activeTab, "radio1");
+  let radio2 = findElement.ID(controller.tabs.activeTab, "radio2");
+  radio1.select();
+  radio2.select();
 }
 
 var testXULRadio = function() {
