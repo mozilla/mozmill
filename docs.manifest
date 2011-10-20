@@ -3,10 +3,6 @@
 # To generate HTML from this markdown, use document_it:
 # http://pypi.python.org/pypi/document_it
 
-mozinfo/README.md     en/Mozinfo
-mozprocess/README.md  en/Mozprocess
-mozprofile/README.md  en/Mozprofile
-mozrunner/README.md   en/Mozrunner
 jsbridge/README.md    en/Mozmill/jsbridge
 mozmill/README.md     en/Mozmill
 mozmill/docs/event_handlers.txt         en/Mozmill/EventHandlers

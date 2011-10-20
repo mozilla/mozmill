@@ -24,10 +24,6 @@ Several packages exist in the [mozmill repository](http://github.com/mozautomati
 - [mozmill](https://developer.mozilla.org/en/Mozmill) : driver,
   event-dispatcher, and test harness
 - jsbridge : python to JavaScript bridge interface
-- mozrunner : Handles start/stop automation of Mozilla applications
-- mozprofile : handling of Mozilla XUL app profiles
-- mozprocess : low-level process management
-- mozinfo : gather system information
 - mutt : test harness for mozmill and other denizens of the Mozmill
   repo
 
