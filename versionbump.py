@@ -5,7 +5,7 @@ bump mozmill versions
 
 Example::
 
-  versionbump.py mozmill=2.0b2 mozrunner=3.0b2 jsbridge=3.0b2
+  versionbump.py mozmill=2.0b2 jsbridge=3.0b2
 
 see https://bugzilla.mozilla.org/show_bug.cgi?id=667320
 """
@@ -33,7 +33,7 @@ def which(fileName, path=os.environ['PATH']):
 
 git = which('git')
 assert git, "git not found"
-packages = ['mozrunner', 'jsbridge', 'mozmill']
+packages = ['jsbridge', 'mozmill']
 
 def package_info(directory):
     """get the package info from a particular directory"""
