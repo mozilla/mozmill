@@ -36,7 +36,7 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-var mozmillInit = {}; Components.utils.import('resource://mozmill/driver/init.js', mozmillInit);
+var mozmillInit = {}; Components.utils.import('resource://mozmill/driver/mozmill.js', mozmillInit);
 
 var MozMill = {
   onLoad: function() {

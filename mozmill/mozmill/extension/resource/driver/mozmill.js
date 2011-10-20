@@ -42,7 +42,7 @@ var EXPORTED_SYMBOLS = ["controller", "utils", "elementslib", "os",
                         "newMail3PaneController", "getMail3PaneController", 
                         "wm", "platform", "getAddrbkController", 
                         "getMsgComposeController", "getDownloadsController",
-                        "Application", "cleanQuit",
+                        "Application", "cleanQuit", "findElement",
                         "getPlacesController", 'isMac', 'isLinux', 'isWindows',
                         "firePythonCallback"
                        ];
@@ -51,6 +51,7 @@ var EXPORTED_SYMBOLS = ["controller", "utils", "elementslib", "os",
 var controller = {};  Components.utils.import('resource://mozmill/driver/controller.js', controller);
 var elementslib = {}; Components.utils.import('resource://mozmill/driver/elementslib.js', elementslib);
 var broker = {};      Components.utils.import('resource://mozmill/driver/msgbroker.js', broker);
+var findElement = {}; Components.utils.import('resource://mozmill/driver/mozelement.js', findElement);
 var utils = {};       Components.utils.import('resource://mozmill/stdlib/utils.js', utils);
 var os = {}; Components.utils.import('resource://mozmill/stdlib/os.js', os);
 
@@ -260,3 +261,166 @@ timer.prototype.end = function () {
   frame.events.fireEvent("timer", this);
   frame.timers.remove(this);
 }
+
+// Initialization
+
+/**
+ * Console listener which listens for error messages in the console and forwards
+ * them to the Mozmill reporting system for output.
+ */
+function ConsoleListener() {
+ this.register();
+}
+ConsoleListener.prototype = {
+ observe: function(aMessage) {
+   var msg = aMessage.message;
+   var re = /^\[.*Error:.*(chrome|resource):\/\/.*/i;
+   if (msg.match(re)) {
+     broker.fail(aMessage);
+   }
+ },
+ QueryInterface: function (iid) {
+	if (!iid.equals(Components.interfaces.nsIConsoleListener) && !iid.equals(Components.interfaces.nsISupports)) {
+		throw Components.results.NS_ERROR_NO_INTERFACE;
+   }
+   return this;
+ },
+ register: function() {
+   var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"]
+                              .getService(Components.interfaces.nsIConsoleService);
+   aConsoleService.registerListener(this);
+ },
+ unregister: function() {
+   var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"]
+                              .getService(Components.interfaces.nsIConsoleService);
+   aConsoleService.unregisterListener(this);
+ }
+}
+
+// start listening
+var consoleListener = new ConsoleListener();
+  
+// Observer for new top level windows
+var windowObserver = {
+  observe: function(subject, topic, data) {
+    attachEventListeners(subject);
+  }
+};
+  
+/**
+ * Attach event listeners
+ */
+function attachEventListeners(aWindow) {
+  // These are the event handlers
+  function pageShowHandler(event) {
+    var doc = event.originalTarget;
+
+    // Only update the flag if we have a document as target
+    // see https://bugzilla.mozilla.org/show_bug.cgi?id=690829
+    if ("defaultView" in doc) {
+      doc.defaultView.mozmillDocumentLoaded = true;
+    }
+
+    // We need to add/remove the unload/pagehide event listeners to preserve caching.
+    aWindow.gBrowser.addEventListener("beforeunload", beforeUnloadHandler, true);
+    aWindow.gBrowser.addEventListener("pagehide", pageHideHandler, true);
+  };
+
+  function DOMContentLoadedHandler(event) {
+    var doc = event.originalTarget;
+
+    var errorRegex = /about:.+(error)|(blocked)\?/;
+    if (errorRegex.exec(doc.baseURI)) {
+      // Wait about 1s to be sure the DOM is ready
+      utils.sleep(1000);
+
+      // Only update the flag if we have a document as target
+      if ("defaultView" in doc) {
+        doc.defaultView.mozmillDocumentLoaded = true;
+      }
+
+      // We need to add/remove the unload event listener to preserve caching.
+      aWindow.gBrowser.addEventListener("beforeunload", beforeUnloadHandler, true);
+    }
+  };
+  
+  // beforeunload is still needed because pagehide doesn't fire before the page is unloaded.
+  // still use pagehide for cases when beforeunload doesn't get fired
+  function beforeUnloadHandler(event) {
+    var doc = event.originalTarget;
+
+    // Only update the flag if we have a document as target
+    if ("defaultView" in doc) {
+      doc.defaultView.mozmillDocumentLoaded = false;
+    }
+
+    aWindow.gBrowser.removeEventListener("beforeunload", beforeUnloadHandler, true);
+  };
+
+  function pageHideHandler(event) {
+    // If event.persisted is false, the beforeUnloadHandler should fire
+    // and there is no need for this event handler.
+    if (event.persisted) {
+      var doc = event.originalTarget;
+
+      // Only update the flag if we have a document as target
+      if ("defaultView" in doc) {
+        doc.defaultView.mozmillDocumentLoaded = false;
+      }
+
+      aWindow.gBrowser.removeEventListener("beforeunload", beforeUnloadHandler, true);
+    }
+
+  };
+
+  function onWindowLoaded(event) {
+    aWindow.mozmillDocumentLoaded = true;
+
+    if ("gBrowser" in aWindow) {
+      // Page is ready
+      aWindow.gBrowser.addEventListener("pageshow", pageShowHandler, true);
+
+      // Note: Error pages will never fire a "load" event. For those we
+      // have to wait for the "DOMContentLoaded" event. That's the final state.
+      // Error pages will always have a baseURI starting with
+      // "about:" followed by "error" or "blocked".
+      aWindow.gBrowser.addEventListener("DOMContentLoaded", DOMContentLoadedHandler, true);
+    
+      // Leave page (use caching)
+      aWindow.gBrowser.addEventListener("pagehide", pageHideHandler, true);
+    }
+
+  }
+
+  // Add the event handlers to the tabbedbrowser once its window has loaded
+  if (aWindow.content) {
+    onWindowLoaded();
+  } else {
+    aWindow.addEventListener("load", onWindowLoaded, false);
+  }
+}
+  
+/**
+ * Initialize Mozmill
+ */
+function initialize() {
+  // Activate observer for new top level windows
+  var observerService = Components.classes["@mozilla.org/observer-service;1"].
+                        getService(Components.interfaces.nsIObserverService);
+  observerService.addObserver(windowObserver, "toplevel-window-ready", false);
+
+  // Attach event listeners to all open windows
+  var enumerator = Components.classes["@mozilla.org/appshell/window-mediator;1"].
+                   getService(Components.interfaces.nsIWindowMediator).getEnumerator("");
+  while (enumerator.hasMoreElements()) {
+    var win = enumerator.getNext();
+    attachEventListeners(win);
+
+    // For windows or dialogs already open we have to explicitly set the property
+    // otherwise windows which load really quick never gets the property set and
+    // we fail to create the controller
+    win.mozmillDocumentLoaded = true;
+  };
+}
+
+initialize();
