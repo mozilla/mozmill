@@ -30,7 +30,7 @@ var testChromeScreenshot = function() {
 
 // screenshots of sidebars
 var testSidebarScreenshot = function () {
-  var root = findElement.Elem(controller.window.gBrowser.selectedBrowser);
+  var root = findElement.Elem(controller.window.getBrowser());
   root.keypress('b', {'ctrlKey':true});
   controller.sleep(1000); // Wait for bookmarks sidebar to open
   

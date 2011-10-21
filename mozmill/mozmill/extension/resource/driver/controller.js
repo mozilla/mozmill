@@ -294,8 +294,6 @@ MozMillController.prototype.open = function(url)
 {
   switch(this.mozmillModule.Application) {
     case "Firefox":
-      this.window.gBrowser.loadURI(url);
-      break;
     case "SeaMonkey":
       this.window.getBrowser().loadURI(url);
       break;
@@ -877,10 +875,10 @@ function Tabs (controller) {
   this.controller = controller;
 }
 Tabs.prototype.getTab = function(index) {
-  return this.controller.window.gBrowser.browsers[index].contentDocument;
+  return this.controller.window.getBrowser().browsers[index].contentDocument;
 }
 Tabs.prototype.__defineGetter__("activeTab", function() {
-  return this.controller.window.gBrowser.selectedBrowser.contentDocument;
+  return this.controller.window.getBrowser().contentDocument;
 })
 Tabs.prototype.selectTab = function(index) {
   // GO in to tab manager and grab the tab by index and call focus.
@@ -900,13 +898,13 @@ Tabs.prototype.__defineGetter__("activeTabWindow", function () {
   return this.findWindow(this.activeTab);
 })
 Tabs.prototype.__defineGetter__("length", function () {
-  return this.controller.window.gBrowser.browsers.length;
+  return this.controller.window.getBrowser().browsers.length;
 })
 Tabs.prototype.__defineGetter__("activeTabIndex", function() {
-  return this.controller.window.gBrowser.tabContainer.selectedIndex;
+  return this.controller.window.getBrowser().tabContainer.selectedIndex;
 })
 Tabs.prototype.selectTabIndex = function(i) {
-  this.controller.window.gBrowser.selectTabAtIndex(i);
+  this.controller.window.getBrowser().selectTabAtIndex(i);
 }
 
 function browserAdditions (controller) {
@@ -929,7 +927,7 @@ function browserAdditions (controller) {
 
     // If no document has been specified, fallback to the default view of the
     // currently selected tab browser
-    win = win || this.window.gBrowser.selectedBrowser.contentWindow;
+    win = win || this.window.getBrowser().contentWindow;
 
     // Wait until the content in the tab has been loaded
     this.waitFor(function () {

@@ -322,8 +322,8 @@ function attachEventListeners(aWindow) {
     }
 
     // We need to add/remove the unload/pagehide event listeners to preserve caching.
-    aWindow.gBrowser.addEventListener("beforeunload", beforeUnloadHandler, true);
-    aWindow.gBrowser.addEventListener("pagehide", pageHideHandler, true);
+    aWindow.getBrowser().addEventListener("beforeunload", beforeUnloadHandler, true);
+    aWindow.getBrowser().addEventListener("pagehide", pageHideHandler, true);
   };
 
   function DOMContentLoadedHandler(event) {
@@ -340,7 +340,7 @@ function attachEventListeners(aWindow) {
       }
 
       // We need to add/remove the unload event listener to preserve caching.
-      aWindow.gBrowser.addEventListener("beforeunload", beforeUnloadHandler, true);
+      aWindow.getBrowser().addEventListener("beforeunload", beforeUnloadHandler, true);
     }
   };
   
@@ -354,7 +354,7 @@ function attachEventListeners(aWindow) {
       doc.defaultView.mozmillDocumentLoaded = false;
     }
 
-    aWindow.gBrowser.removeEventListener("beforeunload", beforeUnloadHandler, true);
+    aWindow.getBrowser().removeEventListener("beforeunload", beforeUnloadHandler, true);
   };
 
   function pageHideHandler(event) {
@@ -368,26 +368,26 @@ function attachEventListeners(aWindow) {
         doc.defaultView.mozmillDocumentLoaded = false;
       }
 
-      aWindow.gBrowser.removeEventListener("beforeunload", beforeUnloadHandler, true);
+      aWindow.getBrowser().removeEventListener("beforeunload", beforeUnloadHandler, true);
     }
 
   };
 
   function onWindowLoaded(event) {
     aWindow.mozmillDocumentLoaded = true;
-
-    if ("gBrowser" in aWindow) {
+    let browser = aWindow.getBrowser();
+    if (browser) {
       // Page is ready
-      aWindow.gBrowser.addEventListener("pageshow", pageShowHandler, true);
+      browser.addEventListener("pageshow", pageShowHandler, true);
 
       // Note: Error pages will never fire a "load" event. For those we
       // have to wait for the "DOMContentLoaded" event. That's the final state.
       // Error pages will always have a baseURI starting with
       // "about:" followed by "error" or "blocked".
-      aWindow.gBrowser.addEventListener("DOMContentLoaded", DOMContentLoadedHandler, true);
+      browser.addEventListener("DOMContentLoaded", DOMContentLoadedHandler, true);
     
       // Leave page (use caching)
-      aWindow.gBrowser.addEventListener("pagehide", pageHideHandler, true);
+      browser.addEventListener("pagehide", pageHideHandler, true);
     }
 
   }

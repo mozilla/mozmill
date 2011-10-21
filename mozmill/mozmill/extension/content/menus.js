@@ -137,7 +137,7 @@ function tabSelected(selector) {
 function openHelp() {
   var wm = Components.classes["@mozilla.org/appshell/window-mediator;1"]  
                          .getService(Components.interfaces.nsIWindowMediator);  
-  var browser = wm.getMostRecentWindow("navigator:browser").gBrowser;
+  var browser = wm.getMostRecentWindow("navigator:browser").getBrowser();
   browser.selectedTab =
     browser.addTab("http://quality.mozilla.org/docs/mozmill/getting-started/");
 }

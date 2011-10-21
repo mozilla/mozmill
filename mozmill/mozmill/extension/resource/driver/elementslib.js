@@ -103,7 +103,7 @@ var smartSplit = function (str) {
 function defaultDocuments() {
   var windowManager = Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator);
   win = windowManager.getMostRecentWindow("navigator:browser");
-  return [win.gBrowser.selectedBrowser.contentDocument, win.document];
+  return [win.getBrowser().contentDocument, win.document];
 };
 
 /**
