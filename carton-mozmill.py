@@ -44,6 +44,7 @@ def require(url):
 ### requirements
 carton = require('http://k0s.org/mozilla/hg/carton/raw-file/tip/carton.py')
 git = which('git')
+MOZBASE = 'git://github.com/mozilla/mozbase.git'
 MOZMILL = 'git://github.com/mozautomation/mozmill.git'
 
 def main(args=sys.argv[1:]):
@@ -55,11 +56,20 @@ def main(args=sys.argv[1:]):
                       help='name of the environment')
     options, args = parser.parse_args(args)
 
-    # checkout mozmill
+    # checkout mozbase
     tempdir = tempfile.mkdtemp()
+    mozbasedir = os.path.join(tempdir, 'mozbase')
+    call([git, 'clone', MOZBASE, mozbasedir])
+
+    # checkout mozmill
     mozmilldir = os.path.join(tempdir, 'mozmill')
     call([git, 'clone', MOZMILL, mozmilldir])
-    carton.main([options.name, mozmilldir, '--python-script', 'src/mozmill/setup_development.py'])
+
+    # make a carton
+    carton.main([options.name, mozmilldir, mozbasedir,
+                 '--python-script', 'src/mozbase/setup_development.py',
+                 '--python-script', 'src/mozmill/setup_development.py',
+                 ])
 
     # remove vestiges
     shutil.rmtree(tempdir)
