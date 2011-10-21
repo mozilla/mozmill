@@ -316,13 +316,16 @@ class FirefoxProfile(Profile):
                    # Don't warn when exiting the browser
                    'browser.warnOnQuit': False,
                    # Only install add-ons from the profile and the application scope
+                   # Also ensure that those are not getting disabled.
+                   # see: https://developer.mozilla.org/en/Installing_extensions
                    'extensions.enabledScopes' : 5,
+                   'extensions.autoDisableScopes' : 10,
                    # Don't install distribution add-ons from the app folder
                    'extensions.installDistroAddons' : False,
                    # Dont' run the add-on compatibility check during start-up
                    'extensions.showMismatchUI' : False,
                    # Don't automatically update add-ons
-                   'extensions.update.enabled'    : False,
+                   'extensions.update.enabled' : False,
                    # Don't open a dialog to show available add-on updates
                    'extensions.update.notifyUser' : False,
 
