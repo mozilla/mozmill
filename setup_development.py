@@ -36,7 +36,7 @@
 #
 # ***** END LICENSE BLOCK *****
 
-PACKAGES = ['mozinfo', 'mozprocess', 'mozprofile', 'mozrunner', 'jsbridge', 'mozmill', 'mutt']
+PACKAGES = ['jsbridge', 'mozmill', 'mutt']
 
 import os
 import subprocess
