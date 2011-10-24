@@ -137,12 +137,9 @@ class LoggerListener(object):
       for i in iter:
         child = obj[i]
         if i == "stack":
-          obj[i] = self.format_stack(child)
+          obj[i] = self.clean_stack(child)
         else:
           self.find_stack(child)
-
-  def format_stack(self, stack):
-    return self.clean_stack(stack)
 
   def clean_stack(self, caller):
     newcaller = {}
