@@ -5,6 +5,7 @@ create a mozmill carton
 """
 
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -52,7 +53,26 @@ def main(args=sys.argv[1:]):
     tempdir = tempfile.mkdtemp()
     mozmilldir = os.path.join(tempdir, 'mozmill')
     call([git, 'clone', MOZMILL, mozmilldir])
-    carton.main(['mozmill-env', mozmilldir, '--python-script', 'src/mozmill/setup_development.py'])
+    call([git, 'fetch'], cwd=mozmilldir)
+    call([git, 'branch', 'hotfix-2.0', 'origin/hotfix-2.0'], cwd=mozmilldir)
+    call([git, 'checkout', 'hotfix-2.0'], cwd=mozmilldir)
+
+    # get the mozmill version
+    setup_py = os.path.join(mozmilldir, 'mozmill', 'setup.py')
+    assert os.path.exists(setup_py)
+    regex = re.compile(r"""PACKAGE_VERSION *= *['"]([^'"]+)['"].*""")
+    for line in file(setup_py).readlines():
+        line = line.strip()
+        match = regex.match(line)
+        if match:
+           version = match.groups(0)
+           break
+    else:
+        shutil.rmtree(tempdir)
+        raise Exception("Mozmill version not found!")
+
+    # create the carton
+    carton.main(['mozmill-%s' % version, mozmilldir, '--python-script', 'src/mozmill/setup_development.py'])
 
     # remove vestiges
     shutil.rmtree(tempdir)
