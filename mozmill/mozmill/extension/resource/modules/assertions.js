@@ -52,6 +52,122 @@ var Expect = function() {}
 
 Expect.prototype = {
 
+  // The following deepEquals implementation is from Narwhal under this license:
+  
+  // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
+  //
+  // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
+  //
+  // Originally from narwhal.js (http://narwhaljs.org)
+  // Copyright (c) 2009 Thomas Robinson <280north.com>
+  //
+  // Permission is hereby granted, free of charge, to any person obtaining a copy
+  // of this software and associated documentation files (the 'Software'), to
+  // deal in the Software without restriction, including without limitation the
+  // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+  // sell copies of the Software, and to permit persons to whom the Software is
+  // furnished to do so, subject to the following conditions:
+  //
+  // The above copyright notice and this permission notice shall be included in
+  // all copies or substantial portions of the Software.
+  //
+  // THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+  // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+  // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+  // AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+  // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+  _deepEqual: function(actual, expected) {
+    // 7.1. All identical values are equivalent, as determined by ===.
+    if (actual === expected) {
+      return true;
+
+    // 7.2. If the expected value is a Date object, the actual value is
+    // equivalent if it is also a Date object that refers to the same time.
+    } else if (actual instanceof Date && expected instanceof Date) {
+      return actual.getTime() === expected.getTime();
+
+    // 7.3. Other pairs that do not both pass typeof value == 'object',
+    // equivalence is determined by ==.
+    } else if (typeof actual != 'object' && typeof expected != 'object') {
+      return actual == expected;
+
+    // 7.4. For all other Object pairs, including Array objects, equivalence is
+    // determined by having the same number of owned properties (as verified
+    // with Object.prototype.hasOwnProperty.call), the same set of keys
+    // (although not necessarily the same order), equivalent values for every
+    // corresponding key, and an identical 'prototype' property. Note: this
+    // accounts for both named and indexed properties on Arrays.
+    } else {
+      return this._objEquiv(actual, expected);
+    }
+  },
+
+  _objEquiv: function(a, b) {
+    if (a == null || a == undefined || b == null || b == undefined)
+      return false;
+    // an identical 'prototype' property.
+    if (a.prototype !== b.prototype) return false;
+
+    function isArguments(object) {
+      return Object.prototype.toString.call(object) == '[object Arguments]';
+    }
+
+    //~~~I've managed to break Object.keys through screwy arguments passing.
+    // Converting to array solves the problem.
+    if (isArguments(a)) {
+      if (!isArguments(b)) {
+        return false;
+      }
+      a = pSlice.call(a);
+      b = pSlice.call(b);
+      return _deepEqual(a, b);
+    }
+    try {
+      var ka = Object.keys(a),
+          kb = Object.keys(b),
+          key, i;
+    } catch (e) {//happens when one is a string literal and the other isn't
+      return false;
+    }
+    // having the same number of owned properties (keys incorporates
+    // hasOwnProperty)
+    if (ka.length != kb.length)
+      return false;
+    //the same set of keys (although not necessarily the same order),
+    ka.sort();
+    kb.sort();
+    //~~~cheap key test
+    for (i = ka.length - 1; i >= 0; i--) {
+      if (ka[i] != kb[i])
+        return false;
+    }
+    //equivalent values for every corresponding key, and
+    //~~~possibly expensive deep test
+    for (i = ka.length - 1; i >= 0; i--) {
+      key = ka[i];
+      if (!this._deepEqual(a[key], b[key])) return false;
+    }
+    return true;
+  },
+
+  _expectedException : function Expect__expectedException(actual, expected) {
+    if (!actual || !expected) {
+      return false;
+    }
+
+    if (expected instanceof RegExp) {
+      return expected.test(actual);
+    } else if (actual instanceof expected) {
+      return true;
+    } else if (expected.call({}, actual) === true) {
+      return true;
+    }
+
+    return false;
+  },
+
   /**
    * Log a test as failing by adding a fail frame.
    *
@@ -118,7 +234,7 @@ Expect.prototype = {
       'function'   : Components.stack.name,  // findCallerFrame nulls this out, so access it directly
       'lineNumber' : frame.lineNumber,
       'message'    : message,
-      'stack'      : Components.stack,
+      'stack'      : Components.stack
     };
 
     // Log test result
@@ -169,39 +285,41 @@ Expect.prototype = {
   },
 
   /**
-   * Test if both specified values are identical.
+   * Test if an object equals another object
    *
-   * @param {boolean|string|number|object} aValue
-   *   Value to test.
-   * @param {boolean|string|number|object} aExpected
-   *   Value to strictly compare with.
+   * @param {object} aValue
+   *   The object to test.
+   * @param {object} aExpected
+   *   The object to strictly compare with.
    * @param {string} aMessage
    *   Message to show for the test result
    * @returns {boolean} Result of the test.
    */
-  equal: function Expect_equal(aValue, aExpected, aMessage) {
-    let condition = (aValue === aExpected);
-    let diagnosis = "got '" + aValue + "', expected '" + aExpected + "'";
-  
+  equal: function equal(aValue, aExpected, aMessage) {
+    let condition = this._deepEqual(aValue, aExpected);
+    let diagnosis = "'" + JSON.stringify(aValue) + " should equal '" +
+                    JSON.stringify(aExpected) + "'";
+
     return this._test(condition, aMessage, diagnosis);
   },
 
   /**
-   * Test if both specified values are not identical.
+   * Test if an object does not equal another object
    *
-   * @param {boolean|string|number|object} aValue
-   *   Value to test.
-   * @param {boolean|string|number|object} aExpected
-   *   Value to strictly compare with.
+   * @param {object} aValue
+   *   The object to test.
+   * @param {object} aExpected
+   *   The object to strictly compare with.
    * @param {string} aMessage
    *   Message to show for the test result
    * @returns {boolean} Result of the test.
    */
-  notEqual: function Expect_notEqual(aValue, aExpected, aMessage) {
-    let condition = (aValue !== aExpected);
-    let diagnosis = "got '" + aValue + "', not expected '" + aExpected + "'";
+  notEqual: function notEqual(aValue, aExpected, aMessage) {
+     let condition = !this._deepEqual(aValue, aExpected);
+     let diagnosis = "'" + JSON.stringify(aValue) + "' should not equal '" +
+                     JSON.stringify(aExpected) + "'";
 
-    return this._test(condition, aMessage, diagnosis);
+     return this._test(condition, aMessage, diagnosis);
   },
 
   /**
@@ -335,160 +453,6 @@ Expect.prototype = {
       throw actual;
     }
     return this._test(true, message);
-  },
-  
-  _expectedException : function Expect__expectedException(actual, expected) {
-    if (!actual || !expected) {
-      return false;
-    }
-
-    if (expected instanceof RegExp) {
-      return expected.test(actual);
-    } else if (actual instanceof expected) {
-      return true;
-    } else if (expected.call({}, actual) === true) {
-      return true;
-    }
-
-    return false;
-  },
-  
-  /**
-   * Test if an object equals another object
-   *
-   * @param {object} actual
-   *   the object to compare
-   * @param {object} expected
-   *   the expected object
-   * @param {string} message
-   *   message to present if assertion fails
-   * @returns {boolean} Result of the test.
-   */
-  deepEqual: function deepEqual(actual, expected, aMessage) {
-    let condition = this._deepEqual(actual, expected);
-    let diagnosis = "got '" + JSON.stringify(actual) + "', expected '"
-      + JSON.stringify(expected) + "'";
-
-    return this._test(condition, aMessage, diagnosis);
-  },
-  
-  /**
-   * Test if an object does not equal another object
-   *
-   * @param {object} actual
-   *   the object to compare
-   * @param {object} expected
-   *   the expected object
-   * @param {string} message
-   *   message to present if assertion fails
-   * @returns {boolean} Result of the test.
-   */
-  notDeepEqual: function notDeepEqual(actual, expected, aMessage) {
-     let condition = !this._deepEqual(actual, expected);
-     let diagnosis = JSON.stringify(actual) + " and '"
-       + JSON.stringify(expected) + "' shouldn't be equal";
-
-     return this._test(condition, aMessage, diagnosis);
-  },
-  
-  // The following deepEquals implementation is from Narwhal under this license:
-  
-  // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
-  //
-  // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
-  //
-  // Originally from narwhal.js (http://narwhaljs.org)
-  // Copyright (c) 2009 Thomas Robinson <280north.com>
-  //
-  // Permission is hereby granted, free of charge, to any person obtaining a copy
-  // of this software and associated documentation files (the 'Software'), to
-  // deal in the Software without restriction, including without limitation the
-  // rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
-  // sell copies of the Software, and to permit persons to whom the Software is
-  // furnished to do so, subject to the following conditions:
-  //
-  // The above copyright notice and this permission notice shall be included in
-  // all copies or substantial portions of the Software.
-  //
-  // THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-  // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-  // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-  // AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
-  // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
-  // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-  _deepEqual: function(actual, expected) {
-    // 7.1. All identical values are equivalent, as determined by ===.
-    if (actual === expected) {
-      return true;
-
-    // 7.2. If the expected value is a Date object, the actual value is
-    // equivalent if it is also a Date object that refers to the same time.
-    } else if (actual instanceof Date && expected instanceof Date) {
-      return actual.getTime() === expected.getTime();
-
-    // 7.3. Other pairs that do not both pass typeof value == 'object',
-    // equivalence is determined by ==.
-    } else if (typeof actual != 'object' && typeof expected != 'object') {
-      return actual == expected;
-
-    // 7.4. For all other Object pairs, including Array objects, equivalence is
-    // determined by having the same number of owned properties (as verified
-    // with Object.prototype.hasOwnProperty.call), the same set of keys
-    // (although not necessarily the same order), equivalent values for every
-    // corresponding key, and an identical 'prototype' property. Note: this
-    // accounts for both named and indexed properties on Arrays.
-    } else {
-      return this._objEquiv(actual, expected);
-    }
-  },
-
-  _objEquiv: function(a, b) {
-    if (a == null || a == undefined || b == null || b == undefined)
-      return false;
-    // an identical 'prototype' property.
-    if (a.prototype !== b.prototype) return false;
-    
-    function isArguments(object) {
-      return Object.prototype.toString.call(object) == '[object Arguments]';
-    }
-    
-    //~~~I've managed to break Object.keys through screwy arguments passing.
-    // Converting to array solves the problem.
-    if (isArguments(a)) {
-      if (!isArguments(b)) {
-        return false;
-      }
-      a = pSlice.call(a);
-      b = pSlice.call(b);
-      return _deepEqual(a, b);
-    }
-    try {
-      var ka = Object.keys(a),
-          kb = Object.keys(b),
-          key, i;
-    } catch (e) {//happens when one is a string literal and the other isn't
-      return false;
-    }
-    // having the same number of owned properties (keys incorporates
-    // hasOwnProperty)
-    if (ka.length != kb.length)
-      return false;
-    //the same set of keys (although not necessarily the same order),
-    ka.sort();
-    kb.sort();
-    //~~~cheap key test
-    for (i = ka.length - 1; i >= 0; i--) {
-      if (ka[i] != kb[i])
-        return false;
-    }
-    //equivalent values for every corresponding key, and
-    //~~~possibly expensive deep test
-    for (i = ka.length - 1; i >= 0; i--) {
-      key = ka[i];
-      if (!this._deepEqual(a[key], b[key])) return false;
-    }
-    return true;
   }
 }
 
