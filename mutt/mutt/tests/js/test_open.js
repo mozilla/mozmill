@@ -5,7 +5,7 @@ var setupModule = function(module) {
 }
 
 var testOpen = function() {
-  var url = 'http://mozilla.org'; // the actual URL is incidental
+  var url = 'about:addons'; // the actual URL is incidental
 
   controller.open(url);
   controller.waitForPageLoad();
