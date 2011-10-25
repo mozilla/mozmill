@@ -137,33 +137,56 @@ class LoggerListener(object):
       for i in iter:
         child = obj[i]
         if i == "stack":
-          obj[i] = self.clean_stack(child)
+          if isinstance(child, basestring):
+            # It is not very pythonic, but we need to do something completely
+            # different if our stack is a string and not an object.
+            # It's much more readable to simply have two separate functions
+            obj[i] = self.clean_stack_as_string(child)
+          else:
+            obj[i] = self.clean_stack(child)
         else:
           self.find_stack(child)
 
   def clean_stack(self, caller):
-    newcaller = {}
+    try:
+      newcaller = {}
 
-    # The name and sourceLine attributes are often None, only include if they
-    # exist.
-    # There is also a language attribute which we drop in favor of using
-    # laguageName which is more descriptive
-    if caller['name']:
-      newcaller['name'] = caller['name']
-    if caller['sourceLine']:
-      newcaller['sourceLine'] = caller['sourceLine']
+      # The name and sourceLine attributes are often None, only include if they
+      # exist.
+      # There is also a language attribute which we drop in favor of using
+      # laguageName which is more descriptive
+      if caller['name']:
+        newcaller['name'] = caller['name']
+      if caller['sourceLine']:
+        newcaller['sourceLine'] = caller['sourceLine']
 
-    # Move the attributes we care about - note this unusual order is important
-    # This causes the output to be visually sane.
-    newcaller['lineNumber'] = caller['lineNumber']
-    newcaller['languageName'] = caller['languageName']
-    newcaller['filename'] = caller['filename']
+      # Move the attributes we care about - note this unusual order is important
+      # This causes the output to be visually sane.
+      newcaller['lineNumber'] = caller['lineNumber']
+      newcaller['languageName'] = caller['languageName']
+      newcaller['filename'] = caller['filename']
 
-    if caller['caller'] == None:
-      # Then we have reached the first node of the stack, roll up
+      if caller['caller'] == None:
+        # Then we have reached the first node of the stack, roll up
+        return newcaller
+      newcaller['caller'] = self.clean_stack(caller['caller'])
       return newcaller
-    newcaller['caller'] = self.clean_stack(caller['caller'])
-    return newcaller
+    except:
+      # This is logging code, it cannot throw an exception.  If something goes
+      # wrong, we just return the caller and be done with it.
+      return caller
+
+  def clean_stack_as_string(self, stack):
+    try:
+      stacklist = [i.strip() for i in stack.split('\n')]
+      if len(stacklist):
+        return stacklist
+      else:
+        # Then we don't know what this is, just return the raw stack
+        return stack
+    except:
+      # Something happened, just return the raw stack
+      return stack
 
   def events(self):
     return { 'mozmill.setTest': self.startTest,
