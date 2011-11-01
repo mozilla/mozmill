@@ -293,7 +293,7 @@ function getTopmostWindowByType(aWindowType, aStrict) {
   if (typeof aStrict === 'undefined')
     aStrict = true;
 
-  var win = services.wm.getMostRecentWindow(aWindowType);
+  var win = wm.getMostRecentWindow(aWindowType);
 
   if (win === null && aStrict) {
     var message = 'No windows of type "' + aWindowType + '" were found';
