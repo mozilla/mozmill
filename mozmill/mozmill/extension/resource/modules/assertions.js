@@ -316,8 +316,19 @@ Expect.prototype = {
    */
   notEqual: function notEqual(aValue, aExpected, aMessage) {
      let condition = !this._deepEqual(aValue, aExpected);
-     let diagnosis = "'" + JSON.stringify(aValue) + "' should not equal '" +
-                     JSON.stringify(aExpected) + "'";
+     try {
+       var aValueString = JSON.stringify(aValue);
+     } catch(e) {
+       var aValueString = String(aValue);
+     }
+     try {
+       var aExpectedString = JSON.stringify(aExpected);
+     } catch(e) {
+       var aExpectedString = String(aExpected);
+     }
+     
+     let diagnosis = "'" + aValueString + "' should not equal '" +
+                     aExpectedString + "'";
 
      return this._test(condition, aMessage, diagnosis);
   },
