@@ -73,7 +73,7 @@ arrayRemove = function(array, from, to) {
   return array.push.apply(array, rest);
 };
 
-mozmill = undefined; mozelement = undefined;
+mozmill = undefined; mozelement = undefined; modules = undefined;
 
 var loadTestResources = function () {
   // load resources we want in our tests
@@ -127,7 +127,12 @@ var loadFile = function(path, collector) {
                   Cu: Components.utils,
                   log: log }
     });
-    return loader.require(mod);
+    if (modules != undefined) {
+        loader.modules = modules;
+    }
+    var retval = loader.require(mod);
+    modules = loader.modules;
+    return retval;
   }
 
   if (collector != undefined) {
