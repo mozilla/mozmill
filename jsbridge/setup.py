@@ -43,7 +43,7 @@ PACKAGE_NAME = "jsbridge"
 PACKAGE_VERSION = "3.0rc1"
 
 # package dependencies
-requires = ['mozrunner == 3.0rc1']
+requires = []
 try:
     import json
 except ImportError:
