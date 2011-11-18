@@ -61,15 +61,19 @@ const TEST_DATA = [
   { fun: "equal", params: [null, undefined, "Types are not equal"], result: false},
   { fun: "equal", params: [undefined, false, "Types are not equal"], result: false},
   { fun: "equal", params: ["str", "str", "Strings are equal"], result: true},
-  { fun: "equal", params: [{a: 1, b: ["y", "z"]}, {a: 1, b: ["y", "z"]}, "Objects are equal"], result: true},
-  { fun: "equal", params: [[3, 4], [3, 4], "Arrays are equal"], result: true},
-  { fun: "equal", params: [[5, 4], [4, 5], "Arrays are not equal"], result: false},
+
+  { fun: "deepEqual", params: [{a: 1, b: ["y", "z"]}, {a: 1, b: ["y", "z"]}, "Objects are equal"], result: true},
+  { fun: "deepEqual", params: [[3, 4], [3, 4], "Arrays are equal"], result: true},
+  { fun: "deepEqual", params: [[5, 4], [4, 5], "Arrays are not equal"], result: false},
+  { fun: "deepEqual", params: ["str", "str", "Strings are equal"], result: true},
+  { fun: "deepEqual", params: [undefined, false, "Objects are not equal"], result: false},
 
   { fun: "notEqual", params: [true, true, "Values are equal"], result: false},
   { fun: "notEqual", params: [true, false, "Values are not equal"], result: true},
   { fun: "notEqual", params: [undefined, null, "Types are not equal"], result: true},
-  { fun: "notEqual", params: [{}, {a: 4}, "Objects are not equal"], result: true},
-  { fun: "notEqual", params: [{}, {}, "Objects are equal"], result: false},
+
+  { fun: "notDeepEqual", params: [{}, {a: 4}, "Objects are not equal"], result: true},
+  { fun: "notDeepEqual", params: [{}, {}, "Objects are equal"], result: false},
 
   { fun: "match", params: ["Mozilla", /Mozilla/, "regex matches string"], result: true},
   { fun: "match", params: ["Mozilla", /mozilla/, "regex does not match string"], result: false},

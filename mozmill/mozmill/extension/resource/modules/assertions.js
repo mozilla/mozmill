@@ -284,6 +284,42 @@ Expect.prototype = {
     return this._test(condition, aMessage, diagnosis);
   },
 
+ /**
+   * Test if both specified values are identical.
+   *
+   * @param {boolean|string|number|object} aValue
+   *   Value to test.
+   * @param {boolean|string|number|object} aExpected
+   *   Value to strictly compare with.
+   * @param {string} aMessage
+   *   Message to show for the test result
+   * @returns {boolean} Result of the test.
+   */
+  equal: function Expect_equal(aValue, aExpected, aMessage) {
+    let condition = (aValue === aExpected);
+    let diagnosis = "'" + aValue + "' should equal '" + aExpected + "'";
+
+    return this._test(condition, aMessage, diagnosis);
+  },
+
+ /**
+   * Test if both specified values are not identical.
+   *
+   * @param {boolean|string|number|object} aValue
+   *   Value to test.
+   * @param {boolean|string|number|object} aExpected
+   *   Value to strictly compare with.
+   * @param {string} aMessage
+   *   Message to show for the test result
+   * @returns {boolean} Result of the test.
+   */
+  notEqual: function Expect_notEqual(aValue, aExpected, aMessage) {
+    let condition = (aValue !== aExpected);
+    let diagnosis = "'" + aValue + "' should not equal '" + aExpected + "'";
+
+    return this._test(condition, aMessage, diagnosis);
+  },
+
   /**
    * Test if an object equals another object
    *
@@ -295,9 +331,20 @@ Expect.prototype = {
    *   Message to show for the test result
    * @returns {boolean} Result of the test.
    */
-  equal: function equal(aValue, aExpected, aMessage) {
+  deepEqual: function equal(aValue, aExpected, aMessage) {
     let condition = this._deepEqual(aValue, aExpected);
-    let diagnosis = "'" + JSON.stringify(aValue) + " should equal '" +
+    try {
+      var aValueString = JSON.stringify(aValue);
+    } catch(e) {
+      var aValueString = String(aValue);
+    }
+    try {
+      var aExpectedString = JSON.stringify(aExpected);
+    } catch(e) {
+      var aExpectedString = String(aExpected);
+    }
+
+    let diagnosis = "'" + JSON.stringify(aValue) + "' should equal '" +
                     JSON.stringify(aExpected) + "'";
 
     return this._test(condition, aMessage, diagnosis);
@@ -314,7 +361,7 @@ Expect.prototype = {
    *   Message to show for the test result
    * @returns {boolean} Result of the test.
    */
-  notEqual: function notEqual(aValue, aExpected, aMessage) {
+  notDeepEqual: function notEqual(aValue, aExpected, aMessage) {
      let condition = !this._deepEqual(aValue, aExpected);
      try {
        var aValueString = JSON.stringify(aValue);
@@ -326,7 +373,7 @@ Expect.prototype = {
      } catch(e) {
        var aExpectedString = String(aExpected);
      }
-     
+
      let diagnosis = "'" + aValueString + "' should not equal '" +
                      aExpectedString + "'";
 
