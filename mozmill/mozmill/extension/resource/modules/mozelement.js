@@ -74,7 +74,7 @@ var Elem = function(node) {
 };
 
 var Selector = function(document, selector, index) {
-  return createInstance("Selector", selector, elementslib.Selector(_document, selector, index), document);
+  return createInstance("Selector", selector, elementslib.Selector(document, selector, index), document);
 };
 
 var ID = function(document, nodeID) {
