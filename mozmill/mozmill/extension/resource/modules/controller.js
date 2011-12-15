@@ -281,10 +281,10 @@ var MozMillController = function (window) {
 }
 
 // constructs a MozMillElement from the controller's window
-MozMillController.prototype.__defineGetter__("windowElement", function() {
-  if (this._windowElement == undefined) 
-    this._windowElement = new mozelement.MozMillElement(undefined, undefined, {'element': this.window});
-  return this._windowElement;
+MozMillController.prototype.__defineGetter__("rootElement", function() {
+  if (this._rootElement == undefined) 
+    this._rootElement = new mozelement.MozMillElement(undefined, undefined, {'element': this.window.document.documentElement});
+  return this._rootElement;
 });
 
 MozMillController.prototype.sleep = utils.sleep;
@@ -981,12 +981,12 @@ MozMillController.prototype.select = function (elem, index, option, value) {
 };
 
 MozMillController.prototype.keypress = function(aTarget, aKey, aModifiers, aExpectedEvent) {
-  if (aTarget == null) { aTarget = this.windowElement; }
+  if (aTarget == null) { aTarget = this.rootElement; }
   return aTarget.keypress(aKey, aModifiers, aExpectedEvent);
 }
 
 MozMillController.prototype.type = function (aTarget, aText, aExpectedEvent) {
-  if (aTarget == null) { aTarget = this.windowElement; }
+  if (aTarget == null) { aTarget = this.rootElement; }
 
   var that = this;
   var retval = true;
