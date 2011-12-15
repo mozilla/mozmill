@@ -10,7 +10,7 @@ const LOCATIONS = [
   // Error pages
   {url : "https://mur.at", type: "ID", value : "cert_domain_link"},
   {url : "http://www.mozilla.com/firefox/its-a-trap.html", type: "ID", value : "ignoreWarningButton"},
-  {url : "https://mozilla.org/", type: "ID", value : "getMeOutOfHereButton"}
+  {url : "http://www.mozilla.com/firefox/its-a-trap.html", type: "ID", value : "getMeOutButton"}
 ];
 
 
@@ -33,10 +33,10 @@ var testWaitForPageLoad = function() {
                                               {document: controller.tabs.activeTab});
     expect.ok(elem.exists(), "Element '" + location.value + "' has been found.");
   });
-  
+
   /**
    * PART II - Test different parameter sets
-   */ 
+   */
   var location = LOCATIONS[0];
   for (var i = 0; i < 7; i++) {
     controller.open(location.url);
@@ -82,12 +82,12 @@ var testWaitForPageLoad = function() {
 
   controller.open("http://blog.mozilla.com");
   controller.waitForPageLoad();
-  
+
   var link = new elementslib.MozMillElement("Selector", "#nav-main-support>a",
                                             {document: controller.tabs.activeTab});
   controller.click(link);
   controller.waitForPageLoad();
-  
+
   var target = new elementslib.MozMillElement("Selector", "#support-search",
                                            {document: controller.tabs.activeTab});
   controller.waitForElement(target, 1000);
