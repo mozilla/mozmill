@@ -258,13 +258,16 @@ class JSResults(object):
             else:
                 self.info.append(line)
             self.text[testname].append(line)
-        
 
 def run(arguments=sys.argv[1:]):
 
     # parse the command line arguments
-    parser_kwargs = dict(arguments=arguments)
-    (options, command) = parse_args(**parser_kwargs)
+    (options, command) = parse_args(arguments)
+
+    # ensure the binary is given
+    if not options.binary:
+        print "Please provide a path to your Firefox binary: -b, --binary"
+        sys.exit(1)
 
     # Parse the manifest
     mp = TestManifest(manifests=(options.manifest,), strict=False)
@@ -276,14 +279,14 @@ def run(arguments=sys.argv[1:]):
             sys.exit(report(True, results, None, options))
         else:
             sys.exit(report(False))
-            
+
     elif command == "testjs":
         results = test_all_js(mp.get(tests=mp.active_tests(disabled=False), type='javascript'), options)
         if results.failures:
             sys.exit(report(True, None, results, options))
         else:
             sys.exit(report(False))
-            
+
     elif command == "testall":
         test_all(mp.active_tests(disabled=False), options)
 
