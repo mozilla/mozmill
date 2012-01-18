@@ -256,6 +256,8 @@ class FirefoxProfile(Profile):
                    'extensions.update.enabled'    : False,
                    # Don't open a dialog to show available add-on updates
                    'extensions.update.notifyUser' : False,
+                   # Enable test mode to run multiple tests in parallel
+                   'focusmanager.testmode' : True,
                    }
 
 class ThunderbirdProfile(Profile):
