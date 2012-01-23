@@ -189,10 +189,16 @@ class Popen(subprocess.Popen):
                 except: pass
             else:
                 os.kill(self.pid, signal.SIGKILL)
-            # If we don't call os.wait we end up with zombie processes
+
+            # If we don't call os.wait() we end up with zombie processes
             # see bug 658509, but it seems to traceback on linux
             if sys.platform == "darwin":
-                os.wait()
+                try:
+                    os.wait()
+                except OSError, e:
+                    # The process doesn't exist anymore so we can ignore it
+                    pass
+
             self.returncode = -9
 
     def wait(self, timeout=None, group=True):
