@@ -747,18 +747,6 @@ class CLI(jsbridge.CLI):
 
             self.tests.extend(manifest_parser.test_paths())
 
-        # expand user directory for individual tests
-        for test in self.options.test:
-            test = os.path.expanduser(test)
-            self.tests.append(test)
-                
-        # check existence for the tests
-        missing = [ test for test in self.tests
-                    if not os.path.exists(test) ]
-        if missing:
-            raise IOError("Not a valid test file/directory: %s" % ', '.join(["'%s'" % test for test in missing]))
-
-
         # setup log formatting
         self.mozmill.add_global_listener(LoggerListener())
         log_options = { 'format': "%(levelname)s | %(message)s",
@@ -794,6 +782,17 @@ class CLI(jsbridge.CLI):
         except:
             runner.cleanup()
             raise
+
+        # expand user directory for individual tests
+        for test in self.options.test:
+            test = os.path.expanduser(test)
+            self.tests.append(test)
+                
+        # check existence for the tests
+        missing = [ test for test in self.tests
+                    if not os.path.exists(test) ]
+        if missing:
+            raise IOError("Not a valid test file/directory: %s" % ', '.join(["'%s'" % test for test in missing]))
 
         if self.tests:
 
@@ -842,6 +841,10 @@ class ThunderbirdCLI(CLI):
     profile_class = mozrunner.ThunderbirdProfile
     runner_class = mozrunner.ThunderbirdRunner
 
+class ThunderbirdRestartCLI(CLI):
+    mozmill_class = MozMillRestart
+    profile_class = mozrunner.ThunderbirdProfile
+    runner_class = mozrunner.ThunderbirdRunner
 
 def enum(*sequential, **named):
     enums = dict(zip(sequential, range(len(sequential))), **named)
