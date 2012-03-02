@@ -841,8 +841,7 @@ class ThunderbirdCLI(CLI):
     profile_class = mozrunner.ThunderbirdProfile
     runner_class = mozrunner.ThunderbirdRunner
 
-class ThunderbirdRestartCLI(CLI):
-    mozmill_class = MozMillRestart
+class ThunderbirdRestartCLI(RestartCLI):
     profile_class = mozrunner.ThunderbirdProfile
     runner_class = mozrunner.ThunderbirdRunner
 
@@ -858,3 +857,6 @@ def tbird_cli():
 
 def restart_cli():
     RestartCLI().run()
+
+def tbird_restart_cli():
+    ThunderbirdRestartCLI().run()
