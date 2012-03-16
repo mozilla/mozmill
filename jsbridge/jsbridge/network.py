@@ -80,11 +80,12 @@ class Telnet(asyncore.dispatcher):
     def read_all(self):
         import socket
         data = ''
-        while 1:
+        while self.connected:
             try:
                 data += self.recv(4096)
             except socket.error:
-                return data
+                break
+        return data
 
     def handle_read(self):
         self.data = self.read_all()
