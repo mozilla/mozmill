@@ -137,7 +137,7 @@ class Report(object):
         connection.close()
 
         # Check if the report has been created
-        if not data['ok']:
+        if not 'ok' in data:
             print "Creating report document failed (%s)" % data
             return data
 
