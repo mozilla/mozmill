@@ -38,12 +38,14 @@
 # ***** END LICENSE BLOCK *****
 
 import copy
+import httplib
 import imp
 import os
 import socket
 import sys
 import traceback
-import urllib2
+import urllib
+import urlparse
 
 from datetime import datetime, timedelta
 import manifestparser
@@ -450,13 +452,16 @@ class MozMill(object):
             now = datetime.utcnow()
             results['time_upload'] = now.strftime("%Y-%m-%dT%H:%M:%SZ")
 
-            # Send a POST request to the DB; the POST is implied by the body data
-            body = json.dumps(results)
-            request = urllib2.Request(report_url, body, {"Content-Type": "application/json"})
-
+            # Parse URL fragments and send data
+            url_fragments = urlparse.urlparse(report_url)
+            connection = httplib.HTTPConnection(url_fragments.netloc)
+            connection.request("POST", url_fragments.path, json.dumps(results),
+                               {"Content-type": "application/json"})
+        
             # Get response which contains the id of the new document
-            response = urllib2.urlopen(request)
+            response = connection.getresponse()
             data = json.loads(response.read())
+            connection.close()
 
             # Check if the report has been created
             if not 'ok' in data:
