@@ -138,8 +138,7 @@ class Report(object):
 
         # Check if the report has been created
         if not 'ok' in data:
-            print "Creating report document failed (%s)" % data
-            return data
+            raise Exception(data['reason'])
 
         # Print document location to the console and return
         print "Report document created at '%s/%s'" % (report_url, data['id'])
