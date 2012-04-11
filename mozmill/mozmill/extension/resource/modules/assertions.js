@@ -444,7 +444,86 @@ Expect.prototype = {
     return this._test(condition, aMessage, diagnosis);
   },
   
+  /**
+   * Test if a value is a number
+   *
+   * @param {boolean|string|number|object|function} aValue
+   *   Value to test.
+   * @param {string} aMessage
+   *   message to present if assertion fails
+   * @returns {boolean} Result of the test
+   */
+  isNumber: function Expect__number(aValue, /*optional*/aMessage) {
+    let condition = '[object Number]' === Object.prototype.toString.apply(aValue);           
+    let diagnosis = aValue + " is not a number";
+
+    return this._test(condition, aMessage, diagnosis);
+  },
+
+  /**
+   * Test if a value is a function 
+   *
+   * @param {boolean|string|number|object|function} aValue
+   *   Value to test.
+   * @param {string} aMessage
+   *   message to present if assertion fails
+   * @returns {boolean} Result of the test
+   */
+  isFunction: function Expect__function(aValue, /*optional*/aMessage) {
+    let condition = 'function' === typeof aValue;           
+    let diagnosis = aValue + " is not a function";
+
+    return this._test(condition, aMessage, diagnosis);
+  },
   
+  /**
+   * Test if a value is a string 
+   *
+   * @param {boolean|string|number|object|function} aValue
+   *   Value to test.
+   * @param {string} aMessage
+   *   message to present if assertion fails
+   * @returns {boolean} Result of the test
+   */
+  isString: function Expect__string(aValue, /*optional*/aMessage) {
+    let condition = '[object String]' === Object.prototype.toString.apply(aValue);           
+    let diagnosis = aValue + " is not a string";
+
+    return this._test(condition, aMessage, diagnosis);
+  },
+  
+  /**
+   * Test if a value is an array 
+   *
+   * @param {boolean|string|number|object|function} aValue
+   *   Value to test.
+   * @param {string} aMessage
+   *   message to present if assertion fails
+   * @returns {boolean} Result of the test
+   */
+  isArray: function Expect__array(aValue, /*optional*/aMessage) {
+    let condition = '[object Array]' === Object.prototype.toString.apply(aValue);           
+    let diagnosis = aValue + " is not an array";
+
+    return this._test(condition, aMessage, diagnosis);
+  },
+  
+  /**
+   * Test if a value is an object 
+   *
+   * @param {boolean|string|number|object|function} aValue
+   *   Value to test.
+   * @param {string} aMessage
+   *   message to present if assertion fails
+   * @returns {boolean} Result of the test
+   */
+  isObject: function Expect__object(aValue, /*optional*/aMessage) {
+    let condition = '[object Object]' === Object.prototype.toString.apply(aValue);           
+    let diagnosis = aValue + " is not an ";
+
+    return this._test(condition, aMessage, diagnosis);
+  },
+
   /**
    * Test if a code block throws an exception.
    *
