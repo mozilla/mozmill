@@ -47,7 +47,7 @@ var utils = {};   Components.utils.import('resource://mozmill/modules/utils.js',
 var wm = Cc["@mozilla.org/appshell/window-mediator;1"].
          getService(Ci.nsIWindowMediator);
 
-var mozmill = {};  Components.utils.import("resource://mozmill/driver/mozmill.js", mozmill);    
+var mozmill = {};  Components.utils.import("resource://mozmill/modules/mozmill.js", mozmill);    
 
 /**
  * Gets the topmost browser window. If there are none at that time, optionally
