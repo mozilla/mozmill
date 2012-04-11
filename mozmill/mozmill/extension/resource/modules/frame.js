@@ -69,7 +69,8 @@ arrayRemove = function(array, from, to) {
   return array.push.apply(array, rest);
 };
 
-mozmill = undefined; elementslib = undefined;
+mozmill = undefined; elementslib = undefined; modules = undefined;
+
 var loadTestResources = function () {
   if (mozmill == undefined) {
     mozmill = {};
@@ -108,7 +109,12 @@ var loadFile = function(path, collector) {
                   Ci: Components.interfaces,
                   Cu: Components.utils }
     });
-    return loader.require(mod);
+    if (modules != undefined) {
+        loader.modules = modules;
+    }
+    var retval = loader.require(mod);
+    modules = loader.modules;
+    return retval;
   }
   
   if (collector != undefined) {
