@@ -13,14 +13,14 @@
 # 
 # The Original Code is Mozilla Corporation Code.
 # 
-# The Initial Developer of the Original Code is
-# Mikeal Rogers.
+# The Initial Developer of the Original Code is Mikeal Rogers.
 # Portions created by the Initial Developer are Copyright (C) 2008 -2009
 # the Initial Developer. All Rights Reserved.
 # 
 # Contributor(s):
 #  Mikeal Rogers <mikeal.rogers@gmail.com>
-#  Henrik Skupin <hskupin@mozilla.com>
+#  Henrik Skupin <mail@hskupin.info>
+#  David Burns <info@theautomatedtester.co.uk>
 # 
 # Alternatively, the contents of this file may be used under the terms of
 # either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -55,6 +55,14 @@ extension_path = os.path.join(parent, 'extension')
 window_string = "Components.classes['@mozilla.org/appshell/window-mediator;1'].getService(Components.interfaces.nsIWindowMediator).getMostRecentWindow('')"
 
 wait_to_create_timeout = 60
+
+def find_port():
+    free_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    free_socket.bind(('127.0.0.1', 0))
+    port = free_socket.getsockname()[1]
+    free_socket.close()
+
+    return port
 
 def wait_and_create_network(host, port, timeout=wait_to_create_timeout):
     ttl = 0
@@ -102,8 +110,15 @@ class CLI(mozrunner.CLI):
     parser_options[('-u', '--usecode',)] = dict(dest="usecode", action="store_true",
                                                help="Use code module instead of iPython",
                                                default=False)
-    parser_options[('-P', '--port')] = dict(dest="port", default="24242",
+    parser_options[('-P', '--port')] = dict(dest="port",
+                                            default=None,
+                                            type="int",
                                             help="TCP port to run jsbridge on.")
+
+    def __init__(self, *args, **kwargs):
+        mozrunner.CLI.__init__(self, *args, **kwargs)
+
+        self.port = self.options.port or find_port()
 
     def get_profile(self, *args, **kwargs):
         if self.options.debug:
@@ -115,17 +130,16 @@ class CLI(mozrunner.CLI):
         profile = mozrunner.CLI.get_profile(self, *args, **kwargs)
         profile.install_addon(extension_path)
         return profile
-        
-    def get_runner(self, *args, **kwargs):
-        runner = super(CLI, self).get_runner(*args, **kwargs)
-        if self.options.debug:
-            runner.cmdargs.append('-jsconsole')
-        if not '-jsbridge' in runner.cmdargs: 
-            runner.cmdargs += ['-jsbridge', self.options.port]
-        return runner
-        
+
     def run(self):
         runner = self.create_runner()
+
+        if self.options.debug and not '-jsconsole' in runner.cmdargs:
+            runner.cmdargs.append('-jsconsole')
+
+        if not '-jsbridge' in runner.cmdargs:
+            runner.cmdargs += ['-jsbridge', '%s' % self.port]
+
         runner.start()
         self.start_jsbridge_network()
         if self.options.shell:
@@ -161,9 +175,9 @@ class CLI(mozrunner.CLI):
                               "back_channel":self.back_channel,
                               })
         runner.stop()
-        
+
     def start_jsbridge_network(self, timeout=10):
-        port = int(self.options.port)
+        port = int(self.port)
         host = '127.0.0.1'
         self.back_channel, self.bridge = wait_and_create_network(host, port, timeout)
 
