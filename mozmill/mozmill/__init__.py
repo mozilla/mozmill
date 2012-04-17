@@ -739,12 +739,6 @@ class CLI(jsbridge.CLI):
 
         self.tests = []
 
-        # read tests from manifests
-        if self.options.manifests:
-            manifest_parser = manifestparser.TestManifest(manifests=self.options.manifests)
-
-            self.tests.extend(manifest_parser.test_paths())
-
         # setup log formatting
         self.mozmill.add_global_listener(LoggerListener())
         log_options = { 'format': "%(levelname)s | %(message)s",
@@ -766,6 +760,23 @@ class CLI(jsbridge.CLI):
 
     def run(self):
 
+        # read tests from manifests
+        if self.options.manifests:
+            manifest_parser = manifestparser.TestManifest(manifests=self.options.manifests)
+
+            self.tests.extend(manifest_parser.test_paths())
+
+        # expand user directory for individual tests
+        for test in self.options.test:
+            test = os.path.expanduser(test)
+            self.tests.append(test)
+                
+        # check existence for the tests
+        missing = [ test for test in self.tests
+                    if not os.path.exists(test) ]
+        if missing:
+            raise IOError("Not a valid test file/directory: %s" % ', '.join(["'%s'" % test for test in missing]))
+
         # create a Mozrunner
         runner = self.create_runner()
 
@@ -780,17 +791,6 @@ class CLI(jsbridge.CLI):
         except:
             runner.cleanup()
             raise
-
-        # expand user directory for individual tests
-        for test in self.options.test:
-            test = os.path.expanduser(test)
-            self.tests.append(test)
-                
-        # check existence for the tests
-        missing = [ test for test in self.tests
-                    if not os.path.exists(test) ]
-        if missing:
-            raise IOError("Not a valid test file/directory: %s" % ', '.join(["'%s'" % test for test in missing]))
 
         if self.tests:
 
