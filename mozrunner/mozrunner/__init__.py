@@ -379,7 +379,7 @@ class ThunderbirdProfile(Profile):
 class Runner(object):
     """Handles all running operations. Finds bins, runs and kills the process."""
 
-    def __init__(self, binary=None, profile=None, cmdargs=[], env=None, kp_kwargs={}):
+    def __init__(self, binary=None, profile=None, cmdargs=None, env=None, kp_kwargs={}):
 
         self.process_handler = None
 
@@ -393,7 +393,6 @@ class Runner(object):
         if not os.path.exists(self.binary):
             raise Exception("Binary path does not exist "+self.binary)
 
-        
         if sys.platform.startswith('linux') and self.binary.endswith('-bin'):
             dirname = os.path.dirname(self.binary)
             if os.environ.get('LD_LIBRARY_PATH', None):
@@ -403,7 +402,7 @@ class Runner(object):
 
         self.profile = profile
 
-        self.cmdargs = cmdargs
+        self.cmdargs = cmdargs or []
         if env is None:
             self.env = copy.copy(os.environ)
             self.env.update({'MOZ_NO_REMOTE':"1",})
