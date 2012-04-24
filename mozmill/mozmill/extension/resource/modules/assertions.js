@@ -344,8 +344,8 @@ Expect.prototype = {
       var aExpectedString = String(aExpected);
     }
 
-    let diagnosis = "'" + JSON.stringify(aValue) + "' should equal '" +
-                    JSON.stringify(aExpected) + "'";
+    let diagnosis = "'" + aValueString + "' should equal '" +
+                    aExpectedString + "'";
 
     return this._test(condition, aMessage, diagnosis);
   },
@@ -511,6 +511,36 @@ Expect.prototype = {
       throw actual;
     }
     return this._test(true, message);
+  },
+
+  /**
+   * Test if the string contains the pattern.
+   *
+   * @param {String} aString String to test.
+   * @param {String} aPattern Pattern to look for in the string
+   * @param {String} aMessage Message to show for the test result
+   * @returns {Boolean} Result of the test.
+   */
+  contain: function Expect_contain(aString, aPattern, aMessage) {
+    let condition = (aString.indexOf(aPattern) !== -1);
+    let diagnosis = "'" + aString + "' should contain '" + aPattern + "'";
+
+    return this._test(condition, aMessage, diagnosis);
+  },
+
+  /**
+   * Test if the string does not contain the pattern.
+   *
+   * @param {String} aString String to test.
+   * @param {String} aPattern Pattern to look for in the string
+   * @param {String} aMessage Message to show for the test result
+   * @returns {Boolean} Result of the test.
+   */
+  notContain: function Expect_notContain(aString, aPattern, aMessage) {
+    let condition = (aString.indexOf(aPattern) === -1);
+    let diagnosis = "'" + aString + "' should not contain '" + aPattern + "'";
+
+    return this._test(condition, aMessage, diagnosis);
   }
 }
 
