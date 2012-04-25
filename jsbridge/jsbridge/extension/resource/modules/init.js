@@ -38,4 +38,6 @@
 
 var EXPORTED_SYMBOLS = ["server"];
 
-var server = {}; Components.utils.import('resource://jsbridge/modules/server.js', server);
+const Cu = Components.utils;
+
+var server = {}; Cu.import('resource://jsbridge/modules/server.js', server);

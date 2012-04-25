@@ -93,8 +93,7 @@ function getProperty(aURL, aProperty) {
 
   try {
     return bundle.GetStringFromName(aProperty);
-  }
-  catch (ex) {
+  } catch (ex) {
     throw new Error("Unkown property '" + aProperty + "'");
   }
 }

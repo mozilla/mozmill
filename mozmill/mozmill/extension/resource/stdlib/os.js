@@ -37,35 +37,40 @@
 
 var EXPORTED_SYMBOLS = ['listDirectory', 'getFileForPath', 'abspath', 'getPlatform'];
 
-function listDirectory (file) {
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+
+function listDirectory(file) {
   // file is the given directory (nsIFile)
   var entries = file.directoryEntries;
   var array = [];
-  while (entries.hasMoreElements())
-  {
+
+  while (entries.hasMoreElements()) {
     var entry = entries.getNext();
-    entry.QueryInterface(Components.interfaces.nsIFile);
+    entry.QueryInterface(Ci.nsIFile);
     array.push(entry);
   }
+
   return array;
 }
 
-function getFileForPath (path) {
-  var file = Components.classes["@mozilla.org/file/local;1"]
-                       .createInstance(Components.interfaces.nsILocalFile);
+function getFileForPath(path) {
+  var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
   file.initWithPath(path);
   return file;
 }
 
-function abspath (rel, file) {  
+function abspath(rel, file) {
   var relSplit = rel.split('/');
+
   if (relSplit[0] == '..' && !file.isDirectory()) {
     file = file.parent;
   }
-  for each(p in relSplit) {
+
+  for each(var p in relSplit) {
     if (p == '..') {
       file = file.parent;
-    } else if (p == '.'){
+    } else if (p == '.') {
       if (!file.isDirectory()) {
         file = file.parent;
       }
@@ -73,14 +78,13 @@ function abspath (rel, file) {
       file.append(p);
     }
   }
+
   return file.path;
 }
 
-function getPlatform () {
-  var xulRuntime = Components.classes["@mozilla.org/xre/app-info;1"]
-                   .getService(Components.interfaces.nsIXULRuntime);
+function getPlatform() {
+  var xulRuntime = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime);
   mPlatform = xulRuntime.OS.toLowerCase();
+
   return mPlatform;
 }
-
-

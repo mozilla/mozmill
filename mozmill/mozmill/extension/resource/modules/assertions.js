@@ -48,7 +48,7 @@ var assertions = exports;
 
 
 /* non-fatal assertions */
-var Expect = function() {}
+var Expect = function () {}
 
 Expect.prototype = {
 
@@ -78,7 +78,7 @@ Expect.prototype = {
   // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
   // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-  _deepEqual: function(actual, expected) {
+  _deepEqual: function (actual, expected) {
     // 7.1. All identical values are equivalent, as determined by ===.
     if (actual === expected) {
       return true;
@@ -104,7 +104,7 @@ Expect.prototype = {
     }
   },
 
-  _objEquiv: function(a, b) {
+  _objEquiv: function (a, b) {
     if (a == null || a == undefined || b == null || b == undefined)
       return false;
     // an identical 'prototype' property.
@@ -335,12 +335,12 @@ Expect.prototype = {
     let condition = this._deepEqual(aValue, aExpected);
     try {
       var aValueString = JSON.stringify(aValue);
-    } catch(e) {
+    } catch (e) {
       var aValueString = String(aValue);
     }
     try {
       var aExpectedString = JSON.stringify(aExpected);
-    } catch(e) {
+    } catch (e) {
       var aExpectedString = String(aExpected);
     }
 
@@ -365,12 +365,12 @@ Expect.prototype = {
      let condition = !this._deepEqual(aValue, aExpected);
      try {
        var aValueString = JSON.stringify(aValue);
-     } catch(e) {
+     } catch (e) {
        var aValueString = String(aValue);
      }
      try {
        var aExpectedString = JSON.stringify(aExpected);
-     } catch(e) {
+     } catch (e) {
        var aExpectedString = String(aExpected);
      }
 
@@ -401,8 +401,7 @@ Expect.prototype = {
 
       pattern = matches[1];
       flags = matches[2];
-    }
-    catch (ex) {
+    } catch (e) {
     }
 
     let regex = new RegExp(pattern, flags);
@@ -433,8 +432,7 @@ Expect.prototype = {
 
       pattern = matches[1];
       flags = matches[2];
-    }
-    catch (ex) {
+    } catch (e) {
     }
 
     let regex = new RegExp(pattern, flags);
@@ -563,7 +561,7 @@ AssertionError.prototype.constructor = AssertionError;
 AssertionError.prototype.name = 'AssertionError';
 
 
-var Assert = function() {}
+var Assert = function () {}
 
 Assert.prototype = new Expect();
 

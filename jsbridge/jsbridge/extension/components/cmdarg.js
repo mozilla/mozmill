@@ -1,19 +1,21 @@
-var Cc = Components.classes;
-var Ci = Components.interfaces;
+const Cc = Components.classes;
+const Ci = Components.interfaces;
+const Cr = Components.results;
+const Cu = Components.utils;
 
-Components.utils.import("resource://gre/modules/XPCOMUtils.jsm");
-Components.utils.import("resource://gre/modules/Services.jsm");
+Cu.import("resource://gre/modules/XPCOMUtils.jsm");
+Cu.import("resource://gre/modules/Services.jsm");
 
-const nsIAppShellService    = Components.interfaces.nsIAppShellService;
-const nsISupports           = Components.interfaces.nsISupports;
-const nsICategoryManager    = Components.interfaces.nsICategoryManager;
-const nsIComponentRegistrar = Components.interfaces.nsIComponentRegistrar;
-const nsIObserver           = Components.interfaces.nsIObserver;
-const nsICommandLine        = Components.interfaces.nsICommandLine;
-const nsICommandLineHandler = Components.interfaces.nsICommandLineHandler;
-const nsIFactory            = Components.interfaces.nsIFactory;
-const nsIModule             = Components.interfaces.nsIModule;
-const nsIWindowWatcher      = Components.interfaces.nsIWindowWatcher;
+const nsIAppShellService    = Ci.nsIAppShellService;
+const nsISupports           = Ci.nsISupports;
+const nsICategoryManager    = Ci.nsICategoryManager;
+const nsIComponentRegistrar = Ci.nsIComponentRegistrar;
+const nsIObserver           = Ci.nsIObserver;
+const nsICommandLine        = Ci.nsICommandLine;
+const nsICommandLineHandler = Ci.nsICommandLineHandler;
+const nsIFactory            = Ci.nsIFactory;
+const nsIModule             = Ci.nsIModule;
+const nsIWindowWatcher      = Ci.nsIWindowWatcher;
 
 // chrome URI of your extension or application
 const CHROME_URI = "chrome://jsbridge/content/";
@@ -37,42 +39,44 @@ function jsbridgeHandler() {
   this.port = 24242;
   this.server = null;
 }
+
 jsbridgeHandler.prototype = {
   classID: clh_CID,
   contractID: clh_contractID,
   classDescription: "jsbridgeHandler",
-  _xpcom_categories: [{category: "profile-after-change", service: true},
-                      {category: "command-line-handler", entry: clh_category}],
+  _xpcom_categories: [{category: "profile-after-change",
+                       service: true},
+                      {category: "command-line-handler",
+                      entry: clh_category}],
 
-  QueryInterface : function clh_QI(iid)
-  {
-     if (iid.equals(nsIObserver) ||
-         iid.equals(nsIFactory) ||
-         iid.equals(nsISupports)||
-         iid.equals(nsICommandLineHandler))
-       return this;
-     throw Components.results.NS_ERROR_NO_INTERFACE;
+  QueryInterface: function jsbridgeHandler_QueryInterface(iid) {
+    if (iid.equals(nsIObserver) ||
+        iid.equals(nsIFactory) ||
+        iid.equals(nsISupports)||
+        iid.equals(nsICommandLineHandler))
+      return this;
+
+    throw Components.results.NS_ERROR_NO_INTERFACE;
    },
 
   /* nsIObserver */
 
-  observe : function(aSubject, aTopic, aData) {
-        switch(aTopic) {
-        case "profile-after-change":
-            this.init();
-            break;
-            
-        case "quit-application":
-            this.uninit();
-            break;
-        }
-    },
+  observe: function jsbridgeHandler_observe(aSubject, aTopic, aData) {
+    switch (aTopic) {
+      case "profile-after-change":
+        this.init();
+        break;
+      case "quit-application":
+        this.uninit();
+        break;
+    }
+  },
 
   /* nsICommandLineHandler */
 
-  handle : function clh_handle(cmdLine)
-  {
+  handle: function jsbridgeHandler_handle(cmdLine) {
     var port = cmdLine.handleFlagWithParam("jsbridge", false);
+
     this.port = parseInt(port) || this.port;
     this.startServer();
   },
@@ -82,47 +86,45 @@ jsbridgeHandler.prototype = {
   // character 24, and lines should be wrapped at
   // 72 characters with embedded newlines,
   // and finally, the string should end with a newline
-  helpInfo : "  -jsbridge            Port to run jsbridge on.\n",
+  helpInfo: "  -jsbridge            Port to run jsbridge on.\n",
 
   /* nsIFactory */
 
-  createInstance : function clh_CI(outer, iid)
-  {
+  createInstance: function jsbridgeHandler_createInstance(outer, iid) {
     if (outer != null)
-      throw Components.results.NS_ERROR_NO_AGGREGATION;
+      throw Cr.NS_ERROR_NO_AGGREGATION;
 
     return this.QueryInterface(iid);
   },
 
-  lockFactory : function clh_lock(lock)
-  {
+  lockFactory: function jsbridgeHandler_lockFactory(lock) {
     /* no-op */
   },
 
   /* internal methods */
 
-  startServer: function() {
-        server = {};
-        // import the server
-        try {
-            // use NSPR sockets to get offline+localhost support - needs recent js-ctypes
-            Components.utils.import('resource://jsbridge/modules/nspr-server.js', server);
-        }
-        catch(e) {
-            dump("jsbridge can't use NSPR sockets, falling back to nsIServerSocket - " +
-                 "OFFLINE TESTS WILL FAIL\n");
-            Components.utils.import('resource://jsbridge/modules/server.js', server);
-        }
-        
-        // start the server
-        this.server = server.startServer(this.port);
-  },
-  
-  init: function() {
-        Services.obs.addObserver(this, "quit-application", false);
-    },
+  startServer: function jsbridgeHandler_startServer() {
+    var server = {};
 
-  uninit: function() {
+    // import the server
+    try {
+      // use NSPR sockets to get offline+localhost support - needs recent js-ctypes
+      Cu.import('resource://jsbridge/modules/nspr-server.js', server);
+    } catch (e) {
+      dump("jsbridge can't use NSPR sockets, falling back to nsIServerSocket - " +
+           "OFFLINE TESTS WILL FAIL\n");
+      Cu.import('resource://jsbridge/modules/server.js', server);
+    }
+
+    // start the server
+    this.server = server.startServer(this.port);
+  },
+
+  init: function jsbridgeHandler_init() {
+    Services.obs.addObserver(this, "quit-application", false);
+  },
+
+  uninit: function jsbridgeHandler_uninit() {
     Services.obs.removeObserver(this, "quit-application", false);
     this.server.stop();
     this.server = null;

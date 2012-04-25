@@ -35,6 +35,8 @@
 // 
 // ***** END LICENSE BLOCK *****
 
-var jsbridgeInit = {}; Components.utils.import('resource://jsbridge/modules/init.js',jsbridgeInit);
+const Cu = Components.utils;
+
+var jsbridgeInit = {}; Cu.import('resource://jsbridge/modules/init.js',jsbridgeInit);
 
 

@@ -42,6 +42,7 @@ var getLength = function (obj) {
   for (i in obj) {
     len++;
   }
+
   return len;
 }
 
