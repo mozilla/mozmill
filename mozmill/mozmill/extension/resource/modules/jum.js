@@ -43,7 +43,7 @@ var EXPORTED_SYMBOLS = ["assert", "assertTrue", "assertFalse", "assertEquals", "
 
 // Array.isArray comes with JavaScript 1.8.5 (Firefox 4)
 // cf. https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Array/isArray
-Array.isArray = Array.isArray || function(o) { return Object.prototype.toString.call(o) === '[object Array]'; };
+Array.isArray = Array.isArray || function (o) { return Object.prototype.toString.call(o) === '[object Array]'; };
 
 var frame = {}; Components.utils.import("resource://mozmill/modules/frame.js", frame);
 
@@ -232,7 +232,7 @@ var assertNotNaN = function (value, comment) {
   }
 }
 
-var assertArrayContains = function(array, value, comment) {
+var assertArrayContains = function (array, value, comment) {
   if (!Array.isArray(array)) {
     frame.events.fail({'function':'jum.assertArrayContains', 'comment':comment,
                        'message':'Bad argument, value type '+typeof(array)+' != "array"',

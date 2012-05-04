@@ -44,10 +44,10 @@ var listeners = {};
 
 // add a listener for a specific message type
 function addListener(msgType, listener) {
-
   if (listeners[msgType] === undefined) {
     listeners[msgType] = [];
   }
+
   listeners[msgType].push(listener);
 }
 
@@ -73,6 +73,7 @@ function sendMessage(msgType, obj) {
   if (listeners[msgType] === undefined) {
     return;
   }
+
   for (let i = 0; i < listeners[msgType].length; ++i) {
     listeners[msgType][i](obj);
   }
