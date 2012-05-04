@@ -40,11 +40,12 @@
 var backchannels = [];
 
 var fireEvent = function (name, obj) {
-  for each(backchannel in backchannels) {
-    backchannel.session.encodeOut({'eventType':name, 'result':obj});
+  for each(var backchannel in backchannels) {
+    backchannel.session.encodeOut({'eventType': name,
+                                   'result':obj});
   }
-}
+};
 
 var addBackChannel = function (backchannel) {
-    backchannels.push(backchannel);
-}
+  backchannels.push(backchannel);
+};
