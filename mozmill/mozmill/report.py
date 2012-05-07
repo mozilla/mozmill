@@ -2,12 +2,10 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import httplib
 import mozinfo
 import platform
 import sys
-import urllib
-import urlparse
+import urllib2
 import datetime
 
 try:
@@ -90,24 +88,20 @@ class Report(object):
         now = datetime.datetime.utcnow()
         results['time_upload'] = now.strftime(self.date_format)
 
-        # Parse URL fragments and send data
-        url_fragments = urlparse.urlparse(report_url)
-        connection = httplib.HTTPConnection(url_fragments.netloc)
-        connection.request("POST", url_fragments.path, json.dumps(results),
-                           {"Content-type": "application/json"})
-        
-        # Get response which contains the id of the new document
-        response = connection.getresponse()
-        data = json.loads(response.read())
-        connection.close()
+        # Send a POST request to the DB; the POST is implied by the body data
+        body = json.dumps(results)
+        request = urllib2.Request(report_url, body, {"Content-Type": "application/json"})        
 
-        # Check if the report has been created
-        if not 'ok' in data:
-            raise Exception(data['reason'])
+        # Get response which contains the id of the new document
+        response = urllib2.urlopen(request)
+        data = json.loads(response.read())
 
         # Print document location to the console and return
-        print "Report document created at '%s/%s'" % (report_url, data['id'])
+        print "Report document created at '%s%s'" % (report_url, data['id'])
         return data
-    except Exception, e:
-        print "Sending results to '%s' failed (%s)." % (report_url, e)
+    except urllib2.HTTPError, e:
+        data = json.loads(e.read())
+        print "Sending results to '%s' failed (%s)." % (report_url, data['reason'])
+    except urllib2.URLError, e:
+        print "Sending results to '%s' failed (%s)." % (report_url, e.reason)
     
