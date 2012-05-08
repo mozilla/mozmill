@@ -287,25 +287,40 @@ ConsoleListener.prototype = {
 // start listening
 var consoleListener = new ConsoleListener();
 
-// Observer for new top level windows
-var windowObserver = {
-  observe: function (subject, topic, data) {
-    attachEventListeners(subject);
+
+// Observer when a new top-level window is ready
+var windowReadyObserver = {
+  observe: function (aSubject, aTopic, aData) {
+    attachEventListeners(aSubject);
   }
 };
 
+
+// Observer when a top-level window is closed
+var windowCloseObserver = {
+  observe: function (aSubject, aTopic, aData) {
+    controller.windowMap.remove(utils.getWindowId(aSubject));
+  }
+};
+
+
 /**
  * Attach event listeners
+ *
+ * @param {ChromeWindow} aWindow
+ *        Window to attach listeners on.
  */
 function attachEventListeners(aWindow) {
   // These are the event handlers
-  function pageShowHandler(event) {
-    var doc = event.originalTarget;
+  var pageShowHandler = function (aEvent) {
+    var doc = aEvent.originalTarget;
 
     // Only update the flag if we have a document as target
     // see https://bugzilla.mozilla.org/show_bug.cgi?id=690829
     if ("defaultView" in doc) {
-      doc.defaultView.mozmillDocumentLoaded = true;
+      var id = utils.getWindowId(doc.defaultView);
+      controller.windowMap.update(id, "loaded", true);
+      //dump("*** pageshow event: " + id + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
     }
 
     // We need to add/remove the unload/pagehide event listeners to preserve caching.
@@ -313,8 +328,8 @@ function attachEventListeners(aWindow) {
     aWindow.getBrowser().addEventListener("pagehide", pageHideHandler, true);
   };
 
-  function DOMContentLoadedHandler(event) {
-    var doc = event.originalTarget;
+  var DOMContentLoadedHandler = function (aEvent) {
+    var doc = aEvent.originalTarget;
 
     var errorRegex = /about:.+(error)|(blocked)\?/;
     if (errorRegex.exec(doc.baseURI)) {
@@ -323,60 +338,65 @@ function attachEventListeners(aWindow) {
 
       // Only update the flag if we have a document as target
       if ("defaultView" in doc) {
-        doc.defaultView.mozmillDocumentLoaded = true;
+        var id = utils.getWindowId(doc.defaultView);
+        controller.windowMap.update(id, "loaded", true);
+        //dump("*** DOMContentLoaded event: " + id + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
       }
 
       // We need to add/remove the unload event listener to preserve caching.
       aWindow.getBrowser().addEventListener("beforeunload", beforeUnloadHandler, true);
     }
   };
-  
+
   // beforeunload is still needed because pagehide doesn't fire before the page is unloaded.
   // still use pagehide for cases when beforeunload doesn't get fired
-  function beforeUnloadHandler(event) {
-    var doc = event.originalTarget;
+  var beforeUnloadHandler = function (aEvent) {
+    var doc = aEvent.originalTarget;
 
     // Only update the flag if we have a document as target
     if ("defaultView" in doc) {
-      doc.defaultView.mozmillDocumentLoaded = false;
+      var id = utils.getWindowId(doc.defaultView);
+      controller.windowMap.update(id, "loaded", false);
+      //dump("*** beforeunload event: " + id + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
     }
 
     aWindow.getBrowser().removeEventListener("beforeunload", beforeUnloadHandler, true);
   };
 
-  function pageHideHandler(event) {
+  var pageHideHandler = function (aEvent) {
     // If event.persisted is false, the beforeUnloadHandler should fire
     // and there is no need for this event handler.
-    if (event.persisted) {
-      var doc = event.originalTarget;
+    if (aEvent.persisted) {
+      var doc = aEvent.originalTarget;
 
       // Only update the flag if we have a document as target
       if ("defaultView" in doc) {
-        doc.defaultView.mozmillDocumentLoaded = false;
+        var id = utils.getWindowId(doc.defaultView);
+        controller.windowMap.update(id, "loaded", false);
+        //dump("*** pagehide event: " + id + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
       }
 
       aWindow.getBrowser().removeEventListener("beforeunload", beforeUnloadHandler, true);
     }
-
   };
 
-  function onWindowLoaded(event) {
-    aWindow.mozmillDocumentLoaded = true;
+  var onWindowLoaded = function (aEvent) {
+    controller.windowMap.update(utils.getWindowId(aWindow), "loaded", true);
+
     let browser = aWindow.getBrowser();
     if (browser) {
       // Page is ready
       browser.addEventListener("pageshow", pageShowHandler, true);
 
-      // Note: Error pages will never fire a "load" event. For those we
+      // Note: Error pages will never fire a "pageshow" event. For those we
       // have to wait for the "DOMContentLoaded" event. That's the final state.
       // Error pages will always have a baseURI starting with
       // "about:" followed by "error" or "blocked".
       browser.addEventListener("DOMContentLoaded", DOMContentLoadedHandler, true);
-    
+
       // Leave page (use caching)
       browser.addEventListener("pagehide", pageHideHandler, true);
     }
-
   }
 
   // Add the event handlers to the tabbedbrowser once its window has loaded
@@ -386,28 +406,29 @@ function attachEventListeners(aWindow) {
     aWindow.addEventListener("load", onWindowLoaded, false);
   }
 }
-  
+
 /**
  * Initialize Mozmill
  */
 function initialize() {
   // Activate observer for new top level windows
-  var observerService = Cc["@mozilla.org/observer-service;1"]
-                        .getService(Ci.nsIObserverService);
-  observerService.addObserver(windowObserver, "toplevel-window-ready", false);
+  var observerService = Cc["@mozilla.org/observer-service;1"].
+                        getService(Ci.nsIObserverService);
+  observerService.addObserver(windowReadyObserver, "toplevel-window-ready", false);
+  observerService.addObserver(windowCloseObserver, "outer-window-destroyed", false);
 
   // Attach event listeners to all open windows
-  var enumerator = Cc["@mozilla.org/appshell/window-mediator;1"]
-                   .getService(Ci.nsIWindowMediator).getEnumerator("");
+  var enumerator = Cc["@mozilla.org/appshell/window-mediator;1"].
+                   getService(Ci.nsIWindowMediator).getEnumerator("");
   while (enumerator.hasMoreElements()) {
     var win = enumerator.getNext();
     attachEventListeners(win);
 
     // For windows or dialogs already open we have to explicitly set the property
-    // otherwise windows which load really quick never gets the property set and
-    // we fail to create the controller
-    win.mozmillDocumentLoaded = true;
-  };
+    // otherwise windows which load really quick on startup never gets the
+    // property set and we fail to create the controller
+    controller.windowMap.update(utils.getWindowId(win), "loaded", true);
+  }
 }
 
 initialize();
