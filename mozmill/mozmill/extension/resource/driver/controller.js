@@ -2,7 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var EXPORTED_SYMBOLS = ["MozMillController", "globalEventRegistry", "sleep"];
+var EXPORTED_SYMBOLS = ["MozMillController", "globalEventRegistry",
+                        "sleep", "windowMap"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -24,6 +25,75 @@ var aConsoleService = Cc["@mozilla.org/consoleservice;1"]
 var sleep = utils.sleep;
 var assert = utils.assert;
 var waitFor = utils.waitFor;
+
+
+// The window map which is used to store information e.g. loaded state of each
+// open chrome and content window.
+var windowMap = {
+  _windows : { },
+
+  /**
+   * Check if a given window id is contained in the map of windows
+   *
+   * @param {Number} aWindowId
+   *        Outer ID of the window to check.
+   * @returns {Boolean} True if the window is part of the map, otherwise false.
+   */
+  contains : function (aWindowId) {
+    return (aWindowId in this._windows);
+  },
+
+  /**
+   * Retrieve the value of the specified window's property.
+   *
+   * @param {Number} aWindowId
+   *        Outer ID of the window to check.
+   * @param {String} aProperty
+   *        Property to retrieve the value from
+   * @return {Object} Value of the window's property
+   */
+  getValue : function (aWindowId, aProperty) {
+    if (!this.contains(aWindowId)) {
+      return undefined;
+    } else {
+      var win = this._windows[aWindowId];
+
+      return (aProperty in win) ? win[aProperty]
+                                : undefined;
+    }
+  },
+
+  /**
+   * Remove the entry for a given window
+   *
+   * @param {Number} aWindowId
+   *        Outer ID of the window to check.
+   */
+  remove : function (aWindowId) {
+    if (this.contains(aWindowId))
+      delete this._windows[aWindowId];
+    //dump("* current map: " + JSON.stringify(this._windows) + "\n");
+  },
+
+  /**
+   * Update the property value of a given window
+   *
+   * @param {Number} aWindowId
+   *        Outer ID of the window to check.
+   * @param {String} aProperty
+   *        Property to update the value for
+   * @param {Object} 
+   *        Value to set
+   */
+  update : function (aWindowId, aProperty, aValue) {
+    if (!this.contains(aWindowId))
+      this._windows[aWindowId] = { };
+
+    this._windows[aWindowId][aProperty] = aValue;
+    //dump("* current map: " + JSON.stringify(this._windows) + "\n");
+  }
+}
+
 
 waitForEvents = function () {
 }
@@ -334,12 +404,13 @@ MozMillController.prototype.screenShot = function _screenShot(node, name, save, 
 /**
  * Checks if the specified window has been loaded
  *
- * @param {DOMWindow} [window=this.window] Window object to check for loaded state
+ * @param {DOMWindow} [aWindow=this.window] Window object to check for loaded state
  */
-MozMillController.prototype.isLoaded = function (window) {
-  var win = window || this.window;
+MozMillController.prototype.isLoaded = function (aWindow) {
+  var win = aWindow || this.window;
 
-  return ("mozmillDocumentLoaded" in win) && win.mozmillDocumentLoaded;
+  var id = utils.getWindowId(win);
+  return windowMap.contains(id) && windowMap.getValue(id, "loaded");
 };
 
 MozMillController.prototype.waitFor = function (callback, message, timeout,
