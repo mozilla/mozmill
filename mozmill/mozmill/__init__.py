@@ -100,13 +100,13 @@ class MozMill(object):
     @classmethod
     def create(cls, results=None, jsbridge_port=JSBRIDGE_PORT, jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=(),
                app='firefox', profile_args=None, runner_args=None):
-      
+
         # select runner and profile class for the given app
         try:
             runner_class = mozrunner.runners[app]
         except KeyError:
             raise NotImplementedError('Application "%s" unknown (should be one of %s)' % (app, mozrunner.runners.keys()))
-          
+
         # get the necessary arguments to construct the profile and runner instance
         profile_args = profile_args or {}
         runner_args = runner_args or {}
@@ -115,10 +115,10 @@ class MozMill(object):
         if '-jsbridge' not in cmdargs:
             cmdargs += ['-jsbridge', '%d' % jsbridge_port]
         runner_args['profile_args'] = profile_args
-            
+
         # create an equipped runner
         runner = runner_class.create(**runner_args)
-            
+
         # create a mozmill
         return cls(runner, results=results, jsbridge_port=jsbridge_port, jsbridge_timeout=jsbridge_timeout, handlers=handlers)
 

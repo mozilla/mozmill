@@ -16,7 +16,7 @@ from mozprocess import ProcessHandler
 usage = """
 %prog [options] command [command-specific options]
 
-Mozmill Unit Test Tester : test the test harness! 
+Mozmill Unit Test Tester : test the test harness!
 
 Commands:
   testjs     - run mozmill js tests
@@ -67,7 +67,7 @@ def parse_args(arguments):
     commands = ('testall', 'testpy', 'testjs')
     if args[0] not in commands:
         parser.error("Invalid command: '%s' (Should be one of: %s)" % (args[0], ', '.join(commands)))
-    return (options, args[0]) 
+    return (options, args[0])
 
 def get_pytests(testdict):
     unittests = []
@@ -105,7 +105,7 @@ def report(fail, pyresults=None, jsresults=None, options=None):
             print "%s\n" % str(i)
     else:
         print "No Javascript Failures"
-    
+
     return 1
 
 def test_all(tests, options):
@@ -113,7 +113,7 @@ def test_all(tests, options):
 
     pytests = [item for item in tests if item['type'] == 'python']
     jstests = [item for item in tests if item['type'] == 'javascript']
-    
+
     try:
         pyresult = test_all_python(pytests, options)
         if pyresult.failures or pyresult.errors:
@@ -133,7 +133,7 @@ def test_all(tests, options):
     sys.exit(report(fail, pyresult, jsresult, options))
 
 def test_all_python(tests, options):
-    print "Running python tests" 
+    print "Running python tests"
     unittestlist = get_pytests(tests)
     verbosity = 1
     if options.verbose:
@@ -161,10 +161,8 @@ def test_all_js(tests, options):
         fp.close()
 
         # get CLI arguments to mozmill
-        args = []
-        if options.binary:
-            args.extend(['-b', options.binary])
-        args.append('--console-level=DEBUG')        
+        args = ['-b', options.binary]
+        args.append('--console-level=DEBUG')
         args.append('-m')
         args.append(filename)
 
@@ -184,7 +182,7 @@ class JSResults(object):
     """
     Takes in a standard output log and marshals it into our
     class in an additive fashion.
-    TODO: This needs some work.  My thought is to go through what we 
+    TODO: This needs some work.  My thought is to go through what we
     get back from the test, analyze each line, add the passes to the pass list
     add the failures to the fail list, and the rest to the info list.
 
@@ -235,6 +233,10 @@ def run(arguments=sys.argv[1:]):
     if not options.binary:
         print "Please provide a path to your Firefox binary: -b, --binary"
         sys.exit(1)
+
+    # set the BROWSER_PATH environment variable so that
+    # subshells will be able to invoke mozrunner
+    os.environ['BROWSER_PATH'] = options.binary
 
     # Parse the manifest
     mp = TestManifest(manifests=(options.manifest,), strict=False)
