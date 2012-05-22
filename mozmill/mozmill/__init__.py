@@ -133,6 +133,8 @@ class MozMill(object):
 
         # the MozRunner
         self.runner = runner
+        self.debugger = None
+        self.interactive = False
 
         # mozmill puts your data here
         self.results = results or TestResults()
@@ -163,10 +165,10 @@ class MozMill(object):
         self.handlers = [self.results]
         self.handlers.extend(handlers)
         for handler in self.handlers:
-          
+
             # make the mozmill instance available to the handler
             handler.mozmill = self
-            
+
             if hasattr(handler, 'events'):
                 for event, method in handler.events().items():
                     self.add_listener(method, eventType=event)
@@ -193,7 +195,7 @@ class MozMill(object):
 
     def endRunner_listener(self, obj):
         self.endRunnerCalled = True
-        
+
     def userShutdown_listener(self, obj):
         """
         listen for the 'userShutdown' event and set some state so
@@ -206,9 +208,9 @@ class MozMill(object):
         """
         self.shutdownMode = obj
 
-    def screenShot_listener(self, obj): 
+    def screenShot_listener(self, obj):
         self.results.screenshots.append(obj)
-    
+
     def fire_event(self, event, obj):
         """fire an event from the python side"""
 
@@ -233,12 +235,22 @@ class MozMill(object):
 
         # set a timeout on jsbridge actions in order to ensure termination
         self.back_channel.timeout = self.bridge.timeout = self.jsbridge_timeout
-        
+
         # Assign listeners to the back channel
         for listener in self.listeners:
             self.back_channel.add_listener(listener[0], **listener[1])
         for global_listener in self.global_listeners:
             self.back_channel.add_global_listener(global_listener)
+
+    def set_debugger(self, debugger_args, interactive=True):
+        """
+        set to be run with a debugger
+        - debugger_args : command line arguments to the debugger
+                          (use None to disable the debugger)
+        - interactive : whether to run in interactive mode
+        """
+        self.debugger = debugger_args
+        self.interactive = interactive
 
     def start_runner(self):
         """start the MozRunner"""
@@ -248,8 +260,8 @@ class MozMill(object):
                 and self.shutdownMode.get('restart', False)):
             if self.shutdownMode.get('resetProfile'):
                 self.runner.reset() # reset the profile
-            self.runner.start()
-            
+            self.runner.start(debug_args=self.debugger, interactive=self.interactive)
+
         # create the network
         self.create_network()
 
@@ -262,7 +274,7 @@ class MozMill(object):
 
         # set some state
         self.shutdownMode = {}
-        self.endRunnerCalled = False 
+        self.endRunnerCalled = False
         frame.persisted = self.persisted # transfer persisted data
 
         # return the frame
@@ -274,7 +286,7 @@ class MozMill(object):
         - frame : JS frame object
         - path : path to the test file
         - name : name of test to run; if None, run all tests
-        """        
+        """
         try:
             frame.runTestFile(path, False, name)
         except JSBridgeDisconnectError:
@@ -566,7 +578,6 @@ class CLI(mozrunner.CLI):
                                     description=getattr(handler_class, '__doc__', None))
                 handler_class.add_options(group)
                 parser.add_option_group(group)
-                                
 
     def profile_args(self):
         """
@@ -585,7 +596,7 @@ class CLI(mozrunner.CLI):
 
     def command_args(self):
         """arguments to the application to be run"""
-        
+
         cmdargs = mozrunner.CLI.command_args(self)
         if self.options.debug and '-jsconsole' not in cmdargs:
             cmdargs.append('-jsconsole')
@@ -594,16 +605,17 @@ class CLI(mozrunner.CLI):
         if '-foreground' not in cmdargs:
             cmdargs.append('-foreground')
         return cmdargs
-        
+
     def run(self):
+        """CLI front end to run mozmill"""
 
         # make sure you have tests to run
         if not self.manifest.tests:
             self.parser.error("No tests found. Please specify tests with -t or -m")
-        
+
         # create a place to put results
         results = TestResults()
-        
+
         # create a Mozrunner
         runner = self.create_runner()
 
@@ -613,6 +625,9 @@ class CLI(mozrunner.CLI):
                           jsbridge_timeout=self.options.timeout,
                           handlers=self.event_handlers
                           )
+
+        # set debugger arguments
+        mozmill.set_debugger(*self.debugger_arguments())
 
         # run the tests
         exception = None # runtime exception
@@ -637,7 +652,7 @@ class CLI(mozrunner.CLI):
 
         # return results on success [currently unused]
         return results
-        
+
 
 def cli(args=sys.argv[1:]):
     CLI(args).run()
