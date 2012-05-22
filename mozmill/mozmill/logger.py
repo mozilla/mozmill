@@ -33,6 +33,7 @@ class LoggerListener(object):
     }
 
     self.custom_levels = {
+     "RESULTS": 1000,
      "TEST-START" : 21, # logging.INFO is 20
      "TEST-PASS": 22,
      "TEST-EXPECTED-FAIL": 23,
@@ -203,9 +204,9 @@ class LoggerListener(object):
       self.logger.log(self.custom_levels["TEST-UNEXPECTED-FAIL"],
         'Disconnect Error: Application unexpectedly closed')
 
-    self.logger.info("Passed: %d" % len(results.passes))
-    self.logger.info("Failed: %d" % len(results.fails))
-    self.logger.info("Skipped: %d" % len(results.skipped))
+    self.logger.log(self.custom_levels["RESULTS"], "Passed: %d" % len(results.passes))
+    self.logger.log(self.custom_levels["RESULTS"], "Failed: %d" % len(results.fails))
+    self.logger.log(self.custom_levels["RESULTS"], "Skipped: %d" % len(results.skipped))
 
   ### event listeners
 
