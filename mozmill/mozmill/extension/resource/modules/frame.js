@@ -177,7 +177,7 @@ events.globalListeners = [];
 
 events.setState = function (v) {
   return stateChangeBase(['dependencies', 'setupModule', 'teardownModule',
-                          'test', 'collection'],
+                          'test', 'setupTest', 'teardownTest', 'collection'],
                           null, 'currentState', 'setState', v);
 }
 
@@ -244,8 +244,10 @@ events.endTest = function (test) {
   // Report the test result only if the test is a true test or if it is a
   // failing setup/teardown
   var shouldSkipReporting = false;
+  var modulelist = ['setupModule', 'teardownModule', 'setupTest', 'teardownTest'];
+
   if (test.__passes__ &&
-      (test.__name__ == 'setupModule' || test.__name__ == 'teardownModule')) {
+      (modulelist.indexOf(test.__name__) != -1)) {
     shouldSkipReporting = true;
   }
 
@@ -464,23 +466,32 @@ Collector.prototype.addHttpResource = function (directory, ns) {
   return 'http://localhost:' + this.http_port + ns
 }
 
-Collector.prototype.initTestModule = function (filename, name) {
+Collector.prototype.initTestModule = function (filename, testname) {
   var test_module = loadFile(filename, this);
+  var has_restarted = !(testname == null);
   test_module.__tests__ = [];
 
   for (var i in test_module) {
     if (typeof(test_module[i]) == "function") {
       test_module[i].__name__ = i;
-      if (i == "setupModule") {
+
+      // Only run setupModule if we are a single test OR if we are the first
+      // test of a restart chain (don't run it prior to members in a restart
+      // chain)
+      if (i == "setupModule" && !has_restarted) {
         test_module.__setupModule__ = test_module[i];
+      } else if (i == "setupTest") {
+        test_module.__setupTest__ = test_module[i];
+      } else if (i == "teardownTest") {
+        test_module.__teardownTest__ = test_module[i];
       } else if (i == "teardownModule") {
         test_module.__teardownModule__ = test_module[i];
       } else if (withs.startsWith(i, "test")) {
-        if (name && (i != name)) {
+        if (testname && (i != testname)) {
           continue;
         }
 
-        name = null;
+        testname = null;
         test_module.__tests__.push(test_module[i]);
       }
     }
@@ -598,26 +609,50 @@ Runner.prototype.runTestModule = function (module) {
   }
 
   if (setupModulePassed) {
-    var observer = new AppQuitObserver();
-    for (var i in module.__tests__) {
-      events.appQuit = false;
-      var test = module.__tests__[i];
-
-      // TODO: introduce per-test timeout:
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=574871
-
-      events.setState('test'); 
-      events.setTest(test, this.invokedFromIDE);
-
-      this.wrapper(test);
-      if (events.userShutdown && !events.userShutdown['user']) {
-          events.endTest(test);
-          break;
-      }
-      events.endTest(test)
+    
+    if (module.__setupTest__) {
+      events.setState('setupTest');
+      events.setTest(module.__setupTest__);
+      this.wrapper(module.__setupTest__, module);
+      var setupTestPassed = (events.currentTest.__fails__.length == 0 &&
+                             !events.currentTest.skipped);
+      events.endTest(module.__setupTest__);
+    } else {
+      var setupTestPassed = true;
     }
 
-    observer.unregister();
+    if (setupTestPassed) {
+      var observer = new AppQuitObserver();
+      for (var i in module.__tests__) {
+        events.appQuit = false;
+        var test = module.__tests__[i];
+
+        events.setState('test'); 
+        events.setTest(test, this.invokedFromIDE);
+
+        this.wrapper(test);
+        if (events.userShutdown && !events.userShutdown['user']) {
+          events.endTest(test);
+          break;
+        }
+        events.endTest(test)
+      }
+
+      observer.unregister();
+    } else {
+      for each(var test in module.__tests__) {
+        events.setTest(test);
+        events.skip("setupTest failed.");
+        events.endTest(test);
+      }
+    }
+
+    if (module.__teardownTest__) {
+      events.setState('teardownTest');
+      events.setTest(module.__teardownTest__);
+      this.wrapper(module.__teardownTest__, module);
+      events.endTest(module.__teardownTest__);
+    }
   } else {
     for each(var test in module.__tests__) {
       events.setTest(test);
@@ -626,7 +661,10 @@ Runner.prototype.runTestModule = function (module) {
     }
   }
 
-  if (module.__teardownModule__) {
+  // We only call teardownModule if we are not about to do a restart of
+  // the application - i.e. call it in a single test or the last test of
+  // a restart chain.
+  if (module.__teardownModule__ && (events.userShutdown == false)) {
     events.setState('teardownModule');
     events.setTest(module.__teardownModule__);
     this.wrapper(module.__teardownModule__, module);
