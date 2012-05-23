@@ -120,7 +120,13 @@ if (typeof AddonManager != "undefined") {
 }
 
 function cleanQuit () {
-  utils.getMethodInWindows('goQuitApplication')();
+  // Cause a quit to happen. We need the timeout in order to allow
+  // jsbridge enough time to signal back to python before the shutdown starts
+  // TODO: for some reason observers on shutdown don't work here?
+  //       if we don't do this we crash on shutdown in linux
+  var quitmethod = utils.getMethodInWindows('goQuitApplication');
+  var settimeoutmethod = utils.getMethodInWindows('setTimeout');
+  settimeoutmethod(quitmethod, 50);
 }
 
 function addHttpResource (directory, namespace) {
