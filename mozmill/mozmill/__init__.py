@@ -51,7 +51,7 @@ class TestResults(object):
         self.endtime = None
 
         # application information
-        self.appinfo = None
+        self.appinfo = {}
 
         # other information
         self.mozmill_version = package_metadata.get('Version')
@@ -306,7 +306,7 @@ class MozMill(object):
 
         # note runner state
         started = False
-        
+
         # run tests
         while tests:
             test = tests.pop(0)
@@ -325,7 +325,7 @@ class MozMill(object):
                        }
                 self.fire_event('endTest', obj)
                 continue
-              
+
             try:
                 if not started:
                     frame = self.start_runner()
@@ -437,6 +437,13 @@ class MozMill(object):
 
     def stop(self):
         """cleanup and invoking of final handlers"""
+
+        # ensure you have the application info for the case
+        # of no tests: https://bugzilla.mozilla.org/show_bug.cgi?id=751866
+        # this involves starting and stopping the browser
+        if not self.results.appinfo:
+            self.start_runner()
+            self.stop_runner()
 
         # close the bridge and back channel
         if self.back_channel:

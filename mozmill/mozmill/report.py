@@ -61,7 +61,7 @@ class Report(object):
                              "system": mozinfo.os.title(),
                              "version": mozinfo.version
                              }
-    
+
     return report
 
   def send_report(self, results, report_url):
