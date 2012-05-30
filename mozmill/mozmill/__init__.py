@@ -475,12 +475,12 @@ def collect_tests(path):
                 files.append(full)
     return files
 
-        
+
 ### command line interface
 
 class CLI(mozrunner.CLI):
     """command line interface to mozmill"""
-    
+
     module = "mozmill"
 
     def __init__(self, args):
@@ -537,9 +537,13 @@ class CLI(mozrunner.CLI):
             if _handler is not None:
                 self.event_handlers.append(_handler)
 
+        # if in manual mode, ensure we're interactive
+        if self.options.manual:
+            self.options.interactive = True
+
     def add_options(self, parser):
         """add command line options"""
-        
+
         group = OptionGroup(parser, 'MozRunner options')
         mozrunner.CLI.add_options(self, group)
         parser.add_option_group(group)
@@ -575,6 +579,9 @@ class CLI(mozrunner.CLI):
             group.add_option('--disable', dest='disable', metavar='HANDLER',
                              action='append', default=[],
                              help="disable a default event handler (%s)" % ','.join(self.handlers.keys()))
+        group.add_option('--manual', dest='manual',
+                         action='store_true', default=False,
+                         help="start the browser without running any tests")
 
         parser.add_option_group(group)
 
@@ -617,7 +624,7 @@ class CLI(mozrunner.CLI):
         """CLI front end to run mozmill"""
 
         # make sure you have tests to run
-        if not self.manifest.tests:
+        if (not self.manifest.tests) and (not self.options.manual) :
             self.parser.error("No tests found. Please specify tests with -t or -m")
 
         # create a place to put results
@@ -635,6 +642,16 @@ class CLI(mozrunner.CLI):
 
         # set debugger arguments
         mozmill.set_debugger(*self.debugger_arguments())
+
+        # load the mozmill + jsbridge extension but don't run any tests
+        # (for debugging)
+        if self.options.manual:
+            mozmill.start_runner()
+            try:
+                mozmill.runner.wait()
+            except KeyboardInterrupt:
+                pass
+            return
 
         # run the tests
         exception = None # runtime exception
