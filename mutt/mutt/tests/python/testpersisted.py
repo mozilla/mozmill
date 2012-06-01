@@ -9,15 +9,17 @@ class TestMozmillPersisted(unittest.TestCase):
     """test persisted object"""
 
     test = """
-    var setupModule = function(module){
-    controller = mozmill.getBrowserController();
+    var setupModule = function () {
+      controller = mozmill.getBrowserController();
     }
-    
-    var test_something = function() {
-    persisted.bar = 'bar';
-    persisted.number += 1;
-    persisted.fleem = 2;
-    %(shutdown)s
+
+    let test = function () {
+      persisted.bar = 'bar';
+      persisted.fleem = 2;
+      persisted.number += 1;
+
+      delete persisted.foo;
+      %(shutdown)s
     }
     """
 
@@ -31,8 +33,8 @@ class TestMozmillPersisted(unittest.TestCase):
     def test_persisted(self):
         path = self.make_test()
         m = mozmill.MozMill.create()
-        m.persisted['foo'] = 'bar'
         m.persisted['bar'] = 'foo'
+        m.persisted['foo'] = 'bar'
         m.persisted['number'] = 1
         results = m.run(dict(path=path))
         self.assertTrue(len(results.passes) == 1)
@@ -41,8 +43,8 @@ class TestMozmillPersisted(unittest.TestCase):
     def test_persisted_shutdown(self):
         path = self.make_test(shutdown='controller.stopApplication();')
         m = mozmill.MozMill.create()
-        m.persisted['foo'] = 'bar'
         m.persisted['bar'] = 'foo'
+        m.persisted['foo'] = 'bar'
         m.persisted['number'] = 1
         results = m.run(dict(path=path))
         self.assertTrue(len(results.passes) == 1)
@@ -50,7 +52,7 @@ class TestMozmillPersisted(unittest.TestCase):
 
     def inspect_persisted(self, persisted):
         """inspect the persisted data following the test"""
-        self.assertTrue(persisted == {u'fleem': 2, u'foo': u'bar', u'bar': u'bar', u'number': 2})
+        self.assertTrue(persisted == {u'fleem': 2, u'bar': u'bar', u'number': 2})
 
 if __name__ == '__main__':
     unittest.main()

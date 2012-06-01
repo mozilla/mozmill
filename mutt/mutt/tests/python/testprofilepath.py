@@ -24,7 +24,7 @@ class TestProfilePath(unittest.TestCase):
                                                     'user.js')))
 
         # make a dummy test
-        test = """test1 = function() { };"""
+        test = """var test = function () { };"""
         f = file(os.path.join(tempdir, 'test_dummy.js'), 'w')
         f.write(test)
         f.close()
