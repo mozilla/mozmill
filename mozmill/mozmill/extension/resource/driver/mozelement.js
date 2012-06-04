@@ -165,6 +165,10 @@ MozMillElement.prototype.keypress = function (aKey, aModifiers, aExpectedEvent) 
   this.element.focus();
 
   if (aExpectedEvent) {
+    if (!aExpectedEvent.type) {
+      throw new Error(arguments.callee.name + ": Expected event type not specified");
+    }
+
     var target = aExpectedEvent.target ? aExpectedEvent.target.getNode()
                                        : this.element;
     EventUtils.synthesizeKeyExpectEvent(aKey, aModifiers || {}, target, aExpectedEvent.type,
@@ -702,6 +706,10 @@ MozMillTextBox.prototype.sendKeys = function (aText, aModifiers, aExpectedEvent)
     element.focus();
 
     if (aExpectedEvent) {
+      if (!aExpectedEvent.type) {
+        throw new Error(arguments.callee.name + ": Expected event type not specified");
+      }
+
       var target = aExpectedEvent.target ? aExpectedEvent.target.getNode()
                                          : element;
       EventUtils.synthesizeKeyExpectEvent(letter, aModifiers || {}, target,
