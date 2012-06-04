@@ -520,34 +520,35 @@ function takeScreenshot(node, name, highlights) {
   }
 
   // if there is a name save the file, else return dataURL
-  return (name ? saveCanvas(canvas, name)
-               : canvas.toDataURL("image/png",""));
+  var dataURL = canvas.toDataURL("image/jpeg", 0.5);
+  return (name ? saveImage(dataURL, name)
+               : dataURL);
 }
 
 /**
  * Takes a canvas as input and saves it to the file tempdir/name.png
  * Returns the filepath of the saved file
  */
-function saveCanvas(canvas, name) {
+function saveImage(dataURL, name) {
   var file = Cc["@mozilla.org/file/directory_service;1"]
              .getService(Ci.nsIProperties).get("TmpD", Ci.nsIFile);
-  file.append("mozmill_screens");
-  file.append(name + ".png");
+  file.append("mozmill_screenshots");
+  file.append(name + ".jpg");
   file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, 0666);
 
-  // create a data url from the canvas and then create URIs of the source and targets
+  // create URIs of the source and targets
   var io = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
-  var source = io.newURI(canvas.toDataURL("image/png", ""), "UTF8", null);
+  var source = io.newURI(dataURL, "UTF8", null);
   var target = io.newFileURI(file);
 
-  // prepare to save the canvas data
+  // prepare to save the image data
   var persist = Cc["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"]
                 .createInstance(Ci.nsIWebBrowserPersist);
 
   persist.persistFlags = Ci.nsIWebBrowserPersist.PERSIST_FLAGS_REPLACE_EXISTING_FILES;
   persist.persistFlags |= Ci.nsIWebBrowserPersist.PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION;
 
-  // save the canvas data to the file
+  // save the image data to the file
   persist.saveURI(source, null, null, null, null, file);
 
   return file.path;

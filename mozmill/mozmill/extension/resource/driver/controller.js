@@ -350,14 +350,18 @@ MozMillController.prototype.open = function (url) {
 /**
  * Take a screenshot of specified node
  * 
- * @param {element} node
- *   the window or DOM element to capture
- * @param {string} name
- *   the name of the screenshot used in reporting and as filename
- * @param {boolean} save
- *   if true saves the screenshot as 'name.png' in tempdir, otherwise returns a dataURL
- * @param {element list} highlights
- *   a list of DOM elements to highlight by drawing a red rectangle around them
+ * @param {Element} node
+ *        The window or DOM element to capture
+ * @param {String} name
+ *        The name of the screenshot used in reporting and as filename
+ * @param {Boolean} save
+ *        If true saves the screenshot as 'name.jpg' in tempdir,
+ *        otherwise returns a dataURL
+ * @param {Element[]} highlights
+ *        A list of DOM elements to highlight by drawing a red rectangle around them
+ *
+ * @returns {Object} Object which contains properties like filename, dataURL,
+ *          name and timestamp of the screenshot
  */
 MozMillController.prototype.screenShot = function _screenShot(node, name, save, highlights) {
   if (!node) {
@@ -399,6 +403,8 @@ MozMillController.prototype.screenShot = function _screenShot(node, name, save, 
   // Send the screenshot object to python over jsbridge
   broker.sendMessage("screenShot", obj);
   broker.pass({'function': 'controller.screenShot()'});
+
+  return obj;
 }
 
 /**
