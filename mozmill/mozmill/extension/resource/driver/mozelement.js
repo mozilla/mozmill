@@ -248,7 +248,7 @@ MozMillElement.prototype.mouseEvent = function (aOffsetX, aOffsetY, aEvent, aExp
     }
 
     EventUtils.synthesizeMouseExpectEvent(this.element, aOffsetX, aOffsetY, aEvent,
-                                          target, aExpectedEvent.event,
+                                          target, aExpectedEvent.type,
                                           "MozMillElement.mouseEvent()",
                                           this.element.ownerDocument.defaultView);
   } else {
