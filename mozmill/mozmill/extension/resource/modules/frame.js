@@ -377,7 +377,7 @@ events.firePythonCallback = function (obj) {
   events.fireEvent('firePythonCallback', obj);
 }
 
-events.screenShot = function (obj) {
+events.screenshot = function (obj) {
   // Find the name of the test function
   for (var attr in events.currentModule) {
     if (events.currentModule[attr] == events.currentTest) {
@@ -388,7 +388,7 @@ events.screenShot = function (obj) {
 
   obj['test_file'] = events.currentModule.__file__;
   obj['test_name'] = testName;
-  events.fireEvent('screenShot', obj);
+  events.fireEvent('screenshot', obj);
 }
 
 var log = function (obj) {
@@ -403,7 +403,7 @@ broker.addObject({'pass': events.pass,
                   'endTest': events.endTest,
                   'userShutdown': events.startUserShutdown,
                   'firePythonCallback': events.firePythonCallback,
-                  'screenShot': events.screenShot});
+                  'screenshot': events.screenshot});
 
 try {
   var jsbridge = {}; Cu.import('resource://jsbridge/modules/events.js', jsbridge);

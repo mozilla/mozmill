@@ -7,12 +7,16 @@ var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler",
                         "runFile", "getWindowByTitle", "getWindowByType", "getWindowId",
                         "tempfile", "getMethodInWindows", "getPreference", "setPreference",
                         "sleep", "assert", "unwrapNode", "TimeoutError", "waitFor",
-                        "takeScreenshot",
+                        "saveScreenshot", "takeScreenshot",
                        ];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
+
+
+Cu.import("resource://gre/modules/NetUtil.jsm");
+
 
 var hwindow = Cc["@mozilla.org/appshell/appShellService;1"]
               .getService(Ci.nsIAppShellService).hiddenDOMWindow;
@@ -461,7 +465,7 @@ function getChromeOffset(elem) {
 /**
  * Takes a screenshot of the specified DOM node 
  */
-function takeScreenshot(node, name, highlights) {
+function takeScreenshot(node, highlights) {
   var rect, win, width, height, left, top, needsOffset;
   // node can be either a window or an arbitrary DOM node
   try {
@@ -519,37 +523,39 @@ function takeScreenshot(node, name, highlights) {
     }
   }
 
-  // if there is a name save the file, else return dataURL
-  var dataURL = canvas.toDataURL("image/jpeg", 0.5);
-  return (name ? saveImage(dataURL, name)
-               : dataURL);
+  return canvas.toDataURL("image/jpeg", 0.5);
 }
 
 /**
  * Takes a canvas as input and saves it to the file tempdir/name.png
  * Returns the filepath of the saved file
  */
-function saveImage(dataURL, name) {
-  var file = Cc["@mozilla.org/file/directory_service;1"]
-             .getService(Ci.nsIProperties).get("TmpD", Ci.nsIFile);
+function saveScreenshot(aDataURL, aFilename, aCallback) {
+  const FILE_PERMISSIONS = parseInt("0644", 8);
+
+  let file = Cc["@mozilla.org/file/directory_service;1"]
+             .getService(Ci.nsIProperties).get("TmpD", Ci.nsILocalFile);
   file.append("mozmill_screenshots");
-  file.append(name + ".jpg");
-  file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, 0666);
+  file.append(aFilename + ".jpg");
+  file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, FILE_PERMISSIONS);
 
-  // create URIs of the source and targets
-  var io = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
-  var source = io.newURI(dataURL, "UTF8", null);
-  var target = io.newFileURI(file);
+  // Create an output stream to write to file
+  var foStream = Cc["@mozilla.org/network/file-output-stream;1"]
+                 .createInstance(Ci.nsIFileOutputStream);
+  foStream.init(file, 0x02 | 0x08 | 0x10, FILE_PERMISSIONS, foStream.DEFER_OPEN);
 
-  // prepare to save the image data
-  var persist = Cc["@mozilla.org/embedding/browser/nsWebBrowserPersist;1"]
-                .createInstance(Ci.nsIWebBrowserPersist);
+  // Write asynchronously to buffer;
+  // Input and output streams are closed after write
+  let converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
+                  .createInstance(Ci.nsIScriptableUnicodeConverter);
+  converter.charset = "UTF-8";
 
-  persist.persistFlags = Ci.nsIWebBrowserPersist.PERSIST_FLAGS_REPLACE_EXISTING_FILES;
-  persist.persistFlags |= Ci.nsIWebBrowserPersist.PERSIST_FLAGS_AUTODETECT_APPLY_CONVERSION;
-
-  // save the image data to the file
-  persist.saveURI(source, null, null, null, null, file);
+  var iStream = converter.convertToInputStream(aDataURL);
+  NetUtil.asyncCopy(iStream, foStream, function (status) {
+    if (typeof(aCallback) === "function") {
+      aCallback(status);
+    }
+  });
 
   return file.path;
 }

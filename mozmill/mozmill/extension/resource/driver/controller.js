@@ -363,7 +363,7 @@ MozMillController.prototype.open = function (url) {
  * @returns {Object} Object which contains properties like filename, dataURL,
  *          name and timestamp of the screenshot
  */
-MozMillController.prototype.screenShot = function _screenShot(node, name, save, highlights) {
+MozMillController.prototype.screenshot = function _screenshot(node, name, save, highlights) {
   if (!node) {
     throw new Error("node is undefined");
   }
@@ -383,28 +383,41 @@ MozMillController.prototype.screenShot = function _screenShot(node, name, save, 
 
   // If save is false, a dataURL is used
   // Include both in the report anyway to avoid confusion and make the report easier to parse
-  var filepath, dataURL;
-  try {
-    if (save) {
-      filepath = utils.takeScreenshot(node, name, highlights);
-    } else {
-      dataURL = utils.takeScreenshot(node, undefined, highlights);
-    }
-  } catch (e) {
-    throw new Error("controller.screenShot() failed: " + e);
+  var screenshot = {"filename": undefined,
+                    "dataURL": utils.takeScreenshot(node, highlights),
+                    "name": name,
+                    "timestamp": new Date().toLocaleString()};
+
+  if (!save) {
+    return screenshot;
   }
 
-  // Report object
-  var obj = {"filepath": filepath,
-             "dataURL": dataURL,
-             "name": name,
-             "timestamp": new Date().toLocaleString()};
+  // Save the screenshot to disk
+  let ready = false;
+  let failure = false;
 
-  // Send the screenshot object to python over jsbridge
-  broker.sendMessage("screenShot", obj);
-  broker.pass({'function': 'controller.screenShot()'});
+  function sync(status) {
+    if (!Components.isSuccessCode(status))
+      failure = true;
+    ready = true;
+  }
 
-  return obj;
+  // Save screenshot to disk and wait for ansynchronous action to be completed
+  screenshot.filename = utils.saveScreenshot(screenshot.dataURL, name, sync);
+  waitFor(function () {
+    return ready;
+  }, "Screenshot '" + screenshot.filename + "' has been saved.");
+
+  if (failure) {
+    broker.log({'function': 'controller.screenshot()',
+                'message': 'Error writing to file: ' + screenshot.filename});
+  } else {
+    // Send the screenshot object to python over jsbridge
+    broker.sendMessage("screenshot", screenshot);
+    broker.pass({'function': 'controller.screenshot()'});
+  }
+
+  return screenshot;
 }
 
 /**
