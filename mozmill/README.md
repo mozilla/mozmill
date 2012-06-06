@@ -229,7 +229,7 @@ There is API documentation for the Mozmill JavaScript tests.
 - [elementslib object reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Elements_Library_Object)
   (*deprecated in Mozmill 2.0* - see 
   [finding mozmill elements](https://developer.mozilla.org/en/Mozmill/Finding_Mozmill_Elements))
-- [jum API reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Unit_Test_Framework) (*deprecated in Mozmill 2.0*)
+- [assertions API reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Unit_Test_Framework)
 
 
 # Finding and Reporting Bugs
