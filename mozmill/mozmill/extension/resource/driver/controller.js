@@ -363,7 +363,7 @@ MozMillController.prototype.open = function (url) {
  * @returns {Object} Object which contains properties like filename, dataURL,
  *          name and timestamp of the screenshot
  */
-MozMillController.prototype.screenshot = function _screenshot(node, name, save, highlights) {
+MozMillController.prototype.screenshot = function (node, name, save, highlights) {
   if (!node) {
     throw new Error("node is undefined");
   }
