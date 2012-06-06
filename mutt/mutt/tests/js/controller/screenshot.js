@@ -17,24 +17,11 @@ var testContentScreenshot = function () {
   let content = findElement.ID(controller.tabs.activeTab, "content");
   let project = findElement.ID(controller.tabs.activeTab, "project");
 
-  //var mngb = findElement.ID(controller.tabs.activeTab, "mngb");
-  //var gb_1 = findElement.ID(controller.tabs.activeTab, "gb_1");
-  //var lga = findElement.ID(controller.tabs.activeTab, "lga");
-  //var about = findElement.Link(controller.tabs.activeTab, "About Google");
-
-  let obj = controller.screenShot(controller.window, "screen1", false, [content, project]);
-
-  controller.open(obj.dataURL);
-  controller.waitForPageLoad();
-  controller.sleep(1000);
-  
-  //controller.screenShot(mngb, "screen2", true, [gb_1]);
-  //controller.screenShot(lga, "screen3", true, [about]);
+  controller.screenShot(controller.window, "screen1", false, [content, project]);
 }
 
 // screenshots of top chrome
 var testChromeScreenshot = function() {
-  return;
   var toolbox = findElement.ID(controller.window.document, "navigator-toolbox");
   var tabs = findElement.ID(controller.window.document, "tabbrowser-tabs");
 
