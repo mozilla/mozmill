@@ -164,8 +164,8 @@ JavaScript test or otherwise utilized.
 
 
 See the `mutt` 
-[test_python_callbacks.js test](https://github.com/mozautomation/mozmill/blob/master/mutt/mutt/tests/js/test_python_callbacks.js)
-and accompanying [tests_python_callbacks.py](https://github.com/mozautomation/mozmill/blob/master/mutt/mutt/tests/js/test_python_callbacks.py)
+[python_callbacks.js test](https://github.com/mozautomation/mozmill/blob/master/mutt/mutt/tests/js/frame/python_callback.js)
+and accompanying [python_callbacks.py](https://github.com/mozautomation/mozmill/blob/master/mutt/mutt/tests/js/frame/python_callback.py)
 for an example.
 
 It is important for successful runs that the python callback is fired
@@ -229,7 +229,7 @@ There is API documentation for the Mozmill JavaScript tests.
 - [elementslib object reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Elements_Library_Object)
   (*deprecated in Mozmill 2.0* - see 
   [finding mozmill elements](https://developer.mozilla.org/en/Mozmill/Finding_Mozmill_Elements))
-- [jum API reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Unit_Test_Framework) (*deprecated in Mozmill 2.0*)
+- [assertions API reference](https://developer.mozilla.org/en/Mozmill/Mozmill_Unit_Test_Framework)
 
 
 # Finding and Reporting Bugs

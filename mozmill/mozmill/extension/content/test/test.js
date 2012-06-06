@@ -1,16 +1,16 @@
-function drop(event) {
+var drop = function (event) {
   var item = document.getElementById("item1");
   item.parentNode.removeChild(item);
 }
 
-function dragStart(event) {
+var dragStart = function (event) {
   event.dataTransfer.setData("text/test-type", "test data");
 }
 
-function dragOver(event) {
+var dragOver = function (event) {
   event.preventDefault();
 }
 
-function dragEnter(event) {
+var dragEnter = function (event) {
   event.preventDefault();
 }
