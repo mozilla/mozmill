@@ -616,8 +616,6 @@ class CLI(mozrunner.CLI):
             cmdargs.append('-jsconsole')
         if '-jsbridge' not in cmdargs:
             cmdargs += ['-jsbridge', '%d' % self.options.port]
-        if '-foreground' not in cmdargs:
-            cmdargs.append('-foreground')
         return cmdargs
 
     def run(self):
