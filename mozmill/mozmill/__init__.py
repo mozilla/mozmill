@@ -12,6 +12,7 @@ except:
     import simplejson as json
 
 import jsbridge
+import mozinfo
 import manifestparser
 import mozrunner
 import mozprofile
@@ -655,13 +656,14 @@ class CLI(mozrunner.CLI):
 
         # run the tests
         exception = None # runtime exception
+        tests = self.manifest.active_tests(**mozinfo.info)
         try:
             if self.options.restart:
-                for test in self.manifest.tests:
+                for test in tests:
                     mozmill.run(test)
                     runner.reset() # reset the profile
             else:
-                mozmill.run(*self.manifest.tests)
+                mozmill.run(*tests)
         except:
             exception_type, exception, tb = sys.exc_info()
 
