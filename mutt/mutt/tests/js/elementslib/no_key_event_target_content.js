@@ -16,14 +16,14 @@ var test = function () {
   controller.waitForPageLoad();
 
   let textbox = new elementslib.ID(controller.tabs.activeTab, "fname");
+
+  // Focus the textbox first
   controller.click(textbox);
-  assert.equal(textbox.getNode(), controller.tabs.activeTab.activeElement,
-               "Textbox has been focused.");
 
   controller.keypress(null, "t", { });
   expect.equal(textbox.getNode().value, "t", "keypress added letter to textbox.");
   textbox.getNode().value = "";
 
   controller.type(null, "Firefox");
-  expect.equal(textbox.getNode().value, "Fire", "sendKeys added letters to textbox.");
+  expect.equal(textbox.getNode().value, "Firefox", "sendKeys added letters to textbox.");
 }

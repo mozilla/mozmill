@@ -325,7 +325,7 @@ var MozMillController = function (window) {
 MozMillController.prototype.__defineGetter__("rootElement", function () {
   if (this._rootElement == undefined) {
     this._rootElement = new mozelement.MozMillElement(undefined, undefined,
-                                                      {'element': this.window.document.documentElement});
+                                                      {'element': this.window});
   }
 
   return this._rootElement;
@@ -1073,7 +1073,7 @@ MozMillController.prototype.select = function (elem, index, option, value) {
 MozMillController.prototype.keypress = function (aTarget, aKey, aModifiers, aExpectedEvent) {
   logDeprecated("controller.keypress", "Use the MozMillElement object.");
 
-  if (aTarget == null) {
+  if (aTarget === null) {
     aTarget = this.rootElement;
   }
 
