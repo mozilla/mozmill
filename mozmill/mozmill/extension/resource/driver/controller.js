@@ -399,6 +399,8 @@ MozMillController.prototype.screenShot = function _screenShot(node, name, save, 
   // Send the screenshot object to python over jsbridge
   broker.sendMessage("screenShot", obj);
   broker.pass({'function': 'controller.screenShot()'});
+
+  return obj;
 }
 
 /**
