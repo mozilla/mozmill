@@ -460,7 +460,7 @@ MozMillController.prototype.startUserShutdown = function (timeout, restart, next
                                       'restart': Boolean(restart),
                                       'next': next,
                                       'resetProfile': Boolean(resetProfile)});
-  this.window.setTimeout(broker.sendMessage, timeout, 'userShutdown', 0);
+  this.window.setTimeout(broker.sendMessage, timeout, 'userShutdown', { });
 }
 
 MozMillController.prototype.restartApplication = function (next, resetProfile) {
