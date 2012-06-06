@@ -6,7 +6,7 @@ var setupModule = function () {
   controller = mozmill.getBrowserController();
 }
 
-// This test should fail and then exit with a 'Disconnect Error'
+// This test should fail
 var testRestartAfterTimeout = function () {
   controller.startUserShutdown(1000, true);
   controller.sleep(2000);
