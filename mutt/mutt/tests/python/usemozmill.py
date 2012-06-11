@@ -14,11 +14,8 @@ class ModuleTest(unittest.TestCase):
 
     def do_test(self, relative_test_path, passes = 0, fails = 0, skips = 0):
         testpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), relative_test_path)
-        print "this is testpath: %s" % testpath
-        
         test = [{'path': testpath}]
         log_file = tempfile.mktemp(suffix='.txt')
-        print "this is logfile: %s" % log_file
         logger = LoggerListener(log_file=log_file, file_level="DEBUG", debug=True)
         m = mozmill.MozMill.create(handlers=(logger,), runner_args={'cmdargs':['-console']})
         results = m.run(*test)

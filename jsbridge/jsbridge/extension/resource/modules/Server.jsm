@@ -2,26 +2,31 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this file,
  * You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var EXPORTED_SYMBOLS = ["Server", "Session", "sessions", "startServer"];
+var EXPORTED_SYMBOLS = ["Server"];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-var socket = {}; Cu.import("resource://jsbridge/modules/nspr-socket.js", socket);
-var bridge = {}; Cu.import("resource://jsbridge/modules/bridge.js", bridge);
 
-var hwindow = Cc["@mozilla.org/appshell/appShellService;1"].
-              getService(Ci.nsIAppShellService).hiddenDOMWindow;
+// Import local JS modules
+Cu.import("resource://jsbridge/modules/Bridge.jsm");
+Cu.import("resource://jsbridge/modules/Log.jsm");
+Cu.import("resource://jsbridge/modules/Sockets.jsm");
 
-backstage = this;
 
-function Session(client) {
+// Reference to module which is needed for backstage access
+const module = this;
+
+
+var Server = { };
+
+
+Server.Session = function (client) {
   this.client = client;
 
-  var sandbox = Cu.Sandbox(backstage);
-  sandbox.bridge = new bridge.Bridge(this);
-  sandbox.openPreferences = hwindow.openPreferences;
+  var sandbox = Cu.Sandbox(module);
+  sandbox.bridge = new Bridge(this);
 
   client.onMessage(function (data) {
     data = toUnicode(data, "utf-8");
@@ -29,18 +34,18 @@ function Session(client) {
   });
 }
 
-Session.prototype.send = function (string) {
+Server.Session.prototype.send = function (string) {
   if (typeof(string) != "string")
     throw "jsbridge can only send strings";
 
   this.client.sendMessage(toUnicode(string, 'utf-8'));
 };
 
-Session.prototype.quit = function () {
+Server.Session.prototype.quit = function () {
   this.client.close();
 };
 
-Session.prototype.encodeOut = function (obj) {
+Server.Session.prototype.encodeOut = function (obj) {
   try {
     this.send(JSON.stringify(obj));
   } catch (e) {
@@ -54,6 +59,33 @@ Session.prototype.encodeOut = function (obj) {
                               'exception': exception}));
   }
 };
+
+/**
+ *
+ * @param port
+ * @constructor
+ */
+Server.Server = function (port) {
+  this._port = port;
+  this._socket = new Sockets.ServerSocket(this._port);
+}
+
+Server.Server.prototype = {
+  start: function () {
+    Log.dump("Start server on port", this._port);
+
+    this._socket.onConnect(function (client) {
+      sessions.add(new Server.Session(client));
+    });
+  },
+
+  stop: function () {
+    this._socket.close();
+    sessions.quit();
+    this._socket = undefined;
+  }
+};
+
 
 var sessions = {
   _list: [],
@@ -81,32 +113,10 @@ var sessions = {
   }
 };
 
-var Server = function (port) {
-  this.server = new socket.ServerSocket(port);
-}
-
-Server.prototype.start = function () {
-  this.server.onConnect(function (client) {
-    sessions.add(new Session(client));
-  });
-};
-
-Server.prototype.stop = function () {
-  this.server.close();
-  sessions.quit();
-  this.server = undefined;
-};
-
-function startServer(port) {
-  var server = new Server(port);
-  server.start();
-
-  return server;
-}
 
 var toUnicode = function (text, charset) {
-  var converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].
-                  createInstance(Ci.nsIScriptableUnicodeConverter);
+  let converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"].
+    createInstance(Ci.nsIScriptableUnicodeConverter);
   converter.charset = charset;
   text = converter.ConvertToUnicode(text);
 
