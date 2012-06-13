@@ -301,6 +301,9 @@ class MozMill(object):
             frame = self.start_runner()
             self.run_test_file(frame, path, nextTest)
 
+        return frame
+
+
     def run_tests(self, *tests):
         """run test files"""
         tests = list(tests)
@@ -331,7 +334,7 @@ class MozMill(object):
                 if not started:
                     frame = self.start_runner()
                     started = True
-                self.run_test_file(frame, test['path'])
+                frame = self.run_test_file(frame, test['path'])
             except JSBridgeDisconnectError:
                 if self.shutdownMode:
                     # if the test initiates shutdown and there are other tests
