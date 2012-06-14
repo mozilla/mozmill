@@ -149,9 +149,12 @@ class Bridge(Telnet):
         self.register()
 
     def run(self, _uuid, exec_string, interval=.2, raise_exeption=True):
-
         exec_string += '\r\n'
-        self.send(exec_string)
+        try:
+            self.send(exec_string)
+        except Exception,e:
+            print str(e)
+            print "String: %s" % exec_string
 
         while _uuid not in self.callbacks.keys():
 
@@ -273,5 +276,5 @@ def create_network(hostname, port):
         thread = Thread(target=do)
         getattr(thread, 'setDaemon', lambda x : None)(True)
         thread.start()
-    
+
     return back_channel, bridge
