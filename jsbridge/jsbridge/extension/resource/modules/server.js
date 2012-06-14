@@ -21,7 +21,6 @@
 // Contributor(s):
 //  Mikeal Rogers <mikeal.rogers@gmail.com>
 //  Massimiliano Mirra <bard@hyperstruct.net>
-//  Henrik Skupin <mail@hskupin.info>
 //
 // Alternatively, the contents of this file may be used under the terms of
 // either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -61,15 +60,11 @@ var uuidgen = Components.classes["@mozilla.org/uuid-generator;1"]
 function AsyncRead (session) {
   this.session = session;
 }
-
-AsyncRead.prototype.onStartRequest = function (request, context) {
-}
-
+AsyncRead.prototype.onStartRequest = function (request, context) {};
 AsyncRead.prototype.onStopRequest = function (request, context, status) {
   log("async onstoprequest: onstoprequest");
   this.session.onQuit();
 }
-
 AsyncRead.prototype.onDataAvailable = function (request, context, inputStream, offset, count) {
   var str = {};
   str.value = '';
@@ -311,32 +306,25 @@ var sessions = {
 function Server (port) {
   this.port = port;
 }
-
 Server.prototype.start = function () {
   try {
     this.serv = Cc['@mozilla.org/network/server-socket;1']
-                .createInstance(Ci.nsIServerSocket);
+        .createInstance(Ci.nsIServerSocket);
     this.serv.init(this.port, true, -1);
     this.serv.asyncListen(this);
-
-    log('jsbridge: Server started on port ' + this.port);
-  }
-  catch (e) {
+  } catch(e) {
     log('jsbridge: Exception: ' + e);
   }    
 }
-
 Server.prototype.stop = function () {
     log('jsbridge: Closing...');
     this.serv.close();
     this.sessions.quit();
     this.serv = undefined;
 }
-
 Server.prototype.onStopListening = function (serv, status) {
 // Stub function
 }
-
 Server.prototype.onSocketAccepted = function (serv, transport) {
   session = new Session(transport)
   sessions.add(session);

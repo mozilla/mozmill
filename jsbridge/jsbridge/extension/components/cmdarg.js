@@ -51,7 +51,6 @@ function openWindow(aChromeURISpec, aArgument)
  */
 function jsbridgeHandler() {
 }
-
 jsbridgeHandler.prototype = {
   classID: clh_CID,
   contractID: clh_contractID,
@@ -70,22 +69,25 @@ jsbridgeHandler.prototype = {
   },
 
   /* nsICommandLineHandler */
+
   handle : function clh_handle(cmdLine)
   {
     try {
-      var port = parseInt(cmdLine.handleFlagWithParam("jsbridge", false));
-
-      // port is null if flag has not been found
+      var port = cmdLine.handleFlagWithParam("jsbridge", false);
       if (port) {
         var server = {};
         Components.utils.import('resource://jsbridge/modules/server.js', server);
-
-        server.startServer(port);
+        server.startServer(parseInt(port));
+      } else {
+        var server = {};
+        Components.utils.import('resource://jsbridge/modules/server.js', server);
+        server.startServer(24242);
       }
     }
     catch (e) {
-      Components.utils.reportError("No parameter found for the -jsbridge flag.");
+      Components.utils.reportError("incorrect parameter passed to -jsbridge on the command line.");
     }
+
   },
 
   // CHANGEME: change the help info as appropriate, but

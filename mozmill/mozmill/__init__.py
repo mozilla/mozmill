@@ -20,7 +20,7 @@
 #
 # Contributor(s):
 #  Mikeal Rogers <mikeal.rogers@gmail.com>
-#  Henrik Skupin <mail@hskupin.info>
+#  Henrik Skupin <hskupin@mozilla.com>
 #  Clint Talbert <ctalbert@mozilla.com>
 #
 # Alternatively, the contents of this file may be used under the terms of
@@ -125,7 +125,7 @@ class MozMill(object):
     def __init__(self,
                  runner_class=mozrunner.FirefoxRunner, 
                  profile_class=mozrunner.FirefoxProfile,
-                 jsbridge_port=None,
+                 jsbridge_port=24242,
                  jsbridge_timeout=60):
         """
         - runner_class : which mozrunner class to use
@@ -136,7 +136,7 @@ class MozMill(object):
         
         self.runner_class = runner_class
         self.profile_class = profile_class
-        self.jsbridge_port = jsbridge_port or jsbridge.find_port()
+        self.jsbridge_port = jsbridge_port
         self.jsbridge_timeout = jsbridge_timeout
 
         self.passes = [] ; self.fails = [] ; self.skipped = []
@@ -216,12 +216,10 @@ class MozMill(object):
         if not profile:
             profile = self.profile_class(addons=[jsbridge.extension_path, extension_path])
         self.profile = profile
-
+        
         if not runner:
-            runner = self.runner_class(profile=self.profile)
-
-        if not '-jsbridge' in runner.cmdargs:
-            runner.cmdargs += ['-jsbridge', '%s' % self.jsbridge_port]
+            runner = self.runner_class(profile=self.profile, 
+                                       cmdargs=["-jsbridge", str(self.jsbridge_port)])
 
         self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
         self.runner = runner
@@ -551,13 +549,10 @@ class MozMillRestart(MozMill):
         if not profile:
             profile = self.profile_class(addons=[jsbridge.extension_path, extension_path])
         self.profile = profile
-
+        
         if not runner:
-            runner = self.runner_class(profile=self.profile)
-
-        if not '-jsbridge' in runner.cmdargs:
-            runner.cmdargs += ['-jsbridge', '%s' % self.jsbridge_port]
-
+            runner = self.runner_class(profile=self.profile, 
+                                       cmdargs=["-jsbridge", str(self.jsbridge_port)])
         self.runner = runner
         self.endRunnerCalled = False
         self.add_listener(self.firePythonCallback_listener, eventType='mozmill.firePythonCallback')
@@ -733,7 +728,7 @@ class CLI(jsbridge.CLI):
         jsbridge.CLI.__init__(self, *args, **kwargs)
         self.mozmill = self.mozmill_class(runner_class=mozrunner.FirefoxRunner,
                                           profile_class=mozrunner.FirefoxProfile,
-                                          jsbridge_port=self.options.port,
+                                          jsbridge_port=int(self.options.port),
                                           jsbridge_timeout=self.options.timeout,
                                           )
 
