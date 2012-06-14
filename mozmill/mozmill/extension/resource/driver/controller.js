@@ -324,8 +324,8 @@ var MozMillController = function (window) {
 // constructs a MozMillElement from the controller's window
 MozMillController.prototype.__defineGetter__("rootElement", function () {
   if (this._rootElement == undefined) {
-    this._rootElement = new mozelement.MozMillElement(undefined, undefined,
-                                                      {'element': this.window});
+    let docElement = this.window.document.documentElement;
+    this._rootElement = new mozelement.MozMillElement("Elem", docElement);
   }
 
   return this._rootElement;
@@ -1093,7 +1093,7 @@ MozMillController.prototype.keypress = function (aTarget, aKey, aModifiers, aExp
   logDeprecated("controller.keypress", "Use the MozMillElement object.");
 
   if (aTarget === null) {
-    aTarget = this.rootElement;
+    aTarget = new mozelement.MozMillElement("Elem", this.window);
   }
 
   return aTarget.keypress(aKey, aModifiers, aExpectedEvent);
@@ -1102,8 +1102,8 @@ MozMillController.prototype.keypress = function (aTarget, aKey, aModifiers, aExp
 MozMillController.prototype.type = function (aTarget, aText, aExpectedEvent) {
   logDeprecated("controller.type", "Use the MozMillElement object.");
 
-  if (aTarget == null) {
-    aTarget = this.rootElement;
+  if (aTarget === null) {
+    aTarget = new mozelement.MozMillElement("Elem", this.window);
   }
 
   var that = this;

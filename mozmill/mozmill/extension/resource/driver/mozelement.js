@@ -98,8 +98,7 @@ MozMillElement.prototype.__defineGetter__("element", function () {
   if (this._element == undefined) {
     if (elementslib[this._locatorType]) {
       this._element = elementslib[this._locatorType](this._document, this._locator);
-    }
-    else if (this._locatorType == "Elem") {
+    } else if (this._locatorType == "Elem") {
       this._element = this._locator;
     } else {
       throw new Error("Unknown locator type: " + this._locatorType);
