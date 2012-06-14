@@ -6,9 +6,5 @@ var setupModule = function () {
   controller = mozmill.getBrowserController();
 }
 
-// This test should fail
-var testRestartAfterTimeout = function () {
-  controller.startUserShutdown(1000, true);
-  controller.sleep(2000);
-  controller.window.Application.restart();
+var testOne = function () {
 }

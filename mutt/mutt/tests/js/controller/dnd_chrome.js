@@ -16,5 +16,5 @@ var test = function () {
   controller.dragToElement(bar, box);
 
   // successful drop makes bar disappear 
-  controller.assertNodeNotExist(bar);
+  expect.ok(!bar.exists(), "Element 'bar' no longer exists");
 }

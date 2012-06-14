@@ -12,6 +12,7 @@ except:
     import simplejson as json
 
 import jsbridge
+import mozinfo
 import manifestparser
 import mozrunner
 import mozprofile
@@ -159,7 +160,7 @@ class MozMill(object):
         self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
         self.add_listener(self.startTest_listener, eventType='mozmill.setTest')
         self.add_listener(self.userShutdown_listener, eventType='mozmill.userShutdown')
-        self.add_listener(self.screenShot_listener, eventType='mozmill.screenShot');
+        self.add_listener(self.screenshot_listener, eventType='mozmill.screenshot');
 
         # add listeners for event handlers
         self.handlers = [self.results]
@@ -208,7 +209,7 @@ class MozMill(object):
         """
         self.shutdownMode = obj
 
-    def screenShot_listener(self, obj):
+    def screenshot_listener(self, obj):
         self.results.screenshots.append(obj)
 
     def fire_event(self, event, obj):
@@ -300,6 +301,9 @@ class MozMill(object):
             frame = self.start_runner()
             self.run_test_file(frame, path, nextTest)
 
+        return frame
+
+
     def run_tests(self, *tests):
         """run test files"""
         tests = list(tests)
@@ -330,7 +334,7 @@ class MozMill(object):
                 if not started:
                     frame = self.start_runner()
                     started = True
-                self.run_test_file(frame, test['path'])
+                frame = self.run_test_file(frame, test['path'])
             except JSBridgeDisconnectError:
                 if self.shutdownMode:
                     # if the test initiates shutdown and there are other tests
@@ -616,8 +620,6 @@ class CLI(mozrunner.CLI):
             cmdargs.append('-jsconsole')
         if '-jsbridge' not in cmdargs:
             cmdargs += ['-jsbridge', '%d' % self.options.port]
-        if '-foreground' not in cmdargs:
-            cmdargs.append('-foreground')
         return cmdargs
 
     def run(self):
@@ -655,13 +657,14 @@ class CLI(mozrunner.CLI):
 
         # run the tests
         exception = None # runtime exception
+        tests = self.manifest.active_tests(**mozinfo.info)
         try:
             if self.options.restart:
-                for test in self.manifest.tests:
+                for test in tests:
                     mozmill.run(test)
                     runner.reset() # reset the profile
             else:
-                mozmill.run(*self.manifest.tests)
+                mozmill.run(*tests)
         except:
             exception_type, exception, tb = sys.exc_info()
 
