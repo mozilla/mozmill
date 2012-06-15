@@ -10,11 +10,13 @@ const Ci = Components.interfaces;
 const Cu = Components.utils;
 
 
-// Import global JS modules
-Cu.import("resource://gre/modules/Services.jsm");
-
 // Import local JS modules
 Cu.import("resource://jsbridge/modules/NSPR.jsm");
+
+
+// Services.appShell is not defined for Firefox 10 ESR
+var gAppShell = Cc["@mozilla.org/appshell/appShellService;1"]
+                .getService(Ci.nsIAppShellService)
 
 
 var Sockets = { };
@@ -46,7 +48,7 @@ Sockets.Client.prototype = {
         return;
       }
 
-      Services.appShell.hiddenDOMWindow.setTimeout(getMessage, interval);
+      gAppShell.hiddenDOMWindow.setTimeout(getMessage, interval);
     })();
   },
 
@@ -114,7 +116,7 @@ Sockets.ServerSocket.prototype = {
       if (!newfd.isNull())
         callback(new Sockets.Client(newfd));
 
-      Services.appShell.hiddenDOMWindow.setTimeout(accept, interval);
+      gAppShell.hiddenDOMWindow.setTimeout(accept, interval);
     })();
   },
 
