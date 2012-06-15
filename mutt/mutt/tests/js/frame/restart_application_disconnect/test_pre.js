@@ -7,7 +7,7 @@ var setupTest = function () {
 }
 
 var testOne = function () {
-  controller.restartApplication('testTwo');
+  controller.restartApplication('testTwo', true);
 }
 
 var testTwo = function () {

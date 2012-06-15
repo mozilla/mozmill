@@ -32,7 +32,6 @@ package_metadata = get_metadata_from_egg('mozmill')
 
 # defaults
 ADDONS = [extension_path, jsbridge.extension_path]
-JSBRIDGE_PORT = 24242
 JSBRIDGE_TIMEOUT = 60. # timeout for jsbridge
 
 class TestResults(object):
@@ -99,35 +98,46 @@ class MozMill(object):
     """
 
     @classmethod
-    def create(cls, results=None, jsbridge_port=JSBRIDGE_PORT, jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=(),
+    def create(cls, results=None, jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=(),
                app='firefox', profile_args=None, runner_args=None):
+
+        jsbridge_port = jsbridge.find_port()
 
         # select runner and profile class for the given app
         try:
             runner_class = mozrunner.runners[app]
         except KeyError:
-            raise NotImplementedError('Application "%s" unknown (should be one of %s)' % (app, mozrunner.runners.keys()))
+            raise NotImplementedError('Application "%s" unknown (should be one of %s)' %
+                                      (app, mozrunner.runners.keys()))
 
         # get the necessary arguments to construct the profile and runner instance
         profile_args = profile_args or {}
-        runner_args = runner_args or {}
         profile_args.setdefault('addons', []).extend(ADDONS)
-        cmdargs = runner_args.setdefault('cmdargs', [])
-        if '-jsbridge' not in cmdargs:
-            cmdargs += ['-jsbridge', '%d' % jsbridge_port]
+
+        preferences = profile_args.setdefault('preferences', { })
+        if isinstance(preferences, dict):
+            preferences['extensions.jsbridge.port'] = jsbridge_port
+        elif isinstance(preferences, list):
+            preferences.append(('extensions.jsbridge.port', jsbridge_port))
+        else:
+            raise Exception('Invalid type for preferences in profile_args')
+
+        runner_args = runner_args or {}
         runner_args['profile_args'] = profile_args
 
         # create an equipped runner
         runner = runner_class.create(**runner_args)
 
         # create a mozmill
-        return cls(runner, results=results, jsbridge_port=jsbridge_port, jsbridge_timeout=jsbridge_timeout, handlers=handlers)
+        return cls(runner, jsbridge_port, results=results,
+                   jsbridge_timeout=jsbridge_timeout, handlers=handlers)
 
-    def __init__(self, runner, results=None, jsbridge_port=JSBRIDGE_PORT, jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=()):
+    def __init__(self, runner, jsbridge_port, results=None,
+                 jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=()):
         """
         - runner : a MozRunner instance to run the app
+        - jsbridge_port : The port the server is running on
         - results : a TestResults instance to accumulate results
-        - jsbridge_port : port jsbridge uses to connect to to the application
         - jsbridge_timeout : how long to go without jsbridge communication
         - handlers : pluggable event handler
         """
@@ -233,7 +243,6 @@ class MozMill(object):
         # get the bridge and the back-channel
         self.back_channel, self.bridge = jsbridge.wait_and_create_network("127.0.0.1",
                                                                           self.jsbridge_port)
-
         # set a timeout on jsbridge actions in order to ensure termination
         self.back_channel.timeout = self.bridge.timeout = self.jsbridge_timeout
 
@@ -495,6 +504,8 @@ class CLI(mozrunner.CLI):
             name = getattr(handler_class, 'name', handler_class.__name__)
             self.handlers[name] = handler_class
 
+        self.jsbridge_port = jsbridge.find_port()
+
         # add and parse options
         mozrunner.CLI.__init__(self, args)
 
@@ -570,9 +581,6 @@ class CLI(mozrunner.CLI):
                          action="store_true",
                          help="debug mode",
                          default=False)
-        group.add_option('-P', '--port', dest="port", type="int",
-                         default=JSBRIDGE_PORT,
-                         help="TCP port to run jsbridge on.")
         group.add_option('--list-tests', dest='list_tests',
                          action='store_true', default=False,
                          help="list test files that would be run, in order")
@@ -605,11 +613,15 @@ class CLI(mozrunner.CLI):
         profile_args = mozrunner.CLI.profile_args(self)
         profile_args.setdefault('addons', []).extend(ADDONS)
 
+        profile_args['preferences'] = {
+            'extensions.jsbridge.port': self.jsbridge_port
+        }
+
         if self.options.debug:
-            profile_args['preferences'] = {
-              'extensions.checkCompatibility': False,
-              'javascript.options.strict': True
-            }
+            profile_args['preferences']['extensions.checkCompatibility'] = False
+            profile_args['preferences']['extensions.jsbridge.log'] = True
+            profile_args['preferences']['javascript.options.strict'] = True
+
         return profile_args
 
     def command_args(self):
@@ -618,8 +630,7 @@ class CLI(mozrunner.CLI):
         cmdargs = mozrunner.CLI.command_args(self)
         if self.options.debug and '-jsconsole' not in cmdargs:
             cmdargs.append('-jsconsole')
-        if '-jsbridge' not in cmdargs:
-            cmdargs += ['-jsbridge', '%d' % self.options.port]
+
         return cmdargs
 
     def run(self):
@@ -636,8 +647,7 @@ class CLI(mozrunner.CLI):
         runner = self.create_runner()
 
         # create a MozMill
-        mozmill = MozMill(runner, results,
-                          jsbridge_port=self.options.port,
+        mozmill = MozMill(runner, self.jsbridge_port, results,
                           jsbridge_timeout=self.options.timeout,
                           handlers=self.event_handlers
                           )

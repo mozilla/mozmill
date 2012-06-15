@@ -406,17 +406,13 @@ broker.addObject({'pass': events.pass,
                   'screenshot': events.screenshot});
 
 try {
-  var jsbridge = {}; Cu.import('resource://jsbridge/modules/events.js', jsbridge);
-} catch (e) {
-  var jsbridge = null;
+  Cu.import('resource://jsbridge/modules/Events.jsm');
 
-  aConsoleService.logStringMessage("jsbridge not available.");
-}
-
-if (jsbridge) {
   events.addListener('', function (name, obj) {
-                           jsbridge.fireEvent('mozmill.' + name, obj)
-                         });
+    Events.fireEvent('mozmill.' + name, obj);
+  });
+} catch (e) {
+  aConsoleService.logStringMessage("Event module of JSBridge not available.");
 }
 
 function Collector () {

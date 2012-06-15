@@ -4,16 +4,20 @@
 
 var EXPORTED_SYMBOLS = ["Bridge"];
 
+
 const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-var events = {}; Cu.import("resource://jsbridge/modules/events.js", events);
 
+// Include local modules
+Cu.import("resource://jsbridge/modules/Events.jsm");
+Cu.import("resource://jsbridge/modules/Log.jsm");
+
+
+var globalRegistry = {};
 var uuidgen = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator);
 
-
-globalRegistry = {};
 
 function Bridge(session) {
   this.session = session;
@@ -23,11 +27,13 @@ function Bridge(session) {
 Bridge.prototype._register = function (_type) {
   this.bridgeType = _type;
 
-  if (_type == "backchannel")
-    events.addBackChannel(this);
+  if (_type === "backchannel")
+    Events.addBackChannel(this);
 };
 
 Bridge.prototype.register = function (uuid, _type) {
+  Log.dump("Register", uuid + " (" + _type + ")");
+
   try {
     this._register(_type);
     var passed = true;
@@ -74,6 +80,8 @@ Bridge.prototype._describe = function (obj) {
 };
 
 Bridge.prototype.describe = function (uuid, obj) {
+  Log.dump("Describe", uuid + ", " + obj);
+
   var response = this._describe(obj);
   response.uuid = uuid;
   response.result = true;
@@ -90,6 +98,8 @@ Bridge.prototype._set = function (obj) {
 };
 
 Bridge.prototype.set = function (uuid, obj) {
+  Log.dump("Set", uuid);
+
   var ruuid = this._set(obj);
 
   this.session.encodeOut({'result': true,
@@ -104,7 +114,8 @@ Bridge.prototype._setAttribute = function (obj, name, value) {
 };
 
 Bridge.prototype.setAttribute = function (uuid, obj, name, value) {
-  // log(uuid, String(obj), name, String(value))
+  Log.dump("Set attribute", uuid + " (" + name + "=" + value + ")");
+
   try {
     var result = this._setAttribute(obj, name, value);
   } catch (e) {
@@ -130,6 +141,8 @@ Bridge.prototype._execFunction = function (func, args) {
 };
 
 Bridge.prototype.execFunction = function (uuid, func, args) {
+  Log.dump("Exec function", uuid + " (" + func.name + ")");
+
   try {
     var data = this._execFunction(func, args);
     var result = true;
@@ -155,3 +168,4 @@ Bridge.prototype.execFunction = function (uuid, func, args) {
   else
     throw 'jsbridge could not execute function ' + func;
 };
+
