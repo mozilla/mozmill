@@ -596,8 +596,10 @@ Runner.prototype._runTestModule = function (module) {
   for (var i in module) {
     attrs.push(i);
   }
-  
+
   events.setModule(module);
+  var observer = new AppQuitObserver();
+
   module.__status__ = 'running';
   if (module.__setupModule__) { 
     events.setState('setupModule');
@@ -609,7 +611,6 @@ Runner.prototype._runTestModule = function (module) {
     var setupModulePassed = true;
   }
   if (setupModulePassed) {
-    var observer = new AppQuitObserver();
     for (var i in module.__tests__) {
       events.appQuit = false;
       var test = module.__tests__[i];
@@ -641,7 +642,6 @@ Runner.prototype._runTestModule = function (module) {
       }
       events.endTest(test)
     }
-    observer.unregister();
   } else {
     for each(var test in module.__tests__) {
       events.setTest(test);
@@ -655,8 +655,12 @@ Runner.prototype._runTestModule = function (module) {
     this.wrapper(module.__teardownModule__, module);
     events.endTest(module.__teardownModule__);
   }
+
+  observer.unregister();
+
   module.__status__ = 'done';
 }
+
 Runner.prototype.runTestModule = function (module) {
   if (module.__requirements__ != undefined && module.__force_skip__ == undefined) {
     if (!arrays.inArray(this.collector.loaded_directories, module.__root_path__)) {
