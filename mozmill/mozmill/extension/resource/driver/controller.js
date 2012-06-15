@@ -462,10 +462,10 @@ MozMillController.prototype.__defineGetter__("menus", function () {
   logDeprecated('controller.menus', 'Use controller.mainMenu instead');
 });
 
-MozMillController.prototype.waitForImage = function (elem, timeout, interval) {
+MozMillController.prototype.waitForImage = function (aElement, timeout, interval) {
   this.waitFor(function () {
-    return elem.getNode().complete == true;
-  }, "timeout exceeded for waitForImage " + elem.getInfo(), timeout, interval);
+    return aElement.getNode().complete == true;
+  }, "timeout exceeded for waitForImage " + aElement.getInfo(), timeout, interval);
 
   broker.pass({'function':'Controller.waitForImage()'});
 }
@@ -1083,119 +1083,111 @@ MozMillController.prototype.assertPropertyNotExist = function (el, attrib) {
  * The following methods have all been DEPRECATED as of Mozmill 2.0
  * Use the MozMillElement object instead (https://developer.mozilla.org/en/Mozmill/Mozmill_Element_Object)
  */
-MozMillController.prototype.select = function (elem, index, option, value) {
+MozMillController.prototype.select = function (aElement, index, option, value) {
   logDeprecated("controller.select", "Use the MozMillElement object.");
 
-  return elem.select(index, option, value); 
+  return aElement.select(index, option, value); 
 };
 
-MozMillController.prototype.keypress = function (aTarget, aKey, aModifiers, aExpectedEvent) {
+MozMillController.prototype.keypress = function (aElement, aKey, aModifiers, aExpectedEvent) {
   logDeprecated("controller.keypress", "Use the MozMillElement object.");
 
-  if (aTarget === null) {
-    aTarget = new mozelement.MozMillElement("Elem", this.window);
-  }
-
-  return aTarget.keypress(aKey, aModifiers, aExpectedEvent);
+  return aElement.keypress(aKey, aModifiers, aExpectedEvent);
 }
 
-MozMillController.prototype.type = function (aTarget, aText, aExpectedEvent) {
+MozMillController.prototype.type = function (aElement, aText, aExpectedEvent) {
   logDeprecated("controller.type", "Use the MozMillElement object.");
-
-  if (aTarget === null) {
-    aTarget = new mozelement.MozMillElement("Elem", this.window);
-  }
 
   var that = this;
   var retval = true;
   Array.forEach(aText, function (letter) {
-    if (!that.keypress(aTarget, letter, {}, aExpectedEvent)) {
+    if (!that.keypress(aElement, letter, {}, aExpectedEvent)) {
       retval = false; }
   });
 
   return retval;
 }
 
-MozMillController.prototype.mouseEvent = function (aTarget, aOffsetX, aOffsetY, aEvent, aExpectedEvent) {
+MozMillController.prototype.mouseEvent = function (aElement, aOffsetX, aOffsetY, aEvent, aExpectedEvent) {
   logDeprecated("controller.mouseEvent", "Use the MozMillElement object.");
 
-  return aTarget.mouseEvent(aOffsetX, aOffsetY, aEvent, aExpectedEvent);
+  return aElement.mouseEvent(aOffsetX, aOffsetY, aEvent, aExpectedEvent);
 }
 
-MozMillController.prototype.click = function (elem, left, top, expectedEvent) {
+MozMillController.prototype.click = function (aElement, left, top, expectedEvent) {
   logDeprecated("controller.click", "Use the MozMillElement object.");
 
-  return elem.click(left, top, expectedEvent);
+  return aElement.click(left, top, expectedEvent);
 }
 
-MozMillController.prototype.doubleClick = function (elem, left, top, expectedEvent) {
+MozMillController.prototype.doubleClick = function (aElement, left, top, expectedEvent) {
   logDeprecated("controller.doubleClick", "Use the MozMillElement object.");
 
-  return elem.doubleClick(left, top, expectedEvent);
+  return aElement.doubleClick(left, top, expectedEvent);
 }
 
-MozMillController.prototype.mouseDown = function (elem, button, left, top, expectedEvent) {
+MozMillController.prototype.mouseDown = function (aElement, button, left, top, expectedEvent) {
   logDeprecated("controller.mouseDown", "Use the MozMillElement object.");
 
-  return elem.mouseDown(button, left, top, expectedEvent);
+  return aElement.mouseDown(button, left, top, expectedEvent);
 };
 
-MozMillController.prototype.mouseOut = function (elem, button, left, top, expectedEvent) {
+MozMillController.prototype.mouseOut = function (aElement, button, left, top, expectedEvent) {
   logDeprecated("controller.mouseOut", "Use the MozMillElement object.");
 
-  return elem.mouseOut(button, left, top, expectedEvent);
+  return aElement.mouseOut(button, left, top, expectedEvent);
 };
 
-MozMillController.prototype.mouseOver = function (elem, button, left, top, expectedEvent) {
+MozMillController.prototype.mouseOver = function (aElement, button, left, top, expectedEvent) {
   logDeprecated("controller.mouseOver", "Use the MozMillElement object.");
 
-  return elem.mouseOver(button, left, top, expectedEvent);
+  return aElement.mouseOver(button, left, top, expectedEvent);
 };
 
-MozMillController.prototype.mouseUp = function (elem, button, left, top, expectedEvent) {
+MozMillController.prototype.mouseUp = function (aElement, button, left, top, expectedEvent) {
   logDeprecated("controller.mouseUp", "Use the MozMillElement object.");
 
-  return elem.mouseUp(button, left, top, expectedEvent);
+  return aElement.mouseUp(button, left, top, expectedEvent);
 };
 
-MozMillController.prototype.middleClick = function (elem, left, top, expectedEvent) {
+MozMillController.prototype.middleClick = function (aElement, left, top, expectedEvent) {
   logDeprecated("controller.middleClick", "Use the MozMillElement object.");
 
-  return elem.middleClick(elem, left, top, expectedEvent);
+  return aElement.middleClick(aElement, left, top, expectedEvent);
 }
 
-MozMillController.prototype.rightClick = function (elem, left, top, expectedEvent) {
+MozMillController.prototype.rightClick = function (aElement, left, top, expectedEvent) {
   logDeprecated("controller.rightClick", "Use the MozMillElement object.");
 
-  return elem.rightClick(left, top, expectedEvent);
+  return aElement.rightClick(left, top, expectedEvent);
 }
 
-MozMillController.prototype.check = function (elem, state) {
+MozMillController.prototype.check = function (aElement, state) {
   logDeprecated("controller.check", "Use the MozMillElement object.");
 
-  return elem.check(state);
+  return aElement.check(state);
 }
 
-MozMillController.prototype.radio = function (elem) {
+MozMillController.prototype.radio = function (aElement) {
   logDeprecated("controller.radio", "Use the MozMillElement object.");
 
-  return elem.select();
+  return aElement.select();
 }
 
-MozMillController.prototype.waitThenClick = function (elem, timeout, interval) {
+MozMillController.prototype.waitThenClick = function (aElement, timeout, interval) {
   logDeprecated("controller.waitThenClick", "Use the MozMillElement object.");
 
-  return elem.waitThenClick(timeout, interval);
+  return aElement.waitThenClick(timeout, interval);
 }
 
-MozMillController.prototype.waitForElement = function (elem, timeout, interval) {
+MozMillController.prototype.waitForElement = function (aElement, timeout, interval) {
   logDeprecated("controller.waitForElement", "Use the MozMillElement object.");
 
-  return elem.waitForElement(timeout, interval);
+  return aElement.waitForElement(timeout, interval);
 }
 
-MozMillController.prototype.waitForElementNotPresent = function (elem, timeout, interval) {
+MozMillController.prototype.waitForElementNotPresent = function (aElement, timeout, interval) {
   logDeprecated("controller.waitForElementNotPresent", "Use the MozMillElement object.");
 
-  return elem.waitForElementNotPresent(timeout, interval);
+  return aElement.waitForElementNotPresent(timeout, interval);
 }
