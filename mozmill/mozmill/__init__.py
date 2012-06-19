@@ -509,6 +509,11 @@ class CLI(mozrunner.CLI):
         # add and parse options
         mozrunner.CLI.__init__(self, args)
 
+        # Do not allow manifests and tests specified at the same time
+        if self.options.manifests and self.options.tests:
+            self.parser.error("Options %s and %s are mutually exclusive." %
+                              (self.parser.get_option('-t'), self.parser.get_option('-m')))
+
         # read tests from manifests (if any)
         self.manifest = manifestparser.TestManifest(manifests=self.options.manifests, strict=False)
 
