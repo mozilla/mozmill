@@ -1092,11 +1092,19 @@ MozMillController.prototype.select = function (aElement, index, option, value) {
 MozMillController.prototype.keypress = function (aElement, aKey, aModifiers, aExpectedEvent) {
   logDeprecated("controller.keypress", "Use the MozMillElement object.");
 
+  if (!aElement) {
+    aElement = new mozelement.MozMillElement("Elem", this.window);
+  }
+
   return aElement.keypress(aKey, aModifiers, aExpectedEvent);
 }
 
 MozMillController.prototype.type = function (aElement, aText, aExpectedEvent) {
   logDeprecated("controller.type", "Use the MozMillElement object.");
+
+  if (!aElement) {
+    aElement = new mozelement.MozMillElement("Elem", this.window);
+  }
 
   var that = this;
   var retval = true;
