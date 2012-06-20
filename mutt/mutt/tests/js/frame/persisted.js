@@ -9,7 +9,8 @@ var setupTest = function () {
 var testOne = function () {
   persisted.data = {foo: "bar"};
 
-  controller.restartApplication('testTwo');
+  controller.startUserShutdown(2000, true, 'testTwo');
+  controller.window.Application.restart();
 }
 
 var testTwo = function () {
