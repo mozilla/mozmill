@@ -4,7 +4,7 @@
 
 var EXPORTED_SYMBOLS = ["Elem", "Selector", "ID", "Link", "XPath", "Name", "Lookup",
                         "MozMillElement", "MozMillCheckBox", "MozMillRadio", "MozMillDropList",
-                        "MozMillTextBox", "subclasses",
+                        "MozMillTextBox", "subclasses"
                        ];
 
 const NAMESPACE_XUL = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
@@ -98,8 +98,7 @@ MozMillElement.prototype.__defineGetter__("element", function () {
   if (this._element == undefined) {
     if (elementslib[this._locatorType]) {
       this._element = elementslib[this._locatorType](this._document, this._locator);
-    }
-    else if (this._locatorType == "Elem") {
+    } else if (this._locatorType == "Elem") {
       this._element = this._locator;
     } else {
       throw new Error("Unknown locator type: " + this._locatorType);
@@ -186,8 +185,6 @@ MozMillElement.prototype.keypress = function (aKey, aModifiers, aExpectedEvent) 
 /**
  * Synthesize a general mouse event on the given element
  *
- * @param {ElemBase} aTarget
- *        Element which will receive the mouse event
  * @param {number} aOffsetX
  *        Relative x offset in the elements bounds to click on
  * @param {number} aOffsetY
@@ -222,8 +219,12 @@ MozMillElement.prototype.mouseEvent = function (aOffsetX, aOffsetY, aEvent, aExp
     throw new Error(arguments.callee.name + ": could not find element " + this.getInfo());
   }
 
-  // If no offset is given we will use the center of the element to click on.
+  if ("document" in this.element) {
+    throw new Error("A window cannot be a target for mouse events.");
+  }
+
   var rect = this.element.getBoundingClientRect();
+
   if (isNaN(aOffsetX)) {
     aOffsetX = rect.width / 2;
   }
@@ -233,9 +234,7 @@ MozMillElement.prototype.mouseEvent = function (aOffsetX, aOffsetY, aEvent, aExp
   }
 
   // Scroll element into view otherwise the click will fail
-  if (this.element.scrollIntoView) {
-    this.element.scrollIntoView();
-  }
+  this.element.scrollIntoView();
 
   if (aExpectedEvent) {
     // The expected event type has to be set
@@ -385,7 +384,12 @@ MozMillElement.prototype.waitThenClick = function (timeout, interval,
 // Dispatches an HTMLEvent
 MozMillElement.prototype.dispatchEvent = function (eventType, canBubble, modifiers) {
   canBubble = canBubble || true;
-  var evt = this.element.ownerDocument.createEvent('HTMLEvents');
+  modifiers = modifiers || { };
+
+  let document = 'ownerDocument' in this.element ? this.element.ownerDocument
+                                                 : this.element.document;
+
+  let evt = document.createEvent('HTMLEvents');
   evt.shiftKey = modifiers["shift"];
   evt.metaKey = modifiers["meta"];
   evt.altKey = modifiers["alt"];
