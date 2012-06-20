@@ -501,13 +501,15 @@ Collector.prototype.initTestModule = function (filename, testname) {
 }
 
 // Observer which gets notified when the application quits
-function AppQuitObserver() {
+function AppQuitObserver(aRunner) {
+  this._runner = aRunner;
   this.register();
 }
 
 AppQuitObserver.prototype = {
   observe: function (subject, topic, data) {
     events.appQuit = true;
+    this._runner.end();
   },
 
   register: function () {
@@ -575,9 +577,9 @@ Runner.prototype.wrapper = function (func, arg) {
       utils.sleep(500);
 
       if (events.userShutdown['user'] && !events.appQuit) {
-          events.fail({'function':'Runner.wrapper',
-                       'message':'Shutdown expected but none detected before end of test',
-                       'userShutdown': events.userShutdown});
+        events.fail({'function':'Runner.wrapper',
+                     'message':'Shutdown expected but none detected before end of test',
+                     'userShutdown': events.userShutdown});
       }
     }
   } catch (e) {
@@ -593,7 +595,7 @@ Runner.prototype.runTestModule = function (module) {
   events.setModule(module);
   module.__status__ = 'running';
 
-  var observer = new AppQuitObserver();
+  var observer = new AppQuitObserver(this);
 
   if (module.__setupModule__) {
     events.setState('setupModule');
