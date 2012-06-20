@@ -234,9 +234,7 @@ MozMillElement.prototype.mouseEvent = function (aOffsetX, aOffsetY, aEvent, aExp
   }
 
   // Scroll element into view otherwise the click will fail
-  if ("scrollIntoView" in this.element) {
-    this.element.scrollIntoView();
-  }
+  this.element.scrollIntoView();
 
   if (aExpectedEvent) {
     // The expected event type has to be set
@@ -386,7 +384,12 @@ MozMillElement.prototype.waitThenClick = function (timeout, interval,
 // Dispatches an HTMLEvent
 MozMillElement.prototype.dispatchEvent = function (eventType, canBubble, modifiers) {
   canBubble = canBubble || true;
-  var evt = this.element.ownerDocument.createEvent('HTMLEvents');
+  modifiers = modifiers || { };
+
+  let document = 'ownerDocument' in this.element ? this.element.ownerDocument
+                                                 : this.element.document;
+
+  let evt = document.createEvent('HTMLEvents');
   evt.shiftKey = modifiers["shift"];
   evt.metaKey = modifiers["meta"];
   evt.altKey = modifiers["alt"];
