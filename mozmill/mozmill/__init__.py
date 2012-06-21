@@ -307,8 +307,7 @@ class MozMill(object):
                 # if there is not a next test,
                 # throw the error up the chain
                 raise
-            frame = self.start_runner()
-            self.run_test_file(frame, path, nextTest)
+            frame = self.run_test_file(self.start_runner(), path, nextTest)
 
         return frame
 
