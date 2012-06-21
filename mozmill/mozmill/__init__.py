@@ -15,10 +15,9 @@ import jsbridge
 import mozinfo
 import manifestparser
 import mozrunner
-import mozprofile
 import handlers
 
-from datetime import datetime, timedelta
+from datetime import datetime
 from jsbridge.network import JSBridgeDisconnectError
 from mozrunner.utils import get_metadata_from_egg
 from optparse import OptionGroup
@@ -34,22 +33,10 @@ package_metadata = get_metadata_from_egg('mozmill')
 ADDONS = [extension_path, jsbridge.extension_path]
 JSBRIDGE_TIMEOUT = 60. # timeout for jsbridge
 
+
 class TestResults(object):
-    """
-    class to accumulate test results for Mozmill
-    """
+    """Class to accumulate test results and other information."""
     def __init__(self):
-
-        # test statistics
-        self.passes = []
-        self.fails = []
-        self.skipped = []
-        self.alltests = []
-
-        # total test run time
-        self.starttime = datetime.now()
-        self.endtime = None
-
         # application information
         self.appinfo = {}
 
@@ -57,12 +44,22 @@ class TestResults(object):
         self.mozmill_version = package_metadata.get('Version')
         self.screenshots = []
 
+        # test statistics
+        self.alltests = []
+        self.fails = []
+        self.passes = []
+        self.skipped = []
+
+        # total test run time
+        self.starttime = datetime.now()
+        self.endtime = None
+
     def events(self):
         """events the MozMill class will dispatch to"""
         return {'mozmill.endTest': self.endTest_listener}
 
     def finish(self, handlers, fatal=False):
-        """do final reporting and such"""
+        """Do the final reporting and such"""
         self.endtime = datetime.utcnow()
 
         # handle stop events
@@ -71,8 +68,8 @@ class TestResults(object):
                 handler.stop(self, fatal)
 
     ### event listener
-
     def endTest_listener(self, test):
+        """Add current test result to results."""
         self.alltests.append(test)
         if test.get('skipped', False):
             self.skipped.append(test)
@@ -140,20 +137,22 @@ class MozMill(object):
         - results : a TestResults instance to accumulate results
         - jsbridge_timeout : how long to go without jsbridge communication
         - handlers : pluggable event handler
-        """
 
+        """
         # the MozRunner
         self.runner = runner
+
+        # execution parameters
         self.debugger = None
         self.interactive = False
-
-        # mozmill puts your data here
-        self.results = results or TestResults()
 
         # jsbridge parameters
         self.jsbridge_port = jsbridge_port
         self.jsbridge_timeout = jsbridge_timeout
         self.bridge = self.back_channel = None
+
+        # Report data will end up here
+        self.results = results or TestResults()
 
         # persisted data
         self.persisted = {}
@@ -376,22 +375,22 @@ class MozMill(object):
         """ Collect application specific information """
         mozmill = jsbridge.JSObject(bridge, mozmillModuleJs)
         appInfo = mozmill.appInfo
-        results = {'application_id': str(appInfo.ID),
-                   'application_name': str(appInfo.name),
-                   'application_version': str(appInfo.version),
-                   'application_locale': str(mozmill.locale),
-                   'platform_buildid': str(appInfo.platformBuildID),
-                   'platform_version': str(appInfo.platformVersion),
-                  }
+        info = {'application_id': str(appInfo.ID),
+                'application_name': str(appInfo.name),
+                'application_version': str(appInfo.version),
+                'application_locale': str(mozmill.locale),
+                'platform_buildid': str(appInfo.platformBuildID),
+                'platform_version': str(appInfo.platformVersion),
+               }
         try:
             startupInfo = mozmill.startupInfo
-            results['startupInfo'] = dict([(i, getattr(startupInfo, i))
-                                            for i in startupInfo.__attributes__()])
+            info['startupInfo'] = dict([(i, getattr(startupInfo, i))
+                                        for i in startupInfo.__attributes__()])
         except KeyError:
-            results['startupInfo'] = None
-        results['addons'] = json.loads(mozmill.addons)
-        results.update(self.runner.get_repositoryInfo())
-        return results
+            info['startupInfo'] = None
+        info['addons'] = json.loads(mozmill.addons)
+        info.update(self.runner.get_repositoryInfo())
+        return info
 
     ### methods for shutting down and cleanup
     
@@ -406,7 +405,7 @@ class MozMill(object):
         test['passed'] = 0
         test['failed'] = 1
 
-        # send to self.results
+        # Ensure that we log this disconnect as failure
         self.results.alltests.append(test)
         self.results.fails.append(test)
 
@@ -629,16 +628,13 @@ class CLI(mozrunner.CLI):
         if (not self.manifest.tests) and (not self.options.manual) :
             self.parser.error("No tests found. Please specify tests with -t or -m")
 
-        # create a place to put results
-        results = TestResults()
-
         # create a Mozrunner
         runner = self.create_runner()
 
-        # create a MozMill
-        mozmill = MozMill(runner, self.jsbridge_port, results,
+        # create an instance of MozMill
+        mozmill = MozMill(runner, self.jsbridge_port,
                           jsbridge_timeout=self.options.timeout,
-                          handlers=self.event_handlers
+                          handlers=self.event_handlers,
                           )
 
         # set debugger arguments
@@ -668,6 +664,7 @@ class CLI(mozrunner.CLI):
             exception_type, exception, tb = sys.exc_info()
 
         # do whatever reporting you're going to do
+        results = mozmill.results
         results.finish(self.event_handlers, fatal=exception is not None)
 
         # exit on bad stuff happen
@@ -682,6 +679,7 @@ class CLI(mozrunner.CLI):
 
 def cli(args=sys.argv[1:]):
     CLI(args).run()
+
 
 if __name__ == '__main__':
     cli()
