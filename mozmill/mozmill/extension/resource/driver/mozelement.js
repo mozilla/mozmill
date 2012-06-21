@@ -234,7 +234,8 @@ MozMillElement.prototype.mouseEvent = function (aOffsetX, aOffsetY, aEvent, aExp
   }
 
   // Scroll element into view otherwise the click will fail
-  this.element.scrollIntoView();
+  if ("scrollIntoView" in this.element)
+    this.element.scrollIntoView();
 
   if (aExpectedEvent) {
     // The expected event type has to be set
