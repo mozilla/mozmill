@@ -4,11 +4,10 @@
 
 var setupTest = function () {
   controller = mozmill.getBrowserController();
+
+  assert.ok(persisted.restarted,
+            "timeout for userShutdown caused a restart of the application.");
 }
 
-var testOne = function () {
-  controller.restartApplication('testTwo', true);
-}
-
-var testTwo = function () {
+var testPassingRestart = function () {
 }
