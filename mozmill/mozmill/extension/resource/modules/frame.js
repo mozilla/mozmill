@@ -195,6 +195,10 @@ events.isUserShutdown = function () {
   return Boolean(this.userShutdown);
 }
 
+events.isRestartShutdown = function () {
+  return this.userShutdown.restart;
+}
+
 events.startUserShutdown = function (obj) {
   events.toggleUserShutdown(obj);
   events.fireEvent('userShutdown', obj);
@@ -508,6 +512,8 @@ function AppQuitObserver(aRunner) {
 
 AppQuitObserver.prototype = {
   observe: function (subject, topic, data) {
+    this.unregister();
+
     events.appQuit = true;
     this._runner.end();
   },
@@ -577,13 +583,24 @@ Runner.prototype.wrapper = function (func, arg) {
       utils.sleep(500);
 
       if (events.userShutdown['user'] && !events.appQuit) {
-        events.fail({'function':'Runner.wrapper',
+        events.fail({'function': 'Runner.wrapper',
                      'message':'Shutdown expected but none detected before end of test',
                      'userShutdown': events.userShutdown});
+        events.endTest(func);
+
+        // Depending on the shutdown mode quit or restart the application
+        let flags = Ci.nsIAppStartup.eAttemptQuit;
+        if (events.isRestartShutdown()) {
+          flags |= Ci.nsIAppStartup.eRestart;
+        }
+
+        let appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
+                         .getService(Ci.nsIAppStartup);
+        appStartup.quit(flags);
       }
     }
   } catch (e) {
-    // Allow the exception if a user shutdown was expected
+    // Allow the exception if it's not an user shutdown
     if (!events.isUserShutdown()) {
       events.fail({'exception': e, 'test': func})
       Cu.reportError(e);

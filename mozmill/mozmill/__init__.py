@@ -317,7 +317,7 @@ class MozMill(object):
         tests = list(tests)
 
         # note runner state
-        started = False
+        frame = None
 
         # run tests
         while tests:
@@ -339,33 +339,18 @@ class MozMill(object):
                 continue
 
             try:
-                if not started:
-                    frame = self.start_runner()
-                    started = True
-                frame = self.run_test_file(frame, test['path'])
+                frame = self.run_test_file(frame or self.start_runner(),
+                                           test['path'])
             except JSBridgeDisconnectError:
-                if self.shutdownMode:
-                    # if the test initiates shutdown and there are other tests
-                    # signal that the runner is stopped
-                    if self.shutdownMode.get('user'):
-                        # horrible hack
-                        # see https://bugzilla.mozilla.org/show_bug.cgi?id=640435
-                        obj = {'filename': test['path'],
-                               'passed': 1,
-                               'failed': 0,
-                               'passes': [self.current_test['name']],
-                               'fails': [],
-                               'name': self.current_test['name'],
-                               'skipped': False}
-                        self.fire_event('endTest', obj)
-                    started = False
-                else:
+                frame = None
+
+                # Unexpected shutdown
+                if not self.shutdownMode:
                     self.report_disconnect()
                     self.stop_runner()
-                    started = False
 
         # stop the runner
-        if started:
+        if frame:
             self.stop_runner()
 
     def run(self, *tests):

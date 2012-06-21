@@ -475,11 +475,13 @@ MozMillController.prototype.startUserShutdown = function (timeout, restart, next
     throw new Error("You can't have a user-restart and reset the profile; there is a race condition");
   }
 
-  broker.sendMessage('userShutdown', {'user': true,
-                                      'restart': Boolean(restart),
-                                      'next': next,
-                                      'resetProfile': Boolean(resetProfile)});
-  this.window.setTimeout(broker.sendMessage, timeout, 'userShutdown', { });
+  let shutdownObj = {'user': true,
+    'restart': Boolean(restart),
+    'next': next,
+    'resetProfile': Boolean(resetProfile)};
+
+  broker.sendMessage('userShutdown', shutdownObj);
+  this.window.setTimeout(broker.sendMessage, timeout, 'userShutdown', shutdownObj);
 }
 
 MozMillController.prototype.restartApplication = function (next, resetProfile) {
