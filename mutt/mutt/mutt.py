@@ -163,6 +163,7 @@ def test_all_js(tests, options):
         # get CLI arguments to mozmill
         args = ['-b', options.binary]
         args.append('--console-level=DEBUG')
+        args.append('--format=pprint-color')
         args.append('-m')
         args.append(filename)
 
