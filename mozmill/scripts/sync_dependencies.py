@@ -12,12 +12,14 @@ root_path = os.path.dirname(abs_path)
 # We need the latest version of Event Utils
 externalModules = [
     {   # EventUtils.js
-        "url": "http://hg.mozilla.org/mozilla-central/raw-file/default/testing/mochitest/tests/SimpleTest/EventUtils.js",
+        "url": "http://hg.mozilla.org/mozilla-central/raw-file/default/"
+               "testing/mochitest/tests/SimpleTest/EventUtils.js",
         "path": "mozmill/extension/resource/stdlib/EventUtils.js",
         "patch": "patches/eventUtils.patch"
     },
     {   # httpd.js
-        "url": "http://hg.mozilla.org/mozilla-central/raw-file/default/netwerk/test/httpserver/httpd.js",
+        "url": "http://hg.mozilla.org/mozilla-central/raw-file/default/"
+               "netwerk/test/httpserver/httpd.js",
         "path": "mozmill/extension/resource/stdlib/httpd.js",
         "patch": "patches/httpd.patch"
     }
@@ -30,7 +32,7 @@ os.chdir(root_path)
 for module in externalModules:
     # Retrieve latest EventUtils module and apply our patch
     print "Downloading %s..." % (module["url"])
-    urllib.urlretrieve (module["url"], os.path.join(root_path, module["path"]))
+    urllib.urlretrieve(module["url"], os.path.join(root_path, module["path"]))
 
     print "Patching %s..." % (module["patch"])
     subprocess.call(["git", "apply", module["patch"]])

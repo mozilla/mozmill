@@ -9,6 +9,9 @@ from setuptools import setup, find_packages
 PACKAGE_NAME = "jsbridge"
 PACKAGE_VERSION = "3.0rc1"
 
+license = 'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
+topic = 'Topic :: Software Development :: Libraries :: Python Modules'
+
 # package dependencies
 requires = []
 try:
@@ -33,16 +36,16 @@ setup(name=PACKAGE_NAME,
       license='http://www.mozilla.org/MPL/2.0/',
       packages=find_packages(exclude=['test']),
       include_package_data=True,
-      package_data = {'': ['*.js', '*.css', '*.html', '*.txt', '*.xpi', '*.rdf', '*.xul', '*.jsm', '*.xml' 'extension'],},
+      package_data={'': ['*.js', '*.css', '*.html', '*.txt', '*.xpi',
+                         '*.rdf', '*.xul', '*.jsm', '*.xml' 'extension'], },
       zip_safe=False,
       entry_points="",
-      platforms =['Any'],
-      install_requires = requires,
-      classifiers=['Development Status :: 4 - Beta',
+      platforms=['Any'],
+      install_requires=requires,
+      classifiers=[license, topic,
+                   'Development Status :: 4 - Beta',
                    'Environment :: Console',
                    'Intended Audience :: Developers',
-                   'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
                    'Operating System :: OS Independent',
-                   'Topic :: Software Development :: Libraries :: Python Modules',
                   ]
-     )
+)

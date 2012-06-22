@@ -25,26 +25,30 @@ Commands:
 """
 
 global_options = [
-    (("-b", "--binary",), dict(dest="binary",
-                               help="path to app binary",
-                               metavar=None,
-                               default=None,)),
-    (("-m", "--manifest",), dict(dest="manifest",
-                                 help="use a specific manifest rather than the default all-tests.ini",
-                                 metavar=None,
-                                 default=os.path.join(os.path.dirname(__file__), "tests", "all-tests.ini"))),
-    (("-v", "--verbose",), dict(dest="verbose",
-                                help="enable lots of output",
-                                action="store_true",
-                                default=False)),
-    (("-r", "--restart",), dict(dest="restart",
-                                help="Isolation mode (restart between each Mozmill test)",
-                                action="store_true",
-                                default=False)),
-    ]
+    (("-b", "--binary"),
+     dict(dest="binary",
+          help="Path to application binary",
+         )),
+    (("-m", "--manifest"),
+     dict(dest="manifest",
+          default=os.path.join(os.path.dirname(__file__),
+                               "tests", "all-tests.ini"),
+          help="Use a specific manifest rather than %default")),
+    (("-v", "--verbose"),
+     dict(dest="verbose",
+          default=False,
+          action="store_true",
+          help="Enable detailed output")),
+    (("-r", "--restart"),
+     dict(dest="restart",
+          default=False,
+          action="store_true",
+          help="Isolation mode (restart between each Mozmill test)"))
+]
 
 # Maximum time we'll wait for tests to finish, in seconds.
 TEST_RUN_TIMEOUT = 5 * 60
+
 
 def parse_args(arguments):
 
@@ -70,8 +74,10 @@ def parse_args(arguments):
         parser.exit()
     commands = ('testall', 'testpy', 'testjs')
     if args[0] not in commands:
-        parser.error("Invalid command: '%s' (Should be one of: %s)" % (args[0], ', '.join(commands)))
+        parser.error("Invalid command: '%s' (Should be one of: %s)" %
+                     (args[0], ', '.join(commands)))
     return (options, args[0])
+
 
 def get_pytests(testdict):
     unittests = []
@@ -85,6 +91,7 @@ def get_pytests(testdict):
         for test in suite:
             unittests.append(test)
     return unittests
+
 
 def report(fail, pyresults=None, jsresults=None, options=None):
     if not fail:
@@ -126,6 +133,7 @@ def report(fail, pyresults=None, jsresults=None, options=None):
 
     return 1
 
+
 def test_all(tests, options):
     fail = False
 
@@ -150,6 +158,7 @@ def test_all(tests, options):
     # return the value vs. exiting here
     sys.exit(report(fail, pyresult, jsresult, options))
 
+
 def test_all_python(tests, options):
     print "Running python tests"
     unittestlist = get_pytests(tests)
@@ -160,6 +169,7 @@ def test_all_python(tests, options):
     runner = unittest.TextTestRunner(verbosity=verbosity)
     return runner.run(suite)
 
+
 def test_all_js(tests, options):
     print "Running JS Tests"
 
@@ -167,13 +177,15 @@ def test_all_js(tests, options):
     # Not doable right now
     # args.append('--console-level=DEBUG')
 
-    # run the tests
-    exception = None # runtime exception
+    # runtime exception
+    exception = None
     try:
+        # run the tests
         if options.restart:
             for test in tests:
                 m.run(test)
-                m.runner.reset() # reset the profile
+                # reset the profile
+                m.runner.reset()
         else:
             m.run(*tests)
     except:
@@ -228,6 +240,7 @@ class JSResults(object):
                 self.info.append(line)
             self.text[testname].append(line)
 
+
 def run(arguments=sys.argv[1:]):
 
     # parse the command line arguments
@@ -247,14 +260,16 @@ def run(arguments=sys.argv[1:]):
 
     # run + report
     if command == "testpy":
-        results = test_all_python(mp.get(tests=mp.active_tests(disabled=False), type='python'), options)
+        tests = mp.active_tests(disabled=False)
+        results = test_all_python(mp.get(tests=tests, type='python'), options)
         if results.failures or results.errors:
             sys.exit(report(True, results, None, options))
         else:
             sys.exit(report(False))
 
     elif command == "testjs":
-        results = test_all_js(mp.get(tests=mp.active_tests(disabled=False), type='javascript'), options)
+        tests = mp.active_tests(disabled=False)
+        results = test_all_js(mp.get(tests=tests, type='javascript'), options)
         if results.fails:
             sys.exit(report(True, None, results, options))
         else:

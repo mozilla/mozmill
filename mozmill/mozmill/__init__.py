@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
+
 import os
 import socket
 import sys
@@ -13,25 +14,30 @@ except:
 
 import jsbridge
 import mozinfo
-import manifestparser
 import mozrunner
 import handlers
 
 from datetime import datetime
 from jsbridge.network import JSBridgeDisconnectError
+from manifestparser import TestManifest
 from mozrunner.utils import get_metadata_from_egg
 from optparse import OptionGroup
 from time import sleep
 
+
 # metadata
+package_metadata = get_metadata_from_egg('mozmill')
+
+js_module_template = 'Components.utils.import("resource://mozmill/%s")'
+js_module_frame = js_module_template % 'modules/frame.js'
+js_module_mozmill = js_module_template % 'driver/mozmill.js'
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 extension_path = os.path.join(basedir, 'extension')
-mozmillModuleJs = "Components.utils.import('resource://mozmill/driver/mozmill.js')"
-package_metadata = get_metadata_from_egg('mozmill')
 
 # defaults
 ADDONS = [extension_path, jsbridge.extension_path]
-JSBRIDGE_TIMEOUT = 60. # timeout for jsbridge
+JSBRIDGE_TIMEOUT = 60.
 
 
 class TestResults(object):
@@ -95,8 +101,9 @@ class MozMill(object):
     """
 
     @classmethod
-    def create(cls, results=None, jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=(),
-               app='firefox', profile_args=None, runner_args=None):
+    def create(cls, results=None, jsbridge_timeout=JSBRIDGE_TIMEOUT,
+               handlers=(), app='firefox', profile_args=None,
+               runner_args=None):
 
         jsbridge_port = jsbridge.find_port()
 
@@ -104,14 +111,15 @@ class MozMill(object):
         try:
             runner_class = mozrunner.runners[app]
         except KeyError:
-            raise NotImplementedError('Application "%s" unknown (should be one of %s)' %
-                                      (app, mozrunner.runners.keys()))
+            msg = 'Application "%s" unknown (should be one of %s)'
+            raise NotImplementedError(msg % (app, mozrunner.runners.keys()))
 
-        # get the necessary arguments to construct the profile and runner instance
+        # get the necessary arguments to construct the profile and
+        # runner instance
         profile_args = profile_args or {}
         profile_args.setdefault('addons', []).extend(ADDONS)
 
-        preferences = profile_args.setdefault('preferences', { })
+        preferences = profile_args.setdefault('preferences', {})
         if isinstance(preferences, dict):
             preferences['extensions.jsbridge.port'] = jsbridge_port
         elif isinstance(preferences, list):
@@ -164,12 +172,18 @@ class MozMill(object):
         # setup event listeners
         self.global_listeners = []
         self.listeners = []
-        self.listener_dict = {} # dict of listeners by event type
-        self.add_listener(self.persist_listener, eventType="mozmill.persist")
-        self.add_listener(self.endRunner_listener, eventType='mozmill.endRunner')
-        self.add_listener(self.startTest_listener, eventType='mozmill.setTest')
-        self.add_listener(self.userShutdown_listener, eventType='mozmill.userShutdown')
-        self.add_listener(self.screenshot_listener, eventType='mozmill.screenshot');
+        # dict of listeners by event type
+        self.listener_dict = {}
+        self.add_listener(self.persist_listener,
+                          eventType="mozmill.persist")
+        self.add_listener(self.endRunner_listener,
+                          eventType='mozmill.endRunner')
+        self.add_listener(self.startTest_listener,
+                          eventType='mozmill.setTest')
+        self.add_listener(self.userShutdown_listener,
+                          eventType='mozmill.userShutdown')
+        self.add_listener(self.screenshot_listener,
+                          eventType='mozmill.screenshot')
 
         # add listeners for event handlers
         self.handlers = [self.results]
@@ -240,8 +254,9 @@ class MozMill(object):
     def create_network(self):
 
         # get the bridge and the back-channel
-        self.back_channel, self.bridge = jsbridge.wait_and_create_network("127.0.0.1",
-                                                                          self.jsbridge_port)
+        self.back_channel, \
+        self.bridge = jsbridge.wait_and_create_network("127.0.0.1",
+                                                       self.jsbridge_port)
         # set a timeout on jsbridge actions in order to ensure termination
         self.back_channel.timeout = self.bridge.timeout = self.jsbridge_timeout
 
@@ -268,8 +283,10 @@ class MozMill(object):
         if not (self.shutdownMode.get('user', False)
                 and self.shutdownMode.get('restart', False)):
             if self.shutdownMode.get('resetProfile'):
-                self.runner.reset() # reset the profile
-            self.runner.start(debug_args=self.debugger, interactive=self.interactive)
+                # reset the profile
+                self.runner.reset()
+            self.runner.start(debug_args=self.debugger,
+                              interactive=self.interactive)
 
         # create the network
         self.create_network()
@@ -278,13 +295,14 @@ class MozMill(object):
         if not self.results.appinfo:
             self.results.appinfo = self.get_appinfo(self.bridge)
 
-        frame = jsbridge.JSObject(self.bridge,
-                                  "Components.utils.import('resource://mozmill/modules/frame.js')")
+        frame = jsbridge.JSObject(self.bridge, js_module_frame)
 
         # set some state
         self.shutdownMode = {}
         self.endRunnerCalled = False
-        frame.persisted = self.persisted # transfer persisted data
+
+        # transfer persisted data
+        frame.persisted = self.persisted
 
         # return the frame
         return frame
@@ -310,7 +328,6 @@ class MozMill(object):
 
         return frame
 
-
     def run_tests(self, *tests):
         """run test files"""
         tests = list(tests)
@@ -322,7 +339,9 @@ class MozMill(object):
         while tests:
             test = tests.pop(0)
             self.running_test = test
-            if 'disabled' in test: # skip test
+
+            # skip test
+            if 'disabled' in test:
 
                 # see frame.js:events.endTest
                 obj = {'filename': test['path'],
@@ -330,7 +349,9 @@ class MozMill(object):
                        'failed': 0,
                        'passes': [],
                        'fails': [],
-                       'name': os.path.basename(test['path']), # XXX should be consistent with test.__name__ ; see bug 643480
+                       # Bug 643480
+                       # Should be consistent with test.__name__ ;
+                       'name': os.path.basename(test['path']),
                        'skipped': True,
                        'skipped_reason': test['disabled']
                        }
@@ -363,17 +384,18 @@ class MozMill(object):
             if not self.shutdownMode:
                 self.report_disconnect()
         finally:
-            self.stop() # shutdown the test harness cleanly
-              
+            # shutdown the test harness cleanly
+            self.stop()
+
         # reraise the most recent exception, if any
         if exception:
             raise
-        
+
         return self.results
-            
+
     def get_appinfo(self, bridge):
         """ Collect application specific information """
-        mozmill = jsbridge.JSObject(bridge, mozmillModuleJs)
+        mozmill = jsbridge.JSObject(bridge, js_module_mozmill)
         appInfo = mozmill.appInfo
         info = {'application_id': str(appInfo.ID),
                 'application_name': str(appInfo.name),
@@ -393,12 +415,12 @@ class MozMill(object):
         return info
 
     ### methods for shutting down and cleanup
-    
+
     def report_disconnect(self):
         test = getattr(self, "current_test", {})
         test['passes'] = []
         test['fails'] = [{
-          'exception' : {
+          'exception': {
             'message': 'Disconnect Error: Application unexpectedly closed'
           }
         }]
@@ -421,7 +443,7 @@ class MozMill(object):
         # this *will* cause a diconnect error
         # (not sure what the socket.error is all about)
         try:
-            mozmill = jsbridge.JSObject(self.bridge, mozmillModuleJs)
+            mozmill = jsbridge.JSObject(self.bridge, js_module_mozmill)
             mozmill.cleanQuit()
         except (socket.error, JSBridgeDisconnectError):
             pass
@@ -446,7 +468,7 @@ class MozMill(object):
             self.back_channel.close()
             self.bridge.close()
 
-        # cleanup 
+        # cleanup
         if self.runner is not None:
             self.runner.cleanup()
 
@@ -495,10 +517,12 @@ class CLI(mozrunner.CLI):
         # Do not allow manifests and tests specified at the same time
         if self.options.manifests and self.options.tests:
             self.parser.error("Options %s and %s are mutually exclusive." %
-                              (self.parser.get_option('-t'), self.parser.get_option('-m')))
+                              (self.parser.get_option('-t'),
+                               self.parser.get_option('-m')))
 
         # read tests from manifests (if any)
-        self.manifest = manifestparser.TestManifest(manifests=self.options.manifests, strict=False)
+        self.manifest = TestManifest(manifests=self.options.manifests,
+                                     strict=False)
 
         # expand user directory and check existence for the test
         for test in self.options.tests:
@@ -536,7 +560,8 @@ class CLI(mozrunner.CLI):
                 handler_class = handlers.load_handler(handler)
             except BaseException, e:
                 self.parser.error(str(e))
-            _handler = handlers.instantiate_handler(handler_class, self.options)
+            _handler = handlers.instantiate_handler(handler_class,
+                                                    self.options)
             if _handler is not None:
                 self.event_handlers.append(_handler)
 
@@ -552,33 +577,53 @@ class CLI(mozrunner.CLI):
         parser.add_option_group(group)
 
         group = OptionGroup(parser, 'MozMill options')
-        group.add_option("-t", "--test", dest="tests",
-                         action='append', default=[],
+        group.add_option("-t", "--test",
+                         dest="tests",
+                         default=[],
+                         action='append',
                          help='Run test')
-        group.add_option("--timeout", dest="timeout", type="float",
+        group.add_option("--timeout",
+                         dest="timeout",
+                         type="float",
                          default=JSBRIDGE_TIMEOUT,
-                         help="seconds before harness timeout if no communication is taking place")
-        group.add_option("--restart", dest='restart', action='store_true',
+                         help="Seconds before harness timeout if no "
+                              "communication is taking place")
+        group.add_option("--restart",
+                         dest='restart',
+                         action='store_true',
                          default=False,
-                         help="restart the application and reset the profile between each test file")
-        group.add_option("-m", "--manifest", dest='manifests',
+                         help="Restart the application and reset the "
+                              "profile between each test file")
+        group.add_option("-m", "--manifest",
+                         dest='manifests',
                          action='append',
                          metavar='MANIFEST',
                          help='test manifest .ini file')
-        group.add_option('-D', '--debug', dest="debug", 
+        group.add_option('-D', '--debug', dest="debug",
                          action="store_true",
-                         help="debug mode",
-                         default=False)
-        group.add_option('--list-tests', dest='list_tests',
-                         action='store_true', default=False,
-                         help="list test files that would be run, in order")
-        group.add_option('--handler', dest='handlers', metavar='PATH:CLASS',
-                         action='append', default=[],
-                         help="specify a event handler given a file PATH and the CLASS in the file")
+                         default=False,
+                         help="debug mode"
+                         )
+        group.add_option('--list-tests',
+                         dest='list_tests',
+                         action='store_true',
+                         default=False,
+                         help="List test files that would be run, in order")
+        group.add_option('--handler',
+                         dest='handlers',
+                         action='append',
+                         default=[],
+                         metavar='PATH:CLASS',
+                         help="Specify an event handler given a file PATH "
+                              "and the CLASS in the file")
         if self.handlers:
-            group.add_option('--disable', dest='disable', metavar='HANDLER',
-                             action='append', default=[],
-                             help="disable a default event handler (%s)" % ','.join(self.handlers.keys()))
+            group.add_option('--disable',
+                             dest='disable',
+                             action='append',
+                             default=[],
+                             metavar='HANDLER',
+                             help="Disable a default event handler (%s)" %
+                                  ','.join(self.handlers.keys()))
         group.add_option('--manual', dest='manual',
                          action='store_true', default=False,
                          help="start the browser without running any tests")
@@ -589,7 +634,8 @@ class CLI(mozrunner.CLI):
         for name, handler_class in self.handlers.items():
             if hasattr(handler_class, 'add_options'):
                 group = OptionGroup(parser, '%s options' % name,
-                                    description=getattr(handler_class, '__doc__', None))
+                                    description=getattr(handler_class,
+                                                        '__doc__', None))
                 handler_class.add_options(group)
                 parser.add_option_group(group)
 
@@ -606,9 +652,10 @@ class CLI(mozrunner.CLI):
         }
 
         if self.options.debug:
-            profile_args['preferences']['extensions.checkCompatibility'] = False
-            profile_args['preferences']['extensions.jsbridge.log'] = True
-            profile_args['preferences']['javascript.options.strict'] = True
+            prefs = profile_args['preferences']
+            prefs['extensions.checkCompatibility'] = False
+            prefs['extensions.jsbridge.log'] = True
+            prefs['javascript.options.strict'] = True
 
         return profile_args
 
@@ -625,8 +672,8 @@ class CLI(mozrunner.CLI):
         """CLI front end to run mozmill"""
 
         # make sure you have tests to run
-        if (not self.manifest.tests) and (not self.options.manual) :
-            self.parser.error("No tests found. Please specify tests with -t or -m")
+        if (not self.manifest.tests) and (not self.options.manual):
+            self.parser.error("No tests found. Please specify with -t or -m")
 
         # create a Mozrunner
         runner = self.create_runner()
@@ -650,14 +697,17 @@ class CLI(mozrunner.CLI):
                 pass
             return
 
+        # runtime exception
+        exception = None
+
         # run the tests
-        exception = None # runtime exception
         tests = self.manifest.active_tests(**mozinfo.info)
         try:
             if self.options.restart:
                 for test in tests:
                     mozmill.run(test)
-                    runner.reset() # reset the profile
+                    # reset the profile
+                    runner.reset()
             else:
                 mozmill.run(*tests)
         except:

@@ -7,6 +7,7 @@ import unittest
 from mozprocess import ProcessHandler
 from mozprofile import FirefoxProfile
 
+
 class TestProfilePath(unittest.TestCase):
     """
     test case for Mac and https://bugzilla.mozilla.org/show_bug.cgi?id=672605 :
@@ -30,7 +31,9 @@ class TestProfilePath(unittest.TestCase):
         f.close()
 
         # run mozmill on it
-        process = ProcessHandler(['mozmill', '-t', 'test_dummy.js', '--profile=testprofilepath'],
+        process = ProcessHandler(['mozmill',
+                                  '-t', 'test_dummy.js',
+                                  '--profile=testprofilepath'],
                                  cwd=tempdir)
         code = process.waitForFinish(timeout=120)
         self.assertEqual(code, 0)

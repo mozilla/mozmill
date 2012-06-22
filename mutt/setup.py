@@ -1,5 +1,4 @@
-# ***** BEGIN LICENSE BLOCK *****
-# Version: # This Source Code Form is subject to the terms of the Mozilla Public
+# This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
@@ -9,9 +8,12 @@ from setuptools import setup, find_packages
 
 PACKAGE_NAME = "mutt"
 PACKAGE_VERSION = "0.1"
-desc = "Test Harness for Mozmill"
 
 deps = ['ManifestDestiny == 0.5.4', 'mozmill']
+
+desc = "Test Harness for Mozmill"
+license = 'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
+topic = 'Topic :: Software Development :: Libraries :: Python Modules'
 
 # we only support python 2 right now
 assert sys.version_info[0] == 2
@@ -37,13 +39,12 @@ setup(name=PACKAGE_NAME,
           [console_scripts]
           mutt = mutt:run
         """,
-      platforms =['Any'],
-      install_requires = deps,
-      classifiers=['Development Status :: 4 - Beta',
+      platforms=['Any'],
+      install_requires=deps,
+      classifiers=[license, topic,
+                   'Development Status :: 4 - Beta',
                    'Environment :: Console',
                    'Intended Audience :: Developers',
-                   'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
                    'Operating System :: OS Independent',
-                   'Topic :: Software Development :: Libraries :: Python Modules',
                   ]
      )

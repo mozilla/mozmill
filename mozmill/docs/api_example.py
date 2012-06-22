@@ -19,8 +19,12 @@ results = m.run(dict(path=path))
 
 # there should be one passing test
 passes = 1
-assert len(results.passes) == passes, "Wrong number of passes. Expected: %d; You got: %d" % (passes, len(results.passes))
-assert len(results.alltests) == passes, "Wrong number of tests. Expected: %d; You got: %d" % (passes, len(results.alltests))
+assert len(results.passes) == passes, \
+           "Wrong number of passes. Expected: %d; You got: %d" % \
+           (passes, len(results.passes))
+assert len(results.alltests) == passes, \
+           "Wrong number of tests. Expected: %d; You got: %d" % \
+           (passes, len(results.alltests))
 
 # this is how you use a handler
 # let's try the logging handler:
@@ -32,8 +36,12 @@ results.finish((logger,))
 
 # now there should be two
 passes *= 2
-assert len(results.passes) == passes, "Wrong number of passes. Expected: %d; You got: %d" % (passes, len(results.passes))
-assert len(results.alltests) == passes, "Wrong number of tests. Expected: %d; You got: %d" % (passes, len(results.alltests))
+assert len(results.passes) == passes, \
+           "Wrong number of passes. Expected: %d; You got: %d" % \
+           (passes, len(results.passes))
+assert len(results.alltests) == passes, \
+           "Wrong number of tests. Expected: %d; You got: %d" % \
+           (passes, len(results.alltests))
 
 # remove the test
 os.remove(path)
