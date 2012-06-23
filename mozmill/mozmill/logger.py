@@ -25,21 +25,23 @@ class LoggerListener(object):
     template = "%(levelname)s | %(message)s"
 
     levels = {
-      "DEBUG": logging.DEBUG,
-      "INFO": logging.INFO,
-      "WARNING": logging.WARNING,
-      "ERROR": logging.ERROR,
-      "CRITICAL": logging.CRITICAL
+      "CRITICAL": logging.CRITICAL, #50
+      "ERROR": logging.ERROR, # 40
+      "WARNING": logging.WARNING, #30
+      "INFO": logging.INFO, # 20
+      "DEBUG": logging.DEBUG, # 10
     }
 
     self.custom_levels = {
-     "RESULTS": 1000,
-     "TEST-START" : 21, # logging.INFO is 20
-     "TEST-PASS": 22,
-     "TEST-EXPECTED-FAIL": 23,
-     "TEST-UNEXPECTED-FAIL": 42,  # logging.ERROR is 40
-     "TEST-UNEXPECTED-PASS": 43,
+      "RESULTS": 1000,
+      "TEST-UNEXPECTED-PASS": 43,
+      "TEST-UNEXPECTED-FAIL": 42,
+      "TEST-SKIPPED": 31,
+      "TEST-KNOWN-FAIL": 23,
+      "TEST-PASS": 22,
+      "TEST-START": 21,
     }
+
     for name in self.custom_levels:
       logging.addLevelName(self.custom_levels[name], name)
 
@@ -92,39 +94,51 @@ class LoggerListener(object):
       pass
 
   @classmethod
-  def add_options(cls, parser):                      
-    LOG_LEVELS = ("DEBUG", "INFO", "WARNING", "ERROR", "FATAL")
+  def add_options(cls, parser):
+    LOG_LEVELS = ("CRITICAL", "ERROR", "WARNING", "INFO", "DEBUG" )
     LEVEL_STRING = "[" + "|".join(LOG_LEVELS) + "]"
 
-    parser.add_option("-l", "--log-file", dest="log_file", default=None,
+    parser.add_option("-l", "--log-file",
+                      dest="log_file",
+                      default=None,
                       help="Log all events to file.")
     parser.add_option("--console-level",
-                    action = "store", type = "choice", dest = "console_level",
-                    choices = LOG_LEVELS, metavar = LEVEL_STRING,
-                    help = "level of console logging, defaulting to INFO",
-                    default="INFO")
-    parser.add_option("--file-level", 
-                    action = "store", type = "choice", dest = "file_level",
-                    choices = LOG_LEVELS, metavar = LEVEL_STRING,
-                    help = "level of file logging if --log-file has been specified," + 
-                      " defaulting to INFO",
-                    default = "INFO")
-    parser.add_option("--format", dest="format", default="json",
+                      dest="console_level",
+                      default="INFO",
+                      action="store",
+                      type="choice",
+                      choices=LOG_LEVELS,
+                      metavar=LEVEL_STRING,
+                      help="level of console logging (default: %default)",
+                      )
+    parser.add_option("--file-level",
+                      dest="file_level",
+                      default="INFO",
+                      action="store",
+                      type="choice",
+                      choices=LOG_LEVELS,
+                      metavar=LEVEL_STRING,
+                      help="level of file logging if --log-file has been specified " \
+                           "(default: %default)",
+                    )
+    parser.add_option("--format",
+                      dest="format",
+                      default="json",
                       metavar="[json|pprint|pprint-color]",
-                      help="Format for logging")
+                      help="Format for logging (default: %default)")
 
 
   def __call__(self, event, obj):
     string = json.dumps(obj)
-    if self.format == "pprint" or self.format == "pprint-color":
+    if self.format in ["pprint", "pprint-color"]:
       string = self.pprint(obj)
-       
+
     if event == 'mozmill.pass':
-      self.logger.info('Step Pass: ' + string)
+      self.logger.debug('Step Pass: ' + string)
     elif event == 'mozmill.fail':
-      self.logger.error('Test Failure: ' + string)
+      self.logger.debug('Test Failure | ' + string)
     elif event == 'mozmill.skip':
-      self.logger.info('Test Skipped: ' + string)
+      self.logger.debug('Test Skipped: ' + string)
     else:
       self.logger.debug(str(event) + ' | ' + string)
 
@@ -217,11 +231,12 @@ class LoggerListener(object):
   def endTest(self, test):
     filename = self.mozmill.running_test.get('name', test['filename'])
     if test.get('skipped', False):
-      self.logger.warning("%s | (SKIP) %s" % (test['name'], test.get('skipped_reason', '')))
+      level = self.custom_levels['TEST-SKIPPED']
+      self.logger.log(level, "%s | %s" % (test['name'], test.get('skipped_reason', '')))
     elif test['failed'] > 0:
       level = "TEST-UNEXPECTED-FAIL"
       if self.mozmill.running_test.get('expected') == 'fail':
-        level = "TEST-EXPECTED-FAIL"
+        level = "TEST-KNOWN-FAIL"
       self.logger.log(self.custom_levels[level], "%s | %s" % (filename, test['name']))
     else:
       level = "TEST-PASS"
@@ -239,15 +254,19 @@ class ColorFormatter(logging.Formatter):
   BOLD_SEQ = "\033[1m"
 
   COLORS = {
+    'CRITICAL': YELLOW,
+    'ERROR': RED,
     'WARNING': YELLOW,
     'INFO': WHITE,
     'DEBUG': BLUE,
-    'CRITICAL': YELLOW,
-    'ERROR': RED,
-    'TEST-PASS': GREEN,
+
     'TEST-UNEXPECTED-FAIL': RED,
-    'TEST-START': BLUE
-  }
+    'TEST-UNEXPECTED-PASS': RED,
+    'TEST-SKIPPED': YELLOW,
+    'TEST-PASS': GREEN,
+    'TEST-KNOWN-FAIL': GREEN,
+    'TEST-START': BLUE,
+    }
 
   def formatter_msg(self, msg, use_color=True):
     if use_color:

@@ -181,6 +181,7 @@ def test_all_js(tests, options):
 
     return m.results
 
+
 class JSResults(object):
     """
     Takes in a standard output log and marshals it into our
