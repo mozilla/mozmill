@@ -4,14 +4,14 @@
 
 import sys
 import os
+import mozmill
 import re
 import optparse
 import imp
-import tempfile
 import unittest
 
 from manifestparser import TestManifest
-from mozprocess import ProcessHandler
+
 
 usage = """
 %prog [options] command [command-specific options]
@@ -25,10 +25,6 @@ Commands:
 """
 
 global_options = [
-    (("-v", "--verbose",), dict(dest="verbose",
-                                help="enable lots of output",
-                                action="store_true",
-                                default=False)),
     (("-b", "--binary",), dict(dest="binary",
                                help="path to app binary",
                                metavar=None,
@@ -37,6 +33,14 @@ global_options = [
                                  help="use a specific manifest rather than the default all-tests.ini",
                                  metavar=None,
                                  default=os.path.join(os.path.dirname(__file__), "tests", "all-tests.ini"))),
+    (("-v", "--verbose",), dict(dest="verbose",
+                                help="enable lots of output",
+                                action="store_true",
+                                default=False)),
+    (("-r", "--restart",), dict(dest="restart",
+                                help="Isolation mode (restart between each Mozmill test)",
+                                action="store_true",
+                                default=False)),
     ]
 
 # Maximum time we'll wait for tests to finish, in seconds.
@@ -88,21 +92,35 @@ def report(fail, pyresults=None, jsresults=None, options=None):
         return 0
 
     # Print the failures
-    print "Some tests were unsuccessful."
-    print "+" * 75
+    print "\nSome tests were unsuccessful.\n"
+
+    print "=" * 75
     if pyresults:
         print "Python Failures:"
-        for i in pyresults.failures:
-            print "%s\n" % str(i)
-        for i in pyresults.errors:
-            print "%s\n" % str(i)
+        for failure in pyresults.failures:
+            print "%s\n" % str(failure)
+        for failure in pyresults.errors:
+            print "%s\n" % str(failure)
     else:
         print "No Python Failures"
-    print "=" * 75
+
+    print "\n", "=" * 75
     if jsresults:
         print "Javascript Failures:"
-        for i in jsresults.failures:
-            print "%s\n" % str(i)
+
+        for module in jsresults.fails:
+            for failure in module["fails"]:
+                if 'exception' in failure:
+                    info = failure['exception']
+                    print 'Exception: "%s" (%s)' % (info.get('message'),
+                                                    module.get('filename'))
+                elif 'fail' in failure:
+                    info = failure['fail']
+                    print 'Failure: "%s" (%s)' % (info.get('message'),
+                                                  module.get('filename'))
+                else:
+                    print 'Failure: %s' % failure.get('message', failure)
+
     else:
         print "No Javascript Failures"
 
@@ -123,7 +141,7 @@ def test_all(tests, options):
 
     try:
         jsresult = test_all_js(jstests, options)
-        if jsresult.failures:
+        if jsresult.fails:
             fail = True
     except SystemExit, e:
         fail = (e.code != 0) or fail
@@ -144,40 +162,25 @@ def test_all_python(tests, options):
 
 def test_all_js(tests, options):
     print "Running JS Tests"
-    # We run each test in its own instance since these are harness tests.
-    # That just seems safer, no opportunity for cross-talk since
-    # we are sorta using the framework to test itself
-    results = JSResults()
 
-    for t in tests:
+    m = mozmill.MozMill.create()
+    # Not doable right now
+    # args.append('--console-level=DEBUG')
 
-        # write a temporary manifest
-        manifest = TestManifest()
-        manifest.tests = [t]
-        fd, filename = tempfile.mkstemp(suffix='.ini')
-        os.close(fd)
-        fp = file(filename, 'w')
-        manifest.write(fp=fp)
-        fp.close()
+    # run the tests
+    exception = None # runtime exception
+    try:
+        if options.restart:
+            for test in tests:
+                m.run(test)
+                m.runner.reset() # reset the profile
+        else:
+            m.run(*tests)
+    except:
+        exception_type, exception, tb = sys.exc_info()
 
-        # get CLI arguments to mozmill
-        args = ['-b', options.binary]
-        args.append('--console-level=DEBUG')
-        args.append('--format=pprint-color')
-        args.append('-m')
-        args.append(filename)
+    return m.results
 
-        # run the test
-        proc = ProcessHandler("mozmill", args=args)
-        proc.run()
-        status = proc.waitForFinish(timeout=300)
-        command = proc.commandline
-        results.acquire(t['name'], proc.output, status, command)
-
-        # remove the temporary manifest
-        os.remove(filename)
-        
-    return results
 
 class JSResults(object):
     """
@@ -252,7 +255,7 @@ def run(arguments=sys.argv[1:]):
 
     elif command == "testjs":
         results = test_all_js(mp.get(tests=mp.active_tests(disabled=False), type='javascript'), options)
-        if results.failures:
+        if results.fails:
             sys.exit(report(True, None, results, options))
         else:
             sys.exit(report(False))
