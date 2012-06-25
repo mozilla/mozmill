@@ -5,6 +5,7 @@ import os
 import tempfile
 import unittest
 
+
 class TestBug690154(unittest.TestCase):
     """
     JSON structure when test throws a global exception:
@@ -13,7 +14,7 @@ class TestBug690154(unittest.TestCase):
 
     def make_test(self):
         """make an example test to run"""
-        test = """1 = foo""" # something deliberately bad
+        test = """1 = foo"""
         fd, path = tempfile.mkstemp()
         os.write(fd, test)
         os.close(fd)
@@ -24,11 +25,18 @@ class TestBug690154(unittest.TestCase):
         path = self.make_test()
         m = mozmill.MozMill.create()
         results = m.run(dict(path=path))
-        self.assertFalse(results.passes) # no modules pass
-        self.assertTrue(len(results.fails) == 1) # one module fails
+
+        # no modules pass
+        self.assertFalse(results.passes)
+        # one module fails
+        self.assertTrue(len(results.fails) == 1)
+
         fails = results.fails[0]
-        self.assertFalse(fails['passes']) # no functions pass
-        self.assertTrue(len(fails['fails']) == 1) # a single failure at the module level
+        # no functions pass
+        self.assertFalse(fails['passes'])
+        # a single failure at the module level
+        self.assertTrue(len(fails['fails']) == 1)
+
         failure = fails['fails'][0]
         self.assertTrue('exception' in failure)
         self.assertTrue(fails['name'] == '<TOP_LEVEL>')

@@ -17,12 +17,14 @@ except ImportError:
 
 ### stuff that should be in the stdlib
 
+
 def which(fileName, path=os.environ['PATH']):
     """python equivalent of which; should really be in the stdlib"""
     dirs = path.split(os.pathsep)
     for dir in dirs:
         if os.path.isfile(os.path.join(dir, fileName)):
             return os.path.join(dir, fileName)
+
 
 def require(url):
     """
@@ -37,7 +39,7 @@ def require(url):
     fd, filename = tempfile.mkstemp(suffix='.py', prefix=modulename)
     os.write(fd, contents)
     os.close(fd)
-    module =  imp.load_source(modulename, filename)
+    module = imp.load_source(modulename, filename)
     os.remove(filename)
     return module
 
@@ -46,6 +48,7 @@ carton = require('http://k0s.org/mozilla/hg/carton/raw-file/tip/carton.py')
 git = which('git')
 MOZBASE = 'git://github.com/mozilla/mozbase.git'
 MOZMILL = 'git://github.com/mozautomation/mozmill.git'
+
 
 def main(args=sys.argv[1:]):
     assert git, 'git executable not found!'

@@ -6,6 +6,7 @@ import json
 import unittest
 import subprocess
 
+
 class ModuleTest(unittest.TestCase):
     def test_expectstack(self):
         # This is going to simply call mozmill and get the output.  In the
@@ -14,7 +15,8 @@ class ModuleTest(unittest.TestCase):
         # and so we can verify this bug is fixed by ensuring that exists
         # and that the stack is valid JSON.  Here goes...
         relpath = os.path.join("js-tests", "expectstack.js")
-        testpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), relpath)
+        testpath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                relpath)
         p = subprocess.Popen(["mozmill", "-t", testpath],
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         output = p.communicate()[0]
@@ -28,18 +30,17 @@ class ModuleTest(unittest.TestCase):
                 node = j["fail"]["stack"]
                 while not found:
                     if (("filename" in node) and
-                        (node["filename"] != None) and
-                        ("expectstack.js" in  node["filename"])):
+                        (node["filename"] is not None) and
+                        ("expectstack.js" in node["filename"])):
                         self.assertTrue(True, msg="Found expected stackframe")
                         found = True
                     else:
                         if "caller" in node:
                             node = node["caller"]
-                            self.assertTrue(node is not None, 
-                                            msg="No stackframe contained our test")
+                            self.assertTrue(node is not None,
+                                            msg="No stack frame available.")
                         else:
-                            self.assertTrue(False, msg="Invalid stack detected") 
-
+                            self.assertTrue(False, msg="Invalid stack.")
 
 
 if __name__ == '__main__':

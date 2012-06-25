@@ -5,6 +5,7 @@ import os
 import tempfile
 import unittest
 
+
 class TestMozmillAPI(unittest.TestCase):
     """test mozmill's API"""
 

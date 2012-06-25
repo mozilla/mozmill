@@ -24,6 +24,7 @@ try:
 except ImportError:
     from subprocess import call
 
+
 def which(fileName, path=os.environ['PATH']):
     """python equivalent of which; should really be in the stdlib"""
     dirs = path.split(os.pathsep)
@@ -35,6 +36,7 @@ git = which('git')
 assert git, "git not found"
 packages = ['jsbridge', 'mozmill']
 
+
 def package_info(directory):
     """get the package info from a particular directory"""
 
@@ -44,14 +46,18 @@ def package_info(directory):
     # get the .egg-info directory
     egg_info = [i for i in os.listdir(directory)
                 if i.endswith('.egg-info')]
-    assert len(egg_info) == 1, 'Expected one .egg-info directory in %s, got: %s' % (directory, egg_info)
+    assert len(egg_info) == 1, \
+               'Expected one .egg-info directory in %s, got: %s' % \
+               (directory, egg_info)
     egg_info = os.path.join(directory, egg_info[0])
     assert os.path.isdir(egg_info), "%s is not a directory" % egg_info
 
     # read the dependencies
     requires = os.path.join(egg_info, 'requires.txt')
     if os.path.exists(requires):
-        dependencies = [i.strip() for i in file(requires).readlines() if i.strip()]
+        dependencies = [i.strip()
+                        for i in file(requires).readlines()
+                            if i.strip()]
     else:
         dependencies = []
 
@@ -60,7 +66,8 @@ def package_info(directory):
     info_dict = {}
     for line in file(pkg_info).readlines():
         if not line or line[0].isspace():
-            continue # XXX neglects description
+            # XXX neglects description
+            continue
         assert ':' in line
         key, value = [i.strip() for i in line.split(':', 1)]
         info_dict[key] = value
@@ -71,6 +78,7 @@ def package_info(directory):
     # return the information
     info_dict['Dependencies'] = dependencies
     return info_dict
+
 
 def main(args=sys.argv[1:]):
 
@@ -98,13 +106,14 @@ def main(args=sys.argv[1:]):
             directory = options.directory
         else:
             directory = tempfile.mkdtemp()
-            call([git, 'clone', options.url, directory], stdout=PIPE, stderr=PIPE)
+            call([git, 'clone', options.url, directory],
+                 stdout=PIPE, stderr=PIPE)
 
         # get the package information
         info = {}
         for package in packages:
             info[package] = package_info(os.path.join(directory, package))
-            
+
         if options.info:
             # print package information
             for package in packages:
@@ -124,7 +133,8 @@ def main(args=sys.argv[1:]):
             for package in _packages:
                 try:
                     package, version = package.split('=')
-                    pkg_resources.parse_version(version) # sanity check
+                    # sanity check
+                    pkg_resources.parse_version(version)
                     versions[package] = version
                 except:
                     raise Exception("Bad package string: %s" % package)
@@ -136,8 +146,11 @@ def main(args=sys.argv[1:]):
                 for dep in info[package]['Dependencies']:
                     split = dep.split()
                     if len(split) == 3 and split[0] in versions:
-                        assert split[1] == '==' # XXX hack
-                        to_bump.setdefault(package, {})[split[0]] = (split[2], versions[split[0]])
+                        # XXX hack
+                        assert split[1] == '=='
+                        to_bump.setdefault(package,
+                                           {})[split[0]] = (split[2],
+                                                            versions[split[0]])
 
             # bump the versions
             for package in versions:
@@ -145,10 +158,12 @@ def main(args=sys.argv[1:]):
                 assert os.path.exists(setup_py)
 
                 lines = file(setup_py).readlines()
-                regex = r"""PACKAGE_VERSION *= *["']%s['"].*""" % re.escape(info[package]['Version']) 
+                regex = r"""PACKAGE_VERSION *= *["']%s['"].*""" % \
+                            re.escape(info[package]['Version'])
                 for index, line in enumerate(lines):
                     if re.match(regex, line):
-                        lines[index] = 'PACKAGE_VERSION = "%s"\n' % versions[package]
+                        lines[index] = 'PACKAGE_VERSION = "%s"\n' % \
+                                           versions[package]
                         break
                 f = file(setup_py, 'w')
                 for line in lines:
@@ -159,28 +174,34 @@ def main(args=sys.argv[1:]):
             for package in to_bump:
                 setup_py = os.path.join(directory, package, 'setup.py')
                 content = file(setup_py).read()
-                for dep, (from_version, to_version) in to_bump[package].items():
-                    content, _ = re.subn('%s *== *%s' % (dep, re.escape(from_version)),
+                for dep, \
+                    (from_version, to_version) in to_bump[package].items():
+                    content, _ = re.subn('%s *== *%s' %
+                                             (dep, re.escape(from_version)),
                                          '%s == %s' % (dep, to_version),
                                          content)
                 f = file(setup_py, 'w')
                 f.write(content)
                 f.close()
-                
+
             # bump the extension versions for jsbridge and mozmill
             for package in ['jsbridge', 'mozmill']:
                 if package not in versions:
                     continue
-                install_rdf = os.path.join(directory, package, package, 'extension', 'install.rdf')
+                install_rdf = os.path.join(directory, package, package,
+                                           'extension', 'install.rdf')
                 content = file(install_rdf).read()
-                from_version = '<em:version>%s</em:version>' % info[package]['Version']
-                assert from_version in content, '%s not in %s' % (from_version, install_rdf)
+                from_version = '<em:version>%s</em:version>' % \
+                                   info[package]['Version']
+                assert from_version in content, '%s not in %s' % \
+                                                    (from_version, install_rdf)
                 content = content.replace(from_version,
-                                          '<em:version>%s</em:version>' % versions[package])
+                                          '<em:version>%s</em:version>' %
+                                              versions[package])
                 f = file(install_rdf, 'w')
                 f.write(content)
                 f.close()
-                
+
             # print the diff
             if options.output:
                 call('%s diff > %s' % (git, options.output),
@@ -194,6 +215,7 @@ def main(args=sys.argv[1:]):
                 shutil.rmtree(directory)
         else:
             print directory
+
 
 if __name__ == '__main__':
     main()

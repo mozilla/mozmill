@@ -8,6 +8,9 @@ from setuptools import setup, find_packages
 PACKAGE_NAME = "mozmill"
 PACKAGE_VERSION = "2.0rc1"
 
+license = 'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
+topic = 'Topic :: Software Development :: Libraries :: Python Modules'
+
 # take description from README
 here = os.path.dirname(os.path.abspath(__file__))
 try:
@@ -25,7 +28,8 @@ setup(name=PACKAGE_NAME,
       license='http://www.mozilla.org/MPL/2.0/',
       packages=find_packages(exclude=['test']),
       include_package_data=True,
-      package_data = {'': ['*.js', '*.css', '*.html', '*.txt', '*.xpi', '*.rdf', '*.xul', '*.jsm', '*.xml'],},
+      package_data={'': ['*.js', '*.css', '*.html', '*.txt', '*.xpi', '*.rdf',
+                         '*.xul', '*.jsm', '*.xml'], },
       zip_safe=False,
       entry_points="""
           [console_scripts]
@@ -36,16 +40,15 @@ setup(name=PACKAGE_NAME,
           report = mozmill.report:Report
           callbacks = mozmill.python_callbacks:PythonCallbacks
         """,
-      platforms =['Any'],
-      install_requires = ['jsbridge == 3.0rc1',
-                          'mozrunner == 5.6',
-                          'ManifestDestiny == 0.5.4',
-                          'mozinfo == 0.3.3'],
-      classifiers=['Development Status :: 4 - Beta',
+      platforms=['Any'],
+      install_requires=['jsbridge == 3.0rc1',
+                        'mozrunner == 5.6',
+                        'ManifestDestiny == 0.5.4',
+                        'mozinfo == 0.3.3'],
+      classifiers=[license, topic,
+                   'Development Status :: 4 - Beta',
                    'Environment :: Console',
                    'Intended Audience :: Developers',
-                   'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
                    'Operating System :: OS Independent',
-                   'Topic :: Software Development :: Libraries :: Python Modules',
-                  ]
-     )
+                   ]
+)

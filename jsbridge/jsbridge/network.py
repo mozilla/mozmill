@@ -18,7 +18,9 @@ except ImportError:
     from simplejson.encoder import encode_basestring_ascii, encode_basestring
 
 
-class JavaScriptException(Exception): pass
+class JavaScriptException(Exception):
+    pass
+
 
 class Telnet(asyncore.dispatcher):
     def __init__(self, host, port):
@@ -35,17 +37,20 @@ class Telnet(asyncore.dispatcher):
         """override method of asyncore.dispatcher"""
         self.close()
 
-    def handle_expt(self): self.close() # connection failed, shutdown
-    
+    def handle_expt(self):
+        # connection failed, shutdown
+        self.close()
+
     def writable(self):
         return (len(self.buffer) > 0)
 
     def handle_write(self):
         sent = self.send(self.buffer)
         self.buffer = self.buffer[sent:]
-        
+
     def read_all(self):
         import socket
+
         data = ''
         while self.connected:
             try:
@@ -57,16 +62,17 @@ class Telnet(asyncore.dispatcher):
     def handle_read(self):
         self.data = self.read_all()
         self.process_read(self.data)
-        
+
     read_callback = lambda self, data: None
 
 decoder = simplejson.JSONDecoder()
 
+
 class JSObjectEncoder(simplejson.JSONEncoder):
     """Encoder that supports jsobject references by name."""
-
     def encode(self, o):
         import jsobjects
+
         if isinstance(o, jsobjects.JSObject):
             return o._name_
         else:
@@ -75,6 +81,7 @@ class JSObjectEncoder(simplejson.JSONEncoder):
     def _iterencode(self, o, markers=None):
         # XXX verbosely copied from simplejson
         import jsobjects
+
         if isinstance(o, jsobjects.JSObject):
             yield o._name_
         elif isinstance(o, basestring):
@@ -84,7 +91,7 @@ class JSObjectEncoder(simplejson.JSONEncoder):
                 encoder = encode_basestring
             _encoding = self.encoding
             if (_encoding is not None and isinstance(o, str)
-                    and not (_encoding == 'utf-8')):
+                and not (_encoding == 'utf-8')):
                 o = o.decode(_encoding)
             yield encoder(o)
         elif o is None:
@@ -96,7 +103,8 @@ class JSObjectEncoder(simplejson.JSONEncoder):
         elif isinstance(o, (int, long)):
             yield str(o)
         elif isinstance(o, float):
-            yield getattr(simplejson.encoder, 'floatstr', simplejson.encoder._floatstr)(o, self.allow_nan)
+            yield getattr(simplejson.encoder, 'floatstr',
+                          simplejson.encoder._floatstr)(o, self.allow_nan)
         elif isinstance(o, (list, tuple)):
             for chunk in self._iterencode_list(o, markers):
                 yield chunk
@@ -116,24 +124,26 @@ class JSObjectEncoder(simplejson.JSONEncoder):
 
 encoder = JSObjectEncoder()
 
-class JSBridgeDisconnectError(Exception): 
+
+class JSBridgeDisconnectError(Exception):
     """exception raised when an unexpected disconect happens"""
 
 
 class Bridge(Telnet):
-    
     trashes = []
     reading = False
     sbuffer = ''
     events_list = []
 
     callbacks = {}
-        
+
     bridge_type = "bridge"
-    
+
     registered = False
-    timeout_ctr = 0. # global timeout counter
-    
+
+    # global timeout counter
+    timeout_ctr = 0.
+
     def __init__(self, host, port, timeout=60.):
         """
         - timeout : failsafe timeout for each call to run in seconds
@@ -144,7 +154,7 @@ class Bridge(Telnet):
 
         # XXX we've actually already connected in Telnet
         self.connect((host, port))
-    
+
     def handle_connect(self):
         self.register()
 
@@ -152,59 +162,65 @@ class Bridge(Telnet):
         exec_string += '\r\n'
         try:
             self.send(exec_string)
-        except Exception,e:
+        except Exception, e:
             print str(e)
             print "String: %s" % exec_string
 
         while _uuid not in self.callbacks.keys():
-
             Bridge.timeout_ctr += interval
             if Bridge.timeout_ctr > self.timeout:
                 print 'Timeout: %s' % exec_string
                 raise JSBridgeDisconnectError("Connection timed out")
-            
+
             sleep(interval)
             try:
                 self.send('')
             except socket.error:
                 raise JSBridgeDisconnectError("Connected disconnected")
 
-        Bridge.timeout_ctr = 0. # reset the counter
-        
+        # reset the counter
+        Bridge.timeout_ctr = 0.
+
         callback = self.callbacks.pop(_uuid)
         if callback['result'] is False and raise_exeption is True:
             raise JavaScriptException(callback['exception'])
-        return callback 
-        
+        return callback
+
     def register(self):
         _uuid = str(uuid.uuid1())
-        self.send('bridge.register("'+_uuid+'", "'+self.bridge_type+'")\r\n')
+        self.send('bridge.register("' + _uuid + '", "' +
+                  self.bridge_type + '")\r\n')
         self.registered = True
 
     def execFunction(self, func_name, args, interval=.25):
         _uuid = str(uuid.uuid1())
         exec_args = [encoder.encode(_uuid), func_name, encoder.encode(args)]
-        return self.run(_uuid, 'bridge.execFunction('+ ', '.join(exec_args)+')', interval)
-        
+        return self.run(_uuid, 'bridge.execFunction(' +
+                        ', '.join(exec_args) + ')', interval)
+
     def setAttribute(self, obj_name, name, value):
         _uuid = str(uuid.uuid1())
-        exec_args = [encoder.encode(_uuid), obj_name, encoder.encode(name), encoder.encode(value)]
-        return self.run(_uuid, 'bridge.setAttribute('+', '.join(exec_args)+')')
-        
+        exec_args = [encoder.encode(_uuid), obj_name,
+                     encoder.encode(name), encoder.encode(value)]
+        return self.run(_uuid, 'bridge.setAttribute('
+                        + ', '.join(exec_args) + ')')
+
     def set(self, obj_name):
         _uuid = str(uuid.uuid1())
-        return self.run(_uuid, 'bridge.set('+', '.join([encoder.encode(_uuid), obj_name])+')')
-        
+        return self.run(_uuid, 'bridge.set(' +
+                        ', '.join([encoder.encode(_uuid), obj_name]) + ')')
+
     def describe(self, obj_name):
         _uuid = str(uuid.uuid1())
-        return self.run(_uuid, 'bridge.describe('+', '.join([encoder.encode(_uuid), obj_name])+')')
-    
+        return self.run(_uuid, 'bridge.describe(' +
+                        ', '.join([encoder.encode(_uuid), obj_name]) + ')')
+
     def fire_callbacks(self, obj):
         if 'uuid' not in obj and 'exception' in obj:
             # harness failure
             raise JavaScriptException(obj['exception']['message'])
         self.callbacks[obj['uuid']] = obj
-    
+
     def process_read(self, data):
         """Parse out json objects and fire callbacks."""
         self.sbuffer += data
@@ -215,66 +231,78 @@ class Bridge(Telnet):
             index = self.sbuffer.find('{')
             if index is not -1 and index is not 0:
                 self.sbuffer = self.sbuffer[index:]
-            # Try to get a json object from the data stream    
+                # Try to get a json object from the data stream
             try:
                 obj, index = decoder.raw_decode(self.sbuffer)
             except Exception, e:
                 self.parsing = False
-            # If we got an object fire the callback infra    
+                # If we got an object fire the callback infra
             if self.parsing:
                 self.fire_callbacks(obj)
                 self.sbuffer = self.sbuffer[index:]
 
-        
+
 class BackChannel(Bridge):
-    
     bridge_type = "backchannel"
-    
+
     def __init__(self, host, port):
         Bridge.__init__(self, host, port)
         self.uuid_listener_index = {}
         self.event_listener_index = {}
         self.global_listeners = []
-        
+
     def fire_callbacks(self, obj):
-        """Handle all callback fireing on json objects pulled from the data stream."""
-        args = inspect.getargspec(self.fire_event).args[1:] # no 'self' (key: 0)
-        self.fire_event(**dict([(str(key), value,) for key, value in obj.items()
+        """Handle all callback firing on json objects pulled
+        from the data stream.
+
+        """
+        # no 'self' (key: 0)
+        args = inspect.getargspec(self.fire_event).args[1:]
+
+        self.fire_event(**dict([(str(key), value,)
+                            for key, value in obj.items()
                                 if key in args]))
 
     def add_listener(self, callback, uuid=None, eventType=None):
         if uuid is not None:
             self.uuid_listener_index.setdefault(uuid, []).append(callback)
         if eventType is not None:
-            self.event_listener_index.setdefault(eventType, []).append(callback)
+            self.event_listener_index.setdefault(eventType,
+                                                 []).append(callback)
 
     def add_global_listener(self, callback):
         self.global_listeners.append(callback)
 
-    def fire_event(self, eventType=None, uuid=None, result=None, exception=None):
-        Bridge.timeout_ctr = 0. # reset the counter
-        if uuid is not None and self.uuid_listener_index.has_key(uuid):
+    def fire_event(self, eventType=None, uuid=None, result=None,
+                   exception=None):
+        # reset the counter
+        Bridge.timeout_ctr = 0.
+
+        if uuid is not None and uuid in self.uuid_listener_index:
             for callback in self.uuid_listener_index[uuid]:
                 callback(result)
-        if eventType is not None and self.event_listener_index.has_key(eventType):
+        if eventType is not None and eventType in self.event_listener_index:
             for callback in self.event_listener_index[eventType]:
                 callback(result)
         for listener in self.global_listeners:
             listener(eventType, result)
 
 thread = None
- 
+
+
 def create_network(hostname, port):
     back_channel = BackChannel(hostname, port)
     bridge = Bridge(hostname, port)
     global thread
     if not thread or not thread.isAlive():
         def do():
-            try: asyncore.loop(use_poll=True)
-            except select.error:pass
-            
+            try:
+                asyncore.loop(use_poll=True)
+            except select.error:
+                pass
+
         thread = Thread(target=do)
-        getattr(thread, 'setDaemon', lambda x : None)(True)
+        getattr(thread, 'setDaemon', lambda x: None)(True)
         thread.start()
 
     return back_channel, bridge

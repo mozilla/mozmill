@@ -5,6 +5,7 @@ import os
 import tempfile
 import unittest
 
+
 class TestMozmillPersisted(unittest.TestCase):
     """test persisted object"""
 
@@ -52,7 +53,9 @@ class TestMozmillPersisted(unittest.TestCase):
 
     def inspect_persisted(self, persisted):
         """inspect the persisted data following the test"""
-        self.assertTrue(persisted == {u'fleem': 2, u'bar': u'bar', u'number': 2})
+        self.assertTrue(persisted == {u'fleem': 2,
+                                      u'bar': u'bar',
+                                      u'number': 2})
 
 if __name__ == '__main__':
     unittest.main()
