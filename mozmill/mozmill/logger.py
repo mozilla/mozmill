@@ -122,7 +122,7 @@ class LoggerListener(object):
                           )
         parser.add_option("--format",
                           dest="format",
-                          default="json",
+                          default="pprint-color",
                           metavar="[json|pprint|pprint-color]",
                           help="Format for logging (default: %default)")
 
