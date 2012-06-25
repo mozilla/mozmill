@@ -4,8 +4,16 @@
 
 
 def init_jsobject(cls, bridge, name, value, description=None):
-    """Initialize a js object that is a subclassed base type:
-    int, str, unicode, float.
+    """Initialize a JS object that is a subclassed base type.
+
+    Arguments:
+    cls -- Class the object has to be created from
+    bridge -- JSBridge instance to use
+    name -- Name of the JS object
+    value -- Value of the object wrapped as JS object
+
+    Keyword arguments:
+    description -- Additional information about the object
 
     """
     obj = cls(value)
@@ -18,7 +26,20 @@ def init_jsobject(cls, bridge, name, value, description=None):
 def create_jsobject(bridge, fullname, value=None, obj_type=None,
                     override_set=False):
     """Create a single JSObject for named object on other side of the bridge.
-    Handles various initization cases for different JSObjects."""
+
+    This is a factory method which assists in creating a JS object by handling
+    various initialization cases for different JSObjects.
+
+    Arguments:
+    bridge -- JSBridge instance to use
+    fullname -- Full name of the object
+
+    Keyword arguments:
+    value -- Value of the object wrapped as JS object
+    obj_type -- Type of the JS object to create from
+    override_set -- Override the name of the object
+
+    """
     description = bridge.describe(fullname)
     obj_type = description['type']
     value = description.get('data', None)
@@ -56,15 +77,12 @@ class JSObject(object):
         self._description_ = description
 
     def __jsget__(self, name):
-        """Abstraction for final step in get events
-        __getitem__ and __getattr__.
-
-        """
+        """Abstraction for final step in get events __getitem__/__getattr__."""
         result = create_jsobject(self._bridge_, name, override_set=True)
         return result
 
     def __attributes__(self):
-        """returns the attributes in the object"""
+        """Returns the attributes in the object."""
         return self._bridge_.describe(self._name_)['attributes']
 
     def __iter__(self):
@@ -73,11 +91,12 @@ class JSObject(object):
 
     def __getattr__(self, name):
         """Get the object from jsbridge.
+
         Handles lazy loading of all attributes of self.
 
         """
-        # A little hack so that ipython returns all the names.
         if name == '_getAttributeNames':
+            # A little hack so that ipython returns all the names.
             return self.__attributes__
 
         if name in self.__attributes__():
@@ -88,8 +107,10 @@ class JSObject(object):
     __getitem__ = __getattr__
 
     def __setattr__(self, name, value):
-        """Set the given JSObject as an attribute of this JSObject and
-        make proper javascript assignment on the other side of the bridge.
+        """Set the given JSObject as an attribute of this JSObject.
+
+        Beside setting the attribute it also makes proper javascript
+        assignments on the other side of the bridge.
 
         """
         if name.startswith('_') and name.endswith('_'):

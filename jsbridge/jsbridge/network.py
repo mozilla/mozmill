@@ -70,7 +70,6 @@ decoder = simplejson.JSONDecoder()
 
 class JSObjectEncoder(simplejson.JSONEncoder):
     """Encoder that supports jsobject references by name."""
-
     def encode(self, o):
         import jsobjects
 
@@ -209,7 +208,7 @@ class Bridge(Telnet):
     def set(self, obj_name):
         _uuid = str(uuid.uuid1())
         return self.run(_uuid, 'bridge.set(' +
-               ', '.join([encoder.encode(_uuid), obj_name]) + ')')
+                        ', '.join([encoder.encode(_uuid), obj_name]) + ')')
 
     def describe(self, obj_name):
         _uuid = str(uuid.uuid1())

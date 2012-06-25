@@ -11,7 +11,7 @@ import os
 
 
 class PythonCallbacks(object):
-    """fire python callbacks from JS; these are one-way only"""
+    """Fire python callbacks from JS; these are one-way only."""
 
     def __init__(self):
         pass

@@ -2,9 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""
-logging event listener for Mozmill
-"""
+"""Logging event listener for Mozmill."""
 
 try:
     import json
@@ -147,7 +145,7 @@ class LoggerListener(object):
         return json.dumps(obj, indent=2)
 
     def find_stack(self, obj):
-        """ split any stacktrace string into an array """
+        """Split any stacktrace string into an array."""
         if type(obj) == dict or type(obj) == list:
             iter = obj
             if type(obj) == list:
@@ -213,7 +211,7 @@ class LoggerListener(object):
                 'mozmill.endTest': self.endTest}
 
     def stop(self, results, fatal):
-        """print pass/failed/skipped statistics"""
+        """Print pass/failed/skipped statistics."""
 
         if fatal:
             msg = 'Disconnect Error: Application unexpectedly closed'

@@ -61,11 +61,11 @@ class TestResults(object):
         self.endtime = None
 
     def events(self):
-        """events the MozMill class will dispatch to"""
+        """Events, the MozMill class will dispatch to."""
         return {'mozmill.endTest': self.endTest_listener}
 
     def finish(self, handlers, fatal=False):
-        """Do the final reporting and such"""
+        """Do the final reporting and such."""
         self.endtime = datetime.utcnow()
 
         # handle stop events
@@ -92,12 +92,13 @@ class TestResults(object):
 
 
 class MozMill(object):
-    """
-    MozMill is a test runner  You should use MozMill as follows:
+    """MozMill is a test runner.
 
-    m = MozMill(...)
-    results = m.run(tests)
-    results.finish()
+    You should use MozMill as follows:
+
+        m = MozMill(...)
+        results = m.run(tests)
+        results.finish()
     """
 
     @classmethod
@@ -139,12 +140,16 @@ class MozMill(object):
 
     def __init__(self, runner, jsbridge_port, results=None,
                  jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=()):
-        """
-        - runner : a MozRunner instance to run the app
-        - jsbridge_port : The port the server is running on
-        - results : a TestResults instance to accumulate results
-        - jsbridge_timeout : how long to go without jsbridge communication
-        - handlers : pluggable event handler
+        """Constructor of the Mozmill class.
+
+        Arguments:
+        runner -- The MozRunner instance to run the application
+        jsbridge_port -- The port the jsbridge server is running on
+
+        Keyword arguments:
+        results -- A TestResults instance to accumulate results
+        jsbridge_timeout -- How long to wait without a jsbridge communication
+        handlers -- pluggable event handlers
 
         """
         # the MozRunner
@@ -221,14 +226,18 @@ class MozMill(object):
         self.endRunnerCalled = True
 
     def userShutdown_listener(self, obj):
-        """
-        listen for the 'userShutdown' event and set some state so
-        that the (python) instance knows what to do.  The obj should
-        have the following keys:
-        - restart : whether the application is to be restarted
-        - user : whether the shutdown was triggered via test JS
-        - next : for the restart cases, which test to run next
-        - resetProfile : reset the profile after shutdown
+        """Listener for userShutdown events.
+
+        Listen for the 'userShutdown' event and set some state so
+        that the (Python) instance knows what to do.
+
+        Arguments:
+        obj -- Information about the user shutdown event. It contains the keys:
+                restart -- whether the application is to be restarted
+                user -- whether the shutdown was triggered via test JS
+                next -- for the restart cases, which test to run next
+                resetProfile -- reset the profile after shutdown
+
         """
         self.shutdownMode = obj
 
@@ -236,7 +245,7 @@ class MozMill(object):
         self.results.screenshots.append(obj)
 
     def fire_event(self, event, obj):
-        """fire an event from the python side"""
+        """Fire an event from the python side."""
 
         # namespace the event
         event = 'mozmill.' + event
@@ -266,18 +275,20 @@ class MozMill(object):
         for global_listener in self.global_listeners:
             self.back_channel.add_global_listener(global_listener)
 
-    def set_debugger(self, debugger_args, interactive=True):
-        """
-        set to be run with a debugger
-        - debugger_args : command line arguments to the debugger
-                          (use None to disable the debugger)
-        - interactive : whether to run in interactive mode
+    def set_debugger(self, debugger_args=None, interactive=True):
+        """Sets arguments for the debugger attached to the application.
+
+        Keyword arguments:
+        debugger_args --- Command line arguments to the debugger
+                          (None disables the debugger)
+        interactive -- whether to run in interactive mode
+
         """
         self.debugger = debugger_args
         self.interactive = interactive
 
     def start_runner(self):
-        """start the MozRunner"""
+        """Start the MozRunner."""
 
         # if user restart we don't need to start the browser back up
         if not (self.shutdownMode.get('user', False)
@@ -308,11 +319,13 @@ class MozMill(object):
         return frame
 
     def run_test_file(self, frame, path, name=None):
-        """
-        run a single test file
-        - frame : JS frame object
-        - path : path to the test file
-        - name : name of test to run; if None, run all tests
+        """Run a single test file.
+
+        Arguments:
+        frame -- JS frame object
+        path -- Path to the test file
+        name -- Name of test to run (if None, run all tests)
+
         """
         try:
             frame.runTestFile(path, False, name)
@@ -329,7 +342,7 @@ class MozMill(object):
         return frame
 
     def run_tests(self, *tests):
-        """run test files"""
+        """Run the specified test files."""
         tests = list(tests)
 
         # note runner state
@@ -374,7 +387,7 @@ class MozMill(object):
             self.stop_runner()
 
     def run(self, *tests):
-        """run the tests"""
+        """Run all the tests"""
 
         exception = None
         try:
@@ -387,14 +400,14 @@ class MozMill(object):
             # shutdown the test harness cleanly
             self.stop()
 
-        # reraise the most recent exception, if any
+        # re-raise the most recent exception, if any
         if exception:
             raise
 
         return self.results
 
     def get_appinfo(self, bridge):
-        """ Collect application specific information """
+        """Collect application specific information."""
         mozmill = jsbridge.JSObject(bridge, js_module_mozmill)
         appInfo = mozmill.appInfo
         info = {'application_id': str(appInfo.ID),
@@ -432,7 +445,6 @@ class MozMill(object):
         self.results.fails.append(test)
 
     def stop_runner(self, timeout=10):
-
         # Give a second for any callbacks to finish.
         sleep(1)
 
@@ -454,7 +466,7 @@ class MozMill(object):
             raise Exception('client process shutdown unsucessful')
 
     def stop(self):
-        """cleanup and invoking of final handlers"""
+        """Cleanup and invoking of final handlers."""
 
         # ensure you have the application info for the case
         # of no tests: https://bugzilla.mozilla.org/show_bug.cgi?id=751866
@@ -476,7 +488,7 @@ class MozMill(object):
 ### method for test collection
 
 def collect_tests(path):
-    """find all tests for a given path"""
+    """Find all tests for a given path."""
 
     path = os.path.realpath(path)
     if os.path.isfile(path):
@@ -497,7 +509,7 @@ def collect_tests(path):
 ### command line interface
 
 class CLI(mozrunner.CLI):
-    """command line interface to mozmill"""
+    """Command line interface to mozmill."""
 
     module = "mozmill"
 
@@ -570,7 +582,7 @@ class CLI(mozrunner.CLI):
             self.options.interactive = True
 
     def add_options(self, parser):
-        """add command line options"""
+        """Add command line options."""
 
         group = OptionGroup(parser, 'MozRunner options')
         mozrunner.CLI.add_options(self, group)
@@ -640,9 +652,11 @@ class CLI(mozrunner.CLI):
                 parser.add_option_group(group)
 
     def profile_args(self):
-        """
-        return arguments needed to make a profile object from
-        this command-line interface
+        """Setup profile settings for the profile object.
+
+        Returns arguments needed to make a profile object from
+        this command-line interface.
+
         """
         profile_args = mozrunner.CLI.profile_args(self)
         profile_args.setdefault('addons', []).extend(ADDONS)
@@ -660,7 +674,7 @@ class CLI(mozrunner.CLI):
         return profile_args
 
     def command_args(self):
-        """arguments to the application to be run"""
+        """Arguments to the application to be run."""
 
         cmdargs = mozrunner.CLI.command_args(self)
         if self.options.debug and '-jsconsole' not in cmdargs:
@@ -669,7 +683,7 @@ class CLI(mozrunner.CLI):
         return cmdargs
 
     def run(self):
-        """CLI front end to run mozmill"""
+        """CLI front end to run mozmill."""
 
         # make sure you have tests to run
         if (not self.manifest.tests) and (not self.options.manual):

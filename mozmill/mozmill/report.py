@@ -24,12 +24,12 @@ class Report(object):
         self.date_format = date_format
 
     def events(self):
-        """returns a mapping of event types (strings) to methods"""
+        """Returns a mapping of event types (strings) to methods."""
         return {}
 
     @classmethod
     def add_options(cls, parser):
-        """add options to the parser"""
+        """Add options to the parser."""
         parser.add_option("--report",
                           dest="report",
                           default=None,
@@ -42,7 +42,7 @@ class Report(object):
         return self.send_report(results, self.report)
 
     def get_report(self, results):
-        """get the report results"""
+        """Get the report results."""
 
         report = {'report_type': 'mozmill-test',
                   'mozmill_version': results.mozmill_version,
@@ -69,7 +69,7 @@ class Report(object):
         return report
 
     def send_report(self, results, report_url):
-        """ Send a report of the results to a CouchdB instance or a file. """
+        """Send a report of the results to a CouchdB instance or a file."""
 
         # report to file or stdout
         f = None
