@@ -2,12 +2,13 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
 
-import sys
-import os
-import mozmill
-import re
-import optparse
 import imp
+import mozmill
+import optparse
+import os
+import re
+import sys
+import traceback
 import unittest
 
 from manifestparser import TestManifest
@@ -173,23 +174,18 @@ def test_all_python(tests, options):
 def test_all_js(tests, options):
     print "Running JS Tests"
 
-    m = mozmill.MozMill.create()
-    # Not doable right now
-    # args.append('--console-level=DEBUG')
-
     # runtime exception
     exception = None
+
+    m = mozmill.MozMill.create()
+    # args.append('--console-level=DEBUG')  # Not doable right now
+
+    exception = None
     try:
-        # run the tests
-        if options.restart:
-            for test in tests:
-                m.run(test)
-                # reset the profile
-                m.runner.reset()
-        else:
-            m.run(*tests)
+        m.run(tests, options.restart)
     except:
         exception_type, exception, tb = sys.exc_info()
+        traceback.print_exception(exception_type, exception, tb)
 
     return m.results
 
