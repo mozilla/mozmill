@@ -341,78 +341,66 @@ class MozMill(object):
 
         return frame
 
-    def run_tests(self, tests, restart=False):
-        """Run the specified test files.
-
-        Arguments:
-        tests -- Tests (Array) which have to be executed
-
-        Keyword Arguments:
-        restart -- If True the application will be restarted between each test
-
-        """
-        frame = None
-
-        # run tests
-        tests = list(tests)
-        while tests:
-            test = tests.pop(0)
-            self.running_test = test
-
-            # skip test
-            if 'disabled' in test:
-
-                # see frame.js:events.endTest
-                obj = {'filename': test['path'],
-                       'passed': 0,
-                       'failed': 0,
-                       'passes': [],
-                       'fails': [],
-                       # Bug 643480
-                       # Should be consistent with test.__name__ ;
-                       'name': os.path.basename(test['path']),
-                       'skipped': True,
-                       'skipped_reason': test['disabled']
-                       }
-                self.fire_event('endTest', obj)
-                continue
-
-            try:
-                frame = self.run_test_file(frame or self.start_runner(),
-                                           test['path'])
-
-                # If a restart is requested between each test stop the runner
-                # and reset the profile
-                if restart:
-                    self.stop_runner()
-                    frame = None
-
-                    self.runner.reset()
-
-            except JSBridgeDisconnectError:
-                frame = None
-
-                # Unexpected shutdown
-                if not self.shutdownMode:
-                    self.report_disconnect()
-                    self.stop_runner()
-
-        # stop the runner
-        if frame:
-            self.stop_runner()
-
     def run(self, tests, restart=False):
         """Run all the tests.
 
         Arguments:
-        tests -- Tests (Array) which have to be executed
+        tests -- List of tests which have to be executed
 
         Keyword Arguments:
         restart -- If True the application will be restarted between each test
 
         """
         try:
-            self.run_tests(tests, restart)
+            frame = None
+
+            # run tests
+            tests = list(tests)
+            while tests:
+                test = tests.pop(0)
+                self.running_test = test
+
+                # skip test
+                if 'disabled' in test:
+
+                    # see frame.js:events.endTest
+                    obj = {'filename': test['path'],
+                           'passed': 0,
+                           'failed': 0,
+                           'passes': [],
+                           'fails': [],
+                           # Bug 643480
+                           # Should be consistent with test.__name__ ;
+                           'name': os.path.basename(test['path']),
+                           'skipped': True,
+                           'skipped_reason': test['disabled']
+                    }
+                    self.fire_event('endTest', obj)
+                    continue
+
+                try:
+                    frame = self.run_test_file(frame or self.start_runner(),
+                                               test['path'])
+
+                    # If a restart is requested between each test stop the runner
+                    # and reset the profile
+                    if restart:
+                        self.stop_runner()
+                        frame = None
+
+                        self.runner.reset()
+
+                except JSBridgeDisconnectError:
+                    frame = None
+
+                    # Unexpected shutdown
+                    if not self.shutdownMode:
+                        self.report_disconnect()
+                        self.stop_runner()
+
+            # stop the runner
+            if frame:
+                self.stop_runner()
         finally:
             # shutdown the test harness cleanly
             self.stop()
