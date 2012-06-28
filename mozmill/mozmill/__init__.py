@@ -341,70 +341,71 @@ class MozMill(object):
 
         return frame
 
-    def run_tests(self, *tests):
-        """Run the specified test files."""
-        tests = list(tests)
+    def run(self, tests, restart=False):
+        """Run all the tests.
 
-        # note runner state
-        frame = None
+        Arguments:
+        tests -- Tests (array) which have to be executed
 
-        # run tests
-        while tests:
-            test = tests.pop(0)
-            self.running_test = test
+        Keyword Arguments:
+        restart -- If True the application will be restarted between each test
 
-            # skip test
-            if 'disabled' in test:
-
-                # see frame.js:events.endTest
-                obj = {'filename': test['path'],
-                       'passed': 0,
-                       'failed': 0,
-                       'passes': [],
-                       'fails': [],
-                       # Bug 643480
-                       # Should be consistent with test.__name__ ;
-                       'name': os.path.basename(test['path']),
-                       'skipped': True,
-                       'skipped_reason': test['disabled']
-                       }
-                self.fire_event('endTest', obj)
-                continue
-
-            try:
-                frame = self.run_test_file(frame or self.start_runner(),
-                                           test['path'])
-            except JSBridgeDisconnectError:
-                frame = None
-
-                # Unexpected shutdown
-                if not self.shutdownMode:
-                    self.report_disconnect()
-                    self.stop_runner()
-
-        # stop the runner
-        if frame:
-            self.stop_runner()
-
-    def run(self, *tests):
-        """Run all the tests"""
-
-        exception = None
+        """
         try:
-            self.run_tests(*tests)
-        except JSBridgeDisconnectError, e:
-            exception_type, exception, tb = sys.exc_info()
-            if not self.shutdownMode:
-                self.report_disconnect()
+            frame = None
+
+            # run tests
+            tests = list(tests)
+            while tests:
+                test = tests.pop(0)
+
+                # skip test
+                if 'disabled' in test:
+
+                    # see frame.js:events.endTest
+                    obj = {'filename': test['path'],
+                           'passed': 0,
+                           'failed': 0,
+                           'passes': [],
+                           'fails': [],
+                           # Bug 643480
+                           # Should be consistent with test.__name__ ;
+                           'name': os.path.basename(test['path']),
+                           'skipped': True,
+                           'skipped_reason': test['disabled']
+                    }
+                    self.fire_event('endTest', obj)
+                    continue
+
+                try:
+                    frame = self.run_test_file(frame or self.start_runner(),
+                                               test['path'])
+
+                    # If a restart is requested between each test stop the runner
+                    # and reset the profile
+                    if restart:
+                        self.stop_runner()
+                        frame = None
+
+                        self.runner.reset()
+
+                except JSBridgeDisconnectError:
+                    frame = None
+
+                    # Unexpected shutdown
+                    if not self.shutdownMode:
+                        self.report_disconnect()
+                        self.stop_runner()
+
+            # stop the runner
+            if frame:
+                self.stop_runner()
         finally:
             # shutdown the test harness cleanly
             self.stop()
 
-        # re-raise the most recent exception, if any
-        if exception:
-            raise
-
         return self.results
+
 
     def get_appinfo(self, bridge):
         """Collect application specific information."""
@@ -452,7 +453,7 @@ class MozMill(object):
         self.shutdownMode = {}
 
         # quit the application via JS
-        # this *will* cause a diconnect error
+        # this *will* cause a disconnect error
         # (not sure what the socket.error is all about)
         try:
             mozmill = jsbridge.JSObject(self.bridge, js_module_mozmill)
@@ -463,7 +464,7 @@ class MozMill(object):
         # wait for the runner to stop
         self.runner.wait(timeout=timeout)
         if self.runner.is_running():
-            raise Exception('client process shutdown unsucessful')
+            raise Exception('client process shutdown unsuccessful')
 
     def stop(self):
         """Cleanup and invoking of final handlers."""
@@ -711,19 +712,11 @@ class CLI(mozrunner.CLI):
                 pass
             return
 
-        # runtime exception
-        exception = None
-
         # run the tests
+        exception = None
         tests = self.manifest.active_tests(**mozinfo.info)
         try:
-            if self.options.restart:
-                for test in tests:
-                    mozmill.run(test)
-                    # reset the profile
-                    runner.reset()
-            else:
-                mozmill.run(*tests)
+            mozmill.run(tests, self.options.restart)
         except:
             exception_type, exception, tb = sys.exc_info()
 
