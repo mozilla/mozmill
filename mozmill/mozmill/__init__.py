@@ -358,6 +358,7 @@ class MozMill(object):
             tests = list(tests)
             while tests:
                 test = tests.pop(0)
+                self.running_test = test
 
                 # skip test
                 if 'disabled' in test:
@@ -402,6 +403,7 @@ class MozMill(object):
                 self.stop_runner()
         finally:
             # shutdown the test harness cleanly
+            self.running_test = None
             self.stop()
 
         return self.results
