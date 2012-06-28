@@ -20,7 +20,7 @@ class LoggerListener(object):
 
     ### methods for the EventHandler interface
     def __init__(self, log_file=None, console_level="INFO", file_level="INFO",
-                 format="json", debug=False):
+                 format="pprint-color", debug=False):
         template = "%(levelname)s | %(message)s"
 
         levels = {
