@@ -345,7 +345,7 @@ class MozMill(object):
         """Run all the tests.
 
         Arguments:
-        tests -- List of tests which have to be executed
+        tests -- Tests (array) which have to be executed
 
         Keyword Arguments:
         restart -- If True the application will be restarted between each test
@@ -358,7 +358,6 @@ class MozMill(object):
             tests = list(tests)
             while tests:
                 test = tests.pop(0)
-                self.running_test = test
 
                 # skip test
                 if 'disabled' in test:
