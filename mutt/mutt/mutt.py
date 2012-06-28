@@ -12,6 +12,7 @@ import traceback
 import unittest
 
 from manifestparser import TestManifest
+from mozmill.logger import LoggerListener
 
 
 usage = """
@@ -174,14 +175,12 @@ def test_all_python(tests, options):
 def test_all_js(tests, options):
     print "Running JS Tests"
 
-    # runtime exception
-    exception = None
+    # Create logger for console
+    level = "DEBUG" if options.verbose else "INFO"
+    logger = LoggerListener(console_level=level)
 
-    m = mozmill.MozMill.create()
-    # args.append('--console-level=DEBUG')  # Not doable right now
-
-    exception = None
     try:
+        m = mozmill.MozMill.create(handlers=[logger])
         m.run(tests, options.restart)
     except:
         exception_type, exception, tb = sys.exc_info()
