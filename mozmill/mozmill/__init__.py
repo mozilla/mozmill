@@ -408,27 +408,11 @@ class MozMill(object):
 
         return self.results
 
-
     def get_appinfo(self, bridge):
         """Collect application specific information."""
         mozmill = jsbridge.JSObject(bridge, js_module_mozmill)
-        appInfo = mozmill.appInfo
-        info = {'application_id': str(appInfo.ID),
-                'application_name': str(appInfo.name),
-                'application_version': str(appInfo.version),
-                'application_locale': str(mozmill.locale),
-                'platform_buildid': str(appInfo.platformBuildID),
-                'platform_version': str(appInfo.platformVersion),
-               }
-        try:
-            startupInfo = mozmill.startupInfo
-            info['startupInfo'] = dict([(i, getattr(startupInfo, i))
-                                        for i in startupInfo.__attributes__()])
-        except KeyError:
-            info['startupInfo'] = None
-        info['addons'] = json.loads(mozmill.addons)
-        info.update(self.runner.get_repositoryInfo())
-        return info
+
+        return json.loads(mozmill.getApplicationDetails())
 
     ### methods for shutting down and cleanup
 
