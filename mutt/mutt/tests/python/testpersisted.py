@@ -37,7 +37,7 @@ class TestMozmillPersisted(unittest.TestCase):
         m.persisted['bar'] = 'foo'
         m.persisted['foo'] = 'bar'
         m.persisted['number'] = 1
-        results = m.run(dict(path=path))
+        results = m.run([dict(path=path)])
         self.assertTrue(len(results.passes) == 1)
         self.inspect_persisted(m.persisted)
 
@@ -47,7 +47,7 @@ class TestMozmillPersisted(unittest.TestCase):
         m.persisted['bar'] = 'foo'
         m.persisted['foo'] = 'bar'
         m.persisted['number'] = 1
-        results = m.run(dict(path=path))
+        results = m.run([dict(path=path)])
         self.assertTrue(len(results.passes) == 1)
         self.inspect_persisted(m.persisted)
 
