@@ -18,8 +18,6 @@ var utils = {}; Cu.import('resource://mozmill/stdlib/utils.js', utils);
 
 var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
                  .getService(Ci.nsIAppStartup);
-var consoleService = Cc["@mozilla.org/consoleservice;1"]
-                     .getService(Ci.nsIConsoleService);
 var hwindow = Cc["@mozilla.org/appshell/appShellService;1"]
               .getService(Ci.nsIAppShellService).hiddenDOMWindow;
 
