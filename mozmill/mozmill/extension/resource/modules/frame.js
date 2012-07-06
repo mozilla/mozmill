@@ -657,9 +657,12 @@ Runner.prototype.runTestModule = function (module) {
         events.appQuit = false;
         var test = module.__tests__[i];
 
-        events.setState('test'); 
+        events.setState('test');
         events.setTest(test, this.invokedFromIDE);
         this.wrapper(test);
+        if (events.userShutdown) {
+          break;
+        }
         events.endTest(test)
       }
     } else {
