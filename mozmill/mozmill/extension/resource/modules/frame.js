@@ -217,10 +217,16 @@ events.setTest = function (test, invokedFromIDE) {
 }
 
 events.endTest = function (test) {
+
   // use the current test unless specified
   if (test === undefined) {
     test = events.currentTest;
   }  
+
+  // If no test is set it has already been reported.
+  // We don't want to do it a second time.
+  if (!test)
+    return;
 
   // report the end of a test
   test.status = 'done';
@@ -514,6 +520,13 @@ AppQuitObserver.prototype = {
   observe: function (subject, topic, data) {
     this.unregister();
 
+    // If we observe a quit notification make sure to send the
+    // results of the current test. In those cases we don't reach
+    // the equivalent code in runTestModule()
+    events.pass({'message': 'AppQuitObserver: ' + data,
+                 'userShutdown': events.userShutdown});
+    events.endTest();
+
     events.appQuit = true;
     this._runner.end();
   },
@@ -577,16 +590,18 @@ Runner.prototype.wrapper = function (func, arg) {
       func();
     }
 
-    // If a user shutdown was expected but the application hasn't quit, throw a failure
+    // If a user shutdown was expected but the application hasn't quit yet,
+    // throw a failure and mark the test as failed.
     if (events.isUserShutdown()) {
-      // Prevents race condition between mozrunner hard process kill and normal FFx shutdown
+      // Prevents race condition between mozrunner hard process kill
+      // and normal FFx shutdown
       utils.sleep(500);
 
       if (events.userShutdown['user'] && !events.appQuit) {
         events.fail({'function': 'Runner.wrapper',
                      'message':'Shutdown expected but none detected before end of test',
                      'userShutdown': events.userShutdown});
-        events.endTest(func);
+        events.endTest();
 
         // Depending on the shutdown mode quit or restart the application
         let flags = Ci.nsIAppStartup.eAttemptQuit;
@@ -644,12 +659,7 @@ Runner.prototype.runTestModule = function (module) {
 
         events.setState('test'); 
         events.setTest(test, this.invokedFromIDE);
-
         this.wrapper(test);
-        if (events.userShutdown && !events.userShutdown['user']) {
-          events.endTest(test);
-          break;
-        }
         events.endTest(test)
       }
     } else {

@@ -16,10 +16,12 @@ var elementslib = {}; Cu.import('resource://mozmill/driver/elementslib.js', elem
 var mozelement = {}; Cu.import('resource://mozmill/driver/mozelement.js', mozelement);
 var utils = {}; Cu.import('resource://mozmill/stdlib/utils.js', utils);
 
+var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
+                 .getService(Ci.nsIAppStartup);
+var consoleService = Cc["@mozilla.org/consoleservice;1"]
+                     .getService(Ci.nsIConsoleService);
 var hwindow = Cc["@mozilla.org/appshell/appShellService;1"]
               .getService(Ci.nsIAppShellService).hiddenDOMWindow;
-var aConsoleService = Cc["@mozilla.org/consoleservice;1"]
-                      .getService(Ci.nsIConsoleService);
 
 // Declare most used utils functions in the controller namespace
 var sleep = utils.sleep;
@@ -492,9 +494,7 @@ MozMillController.prototype.restartApplication = function (next, resetProfile) {
                                       'restart': true,
                                       'next': next,
                                       'resetProfile': Boolean(resetProfile)});
-  broker.sendMessage('endTest');
-  broker.sendMessage('persist');
-  utils.getMethodInWindows('goQuitApplication')();
+  appStartup.quit(Ci.nsIAppStartup.eAttemptQuit | Ci.nsIAppStartup.eRestart);
 }
 
 MozMillController.prototype.stopApplication = function (resetProfile) {
@@ -503,9 +503,7 @@ MozMillController.prototype.stopApplication = function (resetProfile) {
   broker.sendMessage('userShutdown', {'user': false,
                                       'restart': false,
                                       'resetProfile': Boolean(resetProfile)});
-  broker.sendMessage('endTest');
-  broker.sendMessage('persist');
-  utils.getMethodInWindows('goQuitApplication')();
+  appStartup.quit(Ci.nsIAppStartup.eAttemptQuit);
 }
 
 //Browser navigation functions
