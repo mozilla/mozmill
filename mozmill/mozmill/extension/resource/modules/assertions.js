@@ -199,7 +199,7 @@ Expect.prototype = {
 
     let result = {
       'fileName'   : frame.filename.replace(/(.*)-> /, ""),
-      'function'   : Components.stack.name,  // findCallerFrame nulls this out, so access it directly
+      'name'   : frame.name,
       'lineNumber' : frame.lineNumber,
       'message'    : message,
       'stack'      : Components.stack
@@ -515,15 +515,19 @@ Expect.prototype = {
 *
 * Error object thrown by failing assertions
 */
-function AssertionError(message, fileName, lineNumber) {
+function AssertionError(aMessage, aFileName, aLineNumber, aName) {
   var err = new Error();
+
   if (err.stack) {
     this.stack = err.stack;
   }
-  this.message = message === undefined ? err.message : message;
-  this.fileName = fileName === undefined ? err.fileName : fileName;
-  this.lineNumber = lineNumber === undefined ? err.lineNumber : lineNumber;
-};
+
+  this.message = aMessage || err.message;
+  this.fileName = aFileName || err.fileName;
+  this.lineNumber = aLineNumber || err.lineNumber;
+  this.name = aName || err.name;
+}
+
 AssertionError.prototype = new Error();
 AssertionError.prototype.constructor = AssertionError;
 AssertionError.prototype.name = 'AssertionError';
@@ -560,7 +564,10 @@ Assert.prototype.AssertionError = AssertionError;
  * @throws {AssertionError }
  */
 Assert.prototype._logFail = function Assert__logFail(aResult) {
-  throw new AssertionError(aResult);
+  throw new AssertionError(aResult.message,
+                           aResult.fileName,
+                           aResult.lineNumber,
+                           aResult.name);
 }
 
 
