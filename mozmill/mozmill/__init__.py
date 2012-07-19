@@ -57,7 +57,7 @@ class TestResults(object):
         self.skipped = []
 
         # total test run time
-        self.starttime = datetime.now()
+        self.starttime = datetime.utcnow()
         self.endtime = None
 
     def events(self):
