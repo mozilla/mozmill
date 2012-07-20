@@ -618,7 +618,6 @@ Runner.prototype.wrapper = function (func, arg) {
     // Allow the exception if it's not an user shutdown
     if (!events.isUserShutdown()) {
       events.fail({'exception': e, 'test': func})
-      Cu.reportError(e);
     }
   }
 }
