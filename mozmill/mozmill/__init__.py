@@ -179,16 +179,18 @@ class MozMill(object):
         self.listeners = []
         # dict of listeners by event type
         self.listener_dict = {}
-        self.add_listener(self.persist_listener,
-                          eventType="mozmill.persist")
         self.add_listener(self.endRunner_listener,
                           eventType='mozmill.endRunner')
+        self.add_listener(self.frameworkFail_listener,
+                          eventType='mozmill.frameworkFail')
+        self.add_listener(self.persist_listener,
+                          eventType="mozmill.persist")
+        self.add_listener(self.screenshot_listener,
+                          eventType='mozmill.screenshot')
         self.add_listener(self.startTest_listener,
                           eventType='mozmill.setTest')
         self.add_listener(self.userShutdown_listener,
                           eventType='mozmill.userShutdown')
-        self.add_listener(self.screenshot_listener,
-                          eventType='mozmill.screenshot')
 
         # add listeners for event handlers
         self.handlers = [self.results]
@@ -221,6 +223,9 @@ class MozMill(object):
 
     def startTest_listener(self, test):
         self.current_test = test
+
+    def frameworkFail_listener(self, obj):
+        self.framework_failure = obj['message']
 
     def endRunner_listener(self, obj):
         self.endRunnerCalled = True
@@ -299,6 +304,11 @@ class MozMill(object):
             self.runner.start(debug_args=self.debugger,
                               interactive=self.interactive)
 
+        # set initial states for next test
+        self.framework_failure = None
+        self.shutdownMode = {}
+        self.endRunnerCalled = False
+
         # create the network
         self.create_network()
 
@@ -306,14 +316,14 @@ class MozMill(object):
         if not self.results.appinfo:
             self.results.appinfo = self.get_appinfo(self.bridge)
 
-        frame = jsbridge.JSObject(self.bridge, js_module_frame)
+        try:
+            frame = jsbridge.JSObject(self.bridge, js_module_frame)
 
-        # set some state
-        self.shutdownMode = {}
-        self.endRunnerCalled = False
-
-        # transfer persisted data
-        frame.persisted = self.persisted
+            # transfer persisted data
+            frame.persisted = self.persisted
+        except:
+            self.report_disconnect(self.framework_failure)
+            raise
 
         # return the frame
         return frame
@@ -401,6 +411,7 @@ class MozMill(object):
             # stop the runner
             if frame:
                 self.stop_runner()
+
         finally:
             # shutdown the test harness cleanly
             self.running_test = None
@@ -410,18 +421,28 @@ class MozMill(object):
 
     def get_appinfo(self, bridge):
         """Collect application specific information."""
-        mozmill = jsbridge.JSObject(bridge, js_module_mozmill)
+        app_info = { }
 
-        return json.loads(mozmill.getApplicationDetails())
+        try:
+            mozmill = jsbridge.JSObject(bridge, js_module_mozmill)
+            app_info = json.loads(mozmill.getApplicationDetails())
+        except Exception, e:
+            # We don't have to call report_disconnect here because
+            # start_runner() already cares about
+            pass
+
+        return app_info
 
     ### methods for shutting down and cleanup
 
-    def report_disconnect(self):
+    def report_disconnect(self, message=None):
+        message = message or 'Disconnect Error: Application unexpectedly closed'
+
         test = getattr(self, "current_test", {})
         test['passes'] = []
         test['fails'] = [{
           'exception': {
-            'message': 'Disconnect Error: Application unexpectedly closed'
+            'message': message
           }
         }]
         test['passed'] = 0
@@ -458,7 +479,7 @@ class MozMill(object):
         # ensure you have the application info for the case
         # of no tests: https://bugzilla.mozilla.org/show_bug.cgi?id=751866
         # this involves starting and stopping the browser
-        if not self.results.appinfo:
+        if self.results.appinfo is None:
             self.start_runner()
             self.stop_runner()
 
@@ -691,10 +712,10 @@ class CLI(mozrunner.CLI):
         # load the mozmill + jsbridge extension but don't run any tests
         # (for debugging)
         if self.options.manual:
-            mozmill.start_runner()
             try:
+                mozmill.start_runner()
                 mozmill.runner.wait()
-            except KeyboardInterrupt:
+            except JSBridgeDisconnectError, KeyboardInterrupt:
                 pass
             return
 

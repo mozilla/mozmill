@@ -56,8 +56,6 @@ if (platform == "linux"){
   isLinux = true;
 }
 
-var aConsoleService = Cc["@mozilla.org/consoleservice;1"]
-                      .getService(Ci.nsIConsoleService);
 var appInfo = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo);
 var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
 
@@ -286,49 +284,6 @@ timer.prototype.end = function () {
 }
 
 // Initialization
-
-/**
- * Console listener which listens for error messages in the console and forwards
- * them to the Mozmill reporting system for output.
- */
-function ConsoleListener() {
- this.register();
-}
-
-ConsoleListener.prototype = {
-  observe: function (aMessage) {
-    var msg = aMessage.message;
-    var re = /^\[.*Error:.*(chrome|resource):\/\/(jsbridge|mozmill).*/i;
-    if (msg.match(re)) {
-      dump(msg + "\n");
-      broker.fail(aMessage);
-    }
-  },
-
-  QueryInterface: function (iid) {
-    if (!iid.equals(Ci.nsIConsoleListener) && !iid.equals(Ci.nsISupports)) {
-      throw Components.results.NS_ERROR_NO_INTERFACE;
-    }
-
-    return this;
-  },
-
-  register: function () {
-    var aConsoleService = Cc["@mozilla.org/consoleservice;1"]
-                          .getService(Ci.nsIConsoleService);
-    aConsoleService.registerListener(this);
-  },
-
-  unregister: function () {
-    var aConsoleService = Cc["@mozilla.org/consoleservice;1"]
-                          .getService(Ci.nsIConsoleService);
-    aConsoleService.unregisterListener(this);
- }
-}
-
-// start listening
-var consoleListener = new ConsoleListener();
-
 
 // Observer when a new top-level window is ready
 var windowReadyObserver = {

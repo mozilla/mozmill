@@ -135,6 +135,8 @@ class LoggerListener(object):
             self.logger.debug('Step Pass: ' + string)
         elif event == 'mozmill.fail':
             self.logger.debug('Test Failure | ' + string)
+        elif event == 'mozmill.frameworkFail':
+            self.logger.fatal('Framwork Failure | ' + string)
         elif event == 'mozmill.skip':
             self.logger.debug('Test Skipped: ' + string)
         else:
