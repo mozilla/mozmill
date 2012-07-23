@@ -39,7 +39,8 @@ var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','eve
                         'jsbridge', 'runTestDirectory', 'runTestFile', 'log', 'getThread',
                         'timers', 'persisted'];
 
-var httpd = {};   Components.utils.import('resource://mozmill/stdlib/httpd.js', httpd);
+Components.utils.import('resource://mozmill/stdlib/httpd.js');
+
 var os = {};      Components.utils.import('resource://mozmill/stdlib/os.js', os);
 var strings = {}; Components.utils.import('resource://mozmill/stdlib/strings.js', strings);
 var arrays = {};  Components.utils.import('resource://mozmill/stdlib/arrays.js', arrays);
@@ -329,8 +330,6 @@ if (jsbridge) {
   events.addListener('', function (name, obj) {jsbridge.fireEvent('mozmill.'+name, obj)} );
 }
 
-var http_server = httpd.getServer(43336);
-
 function Collector () {
   this.test_modules_by_filename = {};
   this.test_modules_by_name = {};
@@ -348,25 +347,45 @@ Collector.prototype.getModule = function (name) {
   return this.test_modules_by_name[name];
 }
 
+Collector.prototype.getServer = function (port, basePath) {
+  if (basePath) {
+    var lp = Cc["@mozilla.org/file/local;1"]
+             .createInstance(Ci.nsILocalFile);
+    lp.initWithPath(basePath);
+  }
+
+  var srv = new HttpServer();
+  if (lp) {
+    srv.registerDirectory("/", lp);
+  }
+
+  srv.registerContentType("sjs", "sjs");
+  srv.identity.setPrimary("http", "localhost", port);
+  srv._port = port;
+
+  return srv;
+}
+
 Collector.prototype.startHttpd = function () {
   while (this.httpd == undefined) {
     try {
+      var http_server = this.getServer(this.http_port);
       http_server.start(this.http_port);
       this.httpd = http_server;
-    } catch(e) { // Failure most likely due to port conflict
+    } catch (e) {
+      // Failure most likely due to port conflict
       this.http_port++;
-      http_server = httpd.getServer(this.http_port);
-    }; 
-    
-    
+    }
   }
 }
+
 Collector.prototype.stopHttpd = function () {
   if (this.httpd) {
     this.httpd.stop(function(){});  // Callback needed to pause execution until the server has been properly shutdown
     this.httpd = null;
   }
 }
+
 Collector.prototype.addHttpResource = function (directory, ns) {
   if (!this.httpd) {
     this.startHttpd();
