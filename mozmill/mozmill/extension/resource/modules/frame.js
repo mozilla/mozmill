@@ -39,6 +39,9 @@ var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','eve
                         'jsbridge', 'runTestDirectory', 'runTestFile', 'log', 'getThread',
                         'timers', 'persisted'];
 
+const TIMEOUT_SHUTDOWN_HTTPD = 15000;
+
+
 Components.utils.import('resource://mozmill/stdlib/httpd.js');
 
 var os = {};      Components.utils.import('resource://mozmill/stdlib/os.js', os);
@@ -339,8 +342,7 @@ function Collector () {
   this.testing = [];
   this.httpd_started = false;
   this.http_port = 43336;
-  // var logging = {}; Components.utils.import('resource://mozmill/stdlib/logging.js', logging);
-  // this.logger = new logging.Logger('Collector');
+  this.httpd = null;
 }
 
 Collector.prototype.getModule = function (name) {
@@ -361,13 +363,12 @@ Collector.prototype.getServer = function (port, basePath) {
 
   srv.registerContentType("sjs", "sjs");
   srv.identity.setPrimary("http", "localhost", port);
-  srv._port = port;
 
   return srv;
 }
 
 Collector.prototype.startHttpd = function () {
-  while (this.httpd == undefined) {
+  while (!this.httpd) {
     try {
       var http_server = this.getServer(this.http_port);
       http_server.start(this.http_port);
@@ -380,10 +381,18 @@ Collector.prototype.startHttpd = function () {
 }
 
 Collector.prototype.stopHttpd = function () {
-  if (this.httpd) {
-    this.httpd.stop(function(){});  // Callback needed to pause execution until the server has been properly shutdown
-    this.httpd = null;
+  if (!this.httpd) {
+    return;
   }
+
+  var shutdown = false;
+  this.httpd.stop(function () { shutdown = true; });
+
+  utils.waitFor(function () {
+    return shutdown;
+  }, "Local HTTP server has been stopped", TIMEOUT_SHUTDOWN_HTTPD);
+
+  this.httpd = null;
 }
 
 Collector.prototype.addHttpResource = function (directory, ns) {
