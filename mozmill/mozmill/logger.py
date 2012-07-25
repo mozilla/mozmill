@@ -127,6 +127,7 @@ class LoggerListener(object):
                           help="Format for logging (default: %default)")
 
     def __call__(self, event, obj):
+        print "------" + event
         string = json.dumps(obj)
         if self.format in ["pprint", "pprint-color"]:
             string = self.pprint(obj)

@@ -11,9 +11,6 @@ Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 
 
-var broker = {}; Cu.import('resource://mozmill/driver/msgbroker.js', broker);
-
-
 /**
  * XPCOM component to setup necessary listeners for Mozmill.
  */
@@ -46,6 +43,13 @@ Mozmill.prototype = {
       case "profile-after-change":
         Services.console.registerListener(ConsoleObserver);
 
+        try {
+          Cu.import("resource://jsbridge/modules/Events.jsm");
+          Events.fireEvent("mozmill.fail", {test: 'test'});
+        } catch (e) {
+          dump("FAUK: " + e.message + "\n");
+        }
+
         Services.obs.addObserver(this, "quit-application", false);
         break;
 
@@ -53,6 +57,7 @@ Mozmill.prototype = {
         Services.obs.removeObserver(this, "quit-application", false);
 
         Services.console.unregisterListener(ConsoleObserver);
+        break;
     }
   }
 }
@@ -64,6 +69,13 @@ var ConsoleObserver = {
     var re = /^\[.*Error:.*(chrome|resource):\/\/(mozmill|jsbridge).*/i;
     if (msg.match(re)) {
       dump("*** Framework error: " + msg + "\n");
+
+       try {
+         Cu.import("resource://jsbridge/modules/Events.jsm");
+         Events.fireEvent("mozmill.fail", "FAILURE");
+       } catch (e) {
+         dump("FAUK: " + e.message + "\n");
+       }
 
       // Quit the application and do not wait until a timeout happens
       var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
