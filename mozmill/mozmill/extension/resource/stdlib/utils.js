@@ -409,8 +409,10 @@ function waitFor(callback, message, timeout, interval, thisObject) {
                .getService().currentThread;
 
   while (true) {
-    if (typeof(self.result) !== 'boolean')
-      throw TypeError("waitFor() callback has to return a boolean value.");
+    let type = typeof(self.result);
+    if (type !== 'boolean')
+      throw TypeError("waitFor() callback has to return a boolean" +
+                      " instead of '" + type + "'");
 
     if (self.result === true || self.counter >= timeout)
       break;
