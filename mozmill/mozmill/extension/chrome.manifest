@@ -13,3 +13,7 @@ locale	mozmill	en-US	locale/en-US/
 
 skin	mozmill	classic/1.0	skin/
 style	chrome://global/content/customizeToolbar.xul	chrome://mozmill/skin/overlay.css
+
+component {06aff66f-4925-42e1-87f8-acaeaa22cabf} components/mozmill.js
+contract @mozilla.org/mozmill;1 {06aff66f-4925-42e1-87f8-acaeaa22cabf}
+category profile-after-change Mozmill @mozilla.org/mozmill;1
