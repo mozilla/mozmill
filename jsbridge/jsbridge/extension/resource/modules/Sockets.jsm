@@ -14,16 +14,12 @@ const Cu = Components.utils;
 Cu.import("resource://jsbridge/modules/NSPR.jsm");
 
 
-// Services.appShell is not defined for Firefox 10 ESR
-var gAppShell = Cc["@mozilla.org/appshell/appShellService;1"]
-                .getService(Ci.nsIAppShellService)
-
-
 var Sockets = { };
 
 
 Sockets.Client = function (fd) {
   this.fd = fd;
+  this.timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
 };
 
 Sockets.Client.prototype = {
@@ -32,27 +28,34 @@ Sockets.Client.prototype = {
     interval = interval || 100;
     var self = this;
 
-    (function getMessage() {
-      var buffer = new NSPR.Sockets.buffer(bufsize);
-      var bytes = NSPR.Sockets.PR_Recv(self.fd, buffer, bufsize, 0,
-                                       NSPR.Sockets.PR_INTERVAL_NO_WAIT);
+    var event = {
+      notify: function (timer) {
+        var buffer = new NSPR.Sockets.buffer(bufsize);
+        var bytes = NSPR.Sockets.PR_Recv(self.fd, buffer, bufsize, 0,
+                                         NSPR.Sockets.PR_INTERVAL_NO_WAIT);
 
-      if (bytes > 0) {
-        var message = buffer.readString();
-        callback(message);
+        if (bytes > 0) {
+          var message = buffer.readString();
+          callback(message);
 
-      } else if (bytes === 0) {
-        if (self.handleDisconnect)
-          self.handleDisconnect();
+        } else if (bytes === 0) {
+          if (self.handleDisconnect)
+            self.handleDisconnect();
 
-        return;
+          return;
+        }
+
+        self.timer.initWithCallback(this, interval, Ci.nsITimer.TYPE_ONE_SHOT);
       }
+    };
 
-      gAppShell.hiddenDOMWindow.setTimeout(getMessage, interval);
-    })();
+    this.timer.initWithCallback(event, interval, Ci.nsITimer.TYPE_ONE_SHOT);
   },
 
   onDisconnect: function (callback) {
+    this.timer.cancel();
+    this.timer = null;
+
     this.handleDisconnect = callback;
   },
 
@@ -103,6 +106,8 @@ Sockets.ServerSocket = function (aPort) {
 
   this.addr = addr;
   this.fd = fd;
+
+  this.timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
 };
 
 Sockets.ServerSocket.prototype = {
@@ -110,17 +115,23 @@ Sockets.ServerSocket.prototype = {
     interval = interval || 300;
     let self = this;
 
-    (function accept() {
-      var newfd = NSPR.Sockets.PR_Accept(self.fd, self.addr.address(),
-                                         NSPR.Sockets.PR_INTERVAL_NO_WAIT);
-      if (!newfd.isNull())
-        callback(new Sockets.Client(newfd));
+    var event = {
+      notify: function (timer) {
+        let newfd = NSPR.Sockets.PR_Accept(self.fd, self.addr.address(),
+                                           NSPR.Sockets.PR_INTERVAL_NO_WAIT);
+        if (!newfd.isNull()) {
+          callback(new Sockets.Client(newfd));
+        }
+      }
+    };
 
-      gAppShell.hiddenDOMWindow.setTimeout(accept, interval);
-    })();
+    this.timer.initWithCallback(event, interval, Ci.nsITimer.TYPE_REPEATING_SLACK);
   },
 
   close: function () {
+    this.timer.cancel();
+    this.timer = null;
+
     return NSPR.Sockets.PR_Close(this.fd);
   }
 };

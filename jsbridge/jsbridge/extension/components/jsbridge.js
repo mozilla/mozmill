@@ -51,12 +51,7 @@ JSBridge.prototype = {
       // The server cannot be started before the ui is shown. That means
       // we also have to register for the final-ui-startup notification.
       case "profile-after-change":
-        Services.obs.addObserver(this, "final-ui-startup", false);
         Services.obs.addObserver(this, "quit-application", false);
-        break;
-
-      case "final-ui-startup":
-        Services.obs.removeObserver(this, "final-ui-startup", false);
 
         // The port the server has to be started on is set via a preference
         let port = Services.prefs.getIntPref(PREF_JSBRIDGE_PORT);
