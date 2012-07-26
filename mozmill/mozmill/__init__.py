@@ -426,9 +426,9 @@ class MozMill(object):
         try:
             mozmill = jsbridge.JSObject(bridge, js_module_mozmill)
             app_info = json.loads(mozmill.getApplicationDetails())
-        except Exception, e:
+        except JSBridgeDisconnectError:
             # We don't have to call report_disconnect here because
-            # start_runner() already cares about
+            # start_runner() takes care about this exception
             pass
 
         return app_info
