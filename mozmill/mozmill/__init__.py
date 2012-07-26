@@ -428,7 +428,7 @@ class MozMill(object):
             app_info = json.loads(mozmill.getApplicationDetails())
         except JSBridgeDisconnectError:
             # We don't have to call report_disconnect here because
-            # start_runner() takes care about this exception
+            # start_runner() will handle this exception
             pass
 
         return app_info
