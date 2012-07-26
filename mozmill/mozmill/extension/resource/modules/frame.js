@@ -18,7 +18,7 @@ Cu.import('resource://mozmill/stdlib/httpd.js');
 var os = {};      Cu.import('resource://mozmill/stdlib/os.js', os);
 var strings = {}; Cu.import('resource://mozmill/stdlib/strings.js', strings);
 var arrays = {};  Cu.import('resource://mozmill/stdlib/arrays.js', arrays);
-var withs = {};   Cu.import('resource://mozmil/stdlib/withs.js', withs);
+var withs = {};   Cu.import('resource://mozmill/stdlib/withs.js', withs);
 var utils = {};   Cu.import('resource://mozmill/stdlib/utils.js', utils);
 var broker = {};  Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 var securableModule = {};  Cu.import('resource://mozmill/stdlib/securable-module.js', securableModule);
