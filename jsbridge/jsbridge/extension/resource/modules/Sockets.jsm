@@ -54,6 +54,8 @@ Sockets.Client.prototype = {
 
   onDisconnect: function (callback) {
     this.timer.cancel();
+    this.timer = null;
+
     this.handleDisconnect = callback;
   },
 
@@ -128,6 +130,8 @@ Sockets.ServerSocket.prototype = {
 
   close: function () {
     this.timer.cancel();
+    this.timer = null;
+
     return NSPR.Sockets.PR_Close(this.fd);
   }
 };
