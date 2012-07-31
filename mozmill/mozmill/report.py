@@ -99,7 +99,7 @@ class Report(object):
                                       {"Content-Type": "application/json"})
 
             # Get response which contains the id of the new document
-            response = urllib2.urlopen(request)
+            response = urllib2.urlopen(request, timeout=30)
             data = json.loads(response.read())
 
             # Print document location to the console and return
