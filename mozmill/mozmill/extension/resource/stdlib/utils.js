@@ -535,9 +535,18 @@ function takeScreenshot(node, highlights) {
 function saveScreenshot(aDataURL, aFilename, aCallback) {
   const FILE_PERMISSIONS = parseInt("0644", 8);
 
-  let file = Cc["@mozilla.org/file/directory_service;1"]
-             .getService(Ci.nsIProperties).get("TmpD", Ci.nsILocalFile);
-  file.append("mozmill_screenshots");
+  var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
+
+  var file;
+  if (frame.persisted['screenshotPath']) {
+      file = Cc['@mozilla.org/file/local;1']
+          .createInstance(Ci.nsILocalFile);
+      file.initWithPath(frame.persisted['screenshotPath']);
+  } else {
+      file = Cc["@mozilla.org/file/directory_service;1"]
+                 .getService(Ci.nsIProperties).get("TmpD", Ci.nsILocalFile);
+      file.append("mozmill_screenshots");
+  }
   file.append(aFilename + ".jpg");
   file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, FILE_PERMISSIONS);
 
