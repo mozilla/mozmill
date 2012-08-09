@@ -2,7 +2,6 @@ import os
 import tempfile
 import unittest
 import mozmill
-from mozmill.logger import LoggerListener
 
 
 class ModuleTest(unittest.TestCase):
