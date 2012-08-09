@@ -201,15 +201,17 @@ Expect.prototype = {
       'fileName'   : frame.filename.replace(/(.*)-> /, ""),
       'name'   : frame.name,
       'lineNumber' : frame.lineNumber,
-      'message'    : message,
-      'stack'      : Components.stack
+      'message'    : message
     };
 
     // Log test result
-    if (aCondition)
+    if (aCondition) {
       this._logPass(result);
-    else
+    }
+    else {
+      result.stack = Components.stack;
       this._logFail(result);
+    }
 
     return aCondition;
   },
