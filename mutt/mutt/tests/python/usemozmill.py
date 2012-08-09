@@ -17,13 +17,10 @@ class ModuleTest(unittest.TestCase):
         testpath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 relative_test_path)
         tests = [{'path': testpath}]
-        log_file = tempfile.mktemp(suffix='.txt')
-        logger = LoggerListener(log_file=log_file,
-                                file_level="DEBUG", debug=True)
-        m = mozmill.MozMill.create(handlers=(logger,),
-                                   runner_args={'cmdargs': ['-console']})
+
+        m = mozmill.MozMill.create(runner_args={'cmdargs': ['-console']})
         results = m.run(tests)
-        results.finish((logger,))
+        results.finish(())
 
         # From the first test, there is one passing test
         self.assertEqual(len(results.passes), passes, "Passes should match")
