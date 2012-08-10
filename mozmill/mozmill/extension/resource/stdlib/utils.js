@@ -7,7 +7,7 @@ var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler",
                         "runFile", "getWindowByTitle", "getWindowByType", "getWindowId",
                         "tempfile", "getMethodInWindows", "getPreference", "setPreference",
                         "sleep", "assert", "unwrapNode", "TimeoutError", "waitFor",
-                        "saveScreenshot", "takeScreenshot",
+                        "saveScreenshot", "takeScreenshot", "startTimer", "stopTimer",
                        ];
 
 const Cc = Components.classes;
@@ -409,8 +409,10 @@ function waitFor(callback, message, timeout, interval, thisObject) {
                .getService().currentThread;
 
   while (true) {
-    if (typeof(self.result) !== 'boolean')
-      throw TypeError("waitFor() callback has to return a boolean value.");
+    let type = typeof(self.result);
+    if (type !== 'boolean')
+      throw TypeError("waitFor() callback has to return a boolean" +
+                      " instead of '" + type + "'");
 
     if (self.result === true || self.counter >= timeout)
       break;
@@ -558,4 +560,34 @@ function saveScreenshot(aDataURL, aFilename, aCallback) {
   });
 
   return file.path;
+}
+
+/**
+ * Some very brain-dead timer functions useful for performance optimizations
+ * This is only enabled in debug mode
+ *
+ **/
+var gutility_mzmltimer = 0;
+/**
+ * Starts timer initializing with current EPOC time in milliseconds
+ *
+ * @returns none
+ **/
+function startTimer(){
+  dump("TIMERCHECK:: starting now: " + Date.now() + "\n");
+  gutility_mzmltimer = Date.now();
+}
+
+/**
+ * Checks the timer and outputs current elapsed time since start of timer. It
+ * will print out a message you provide with its "time check" so you can
+ * correlate in the log file and figure out elapsed time of specific functions.
+ * 
+ * @param aMsg    string The debug message to print with the timer check
+ *
+ * @returns none
+ **/
+function checkTimer(aMsg){
+  var end = Date.now();
+  dump("TIMERCHECK:: at " + aMsg + " is: " + (end - gutility_mzmltimer) + "\n");
 }

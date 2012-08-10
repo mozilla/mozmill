@@ -16,12 +16,6 @@ externalModules = [
                "testing/mochitest/tests/SimpleTest/EventUtils.js",
         "path": "mozmill/extension/resource/stdlib/EventUtils.js",
         "patch": "patches/eventUtils.patch"
-    },
-    {   # httpd.js
-        "url": "http://hg.mozilla.org/mozilla-central/raw-file/default/"
-               "netwerk/test/httpserver/httpd.js",
-        "path": "mozmill/extension/resource/stdlib/httpd.js",
-        "patch": "patches/httpd.patch"
     }
 ]
 

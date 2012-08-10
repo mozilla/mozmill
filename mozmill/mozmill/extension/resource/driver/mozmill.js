@@ -17,13 +17,20 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
+const DEBUG = false;
+
 // imports
 var controller = {};  Cu.import('resource://mozmill/driver/controller.js', controller);
 var elementslib = {}; Cu.import('resource://mozmill/driver/elementslib.js', elementslib);
 var broker = {};      Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 var findElement = {}; Cu.import('resource://mozmill/driver/mozelement.js', findElement);
 var utils = {};       Cu.import('resource://mozmill/stdlib/utils.js', utils);
-var os = {}; Cu.import('resource://mozmill/stdlib/os.js', os);
+var os = {};          Cu.import('resource://mozmill/stdlib/os.js', os);
+
+// This is a useful "check" timer. See utils.js, good for debugging
+if (DEBUG) {
+  utils.startTimer();
+}
 
 try {
   Cu.import("resource://gre/modules/AddonManager.jsm");
@@ -52,9 +59,6 @@ if (platform == "linux"){
 var aConsoleService = Cc["@mozilla.org/consoleservice;1"]
                       .getService(Ci.nsIConsoleService);
 var appInfo = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo);
-var locale = Cc["@mozilla.org/chrome/chrome-registry;1"]
-             .getService(Ci.nsIXULChromeRegistry)
-             .getSelectedLocale("global");
 var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
 
 const applicationDictionary = {
@@ -73,18 +77,22 @@ if (Application == undefined) {
 
 // get startup time if available
 // see http://blog.mozilla.com/tglek/2011/04/26/measuring-startup-speed-correctly/
-var startupInfo = {};
-try {
-  var _startupInfo = Cc["@mozilla.org/toolkit/app-startup;1"]
-                     .getService(Ci.nsIAppStartup).getStartupInfo();
-  for (var i in _startupInfo) {
-    // convert from Date object to ms since epoch
-    startupInfo[i] = _startupInfo[i].getTime();
-  }
-} catch (e) {
-  startupInfo = null;
-}
+function getStartupInfo() {
+  var startupInfo = {};
 
+  try {
+    var _startupInfo = Cc["@mozilla.org/toolkit/app-startup;1"]
+                       .getService(Ci.nsIAppStartup).getStartupInfo();
+    for (var time in _startupInfo) {
+      // convert from Date object to ms since epoch
+      startupInfo[time] = _startupInfo[time].getTime();
+    }
+  } catch (e) {
+    startupInfo = null;
+  }
+
+  return startupInfo;
+}
 
 // keep list of installed addons to send to jsbridge for test run report
 var addons = "null"; // this will be JSON parsed
@@ -112,11 +120,38 @@ if (typeof AddonManager != "undefined") {
             return newstring;
           }
         }
+
         return value;
       }
 
-      addons = converter.ConvertToUnicode(JSON.stringify(addonList, replacer))
+      addons = converter.ConvertToUnicode(JSON.stringify(addonList, replacer));
   });
+}
+
+/**
+ * Retrieves application details for the Mozmill report
+ *
+ * @return {String} JSON data of application details
+ */
+function getApplicationDetails() {
+  var locale = Cc["@mozilla.org/chrome/chrome-registry;1"]
+               .getService(Ci.nsIXULChromeRegistry)
+               .getSelectedLocale("global");
+
+  // Put all our necessary information into JSON and return it:
+  // appinfo, startupinfo, and addons
+  var details = {
+    application_id: appInfo.ID,
+    application_name: appInfo.name,
+    application_version: appInfo.version,
+    application_locale: locale,
+    platform_buildid: appInfo.platformBuildID,
+    platform_version: appInfo.platformVersion,
+    addons: addons,
+    startupinfo: getStartupInfo()
+  };
+
+  return JSON.stringify(details);
 }
 
 function cleanQuit () {
@@ -263,8 +298,9 @@ function ConsoleListener() {
 ConsoleListener.prototype = {
   observe: function (aMessage) {
     var msg = aMessage.message;
-    var re = /^\[.*Error:.*(chrome|resource):\/\/.*/i;
+    var re = /^\[.*Error:.*(chrome|resource):\/\/(jsbridge|mozmill).*/i;
     if (msg.match(re)) {
+      dump(msg + "\n");
       broker.fail(aMessage);
     }
   },

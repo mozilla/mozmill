@@ -24,7 +24,7 @@ class TestBug690154(unittest.TestCase):
         passes = 1
         path = self.make_test()
         m = mozmill.MozMill.create()
-        results = m.run(dict(path=path))
+        results = m.run([dict(path=path)])
 
         # no modules pass
         self.assertFalse(results.passes)

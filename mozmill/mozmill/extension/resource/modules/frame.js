@@ -10,7 +10,11 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-var httpd = {};   Cu.import('resource://mozmill/stdlib/httpd.js', httpd);
+const TIMEOUT_SHUTDOWN_HTTPD = 15000;
+
+
+Cu.import('resource://mozmill/stdlib/httpd.js');
+
 var os = {};      Cu.import('resource://mozmill/stdlib/os.js', os);
 var strings = {}; Cu.import('resource://mozmill/stdlib/strings.js', strings);
 var arrays = {};  Cu.import('resource://mozmill/stdlib/arrays.js', arrays);
@@ -217,10 +221,16 @@ events.setTest = function (test, invokedFromIDE) {
 }
 
 events.endTest = function (test) {
+
   // use the current test unless specified
   if (test === undefined) {
     test = events.currentTest;
   }  
+
+  // If no test is set it has already been reported.
+  // We don't want to do it a second time.
+  if (!test)
+    return;
 
   // report the end of a test
   test.status = 'done';
@@ -425,27 +435,52 @@ function Collector () {
   this.testing = [];
   this.httpd_started = false;
   this.http_port = 43336;
-  this.http_server = httpd.getServer(this.http_port);
+  this.httpd = null;
+}
+
+Collector.prototype.getServer = function (port, basePath) {
+  if (basePath) {
+    var lp = Cc["@mozilla.org/file/local;1"]
+      .createInstance(Ci.nsILocalFile);
+    lp.initWithPath(basePath);
+  }
+
+  var srv = new HttpServer();
+  if (lp) {
+    srv.registerDirectory("/", lp);
+  }
+
+  srv.registerContentType("sjs", "sjs");
+  srv.identity.setPrimary("http", "localhost", port);
+
+  return srv;
 }
 
 Collector.prototype.startHttpd = function () {
-  while (this.httpd == undefined) {
+  while (!this.httpd) {
     try {
-      this.http_server.start(this.http_port);
-      this.httpd = this.http_server;
+      var http_server = this.getServer(this.http_port);
+      http_server.start(this.http_port);
+      this.httpd = http_server;
     } catch (e) { // Failure most likely due to port conflict
       this.http_port++;
-      this.http_server = httpd.getServer(this.http_port);
-    }; 
+    }
   }
 }
 
 Collector.prototype.stopHttpd = function () {
-  if (this.httpd) {
-    // Callback needed to pause execution until the server has been properly shutdown
-    this.httpd.stop(function () { });
-    this.httpd = null;
+  if (!this.httpd) {
+    return;
   }
+
+  var shutdown = false;
+  this.httpd.stop(function () { shutdown = true; });
+
+  utils.waitFor(function () {
+    return shutdown;
+  }, "Local HTTP server has been stopped", TIMEOUT_SHUTDOWN_HTTPD);
+
+  this.httpd = null;
 }
 
 Collector.prototype.addHttpResource = function (directory, ns) {
@@ -514,6 +549,13 @@ AppQuitObserver.prototype = {
   observe: function (subject, topic, data) {
     this.unregister();
 
+    // If we observe a quit notification make sure to send the
+    // results of the current test. In those cases we don't reach
+    // the equivalent code in runTestModule()
+    events.pass({'message': 'AppQuitObserver: ' + data,
+                 'userShutdown': events.userShutdown});
+    events.endTest();
+
     events.appQuit = true;
     this._runner.end();
   },
@@ -577,16 +619,18 @@ Runner.prototype.wrapper = function (func, arg) {
       func();
     }
 
-    // If a user shutdown was expected but the application hasn't quit, throw a failure
+    // If a user shutdown was expected but the application hasn't quit yet,
+    // throw a failure and mark the test as failed.
     if (events.isUserShutdown()) {
-      // Prevents race condition between mozrunner hard process kill and normal FFx shutdown
+      // Prevents race condition between mozrunner hard process kill
+      // and normal FFx shutdown
       utils.sleep(500);
 
       if (events.userShutdown['user'] && !events.appQuit) {
         events.fail({'function': 'Runner.wrapper',
                      'message':'Shutdown expected but none detected before end of test',
                      'userShutdown': events.userShutdown});
-        events.endTest(func);
+        events.endTest();
 
         // Depending on the shutdown mode quit or restart the application
         let flags = Ci.nsIAppStartup.eAttemptQuit;
@@ -642,12 +686,10 @@ Runner.prototype.runTestModule = function (module) {
         events.appQuit = false;
         var test = module.__tests__[i];
 
-        events.setState('test'); 
+        events.setState('test');
         events.setTest(test, this.invokedFromIDE);
-
         this.wrapper(test);
-        if (events.userShutdown && !events.userShutdown['user']) {
-          events.endTest(test);
+        if (events.userShutdown) {
           break;
         }
         events.endTest(test)
