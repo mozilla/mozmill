@@ -64,15 +64,6 @@ class TestResults(object):
         """Events, the MozMill class will dispatch to."""
         return {'mozmill.endTest': self.endTest_listener}
 
-    def finish(self, handlers, fatal=False):
-        """Do the final reporting and such."""
-        self.endtime = datetime.utcnow()
-
-        # handle stop events
-        for handler in handlers:
-            if hasattr(handler, 'stop'):
-                handler.stop(self, fatal)
-
     ### event listener
     def endTest_listener(self, test):
         """Add current test result to results."""
@@ -97,8 +88,8 @@ class MozMill(object):
     You should use MozMill as follows:
 
         m = MozMill(...)
-        results = m.run(tests)
-        results.finish()
+        m.run(tests)
+        results = m.finish()
     """
 
     @classmethod
@@ -164,9 +155,6 @@ class MozMill(object):
         self.jsbridge_timeout = jsbridge_timeout
         self.bridge = self.back_channel = None
 
-        # Report data will end up here
-        self.results = results or TestResults()
-
         # persisted data
         self.persisted = {}
 
@@ -174,11 +162,29 @@ class MozMill(object):
         self.shutdownMode = {}
         self.endRunnerCalled = False
 
+        # dict of listeners by event type
+        self.listener_dict = {}
+
         # setup event listeners
         self.global_listeners = []
         self.listeners = []
-        # dict of listeners by event type
-        self.listener_dict = {}
+
+        # Report data will end up here
+        self.results = results or TestResults()
+
+        # setup default and custom handlers
+        self.handlers = [self.results]
+        self.handlers.extend(handlers)
+        for handler in self.handlers:
+            # make the mozmill instance available to the handler
+            handler.mozmill = self
+
+            if hasattr(handler, 'events'):
+                for event, method in handler.events().items():
+                    self.add_listener(method, eventType=event)
+            if hasattr(handler, '__call__'):
+                self.add_global_listener(handler)
+
         self.add_listener(self.persist_listener,
                           eventType="mozmill.persist")
         self.add_listener(self.endRunner_listener,
@@ -189,20 +195,6 @@ class MozMill(object):
                           eventType='mozmill.userShutdown')
         self.add_listener(self.screenshot_listener,
                           eventType='mozmill.screenshot')
-
-        # add listeners for event handlers
-        self.handlers = [self.results]
-        self.handlers.extend(handlers)
-        for handler in self.handlers:
-
-            # make the mozmill instance available to the handler
-            handler.mozmill = self
-
-            if hasattr(handler, 'events'):
-                for event, method in handler.events().items():
-                    self.add_listener(method, eventType=event)
-            if hasattr(handler, '__call__'):
-                self.add_global_listener(handler)
 
         # disable the crashreporter
         os.environ['MOZ_CRASHREPORTER_NO_REPORT'] = '1'
@@ -406,8 +398,6 @@ class MozMill(object):
             self.running_test = None
             self.stop()
 
-        return self.results
-
     def get_appinfo(self, bridge):
         """Collect application specific information."""
         mozmill = jsbridge.JSObject(bridge, js_module_mozmill)
@@ -435,9 +425,6 @@ class MozMill(object):
         # Give a second for any callbacks to finish.
         sleep(1)
 
-        # reset the shutdown mode
-        self.shutdownMode = {}
-
         # quit the application via JS
         # this *will* cause a disconnect error
         # (not sure what the socket.error is all about)
@@ -446,6 +433,17 @@ class MozMill(object):
             mozmill.cleanQuit()
         except (socket.error, JSBridgeDisconnectError):
             pass
+
+        # close the bridge and back channel
+        if self.back_channel:
+            self.back_channel.close()
+            self.back_channel = None
+
+            self.bridge.close()
+            self.bridge = None
+
+        # reset the shutdown mode
+        self.shutdownMode = {}
 
         # wait for the runner to stop
         self.runner.wait(timeout=timeout)
@@ -462,15 +460,29 @@ class MozMill(object):
             self.start_runner()
             self.stop_runner()
 
-        # close the bridge and back channel
-        if self.back_channel:
-            self.back_channel.close()
-            self.bridge.close()
-
         # cleanup
         if self.runner is not None:
             self.runner.cleanup()
 
+    def finish(self, fatal=False):
+        """Do the final reporting and such."""
+
+        # Call the 'stop' event on any registered handler
+        for handler in self.handlers:
+            if hasattr(handler, 'stop'):
+                handler.stop(self.results, fatal)
+
+        self.listener_dict = {}
+        self.global_listeners = []
+        self.listeners = []
+        self.handlers = []
+
+        # Ensure to clean-up the results
+        results = self.results
+        results.endtime = datetime.utcnow()
+        self.results = None
+
+        return results
 
 ### method for test collection
 
@@ -707,8 +719,7 @@ class CLI(mozrunner.CLI):
             exception_type, exception, tb = sys.exc_info()
 
         # do whatever reporting you're going to do
-        results = mozmill.results
-        results.finish(self.event_handlers, fatal=exception is not None)
+        results = mozmill.finish(fatal=exception is not None)
 
         # exit on bad stuff happen
         if exception:
