@@ -68,6 +68,12 @@ class LoggerListener(object):
         self.format = format
         self.debug = debug
 
+    def __del__(self):
+        """Restore the standard output streams"""
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
+
+
     class StdOutLogger(object):
         def __init__(self, logger):
             self.logger = logger
@@ -79,6 +85,7 @@ class LoggerListener(object):
             # We don't keep any state, so this just needs to be here
             # so the python distutils stuff can call us.
             pass
+
 
     class StdErrLogger(object):
         def __init__(self, logger):
