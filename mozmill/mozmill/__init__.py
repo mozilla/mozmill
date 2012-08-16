@@ -104,7 +104,7 @@ class MozMill(object):
     @classmethod
     def create(cls, results=None, jsbridge_timeout=JSBRIDGE_TIMEOUT,
                handlers=(), app='firefox', profile_args=None,
-               runner_args=None):
+               runner_args=None, screenshot_path=None):
 
         jsbridge_port = jsbridge.find_port()
 
@@ -136,10 +136,12 @@ class MozMill(object):
 
         # create a mozmill
         return cls(runner, jsbridge_port, results=results,
-                   jsbridge_timeout=jsbridge_timeout, handlers=handlers)
+                   jsbridge_timeout=jsbridge_timeout, handlers=handlers,
+                   screenshot_path=screenshot_path)
 
     def __init__(self, runner, jsbridge_port, results=None,
-                 jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=()):
+                 jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=(),
+                 screenshot_path=None):
         """Constructor of the Mozmill class.
 
         Arguments:
@@ -193,6 +195,14 @@ class MozMill(object):
         # add listeners for event handlers
         self.handlers = [self.results]
         self.handlers.extend(handlers)
+
+        # add screenshot path
+        if screenshot_path:
+            path = os.path.abspath(screenshot_path)
+            if not os.path.isdir(path):
+                os.makedirs(path)
+            self.persisted['screenshotPath'] = screenshot_path
+
         for handler in self.handlers:
 
             # make the mozmill instance available to the handler
@@ -406,6 +416,11 @@ class MozMill(object):
             self.running_test = None
             self.stop()
 
+        if self.results.screenshots:
+            print 'Screenshots saved in %s' % \
+                  self.persisted.get('screenshotPath', os.path.dirname(
+                      self.results.screenshots[0]['filename']))
+
         return self.results
 
     def get_appinfo(self, bridge):
@@ -615,6 +630,12 @@ class CLI(mozrunner.CLI):
                          metavar='PATH:CLASS',
                          help="Specify an event handler given a file PATH "
                               "and the CLASS in the file")
+        group.add_option('--screenshot-path',
+                         dest='screenshot_path',
+                         default=None,
+                         metavar='PATH',
+                         help='Path of directory to use for screenshots')
+
         if self.handlers:
             group.add_option('--disable',
                              dest='disable',
@@ -683,6 +704,7 @@ class CLI(mozrunner.CLI):
         mozmill = MozMill(runner, self.jsbridge_port,
                           jsbridge_timeout=self.options.timeout,
                           handlers=self.event_handlers,
+                          screenshot_path=self.options.screenshot_path
                           )
 
         # set debugger arguments
