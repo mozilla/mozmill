@@ -104,7 +104,7 @@ class MozMill(object):
     @classmethod
     def create(cls, results=None, jsbridge_timeout=JSBRIDGE_TIMEOUT,
                handlers=(), app='firefox', profile_args=None,
-               runner_args=None):
+               runner_args=None, screenshot_path=None):
 
         jsbridge_port = jsbridge.find_port()
 
@@ -136,7 +136,8 @@ class MozMill(object):
 
         # create a mozmill
         return cls(runner, jsbridge_port, results=results,
-                   jsbridge_timeout=jsbridge_timeout, handlers=handlers)
+                   jsbridge_timeout=jsbridge_timeout, handlers=handlers,
+                   screenshot_path=screenshot_path)
 
     def __init__(self, runner, jsbridge_port, results=None,
                  jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=(),
@@ -415,6 +416,11 @@ class MozMill(object):
             self.running_test = None
             self.stop()
 
+        if self.results.screenshots:
+            print 'Screenshots saved in %s' % \
+                  self.persisted.get('screenshotPath', os.path.dirname(
+                      self.results.screenshots[0]['filename']))
+
         return self.results
 
     def get_appinfo(self, bridge):
@@ -628,7 +634,7 @@ class CLI(mozrunner.CLI):
                          dest='screenshot_path',
                          default=None,
                          metavar='PATH',
-                         help='Path to use for screenshots')
+                         help='Path of directory to use for screenshots')
 
         if self.handlers:
             group.add_option('--disable',
