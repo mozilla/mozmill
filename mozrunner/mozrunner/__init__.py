@@ -655,7 +655,7 @@ class CLI(object):
         """Starts the runner and waits for Firefox to exitor Keyboard Interrupt.
         Shoule be overwritten to provide custom running of the runner instance."""
         runner.start()
-        print 'Started:', ' '.join(runner.command)
+        print 'Starting:', ' '.join(runner.command)
         try:
             runner.wait()
         except KeyboardInterrupt:
