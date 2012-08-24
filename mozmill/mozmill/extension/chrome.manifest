@@ -13,5 +13,5 @@ style   chrome://global/content/customizeToolbar.xul        chrome://mozmill/ski
 overlay windowtype:Songbird:Main                            chrome://mozmill/content/overlay.xul
 
 component {06aff66f-4925-42e1-87f8-acaeaa22cabf} components/handlers.js
-contract @mozilla.org/mozmill-handlers;1 {06aff66f-4925-42e1-87f8-acaeaa22cabf}
-category profile-after-change MozmillHandlers @mozilla.org/mozmill-handlers;1
+contract @mozilla.org/mozmill/handlers;1 {06aff66f-4925-42e1-87f8-acaeaa22cabf}
+category profile-after-change MozmillHandlers @mozilla.org/mozmill/handlers;1

@@ -21,7 +21,7 @@ function MozmillHandlers() {
 MozmillHandlers.prototype = {
   classDescription: "MozmillHandlers",
   classID: Components.ID("{06aff66f-4925-42e1-87f8-acaeaa22cabf}"),
-  contractID: "@mozilla.org/mozmill-handlers;1",
+  contractID: "@mozilla.org/mozmill/handlers;1",
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIObserver]),
 
   _xpcom_categories: [{category: "profile-after-change"}],
