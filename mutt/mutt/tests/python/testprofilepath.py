@@ -35,8 +35,10 @@ class TestProfilePath(unittest.TestCase):
                                   '-t', 'test_dummy.js',
                                   '--profile=testprofilepath'],
                                  cwd=tempdir)
-        code = process.waitForFinish(timeout=120)
-        self.assertEqual(code, 0)
+        process.run()
+        process.waitForFinish()
+
+        self.assertNotEqual(process.proc.poll(), None)
 
         # cleanup
         shutil.rmtree(tempdir)

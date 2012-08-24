@@ -227,12 +227,12 @@ class LoggerListener(object):
     ### event listeners
 
     def startTest(self, test):
-        filename = self.mozmill.running_test.get('name', test['filename'])
+        filename = self.mozmill.running_test.get('relpath', test['filename'])
         self.logger.log(self.custom_levels["TEST-START"],
                         "%s | %s" % (filename, test['name']))
 
     def endTest(self, test):
-        filename = self.mozmill.running_test.get('name', test['filename'])
+        filename = self.mozmill.running_test.get('relpath', test['filename'])
         if test.get('skipped', False):
             level = self.custom_levels['TEST-SKIPPED']
             self.logger.log(level,
