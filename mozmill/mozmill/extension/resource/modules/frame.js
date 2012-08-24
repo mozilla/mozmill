@@ -202,6 +202,7 @@ events.setTest = function (test, invokedFromIDE) {
   test.__passes__ = [];
   test.__fails__ = [];
   test.__invokedFromIDE__ = invokedFromIDE;
+  test.__start__ = Date.now();
   events.currentTest = test;
   var obj = {'filename':events.currentModule.__file__,
              'name':test.__name__,
@@ -210,6 +211,7 @@ events.setTest = function (test, invokedFromIDE) {
 }
 events.endTest = function (test) {
   test.status = 'done';
+  test.__end__ = Date.now();
   events.currentTest = null; 
   var obj = {'filename':events.currentModule.__file__, 
          'passed':test.__passes__.length,
@@ -217,6 +219,8 @@ events.endTest = function (test) {
          'passes':test.__passes__,
          'fails' :test.__fails__,
          'name'  :test.__name__,
+         'time_start':test.__start__,
+         'time_end':test.__end__,
          }
   if (test.skipped) {
     obj['skipped'] = true;
