@@ -43,13 +43,7 @@ MozmillHandlers.prototype = {
       case "profile-after-change":
         Services.console.registerListener(ConsoleObserver);
 
-        Services.obs.addObserver(this, "sessionstore-windows-restored", false);
         Services.obs.addObserver(this, "quit-application", false);
-
-        break;
-
-      case "sessionstore-windows-restored":
-        Services.obs.removeObserver(this, "sessionstore-windows-restored", false);
 
         break;
 
