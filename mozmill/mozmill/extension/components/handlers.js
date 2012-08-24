@@ -14,14 +14,14 @@ Cu.import("resource://gre/modules/Services.jsm");
 /**
  * XPCOM component to setup necessary listeners for Mozmill.
  */
-function Mozmill() {
+function MozmillHandlers() {
 
 }
 
-Mozmill.prototype = {
-  classDescription: "Mozmill",
+MozmillHandlers.prototype = {
+  classDescription: "MozmillHandlers",
   classID: Components.ID("{06aff66f-4925-42e1-87f8-acaeaa22cabf}"),
-  contractID: "@mozilla.org/mozmill;1",
+  contractID: "@mozilla.org/mozmill-handlers;1",
   QueryInterface: XPCOMUtils.generateQI([Ci.nsIObserver]),
 
   _xpcom_categories: [{category: "profile-after-change"}],
@@ -36,7 +36,7 @@ Mozmill.prototype = {
    * @param {Object} aData
    *        Data of the observer message (not used)
    */
-  observe: function Mozmill_observe(aSubject, aTopic, aData) {
+  observe: function MozmillHandlers_observe(aSubject, aTopic, aData) {
     switch (aTopic) {
       // The server cannot be started before the ui is shown. That means
       // we also have to register for the final-ui-startup notification.
