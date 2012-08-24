@@ -79,4 +79,4 @@ var ConsoleObserver = {
   }
 }
 
-const NSGetFactory = XPCOMUtils.generateNSGetFactory([Mozmill]);
+const NSGetFactory = XPCOMUtils.generateNSGetFactory([MozmillHandlers]);
