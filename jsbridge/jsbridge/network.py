@@ -87,6 +87,7 @@ class Telnet(asyncore.dispatcher):
             try:
                 data += self.recv(4096)
             except socket.error:
+                # Necessary for Python <2.7.2. See bug 722707
                 break
         return data
 
@@ -185,7 +186,7 @@ class Bridge(Telnet):
         self.register()
 
     def run(self, _uuid, exec_string, interval=.2, raise_exeption=True):
-
+        socket_error = None
 
         exec_string += '\r\n'
         self.send(exec_string)
@@ -201,9 +202,14 @@ class Bridge(Telnet):
             try:
                 self.send('')
             except socket.error, e:
-                raise JSBridgeDisconnectError("JSBridge Socket Disconnected: %s" % e)
+                # Necessary for Python <2.7.2. See bug 764643
+                socket_error = True
 
-        Bridge.timeout_ctr = 0. # reset the counter
+            if not self.connected or socket_error:
+                raise JSBridgeDisconnectError("Connection disconnected")
+
+        # reset the counter
+        Bridge.timeout_ctr = 0.
         
         callback = self.callbacks.pop(_uuid)
         if callback['result'] is False and raise_exeption is True:
