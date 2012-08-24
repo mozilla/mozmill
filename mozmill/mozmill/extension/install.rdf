@@ -4,7 +4,7 @@
    <Description about="urn:mozilla:install-manifest">
      <em:id>mozmill@mozilla.com</em:id>
      <em:name>MozMill</em:name>
-     <em:version>1.5.17</em:version>
+     <em:version>1.5.18</em:version>
      <em:creator>Adam Christian</em:creator>
      <em:description>A testing extension based on the Windmill Testing Framework client source</em:description>
      <em:unpack>true</em:unpack>
