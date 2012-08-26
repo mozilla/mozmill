@@ -548,15 +548,14 @@ function saveScreenshot(aDataURL, aFilename, aCallback) {
 
   // Write asynchronously to buffer;
   // Input and output streams are closed after write
-  let converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
-                  .createInstance(Ci.nsIScriptableUnicodeConverter);
-  converter.charset = "UTF-8";
+  var dataURI = NetUtil.newURI(aDataURL, "UTF8", null);
 
-  var iStream = converter.convertToInputStream(aDataURL);
-  NetUtil.asyncCopy(iStream, foStream, function (status) {
-    if (typeof(aCallback) === "function") {
-      aCallback(status);
-    }
+  NetUtil.asyncFetch(dataURI, function (aInputStream, aReasult) {
+    NetUtil.asyncCopy(aInputStream, foStream, function (status) {
+      if (typeof(aCallback) === "function") {
+        aCallback(status);
+      }
+    });
   });
 
   return file.path;
