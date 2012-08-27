@@ -18,13 +18,17 @@ var Events = {
   addBackChannel: function (aBackChannel) {
     Log.dump("Add backchannel", JSON.stringify(aBackChannel));
 
-    Events.backChannels.push(aBackChannel);
+    this.backChannels.push(aBackChannel);
   },
 
   fireEvent: function (aName, aObj) {
     Log.dump("Fire event", aName);
 
-    Events.backChannels.forEach(function (aBackChannel) {
+    if (this.backChannels.length == 0) {
+      throw new Error("No backchannels registered yet to send messages.");
+    }
+
+    this.backChannels.forEach(function (aBackChannel) {
       aBackChannel.session.encodeOut({
           'eventType': aName,
           'result': aObj}

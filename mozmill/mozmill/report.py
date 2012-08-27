@@ -56,7 +56,9 @@ class Report(object):
                   'screenshots': results.screenshots,
                   }
 
-        report.update(results.appinfo)
+        if results.appinfo:
+            report.update(results.appinfo)
+
         report['system_info'] = {"bits": str(mozinfo.bits),
                                  "hostname": platform.node(),
                                  "processor": mozinfo.processor,
