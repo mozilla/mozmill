@@ -550,12 +550,20 @@ function saveScreenshot(aDataURL, aFilename, aCallback) {
   // Input and output streams are closed after write
   var dataURI = NetUtil.newURI(aDataURL, "UTF8", null);
 
-  NetUtil.asyncFetch(dataURI, function (aInputStream, aReasult) {
-    NetUtil.asyncCopy(aInputStream, foStream, function (status) {
-      if (typeof(aCallback) === "function") {
-        aCallback(status);
-      }
-    });
+  NetUtil.asyncFetch(dataURI, function (aInputStream, aAsyncFetchResult) {
+    if (!Components.isSuccessCode(aAsyncFetchResult)) {
+        // An error occurred!
+        if (typeof(aCallback) === "function") {
+          aCallback(aAsyncFetchResult);
+        }
+    } else {
+      // Consume the input stream.
+      NetUtil.asyncCopy(aInputStream, foStream, function (aAsyncCopyResult) {
+        if (typeof(aCallback) === "function") {
+          aCallback(aAsyncCopyResult);
+        }
+      });
+    }
   });
 
   return file.path;
