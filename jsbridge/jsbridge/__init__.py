@@ -8,6 +8,7 @@ import os
 import sys
 
 from time import sleep
+from datetime import datetime, timedelta
 from network import Bridge, BackChannel, create_network
 from jsobjects import JSObject
 
@@ -26,18 +27,19 @@ def find_port():
 
 
 def wait_and_create_network(host, port, timeout=wait_to_create_timeout):
-    ttl = 0
-    while ttl < timeout:
+    deadline = datetime.now() + timedelta(seconds=timeout)
+    found_socket = False
+    while datetime.now() < deadline:
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((host, port))
             s.close()
+            found_socket = True
             break
         except socket.error:
             pass
         sleep(.25)
-        ttl += .25
-    if ttl == timeout:
+    if not found_socket:
         raise Exception("Cannot connect to jsbridge extension, port %s" % port)
 
     back_channel, bridge = create_network(host, port)
