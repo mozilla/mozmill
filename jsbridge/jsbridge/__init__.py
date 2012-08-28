@@ -28,18 +28,19 @@ def find_port():
 
 def wait_and_create_network(host, port, timeout=wait_to_create_timeout):
     deadline = datetime.now() + timedelta(seconds=timeout)
-    found_socket = False
+    connected = False
+
     while datetime.now() < deadline:
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((host, port))
             s.close()
-            found_socket = True
+            connected = True
             break
         except socket.error:
             pass
         sleep(.25)
-    if not found_socket:
+    if not connected:
         raise Exception("Cannot connect to jsbridge extension, port %s" % port)
 
     back_channel, bridge = create_network(host, port)
