@@ -548,9 +548,7 @@ function saveScreenshot(aDataURL, aFilename, aCallback) {
 
   // Write asynchronously to buffer;
   // Input and output streams are closed after write
-  var dataURI = NetUtil.newURI(aDataURL, "UTF8", null);
-
-  NetUtil.asyncFetch(dataURI, function (aInputStream, aAsyncFetchResult) {
+  NetUtil.asyncFetch(aDataURL, function (aInputStream, aAsyncFetchResult) {
     if (!Components.isSuccessCode(aAsyncFetchResult)) {
         // An error occurred!
         if (typeof(aCallback) === "function") {
