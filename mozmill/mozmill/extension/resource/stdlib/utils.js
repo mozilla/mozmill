@@ -396,11 +396,16 @@ function waitFor(callback, message, timeout, interval, thisObject) {
   timeout = timeout || 5000;
   interval = interval || 100;
 
-  var self = {counter: 0,
-              result: callback.call(thisObject)};
+  var self = {
+    result: callback.call(thisObject)
+  };
+  var endTime = Date.now() + timeout;
+
+  function timeIsUp() {
+    return (Date.now() > endTime);
+  }
 
   function wait() {
-    self.counter += interval;
     self.result = callback.call(thisObject);
   }
 
@@ -414,7 +419,7 @@ function waitFor(callback, message, timeout, interval, thisObject) {
       throw TypeError("waitFor() callback has to return a boolean" +
                       " instead of '" + type + "'");
 
-    if (self.result === true || self.counter >= timeout)
+    if (self.result === true || timeIsUp())
       break;
 
     thread.processNextEvent(true);
@@ -422,7 +427,7 @@ function waitFor(callback, message, timeout, interval, thisObject) {
 
   hwindow.clearInterval(timeoutInterval);
 
-  if (self.counter >= timeout) {
+  if (timeIsUp()) {
     message = message || arguments.callee.name + ": Timeout exceeded for '" + callback + "'";
     throw new TimeoutError(message);
   }
