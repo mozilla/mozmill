@@ -13,6 +13,7 @@ import logging
 import re
 import sys
 
+from datetime import datetime
 
 class LoggerListener(object):
     stack_regex = re.compile("(.*)@(.*?)(?: -> (file\:\/\/\/\S*))?\:(\d*)$")
@@ -233,23 +234,24 @@ class LoggerListener(object):
 
     def endTest(self, test):
         filename = self.mozmill.running_test.get('relpath', test['filename'])
+        runtime = test.get('time_end', datetime.utcnow()) - test['time_start']
         if test.get('skipped', False):
             level = self.custom_levels['TEST-SKIPPED']
             self.logger.log(level,
-                            "%s | %s" % (test['name'],
-                                         test.get('skipped_reason', '')))
+                            "%s | %s | finished in %dms" % (test['name'],
+                                         test.get('skipped_reason', ''), runtime))
         elif test['failed'] > 0:
             level = "TEST-UNEXPECTED-FAIL"
             if self.mozmill.running_test.get('expected') == 'fail':
                 level = "TEST-KNOWN-FAIL"
             self.logger.log(self.custom_levels[level],
-                            "%s | %s" % (filename, test['name']))
+                            "%s | %s | finished in %dms" % (filename, test['name'], runtime))
         else:
             level = "TEST-PASS"
             if self.mozmill.running_test.get('expected') == 'fail':
                 level = "TEST-UNEXPECTED-PASS"
             self.logger.log(self.custom_levels[level],
-                            "%s | %s" % (filename, test['name']))
+                            "%s | %s | finished in %dms" % (filename, test['name'], runtime))
 
 
 class ColorFormatter(logging.Formatter):
