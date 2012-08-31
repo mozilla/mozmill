@@ -271,8 +271,20 @@ events.endTest = function (test) {
 }
 
 events.setModule = function (v) {
+  v.__start__ = Date.now();
   return stateChangeBase( null, [function (v) {return (v.__file__ != undefined)}], 
                           'currentModule', 'setModule', v);
+}
+
+events.endModule = function (module) {
+  module.__end__ = Date.now();
+  var obj = {
+    'filename': module.__file__,
+    'time_start': module.__start__,
+    'time_end': module.__end__
+  }
+
+  events.fireEvent('endModule', obj);
 }
 
 events.pass = function (obj) {
@@ -728,6 +740,7 @@ Runner.prototype.runTestModule = function (module) {
   observer.unregister();
 
   module.__status__ = 'done';
+  events.endModule(module);
 }
 
 var runTestFile = function (filename, invokedFromIDE, name) {

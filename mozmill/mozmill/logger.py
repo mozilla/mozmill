@@ -34,6 +34,7 @@ class LoggerListener(object):
 
         self.custom_levels = {
             "RESULTS": 1000,
+            "TEST-END": 50,
             "TEST-UNEXPECTED-PASS": 43,
             "TEST-UNEXPECTED-FAIL": 42,
             "TEST-SKIPPED": 31,
@@ -211,7 +212,8 @@ class LoggerListener(object):
 
     def events(self):
         return {'mozmill.setTest': self.startTest,
-                'mozmill.endTest': self.endTest}
+                'mozmill.endTest': self.endTest,
+                'mozmill.endModule': self.endModule}
 
     def stop(self, results, fatal):
         """Print pass/failed/skipped statistics."""
@@ -252,6 +254,12 @@ class LoggerListener(object):
                 level = "TEST-UNEXPECTED-PASS"
             self.logger.log(self.custom_levels[level],
                             "%s | %s | finished in %dms" % (filename, test['name'], runtime))
+
+    def endModule(self, module):
+        filename = self.mozmill.running_test.get('relpath', module['filename'])
+        runtime = module.get('time_end', datetime.utcnow()) - module['time_start']
+        self.logger.log(self.custom_levels["TEST-END"],
+                        "%s | finished in %dms" % (filename, runtime))
 
 
 class ColorFormatter(logging.Formatter):
