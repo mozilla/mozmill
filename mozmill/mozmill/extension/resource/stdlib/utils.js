@@ -397,7 +397,7 @@ function takeScreenshot(node, highlights) {
 }
 
 /**
- * Takes a canvas as input and saves it to the file name.jpg in the persisted screenshot path (or temporary directory)
+ * Takes a dataURL as input and saves it to the file name.jpg in the persisted screenshot path (or temporary directory)
  * Returns the filepath of the saved file
  */
 function saveScreenshot(aDataURL, aFilename, aCallback) {
