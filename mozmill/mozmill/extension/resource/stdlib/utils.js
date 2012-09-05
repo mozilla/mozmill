@@ -400,36 +400,37 @@ function waitFor(callback, message, timeout, interval, thisObject) {
     timeIsUp: false,
     result: callback.call(thisObject)
   };
-  var endTime = Date.now() + timeout;
+  var deadline = Date.now() + timeout;
 
   function wait() {
     if (self.result !== true) {
       self.result = callback.call(thisObject);
+      self.timeIsUp = Date.now() > deadline;
     }
-    self.timeIsUp = Date.now() > endTime;
   }
 
   var timeoutInterval = hwindow.setInterval(wait, interval);
   var thread = Cc["@mozilla.org/thread-manager;1"]
                .getService().currentThread;
 
-  while (true) {
+  while (!(self.result === true || self.timeIsUp)) {
+    thread.processNextEvent(true);
+
     let type = typeof(self.result);
     if (type !== 'boolean')
       throw TypeError("waitFor() callback has to return a boolean" +
                       " instead of '" + type + "'");
-
-    if (self.result === true || self.timeIsUp)
-      break;
-
-    thread.processNextEvent(true);
   }
 
   hwindow.clearInterval(timeoutInterval);
 
-  if (self.timeIsUp && self.result !== true) {
+  if (self.result === true) {
+    return true;
+  } else if (self.timeIsUp) {
     message = message || arguments.callee.name + ": Timeout exceeded for '" + callback + "'";
     throw new TimeoutError(message);
+  } else {
+    throw new Error("waitFor() internal conditions changed!");
   }
 
   return true;
