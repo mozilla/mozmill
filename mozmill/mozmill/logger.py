@@ -236,24 +236,23 @@ class LoggerListener(object):
 
     def endTest(self, test):
         filename = self.mozmill.running_test.get('relpath', test['filename'])
-        runtime = test.get('time_end', datetime.utcnow()) - test['time_start']
         if test.get('skipped', False):
             level = self.custom_levels['TEST-SKIPPED']
             self.logger.log(level,
-                            "%s | %s | finished in %dms" % (test['name'],
-                                         test.get('skipped_reason', ''), runtime))
+                            "%s | %s" % (test['name'],
+                                         test.get('skipped_reason', '')))
         elif test['failed'] > 0:
             level = "TEST-UNEXPECTED-FAIL"
             if self.mozmill.running_test.get('expected') == 'fail':
                 level = "TEST-KNOWN-FAIL"
             self.logger.log(self.custom_levels[level],
-                            "%s | %s | finished in %dms" % (filename, test['name'], runtime))
+                            "%s | %s" % (filename, test['name']))
         else:
             level = "TEST-PASS"
             if self.mozmill.running_test.get('expected') == 'fail':
                 level = "TEST-UNEXPECTED-PASS"
             self.logger.log(self.custom_levels[level],
-                            "%s | %s | finished in %dms" % (filename, test['name'], runtime))
+                            "%s | %s" % (filename, test['name']))
 
     def endModule(self, module):
         filename = self.mozmill.running_test.get('relpath', module['filename'])
