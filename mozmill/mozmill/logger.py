@@ -34,10 +34,10 @@ class LoggerListener(object):
 
         self.custom_levels = {
             "RESULTS": 1000,
-            "TEST-END": 50,
             "TEST-UNEXPECTED-PASS": 43,
             "TEST-UNEXPECTED-FAIL": 42,
             "TEST-SKIPPED": 31,
+            "TEST-END": 24,
             "TEST-KNOWN-FAIL": 23,
             "TEST-PASS": 22,
             "TEST-START": 21,
