@@ -256,9 +256,9 @@ class LoggerListener(object):
 
     def endModule(self, module):
         filename = self.mozmill.running_test.get('relpath', module['filename'])
-        runtime = module.get('time_end', datetime.utcnow()) - module['time_start']
+        duration = module.get('time_end', datetime.utcnow()) - module['time_start']
         self.logger.log(self.custom_levels["TEST-END"],
-                        "%s | finished in %dms" % (filename, runtime))
+                        "%s | finished in %dms" % (filename, duration))
 
 
 class ColorFormatter(logging.Formatter):
