@@ -8,8 +8,11 @@ from setuptools import setup, find_packages
 PACKAGE_NAME = "mozmill"
 PACKAGE_VERSION = "2.0rc1"
 
-license = 'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
-topic = 'Topic :: Software Development :: Libraries :: Python Modules'
+deps = ['jsbridge == 3.0rc1',
+        'ManifestDestiny == 0.5.5',
+        'mozinfo == 0.3.3',
+        'mozrunner == 5.10',
+        ]
 
 # take description from README
 here = os.path.dirname(os.path.abspath(__file__))
@@ -22,15 +25,26 @@ setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
       description="UI Automation tool for Mozilla applications",
       long_description=description,
-      author='Mozilla, Mikeal Rogers',
-      author_email='mikeal.rogers@gmail.com',
-      url='http://github.com/mozautomation/mozmill',
+      classifiers=['Environment :: Console',
+                   'Intended Audience :: Developers',
+                   'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
+                   'Natural Language :: English',
+                   'Development Status :: 4 - Beta',
+                   'Operating System :: OS Independent',
+                   'Programming Language :: Python',
+                   'Topic :: Software Development :: Libraries :: Python Modules',
+                   ],
+      keywords='mozilla',
+      author='Mozilla Automation and Testing Team',
+      author_email='tools@lists.mozilla.org',
+      url='http://github.com/mozilla/mozmill',
       license='http://www.mozilla.org/MPL/2.0/',
-      packages=find_packages(exclude=['test']),
+      packages=['mozmill'],
       include_package_data=True,
       package_data={'': ['*.js', '*.css', '*.html', '*.txt', '*.xpi', '*.rdf',
                          '*.xul', '*.jsm', '*.xml'], },
       zip_safe=False,
+      install_requires=deps,
       entry_points="""
           [console_scripts]
           mozmill = mozmill:cli
@@ -39,16 +53,5 @@ setup(name=PACKAGE_NAME,
           logging = mozmill.logger:LoggerListener
           report = mozmill.report:Report
           callbacks = mozmill.python_callbacks:PythonCallbacks
-        """,
-      platforms=['Any'],
-      install_requires=['jsbridge == 3.0rc1',
-                        'mozrunner == 5.10',
-                        'ManifestDestiny == 0.5.5',
-                        'mozinfo == 0.3.3'],
-      classifiers=[license, topic,
-                   'Development Status :: 4 - Beta',
-                   'Environment :: Console',
-                   'Intended Audience :: Developers',
-                   'Operating System :: OS Independent',
-                   ]
+        """
 )
