@@ -23,7 +23,7 @@ from manifestparser import TestManifest
 from mozrunner.utils import get_metadata_from_egg
 from optparse import OptionGroup
 from time import sleep
-
+import weakref
 
 # metadata
 package_metadata = get_metadata_from_egg('mozmill')
@@ -42,6 +42,7 @@ JSBRIDGE_TIMEOUT = 60.
 
 class TestResults(object):
     """Class to accumulate test results and other information."""
+
     def __init__(self):
         # application information
         self.appinfo = {}
@@ -63,15 +64,6 @@ class TestResults(object):
     def events(self):
         """Events, the MozMill class will dispatch to."""
         return {'mozmill.endTest': self.endTest_listener}
-
-    def finish(self, handlers, fatal=False):
-        """Do the final reporting and such."""
-        self.endtime = datetime.utcnow()
-
-        # handle stop events
-        for handler in handlers:
-            if hasattr(handler, 'stop'):
-                handler.stop(self, fatal)
 
     ### event listener
     def endTest_listener(self, test):
@@ -97,12 +89,13 @@ class MozMill(object):
     You should use MozMill as follows:
 
         m = MozMill(...)
-        results = m.run(tests)
-        results.finish()
+        m.run(tests)
+        m.run(other_tests)
+        results = m.finish()
     """
 
     @classmethod
-    def create(cls, results=None, jsbridge_timeout=JSBRIDGE_TIMEOUT,
+    def create(cls, jsbridge_timeout=JSBRIDGE_TIMEOUT,
                handlers=(), app='firefox', profile_args=None,
                runner_args=None):
 
@@ -135,10 +128,10 @@ class MozMill(object):
         runner = runner_class.create(**runner_args)
 
         # create a mozmill
-        return cls(runner, jsbridge_port, results=results,
-                   jsbridge_timeout=jsbridge_timeout, handlers=handlers)
+        return cls(runner, jsbridge_port, jsbridge_timeout=jsbridge_timeout,
+                   handlers=handlers)
 
-    def __init__(self, runner, jsbridge_port, results=None,
+    def __init__(self, runner, jsbridge_port,
                  jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=()):
         """Constructor of the Mozmill class.
 
@@ -147,7 +140,6 @@ class MozMill(object):
         jsbridge_port -- The port the jsbridge server is running on
 
         Keyword arguments:
-        results -- A TestResults instance to accumulate results
         jsbridge_timeout -- How long to wait without a jsbridge communication
         handlers -- pluggable event handlers
 
@@ -165,7 +157,7 @@ class MozMill(object):
         self.bridge = self.back_channel = None
 
         # Report data will end up here
-        self.results = results or TestResults()
+        self.results = TestResults()
 
         # persisted data
         self.persisted = {}
@@ -174,11 +166,36 @@ class MozMill(object):
         self.shutdownMode = {}
         self.endRunnerCalled = False
 
-        # setup event listeners
-        self.global_listeners = []
+        # list of listeners and handlers
         self.listeners = []
-        # dict of listeners by event type
-        self.listener_dict = {}
+        self.listener_dict = {}  # by event type
+        self.global_listeners = []
+        self.handlers = []  # TODO: Use WeakSet if Python 2.7 is the min version
+
+        # setup event handlers and register listeners
+        self.setup_listeners()
+        self.setup_handlers((self.results,) + handlers)
+
+        # disable the crashreporter
+        os.environ['MOZ_CRASHREPORTER_NO_REPORT'] = '1'
+
+    ### methods for event listeners
+
+    def setup_handlers(self, handlers):
+        for handler in handlers:
+            # Use a weak ref to not block the gc for cyclic references
+            self.handlers.append(weakref.proxy(handler))
+
+            # make the mozmill instance available to the handler
+            handler.mozmill = self
+
+            if hasattr(handler, 'events'):
+                for event, method in handler.events().items():
+                    self.add_listener(method, eventType=event)
+            if hasattr(handler, '__call__'):
+                self.add_global_listener(handler)
+
+    def setup_listeners(self):
         self.add_listener(self.endRunner_listener,
                           eventType='mozmill.endRunner')
         self.add_listener(self.frameworkFail_listener,
@@ -191,25 +208,6 @@ class MozMill(object):
                           eventType='mozmill.setTest')
         self.add_listener(self.userShutdown_listener,
                           eventType='mozmill.userShutdown')
-
-        # add listeners for event handlers
-        self.handlers = [self.results]
-        self.handlers.extend(handlers)
-        for handler in self.handlers:
-
-            # make the mozmill instance available to the handler
-            handler.mozmill = self
-
-            if hasattr(handler, 'events'):
-                for event, method in handler.events().items():
-                    self.add_listener(method, eventType=event)
-            if hasattr(handler, '__call__'):
-                self.add_global_listener(handler)
-
-        # disable the crashreporter
-        os.environ['MOZ_CRASHREPORTER_NO_REPORT'] = '1'
-
-    ### methods for event listeners
 
     def add_listener(self, callback, eventType):
         self.listener_dict.setdefault(eventType, []).append(callback)
@@ -347,7 +345,8 @@ class MozMill(object):
                 # if there is not a next test,
                 # throw the error up the chain
                 raise
-            frame = self.run_test_file(self.start_runner(), path, nextTest)
+            frame = self.run_test_file(self.start_runner(),
+                                       path, nextTest)
 
         return frame
 
@@ -417,8 +416,6 @@ class MozMill(object):
             self.running_test = None
             self.stop()
 
-        return self.results
-
     def get_appinfo(self, bridge):
         """Collect application specific information."""
         app_info = { }
@@ -434,6 +431,27 @@ class MozMill(object):
         return app_info
 
     ### methods for shutting down and cleanup
+
+    def finish(self, fatal=False):
+        """Do the final reporting and such."""
+        self.results.endtime = datetime.utcnow()
+
+        # handle stop events
+        for handler in self.handlers:
+            if hasattr(handler, 'stop'):
+                handler.stop(self.results, fatal)
+
+            # setup_handlers() sets a reference to the mozmill object.
+            # It's not necessary anymore and has to be reset to avoid
+            # circular references
+            handler.mozmill = None
+
+        self.listeners = []
+        self.listener_dict = {}
+        self.global_listeners = []
+        self.handlers = []
+
+        return self.results
 
     def report_disconnect(self, message=None):
         message = message or 'Disconnect Error: Application unexpectedly closed'
@@ -474,7 +492,7 @@ class MozMill(object):
             raise Exception('client process shutdown unsuccessful')
 
     def stop(self):
-        """Cleanup and invoking of final handlers."""
+        """Cleanup after a run"""
 
         # ensure you have the application info for the case
         # of no tests: https://bugzilla.mozilla.org/show_bug.cgi?id=751866
@@ -483,10 +501,9 @@ class MozMill(object):
             self.start_runner()
             self.stop_runner()
 
-        # close the bridge and back channel
-        if self.back_channel:
-            self.back_channel.close()
-            self.bridge.close()
+        # reset the bridge and back channel
+        self.back_channel = None
+        self.bridge = None
 
         # cleanup
         if self.runner is not None:
@@ -567,13 +584,13 @@ class CLI(mozrunner.CLI):
             self.parser.exit()
 
         # instantiate event handler plugins
-        self.event_handlers = []
+        self.event_handlers = ()
         for name, handler_class in self.handlers.items():
             if name in self.options.disable:
                 continue
             handler = handlers.instantiate_handler(handler_class, self.options)
             if handler is not None:
-                self.event_handlers.append(handler)
+                self.event_handlers = self.event_handlers + (handler,)
         for handler in self.options.handlers:
             # user handlers
             try:
@@ -583,7 +600,7 @@ class CLI(mozrunner.CLI):
             _handler = handlers.instantiate_handler(handler_class,
                                                     self.options)
             if _handler is not None:
-                self.event_handlers.append(_handler)
+                self.event_handlers = self.event_handlers + (_handler,)
 
         # if in manual mode, ensure we're interactive
         if self.options.manual:
@@ -728,8 +745,7 @@ class CLI(mozrunner.CLI):
             exception_type, exception, tb = sys.exc_info()
 
         # do whatever reporting you're going to do
-        results = mozmill.results
-        results.finish(self.event_handlers, fatal=exception is not None)
+        results = mozmill.finish(fatal=exception is not None)
 
         # exit on bad stuff happen
         if exception:

@@ -37,17 +37,22 @@ class TestMozmillPersisted(unittest.TestCase):
         m.persisted['bar'] = 'foo'
         m.persisted['foo'] = 'bar'
         m.persisted['number'] = 1
-        results = m.run([dict(path=path)])
+        m.run([dict(path=path)])
+        results = m.finish()
+
         self.assertTrue(len(results.passes) == 1)
         self.inspect_persisted(m.persisted)
 
     def test_persisted_shutdown(self):
         path = self.make_test(shutdown='controller.stopApplication();')
+
         m = mozmill.MozMill.create()
         m.persisted['bar'] = 'foo'
         m.persisted['foo'] = 'bar'
         m.persisted['number'] = 1
-        results = m.run([dict(path=path)])
+        m.run([dict(path=path)])
+        results = m.finish()
+
         self.assertTrue(len(results.passes) == 1)
         self.inspect_persisted(m.persisted)
 

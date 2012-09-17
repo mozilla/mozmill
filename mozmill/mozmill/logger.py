@@ -21,6 +21,10 @@ class LoggerListener(object):
     ### methods for the EventHandler interface
     def __init__(self, log_file=None, console_level="INFO", file_level="INFO",
                  format="pprint-color", debug=False):
+        self.format = format
+        self.debug = debug
+        self.mozmill = None
+
         template = "%(levelname)s | %(message)s"
 
         levels = {
@@ -65,8 +69,11 @@ class LoggerListener(object):
         sys.stdout = self.StdOutLogger(self.logger)
         sys.stderr = self.StdErrLogger(self.logger)
 
-        self.format = format
-        self.debug = debug
+    def __del__(self):
+        """Restore the standard output streams"""
+
+        sys.stdout = sys.__stdout__
+        sys.stderr = sys.__stderr__
 
     class StdOutLogger(object):
         def __init__(self, logger):

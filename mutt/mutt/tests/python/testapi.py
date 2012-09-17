@@ -20,8 +20,11 @@ class TestMozmillAPI(unittest.TestCase):
     def test_api(self):
         passes = 1
         path = self.make_test()
+
         m = mozmill.MozMill.create()
-        results = m.run([dict(path=path)])
+        m.run([dict(path=path)])
+        results = m.finish()
+
         self.assertTrue(len(results.passes) == passes)
 
 if __name__ == '__main__':

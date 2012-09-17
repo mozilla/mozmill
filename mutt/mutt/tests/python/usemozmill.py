@@ -21,8 +21,8 @@ class ModuleTest(unittest.TestCase):
         tests = [{'path': testpath}]
 
         m = mozmill.MozMill.create(runner_args={'cmdargs': ['-console']})
-        results = m.run(tests)
-        results.finish(())
+        m.run(tests)
+        results = m.finish(())
 
         # From the first test, there is one passing test
         self.assertEqual(len(results.passes), passes, "Passes should match")

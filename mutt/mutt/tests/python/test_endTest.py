@@ -15,7 +15,8 @@ class ModuleEndTest(unittest.TestCase):
             strict=False)
 
         m = mozmill.MozMill.create()
-        results = m.run(manifest.active_tests())
+        m.run(manifest.active_tests())
+        results = m.finish()
 
         # From the first test, there is one passing test
         self.assertEqual(len(results.passes), 3, "Passes should match")
