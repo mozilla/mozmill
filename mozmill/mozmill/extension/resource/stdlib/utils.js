@@ -16,8 +16,6 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/NetUtil.jsm");
 
-var frame = {}; Cu.import('resource://mozmill/modules/frame.js', frame);
-
 
 var hwindow = Cc["@mozilla.org/appshell/appShellService;1"]
               .getService(Ci.nsIAppShellService).hiddenDOMWindow;
@@ -401,6 +399,7 @@ function takeScreenshot(node, highlights) {
  * Returns the filepath of the saved file
  */
 function saveScreenshot(aDataURL, aFilename, aCallback) {
+  var frame = {}; Cu.import('resource://mozmill/modules/frame.js', frame);
   const FILE_PERMISSIONS = parseInt("0644", 8);
 
   var file;
