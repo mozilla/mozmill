@@ -9,15 +9,12 @@ from setuptools import setup, find_packages
 PACKAGE_NAME = "jsbridge"
 PACKAGE_VERSION = "3.0rc1"
 
-license = 'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
-topic = 'Topic :: Software Development :: Libraries :: Python Modules'
-
 # package dependencies
-requires = []
+deps = []
 try:
     import json
 except ImportError:
-    requires.append('simplejson')
+    deps.append('simplejson')
 
 # take description from README
 here = os.path.dirname(os.path.abspath(__file__))
@@ -30,22 +27,25 @@ setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
       description="Python to JavaScript bridge interface",
       long_description=description,
-      author='Mikeal Rogers, Mozilla',
-      author_email='mikeal.rogers@gmail.com',
-      url='http://github.com/mozautomation/mozmill',
+      classifiers=['Environment :: Console',
+                   'Intended Audience :: Developers',
+                   'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
+                   'Natural Language :: English',
+                   'Development Status :: 4 - Beta',
+                   'Operating System :: OS Independent',
+                   'Programming Language :: Python',
+                   'Topic :: Software Development :: Libraries :: Python Modules',
+                   ],
+      keywords='mozilla',
+      author='Mozilla Automation and Testing Team',
+      author_email='tools@lists.mozilla.org',
+      url='https://github.com/mozilla/mozmill/tree/master/jsbridge',
       license='http://www.mozilla.org/MPL/2.0/',
-      packages=find_packages(exclude=['test']),
+      packages=['jsbridge'],
       include_package_data=True,
       package_data={'': ['*.js', '*.css', '*.html', '*.txt', '*.xpi',
                          '*.rdf', '*.xul', '*.jsm', '*.xml' 'extension'], },
       zip_safe=False,
+      install_requires=deps,
       entry_points="",
-      platforms=['Any'],
-      install_requires=requires,
-      classifiers=[license, topic,
-                   'Development Status :: 4 - Beta',
-                   'Environment :: Console',
-                   'Intended Audience :: Developers',
-                   'Operating System :: OS Independent',
-                  ]
 )
