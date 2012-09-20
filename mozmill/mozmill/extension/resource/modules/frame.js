@@ -208,10 +208,9 @@ events.startUserShutdown = function (obj) {
   events.fireEvent('userShutdown', obj);
 }
 
-events.setTest = function (test, invokedFromIDE) {
+events.setTest = function (test) {
   test.__passes__ = [];
   test.__fails__ = [];
-  test.__invokedFromIDE__ = invokedFromIDE;
   events.currentTest = test;
   test.__start__ = Date.now();
 
@@ -574,9 +573,8 @@ AppQuitObserver.prototype = {
 }
 
 
-function Runner(collector, invokedFromIDE) {
+function Runner(collector) {
   this.collector = collector;
-  this.invokedFromIDE = invokedFromIDE
   events.fireEvent('startRunner', true);
   var m = {}; Cu.import('resource://mozmill/driver/mozmill.js', m);
   this.platform = m.platform;
@@ -686,7 +684,7 @@ Runner.prototype.runTestModule = function (module) {
         var test = module.__tests__[i];
 
         events.setState('test');
-        events.setTest(test, this.invokedFromIDE);
+        events.setTest(test);
         this.wrapper(test);
         if (events.userShutdown) {
           break;
@@ -730,8 +728,8 @@ Runner.prototype.runTestModule = function (module) {
   module.__status__ = 'done';
 }
 
-var runTestFile = function (filename, invokedFromIDE, name) {
-  var runner = new Runner(new Collector(), invokedFromIDE);
+var runTestFile = function (filename, name) {
+  var runner = new Runner(new Collector());
   runner.runTestFile(filename, name);
   runner.end();
 
