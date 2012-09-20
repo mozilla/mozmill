@@ -338,7 +338,7 @@ class MozMill(object):
 
         """
         try:
-            frame.runTestFile(path, False, name)
+            frame.runTestFile(path, name)
         except JSBridgeDisconnectError:
             # if the runner is restarted via JS, run this test
             # again if the next is specified

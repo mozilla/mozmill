@@ -2,10 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler", 
-                        "getFile", "Copy", "getChromeWindow", "getWindows", "runEditor",
-                        "runFile", "getWindowByTitle", "getWindowByType", "getWindowId",
-                        "tempfile", "getMethodInWindows", "getPreference", "setPreference",
+var EXPORTED_SYMBOLS = ["Copy", "getChromeWindow", "getWindows",
+                        "getWindowByTitle", "getWindowByType", "getWindowId",
+                        "getMethodInWindows", "getPreference", "setPreference",
                         "sleep", "assert", "unwrapNode", "TimeoutError", "waitFor",
                         "saveScreenshot", "takeScreenshot", "startTimer", "stopTimer",
                        ];
@@ -107,24 +106,6 @@ function getWindowId(aWindow) {
   }
 }
 
-function tempfile(appention) {
-  if (appention == undefined) {
-    appention = "mozmill.utils.tempfile";
-  }
-
-  var tempfile = Cc["@mozilla.org/file/directory_service;1"]
-                 .getService(Ci.nsIProperties).get("TmpD", Ci.nsIFile);
-  tempfile.append(uuidgen.generateUUID().toString().replace('-', '')
-                                                   .replace('{', '')
-                                                   .replace('}',''));
-  tempfile.create(Ci.nsIFile.DIRECTORY_TYPE, 0777);
-  tempfile.append(appention);
-  tempfile.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, 0666);
-  // do whatever you need to the created file
-
-  return tempfile.clone();
-}
-
 var checkChrome = function () {
   var loc = window.document.location.href;
   try {
@@ -135,123 +116,6 @@ var checkChrome = function () {
   return /^chrome:\/\//.test(loc);
 }
 
-var runFile = function (w) {
-  var nsIFilePicker = Ci.nsIFilePicker;
-
-  //define the file picker window
-  var fp = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
-  fp.init(w, "Select a File", nsIFilePicker.modeOpen);
-  fp.appendFilter("JavaScript Files","*.js");
-
-  // if we get a file
-  var res = fp.show();
-  if (res == nsIFilePicker.returnOK) {
-    var thefile = fp.file;
-
-    //create the paramObj with a files array attrib
-    var paramObj = {};
-    paramObj.files = [];
-    paramObj.files.push(thefile.path);
-  }
-}
-
-var saveFile = function (w, content, filename) {
-  var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
-  file.initWithPath(filename);
-
-  var foStream = Cc["@mozilla.org/network/file-output-stream;1"]
-                 .createInstance(Ci.nsIFileOutputStream);
-
-  // use 0x02 | 0x10 to open file for appending.
-  foStream.init(file, 0x02 | 0x08 | 0x20, 0666, 0); 
-  // write, create, truncate
-  // In a c file operation, we have no need to set file mode with or operation,
-  // directly using "r" or "w" usually.
-
-  foStream.write(content, content.length);
-  foStream.close();
-};
-
-var saveAsFile = function (w, content) {
-  var nsIFilePicker = Ci.nsIFilePicker;
-
-  // define the file picker window
-  var fp = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
-  fp.init(w, "Select a File", nsIFilePicker.modeSave);
-  fp.appendFilter("JavaScript Files","*.js");
-
-  //if we get a file
-  var res = fp.show();
-  if ((res == nsIFilePicker.returnOK) || (res == nsIFilePicker.returnReplace)) {
-    var thefile = fp.file;
-
-    // forcing the user to save as a .js file
-    if (thefile.path.indexOf(".js") == -1){
-      var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
-      file.initWithPath(thefile.path + ".js");
-      var thefile = file;
-    }
-
-    // file is nsIFile, data is a string
-    var foStream = Cc["@mozilla.org/network/file-output-stream;1"]
-                   .createInstance(Ci.nsIFileOutputStream);
-
-    // use 0x02 | 0x10 to open file for appending.
-    foStream.init(thefile, 0x02 | 0x08 | 0x20, 0666, 0); 
-    // write, create, truncate
-    // In a c file operation, we have no need to set file mode with or operation,
-    // directly using "r" or "w" usually.
-    foStream.write(content, content.length);
-    foStream.close();
-
-    return thefile.path;
-  }
-}
-
-var openFile = function (w) {
-  var nsIFilePicker = Ci.nsIFilePicker;
-
-  // define the file picker window
-  var fp = Cc["@mozilla.org/filepicker;1"].createInstance(nsIFilePicker);
-  fp.init(w, "Select a File", nsIFilePicker.modeOpen);
-  fp.appendFilter("JavaScript Files", "*.js");
-
-  // if we get a file
-  var res = fp.show();
-  if (res == nsIFilePicker.returnOK) {
-    var thefile = fp.file;
-    var data = getFile(thefile.path);
-
-    return {path: thefile.path, data: data};
-  }
-}
-
-var getFile = function (path) {
-  var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
-  file.initWithPath(path);
-
-  var data = "";
-  var fstream = Cc["@mozilla.org/network/file-input-stream;1"]
-                .createInstance(Ci.nsIFileInputStream);
-  var sstream = Cc["@mozilla.org/scriptableinputstream;1"]
-                .createInstance(Ci.nsIScriptableInputStream);
-  fstream.init(file, -1, 0, 0);
-  sstream.init(fstream); 
-
-  //pull the contents of the file out
-  var str = sstream.read(4096);
-  while (str.length > 0) {
-    data += str;
-    str = sstream.read(4096);
-  }
-
-  sstream.close();
-  fstream.close();
-
-  //data = data.replace(/\r|\n|\r\n/g, "");
-  return data;
-};
- 
 /**
  * Called to get the state of an individual preference.
  *
