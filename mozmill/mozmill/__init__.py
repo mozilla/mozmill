@@ -174,7 +174,7 @@ class MozMill(object):
 
         # setup event handlers and register listeners
         self.setup_listeners()
-        self.setup_handlers((self.results,) + handlers)
+        self.setup_handlers(handlers.append(self.results))
 
         # disable the crashreporter
         os.environ['MOZ_CRASHREPORTER_NO_REPORT'] = '1'
@@ -584,13 +584,13 @@ class CLI(mozrunner.CLI):
             self.parser.exit()
 
         # instantiate event handler plugins
-        self.event_handlers = ()
+        self.event_handlers = []
         for name, handler_class in self.handlers.items():
             if name in self.options.disable:
                 continue
             handler = handlers.instantiate_handler(handler_class, self.options)
             if handler is not None:
-                self.event_handlers = self.event_handlers + (handler,)
+                self.event_handlers.append(handler)
         for handler in self.options.handlers:
             # user handlers
             try:
@@ -600,7 +600,7 @@ class CLI(mozrunner.CLI):
             _handler = handlers.instantiate_handler(handler_class,
                                                     self.options)
             if _handler is not None:
-                self.event_handlers = self.event_handlers + (_handler,)
+                self.event_handlers.append(_handler)
 
         # if in manual mode, ensure we're interactive
         if self.options.manual:
