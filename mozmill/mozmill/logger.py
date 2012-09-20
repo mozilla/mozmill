@@ -21,7 +21,7 @@ class LoggerListener(object):
 
     ### methods for the EventHandler interface
     def __init__(self, log_file=None, console_level="INFO", file_level="INFO",
-                 format="pprint-color", debug=False):
+                 format="pprint-color", debug=False, console_stream=sys.stdout):
         self.format = format
         self.debug = debug
 
@@ -53,7 +53,7 @@ class LoggerListener(object):
         formatter = logging.Formatter(template)
 
         if console_level:
-            console = logging.StreamHandler()
+            console = logging.StreamHandler(console_stream)
             if format == "pprint-color":
                 formatter = ColorFormatter(template)
             console.setFormatter(formatter)
