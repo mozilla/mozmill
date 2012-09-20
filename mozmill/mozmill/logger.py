@@ -69,11 +69,6 @@ class LoggerListener(object):
         sys.stdout = self.StdOutLogger(self.logger)
         sys.stderr = self.StdErrLogger(self.logger)
 
-    def __del__(self):
-        """Restore the standard output streams"""
-
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
 
     class StdOutLogger(object):
         def __init__(self, logger):
