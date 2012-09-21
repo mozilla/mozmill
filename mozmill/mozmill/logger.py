@@ -12,6 +12,7 @@ except:
 import logging
 import re
 import sys
+import uuid
 
 
 class LoggerListener(object):
@@ -20,7 +21,10 @@ class LoggerListener(object):
 
     ### methods for the EventHandler interface
     def __init__(self, log_file=None, console_level="INFO", file_level="INFO",
-                 format="pprint-color", debug=False):
+                 format="pprint-color", debug=False, console_stream=sys.stdout):
+        self.format = format
+        self.debug = debug
+
         template = "%(levelname)s | %(message)s"
 
         levels = {
@@ -44,12 +48,12 @@ class LoggerListener(object):
         for name in self.custom_levels:
             logging.addLevelName(self.custom_levels[name], name)
 
-        self.logger = logging.getLogger('mozmill')
+        self.logger = logging.getLogger('mozmill.%s' % uuid.uuid1())
         self.logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter(template)
 
         if console_level:
-            console = logging.StreamHandler()
+            console = logging.StreamHandler(console_stream)
             if format == "pprint-color":
                 formatter = ColorFormatter(template)
             console.setFormatter(formatter)
@@ -61,12 +65,6 @@ class LoggerListener(object):
             handler.setFormatter(formatter)
             handler.setLevel(levels[file_level])
             self.logger.addHandler(handler)
-
-        sys.stdout = self.StdOutLogger(self.logger)
-        sys.stderr = self.StdErrLogger(self.logger)
-
-        self.format = format
-        self.debug = debug
 
     class StdOutLogger(object):
         def __init__(self, logger):
