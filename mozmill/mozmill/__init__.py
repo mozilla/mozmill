@@ -23,7 +23,7 @@ from manifestparser import TestManifest
 from mozrunner.utils import get_metadata_from_egg
 from optparse import OptionGroup
 from time import sleep
-import weakref
+
 
 # metadata
 package_metadata = get_metadata_from_egg('mozmill')
@@ -187,7 +187,7 @@ class MozMill(object):
     def setup_handlers(self, handlers):
         for handler in handlers:
             # Use a weak ref to not block the gc for cyclic references
-            self.handlers.append(weakref.proxy(handler))
+            self.handlers.append(handler)
 
             # make the mozmill instance available to the handler
             handler.mozmill = self

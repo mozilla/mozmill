@@ -1,9 +1,10 @@
+from cStringIO import StringIO
 import os
+import sys
 import tempfile
 import unittest
-import mozmill
-import sys
 
+import mozmill
 from mozmill.logger import LoggerListener
 
 
@@ -22,7 +23,8 @@ class ModuleTest(unittest.TestCase):
                                 relative_test_path)
         tests = [{'path': testpath}]
 
-        logger = LoggerListener(console_level="ERROR")
+        info_data= StringIO()
+        logger = LoggerListener(console_level="DEBUG", console_stream=info_data)
 
         m = mozmill.MozMill.create(handlers=[logger])
         m.run(tests)

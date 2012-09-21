@@ -1,6 +1,5 @@
 from cStringIO import StringIO
 import os
-import sys
 import unittest
 import tempfile
 
