@@ -24,7 +24,7 @@ class ModuleTest(unittest.TestCase):
 
         logger = LoggerListener(console_level="ERROR")
 
-        m = mozmill.MozMill.create(handlers=(logger,))
+        m = mozmill.MozMill.create(handlers=[logger])
         m.run(tests)
         results = m.finish()
 

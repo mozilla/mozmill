@@ -96,7 +96,7 @@ class MozMill(object):
 
     @classmethod
     def create(cls, jsbridge_timeout=JSBRIDGE_TIMEOUT,
-               handlers=(), app='firefox', profile_args=None,
+               handlers=None, app='firefox', profile_args=None,
                runner_args=None):
 
         jsbridge_port = jsbridge.find_port()
@@ -132,7 +132,7 @@ class MozMill(object):
                    handlers=handlers)
 
     def __init__(self, runner, jsbridge_port,
-                 jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=()):
+                 jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=None):
         """Constructor of the Mozmill class.
 
         Arguments:
@@ -174,7 +174,10 @@ class MozMill(object):
 
         # setup event handlers and register listeners
         self.setup_listeners()
-        self.setup_handlers(handlers.append(self.results))
+
+        handlers = handlers or list()
+        handlers.append(self.results)
+        self.setup_handlers(handlers)
 
         # disable the crashreporter
         os.environ['MOZ_CRASHREPORTER_NO_REPORT'] = '1'

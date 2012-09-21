@@ -1,6 +1,6 @@
 import os
-import tempfile
 import unittest
+
 import mozmill
 
 
@@ -20,7 +20,7 @@ class ModuleTest(unittest.TestCase):
                                 relative_test_path)
         tests = [{'path': testpath}]
 
-        m = mozmill.MozMill.create(runner_args={'cmdargs': ['-console']})
+        m = mozmill.MozMill.create()
         m.run(tests)
         results = m.finish(())
 
