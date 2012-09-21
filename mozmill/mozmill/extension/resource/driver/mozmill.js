@@ -380,8 +380,9 @@ function attachEventListeners(aWindow) {
   var onWindowLoaded = function (aEvent) {
     controller.windowMap.update(utils.getWindowId(aWindow), "loaded", true);
 
-    let browser = aWindow.getBrowser();
-    if (browser) {
+    if (("getBrowser" in aWindow) && aWindow.getBrowser()) {
+      var browser = aWindow.getBrowser();
+
       // Page is ready
       browser.addEventListener("pageshow", pageShowHandler, true);
 
