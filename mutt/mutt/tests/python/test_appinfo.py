@@ -19,8 +19,8 @@ class ModuleTest(unittest.TestCase):
         tests = [{'path': self.make_test()}]
 
         m = mozmill.MozMill.create()
-        results = m.run(tests)
-        results.finish(())
+        m.run(tests)
+        results = m.finish()
 
         self.assertRegexpMatches(results.appinfo.get('application_id'), "^{.*}$")
         self.assertIsInstance(results.appinfo.get('application_name'), unicode)
