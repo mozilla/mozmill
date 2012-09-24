@@ -179,8 +179,8 @@ def test_all_js(tests, options):
     level = "DEBUG" if options.verbose else "INFO"
     logger = LoggerListener(console_level=level)
 
+    m = mozmill.MozMill.create(handlers=[logger])
     try:
-        m = mozmill.MozMill.create(handlers=[logger])
         m.run(tests, options.restart)
     except:
         exception_type, exception, tb = sys.exc_info()

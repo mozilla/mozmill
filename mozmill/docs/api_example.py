@@ -7,15 +7,18 @@ illustrate use of mozmill as an API
 # you have to have some sort of test
 import os
 import tempfile
+
+import mozmill
+
 test = """var test_something = function() { }"""
 fd, path = tempfile.mkstemp()
 os.write(fd, test)
 os.close(fd)
 
 # now to do our thing: basic run
-import mozmill
 m = mozmill.MozMill.create()
-results = m.run(dict(path=path))
+m.run(dict(path=path))
+results = m.finish()
 
 # there should be one passing test
 passes = 1
@@ -29,10 +32,11 @@ assert len(results.alltests) == passes, \
 # this is how you use a handler
 # let's try the logging handler:
 from mozmill.logger import LoggerListener
+
 logger = LoggerListener()
-m = mozmill.MozMill.create(results=results, handlers=(logger,))
-results = m.run(dict(path=path))
-results.finish((logger,))
+m = mozmill.MozMill.create(handlers=(logger,))
+m.run(dict(path=path))
+results = m.finish()
 
 # now there should be two
 passes *= 2
