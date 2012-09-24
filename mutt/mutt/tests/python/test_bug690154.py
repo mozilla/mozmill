@@ -23,8 +23,10 @@ class TestBug690154(unittest.TestCase):
     def test_JSON_structure(self):
         passes = 1
         path = self.make_test()
+
         m = mozmill.MozMill.create()
-        results = m.run([dict(path=path)])
+        m.run([dict(path=path)])
+        results = m.finish()
 
         # no modules pass
         self.assertFalse(results.passes)

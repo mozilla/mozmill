@@ -24,6 +24,7 @@ class LoggerListener(object):
                  format="pprint-color", debug=False, console_stream=sys.stdout):
         self.format = format
         self.debug = debug
+        self.mozmill = None
 
         template = "%(levelname)s | %(message)s"
 

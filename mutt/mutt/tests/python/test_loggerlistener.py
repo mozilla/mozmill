@@ -1,6 +1,5 @@
 from cStringIO import StringIO
 import os
-import sys
 import unittest
 import tempfile
 
@@ -27,9 +26,9 @@ class ModuleTest(unittest.TestCase):
         logger_info = LoggerListener(console_level="INFO", console_stream=info_data)
         logger_debug = LoggerListener(console_level="DEBUG", console_stream=debug_data)
 
-        m = mozmill.MozMill.create(handlers=(logger_info, logger_debug))
-        results = m.run(tests)
-        results.finish((logger_info, logger_debug))
+        m = mozmill.MozMill.create(handlers=[logger_info, logger_debug])
+        m.run(tests)
+        m.finish()
 
         assert "TEST-START" in debug_data.getvalue()
         assert "TEST-PASS" in debug_data.getvalue()
