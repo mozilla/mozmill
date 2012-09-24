@@ -170,7 +170,7 @@ class MozMill(object):
         self.listeners = []
         self.listener_dict = {}  # by event type
         self.global_listeners = []
-        self.handlers = []  # TODO: Use WeakSet if Python 2.7 is the min version
+        self.handlers = []
 
         # setup event handlers and register listeners
         self.setup_listeners()
@@ -186,7 +186,6 @@ class MozMill(object):
 
     def setup_handlers(self, handlers):
         for handler in handlers:
-            # Use a weak ref to not block the gc for cyclic references
             self.handlers.append(handler)
 
             # make the mozmill instance available to the handler
@@ -504,7 +503,12 @@ class MozMill(object):
             self.start_runner()
             self.stop_runner()
 
-        # reset the bridge and back channel
+        # stop the back channel and bridge
+        if self.back_channel:
+            self.back_channel.close()
+            self.bridge.close()
+
+        # release objects
         self.back_channel = None
         self.bridge = None
 
