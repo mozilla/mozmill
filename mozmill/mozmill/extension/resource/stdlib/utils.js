@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var EXPORTED_SYMBOLS = ["Copy", "getChromeWindow", "getWindows",
+var EXPORTED_SYMBOLS = ["convertToUnicode", "Copy", "getChromeWindow", "getWindows",
                         "getWindowByTitle", "getWindowByType", "getWindowId",
                         "getMethodInWindows", "getPreference", "setPreference",
                         "sleep", "assert", "unwrapNode", "TimeoutError", "waitFor",
@@ -21,6 +21,45 @@ var hwindow = Cc["@mozilla.org/appshell/appShellService;1"]
               .getService(Ci.nsIAppShellService).hiddenDOMWindow;
 
 var uuidgen = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator);
+
+
+/**
+ * Converts the text from the source charset to Unicode.
+ * Non-convertable characters will be replaced by a question mark.
+ *
+ * @param {String} aText Text to convert
+ * @return {String} Unicode string
+ */
+function convertToUnicode(aText) {
+  var converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
+                  .createInstance(Ci.nsIScriptableUnicodeConverter);
+  converter.charset = 'utf-8';
+
+  function replacer(aKey, aValue) {
+    if (typeof(aValue) === "string") {
+      try {
+        return converter.ConvertToUnicode(aValue);
+      } catch (e) {
+        var newstring = '';
+        for (var i = 0; i < aValue.length; i++) {
+          replacement = '?';
+          if ((32 <= aValue.charCodeAt(i)) && (aValue.charCodeAt(i) < 127)) {
+            // eliminate non-convertable characters;
+            newstring += aValue.charAt(i);
+          } else {
+            newstring += replacement;
+          }
+        }
+
+        return newstring;
+      }
+    }
+
+    return aValue;
+  }
+
+  return converter.ConvertToUnicode(aText, replacer);
+}
 
 function Copy (obj) {
   for (var n in obj) {
