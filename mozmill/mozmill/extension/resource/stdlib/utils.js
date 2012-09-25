@@ -413,7 +413,7 @@ function waitFor(callback, message, timeout, interval, thisObject) {
   var thread = Cc["@mozilla.org/thread-manager;1"]
                .getService().currentThread;
 
-  while (!(self.result === true || self.timeIsUp)) {
+  while (self.result !== true && !self.timeIsUp) {
     thread.processNextEvent(true);
 
     let type = typeof(self.result);
