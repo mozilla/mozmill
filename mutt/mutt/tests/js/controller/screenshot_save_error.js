@@ -2,73 +2,53 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const TEST_FOLDER = collector.addHttpResource('../_files/');
+var utils = {};
 
 
 var setupModule = function () {
-  controller = mozmill.getBrowserController();
+  Cu.import('resource://mozmill/stdlib/utils.js', utils); 
 }
 
 /**
  * testScreenshotSaveCorruption
- * Takes a screenshot but checks against wrong dataURL
- * to imitate that the save was unsuccessful.
+ * Saves a dataURL and reads back the saved file.
  */
 var testScreenshotSaveCorruption = function() {
-  var backButton = findElement.ID(controller.window.document, "back-button");
-  var screenshotName = "screen3";
+  const name = "smile5x5";
 
-  const badDataURL = "data:image/png;base64,/ThiSISNotaReaLBase64ENCodinG";
+  const smile5x5DataURL = "data:image/jpeg;base64," + 
+    "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFAQMAAAC3obSmAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAA" +
+    "BlBMVEX///8AAABVwtN+AAAAF0lEQVR4XgXAgQwAAAACsCOGEkbYDcH0BEIBSflcthkAAAAASUVORK5CYII=";
 
-  let screenshot = controller.screenshot(backButton, screenshotName, true, null);
-  screenshot.dataURL = badDataURL;
-  
-  let file = Cc['@mozilla.org/file/local;1'].createInstance(Ci.nsILocalFile);
-  file.initWithPath(screenshot.filename);
+  // Save the screenshot to disk
+  var ready = false;
+  var failure = false;
 
-  check_screenshot(screenshot, screenshotName, true);
-}
-
-
-var check_screenshot = function (aScreenshot, aName, aIsFile) {
-  expect.equal(aScreenshot.name, aName, "Name has been set correctly.");
-  expect.match(aScreenshot.dataURL, "/^data:image\/.*/", "dataURL is available.");
-
-  if (aIsFile) {
-    expect.ok(aScreenshot.filename, "Filename is available.");
-
-    let file = Cc['@mozilla.org/file/local;1'].createInstance(Ci.nsILocalFile);
-    file.initWithPath(aScreenshot.filename);
-    expect.ok(file.exists(), "Screenshot '" + file.path + "' has been saved.");
-
-    let ios = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
-    let fph = ios.getProtocolHandler("file").QueryInterface(Ci.nsIFileProtocolHandler);
-    let savedFileSpec = fph.getURLSpecFromActualFile(file);
-    log(savedFileSpec);
-    let loadedDataURL = fileSpec2DataURL(savedFileSpec);
-    expect.equal(aScreenshot.dataURL, loadedDataURL, "Checking saved file integrity.");
-
-    file.remove(true);
-  } else {
-    expect.ok(!aScreenshot.filename, "Filename should not be set.");
+  function sync(aResult) {
+    if (!Components.isSuccessCode(aResult))
+      failure = true;
+    ready = true;
   }
-}
 
-/**
- * fileSpect2DataURL
- * Converts the file from "file:///path/to/file.ext" into a dataURL string
- *
- * @param {String} aSpec 
- *        The spec where the file is located
- * @returns {String} 
- *          The dataURL, containing the base64 encoded data 
- *          (e.g. "data:image/jpeg;base64,/9j/4AA...")
- */
-var fileSpec2DataURL = function(aSpec) {
-  var file = brodyFile2DataURL.getFileFromURLSpec(aSpec);
-  var dataURL = brodyFile2DataURL.getDataURLFromFile(file);
+  // Save screenshot to disk and wait for ansynchronous action to be completed
+  var filename = utils.saveScreenshot(smile5x5DataURL, name, sync);
+  utils.waitFor(function () {
+    return ready;
+  }, "Screenshot '" + filename + "' has been saved.");
 
-  return dataURL;
+  expect.ok(!failure, "No failure while saving dataURL.");
+
+  expect.ok(filename, "Filename is available.");
+
+  // Try to read back the saved dataURL
+  var file = Cc['@mozilla.org/file/local;1'].createInstance(Ci.nsILocalFile);
+  file.initWithPath(filename);
+  expect.ok(file.exists(), "DataURL '" + file.path + "' has been saved.");
+
+  var loadedDataURL = brodyFile2DataURL.getDataURLFromFile(file);
+  expect.equal(smile5x5DataURL, loadedDataURL, "DataURL has been saved correctly.");
+
+  file.remove(true);
 }
 
 
@@ -79,13 +59,6 @@ var fileSpec2DataURL = function(aSpec) {
  * @see http://forums.mozillazine.org/viewtopic.php?p=5091285#p5091285
  */
 var brodyFile2DataURL = {
-  getFileFromURLSpec: function(aURL) {
-    var ios = Components.classes["@mozilla.org/network/io-service;1"].getService(Components.interfaces.nsIIOService);
-    var fph = ios.getProtocolHandler("file").QueryInterface(Components.interfaces.nsIFileProtocolHandler);
-    try { return fph.getFileFromURLSpec(aURL).QueryInterface(Components.interfaces.nsILocalFile); }
-    catch(ex) { }
-    return null;
-  },
   getDataURLFromIStream: function(aInputStream, aContentType) {
     var contentType = aContentType || "application/octet-stream";
 
@@ -102,13 +75,5 @@ var brodyFile2DataURL = {
     inputStream.close();
     
     return dataURL;
-  },
-  asyncGetDataURLFromFile: function(aFile, aCallback) {
-    Components.utils.import("resource://gre/modules/NetUtil.jsm");
-    var contentType = Components.classes["@mozilla.org/mime;1"].getService(Components.interfaces.nsIMIMEService).getTypeFromFile(aFile);
-    var self = this;
-    NetUtil.asyncFetch(aFile, function (aInputStream, aAsyncFetchResult) {
-      aCallback(self.getDataURLFromIStream(aInputStream, contentType));
-    });
   },
 }
