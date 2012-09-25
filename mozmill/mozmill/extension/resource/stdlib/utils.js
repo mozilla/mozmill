@@ -546,10 +546,14 @@ function saveScreenshot(aDataURL, aFilename, aCallback) {
                  .createInstance(Ci.nsIFileOutputStream);
   foStream.init(file, 0x02 | 0x08 | 0x10, FILE_PERMISSIONS, foStream.DEFER_OPEN);
 
+  var dataURI = NetUtil.newURI(aDataURL, "UTF8", null);
+  if (!dataURI.schemeIs("data")) {
+    throw TypeError("saveScreenshot() aDataURL parameter has to have 'data'" +
+                  " scheme instead of '" + dataURI.scheme + "'");
+  }
+
   // Write asynchronously to buffer;
   // Input and output streams are closed after write
-  var dataURI = NetUtil.newURI(aDataURL, "UTF8", null);
-
   NetUtil.asyncFetch(dataURI, function (aInputStream, aAsyncFetchResult) {
     if (!Components.isSuccessCode(aAsyncFetchResult)) {
         // An error occurred!
