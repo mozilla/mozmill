@@ -424,13 +424,9 @@ function waitFor(callback, message, timeout, interval, thisObject) {
 
   hwindow.clearInterval(timeoutInterval);
 
-  if (self.result === true) {
-    return true;
-  } else if (self.timeIsUp) {
+  if (self.result !== true && self.timeIsUp) {
     message = message || arguments.callee.name + ": Timeout exceeded for '" + callback + "'";
     throw new TimeoutError(message);
-  } else {
-    throw new Error("waitFor() internal conditions changed!");
   }
 
   return true;
