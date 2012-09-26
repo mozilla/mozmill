@@ -270,18 +270,18 @@ events.endTest = function (test) {
   }
 }
 
-events.setModule = function (v) {
-  v.__start__ = Date.now();
-  return stateChangeBase( null, [function (v) {return (v.__file__ != undefined)}], 
-                          'currentModule', 'setModule', v);
+events.setModule = function (aModule) {
+  aModule.__start__ = Date.now();
+  return stateChangeBase( null, [function (aModule) {return (aModule.__file__ != undefined)}], 
+                          'currentModule', 'setModule', aModule);
 }
 
-events.endModule = function (module) {
-  module.__end__ = Date.now();
+events.endModule = function (aModule) {
+  aModule.__end__ = Date.now();
   var obj = {
-    'filename': module.__file__,
-    'time_start': module.__start__,
-    'time_end': module.__end__
+    'filename': aModule.__file__,
+    'time_start': aModule.__start__,
+    'time_end': aModule.__end__
   }
 
   events.fireEvent('endModule', obj);
