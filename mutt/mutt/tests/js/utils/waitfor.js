@@ -37,8 +37,8 @@ var testWaitForFalseAfterTrue = function () {
       onlyTheFirst = false;
 
       return res;
-    }, undefined, 200, 0);
-  }, "TimeoutError", "waitFor() has to pass after the FIRST true is returned.");
+    }, undefined, 200);
+  }, "TimeoutError", "waitFor() has to pass after the first true is returned.");
 }
 
 var testWaitForCallbackCounter = function () {
@@ -48,42 +48,44 @@ var testWaitForCallbackCounter = function () {
     controller.waitFor(function () {
       counter++;
       return counter > 0;
-    }, undefined, 200, 0);
+    }, undefined, 200);
   }, "TimeoutError", "waitFor() shouldn't call callback after the first true result.");
 
   expect.equal(counter, 1, "waitFor() shouldn't call callback after the first true result. (Second check)");
 }
 
 var testWaitForTimeoutAccuracy = function () {
-  const expectedElaspedTime = 500 + 2500 + 100;
-  const maxAllowedDifference = 1000;
+  const waitForInnerSleep = 500;
+  const waitForTimeout = 2500;
+  const waitForInterval = 100;
+
+  /**
+   * expectedElaspedTime constist of:
+   * A - (inner sleep)ms while initializing waitFor
+   * B - (interval)ms when the event loop get spinned, till the interval fires
+   * C - (timeout)ms when the timeout occures
+   *
+   * maxAllowedDifference should aware of inner sleep
+   **/
+  const expectedElaspedTime = waitForInnerSleep + waitForTimeout + waitForInterval;
+  const maxAllowedDifference = 2 * waitForInnerSleep;
 
   var time = Date.now();
-  var counter = 1;
 
-  dump("start time: " + time + "\n");
   try {
-    assert.throws(function () {
+    expect.throws(function () {
       controller.waitFor(function () {
-        dump("iteration: " + counter + ", time elapsed = " + (Date.now() - time) + "\n");
-        counter++;
-        controller.sleep(500);
+        controller.sleep(waitForInnerSleep);
         return false;
-      }, null, 2500, 100);
+      }, null, waitForTimeout, waitForInterval);
     }, "TimeoutError", "waitFor() should have run into a timeout.");
   }
   finally {
     var endTime = Date.now();
     var elaspedTime = endTime - time;
     var difference = Math.abs(expectedElaspedTime - elaspedTime);
-    dump("end time: " + endTime + "\n");
-    dump("final time elapsed: " + elaspedTime + "\n");
-    dump("difference: " + difference + "ms\n");
   }
 
-  expect.ok(
-    (difference <= maxAllowedDifference),
-    "waitFor's timeout accuracy should be in " + maxAllowedDifference + "ms" +
-      ", currently: " + difference + "ms"
-  );
+  expect.ok(difference <= maxAllowedDifference, "Expected waitFor() timeout" +
+    " is less than " + maxAllowedDifference + "ms.");
 }
