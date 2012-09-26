@@ -548,8 +548,8 @@ function saveScreenshot(aDataURL, aFilename, aCallback) {
 
   var dataURI = NetUtil.newURI(aDataURL, "UTF8", null);
   if (!dataURI.schemeIs("data")) {
-    throw TypeError("saveScreenshot() aDataURL parameter has to have 'data'" +
-                  " scheme instead of '" + dataURI.scheme + "'");
+    throw TypeError("aDataURL parameter has to have 'data'" +
+                    " scheme instead of '" + dataURI.scheme + "'");
   }
 
   // Write asynchronously to buffer;
