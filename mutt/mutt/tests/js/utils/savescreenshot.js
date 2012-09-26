@@ -38,7 +38,7 @@ var testScreenshotSaveCorruption = function() {
   // Try to read back the saved dataURL
   var file = Cc['@mozilla.org/file/local;1'].createInstance(Ci.nsILocalFile);
   file.initWithPath(filename);
-  expect.ok(file.exists(), "File '" + file.path + "' exists.");
+  assert.ok(file.exists(), "File '" + file.path + "' exists.");
 
   var loadedDataURL = brodyFile2DataURL.getDataURLFromFile(file);
   expect.equal(smile5x5DataURL, loadedDataURL, "DataURL has been saved correctly.");
