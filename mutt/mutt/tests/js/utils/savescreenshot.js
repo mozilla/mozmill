@@ -20,7 +20,6 @@ var testScreenshotSaveCorruption = function() {
     "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFAQMAAAC3obSmAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAA" +
     "BlBMVEX///8AAABVwtN+AAAAF0lEQVR4XgXAgQwAAAACsCOGEkbYDcH0BEIBSflcthkAAAAASUVORK5CYII=";
 
-  // Save the screenshot to disk
   var ready = false;
   var failure = false;
 
