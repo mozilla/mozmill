@@ -25,11 +25,11 @@ var testScreenshotSaveCorruption = function() {
     ready = true;
   }
 
-  // Save screenshot to disk and wait for ansynchronous action to be completed
+  // Save dataURL to disk and wait for ansynchronous action to be completed
   var filename = utils.saveScreenshot(smile5x5DataURL, name, sync);
   utils.waitFor(function () {
     return ready;
-  }, "Screenshot '" + filename + "' has been saved.");
+  }, "DataURL '" + filename + "' has been saved.");
 
   expect.ok(!failure, "No failure while saving dataURL.");
 
@@ -38,7 +38,7 @@ var testScreenshotSaveCorruption = function() {
   // Try to read back the saved dataURL
   var file = Cc['@mozilla.org/file/local;1'].createInstance(Ci.nsILocalFile);
   file.initWithPath(filename);
-  expect.ok(file.exists(), "DataURL '" + file.path + "' has been saved.");
+  expect.ok(file.exists(), "File '" + file.path + "' exists.");
 
   var loadedDataURL = brodyFile2DataURL.getDataURLFromFile(file);
   expect.equal(smile5x5DataURL, loadedDataURL, "DataURL has been saved correctly.");
