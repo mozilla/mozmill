@@ -54,17 +54,21 @@ var testScreenshotSaveCorruption = function() {
  * @see http://forums.mozillazine.org/viewtopic.php?p=5091285#p5091285
  */
 var brodyFile2DataURL = {
-  getDataURLFromIStream: function(aInputStream, aContentType) {
+  getDataURLFromIStream: function (aInputStream, aContentType) {
     var contentType = aContentType || "application/octet-stream";
 
-    var binaryStream = Components.classes["@mozilla.org/binaryinputstream;1"].createInstance(Components.interfaces.nsIBinaryInputStream);
+    var binaryStream = Cc["@mozilla.org/binaryinputstream;1"]
+                       .createInstance(Ci.nsIBinaryInputStream);
     binaryStream.setInputStream(aInputStream);
     var encoding = btoa(binaryStream.readBytes(binaryStream.available()));
     return "data:" + contentType + ";base64," + encoding;
   },
-  getDataURLFromFile: function(aFile) {
-    var contentType = Components.classes["@mozilla.org/mime;1"].getService(Components.interfaces.nsIMIMEService).getTypeFromFile(aFile);
-    var inputStream = Components.classes["@mozilla.org/network/file-input-stream;1"].createInstance(Components.interfaces.nsIFileInputStream);
+
+  getDataURLFromFile: function (aFile) {
+    var contentType = Cc["@mozilla.org/mime;1"]
+                      .getService(Ci.nsIMIMEService).getTypeFromFile(aFile);
+    var inputStream = Cc["@mozilla.org/network/file-input-stream;1"]
+                      .createInstance(Ci.nsIFileInputStream);
     inputStream.init(aFile,-1,-1,0);
     var dataURL = this.getDataURLFromIStream(inputStream, contentType);
     inputStream.close();
