@@ -272,12 +272,17 @@ events.endTest = function (test) {
 
 events.setModule = function (aModule) {
   aModule.__start__ = Date.now();
-  return stateChangeBase( null, [function (aModule) {return (aModule.__file__ != undefined)}], 
+  var result = stateChangeBase( null, [function (aModule) {return (aModule.__file__ != undefined)}], 
                           'currentModule', 'setModule', aModule);
+  aModule.__status__ = 'running';
+
+  return result;
 }
 
 events.endModule = function (aModule) {
   aModule.__end__ = Date.now();
+  aModule.__status__ = 'done';
+
   var obj = {
     'filename': aModule.__file__,
     'time_start': aModule.__start__,
@@ -665,7 +670,6 @@ Runner.prototype.wrapper = function (func, arg) {
 
 Runner.prototype.runTestModule = function (module) {
   events.setModule(module);
-  module.__status__ = 'running';
 
   var observer = new AppQuitObserver(this);
 
@@ -739,7 +743,6 @@ Runner.prototype.runTestModule = function (module) {
 
   observer.unregister();
 
-  module.__status__ = 'done';
   events.endModule(module);
 }
 
