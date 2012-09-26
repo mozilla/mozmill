@@ -72,19 +72,16 @@ var testWaitForTimeoutAccuracy = function () {
 
   var time = Date.now();
 
-  try {
-    expect.throws(function () {
-      controller.waitFor(function () {
-        controller.sleep(waitForInnerSleep);
-        return false;
-      }, null, waitForTimeout, waitForInterval);
-    }, "TimeoutError", "waitFor() should have run into a timeout.");
-  }
-  finally {
-    var endTime = Date.now();
-    var elaspedTime = endTime - time;
-    var difference = Math.abs(expectedElaspedTime - elaspedTime);
-  }
+  expect.throws(function () {
+    controller.waitFor(function () {
+      controller.sleep(waitForInnerSleep);
+      return false;
+    }, null, waitForTimeout, waitForInterval);
+  }, "TimeoutError", "waitFor() should have run into a timeout.");
+
+  var endTime = Date.now();
+  var elaspedTime = endTime - time;
+  var difference = Math.abs(expectedElaspedTime - elaspedTime);
 
   expect.ok(difference <= maxAllowedDifference, "Expected waitFor() timeout" +
     " is less than " + maxAllowedDifference + "ms.");
