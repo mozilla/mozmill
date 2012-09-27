@@ -93,11 +93,36 @@ function getStartupInfo() {
 }
 
 // keep list of installed addons to send to jsbridge for test run report
-var addons = "null";
-
+var addons = "null"; // this will be JSON parsed
 if (typeof AddonManager != "undefined") {
-  AddonManager.getAllAddons(function (aAddonList) {
-    addons = aAddonList;
+  AddonManager.getAllAddons(function (addonList) {
+      var converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
+                      .createInstance(Ci.nsIScriptableUnicodeConverter);
+      converter.charset = 'utf-8';
+
+      function replacer(key, value) {
+        if (typeof(value) == "string") {
+          try {
+            return converter.ConvertToUnicode(value);
+          } catch (e) {
+            var newstring = '';
+            for (var i=0; i < value.length; i++) {
+              replacement = '';
+              if ((32 <= value.charCodeAt(i)) && (value.charCodeAt(i) < 127)) {
+                // eliminate non-convertable characters;
+                newstring += value.charAt(i);
+              } else {
+                newstring += replacement;
+              }
+            }
+            return newstring;
+          }
+        }
+
+        return value;
+      }
+
+      addons = converter.ConvertToUnicode(JSON.stringify(addonList, replacer));
   });
 }
 
@@ -124,7 +149,7 @@ function getApplicationDetails() {
     startupinfo: getStartupInfo()
   };
 
-  return utils.convertToUnicode(JSON.stringify(details));
+  return JSON.stringify(details);
 }
 
 function cleanQuit () {
