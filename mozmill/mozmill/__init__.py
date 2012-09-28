@@ -425,6 +425,10 @@ class MozMill(object):
         try:
             mozmill = jsbridge.JSObject(bridge, js_module_mozmill)
             app_info = json.loads(mozmill.getApplicationDetails())
+
+            # Bug 793764: The addons object is encoded twice so json.loads()
+            # has to be called once more on it.
+            app_info['addons'] = json.loads(app_info['addons'])
         except JSBridgeDisconnectError:
             # We don't have to call report_disconnect here because
             # start_runner() will handle this exception
