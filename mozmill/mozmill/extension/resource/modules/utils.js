@@ -22,6 +22,7 @@
 //  Adam Christian <adam.christian@gmail.com>
 //  Mikeal Rogers <mikeal.rogers@gmail.com>
 //  Henrik Skupin <hskupin@mozilla.com>
+//  Vlad Maniac <vmaniac@mozilla.com>
 // 
 // Alternatively, the contents of this file may be used under the terms of
 // either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -45,6 +46,7 @@ var EXPORTED_SYMBOLS = ["openFile", "saveFile", "saveAsFile", "genBoiler",
 
 const Ci = Components.interfaces;
 
+var frame = {}; Components.utils.import('resource://mozmill/modules/frame.js', frame);
 
 var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
               .getService(Components.interfaces.nsIAppShellService)
@@ -485,6 +487,7 @@ function waitFor(callback, message, timeout, interval, thisObject) {
     throw new TimeoutError(message);
   }
 
+  frame.events.pass({'function':'utils.waitFor()'});
   return true;
 }
 
