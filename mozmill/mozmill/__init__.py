@@ -425,6 +425,7 @@ class MozMill(object):
         try:
             mozmill = jsbridge.JSObject(bridge, js_module_mozmill)
             app_info = json.loads(mozmill.getApplicationDetails())
+            app_info.update(self.runner.get_repositoryInfo())
 
             # Bug 793764: The addons object is encoded twice so json.loads()
             # has to be called once more on it.
