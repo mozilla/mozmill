@@ -122,6 +122,8 @@ if (typeof AddonManager != "undefined") {
         return value;
       }
 
+      // Bug 793764: Extra encode add-on details to circumvent
+      // an unicode issue with JSBridge
       addons = converter.ConvertToUnicode(JSON.stringify(addonList, replacer));
   });
 }
