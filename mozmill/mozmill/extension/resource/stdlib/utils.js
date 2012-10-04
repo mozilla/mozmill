@@ -410,16 +410,27 @@ function saveScreenshot(aDataURL, aFilename, aCallback) {
                  .createInstance(Ci.nsIFileOutputStream);
   foStream.init(file, 0x02 | 0x08 | 0x10, FILE_PERMISSIONS, foStream.DEFER_OPEN);
 
+  var dataURI = NetUtil.newURI(aDataURL, "UTF8", null);
+  if (!dataURI.schemeIs("data")) {
+    throw TypeError("aDataURL parameter has to have 'data'" +
+                    " scheme instead of '" + dataURI.scheme + "'");
+  }
+
   // Write asynchronously to buffer;
   // Input and output streams are closed after write
-  let converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
-                  .createInstance(Ci.nsIScriptableUnicodeConverter);
-  converter.charset = "UTF-8";
-
-  var iStream = converter.convertToInputStream(aDataURL);
-  NetUtil.asyncCopy(iStream, foStream, function (status) {
-    if (typeof(aCallback) === "function") {
-      aCallback(status);
+  NetUtil.asyncFetch(dataURI, function (aInputStream, aAsyncFetchResult) {
+    if (!Components.isSuccessCode(aAsyncFetchResult)) {
+        // An error occurred!
+        if (typeof(aCallback) === "function") {
+          aCallback(aAsyncFetchResult);
+        }
+    } else {
+      // Consume the input stream.
+      NetUtil.asyncCopy(aInputStream, foStream, function (aAsyncCopyResult) {
+        if (typeof(aCallback) === "function") {
+          aCallback(aAsyncCopyResult);
+        }
+      });
     }
   });
 
