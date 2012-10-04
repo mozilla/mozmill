@@ -14,6 +14,7 @@ import re
 import sys
 import uuid
 
+from datetime import datetime
 
 class LoggerListener(object):
     stack_regex = re.compile("(.*)@(.*?)(?: -> (file\:\/\/\/\S*))?\:(\d*)$")
@@ -41,6 +42,7 @@ class LoggerListener(object):
             "TEST-UNEXPECTED-PASS": 43,
             "TEST-UNEXPECTED-FAIL": 42,
             "TEST-SKIPPED": 31,
+            "TEST-END": 24,
             "TEST-KNOWN-FAIL": 23,
             "TEST-PASS": 22,
             "TEST-START": 21,
@@ -209,7 +211,8 @@ class LoggerListener(object):
 
     def events(self):
         return {'mozmill.setTest': self.startTest,
-                'mozmill.endTest': self.endTest}
+                'mozmill.endTest': self.endTest,
+                'mozmill.endModule': self.endModule}
 
     def stop(self, results, fatal):
         """Print pass/failed/skipped statistics."""
@@ -249,6 +252,12 @@ class LoggerListener(object):
                 level = "TEST-UNEXPECTED-PASS"
             self.logger.log(self.custom_levels[level],
                             "%s | %s" % (filename, test['name']))
+
+    def endModule(self, module):
+        filename = self.mozmill.running_test.get('relpath', module['filename'])
+        duration = module['time_end'] - module['time_start']
+        self.logger.log(self.custom_levels["TEST-END"],
+                        "%s | finished in %dms" % (filename, duration))
 
 
 class ColorFormatter(logging.Formatter):
