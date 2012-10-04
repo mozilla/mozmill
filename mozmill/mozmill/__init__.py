@@ -174,12 +174,13 @@ class MozMill(object):
         self.global_listeners = []
         self.handlers = []
 
-        # add screenshot path
+        # screenshot data
+        self.persisted['screenshot'] = {}
         if screenshot_path:
             path = os.path.abspath(screenshot_path)
             if not os.path.isdir(path):
                 os.makedirs(path)
-            self.persisted['screenshotPath'] = screenshot_path
+            self.persisted['screenshot']['path'] = screenshot_path
 
         # setup event handlers and register listeners
         self.setup_listeners()
@@ -427,11 +428,6 @@ class MozMill(object):
             self.running_test = None
             self.stop()
 
-        if self.results.screenshots:
-            print 'Screenshots saved in %s' % \
-                  self.persisted.get('screenshotPath', os.path.dirname(
-                      self.results.screenshots[0]['filename']))
-
         return self.results
 
     def get_appinfo(self, bridge):
@@ -458,6 +454,11 @@ class MozMill(object):
     def finish(self, fatal=False):
         """Do the final reporting and such."""
         self.results.endtime = datetime.utcnow()
+
+        if self.results.screenshots:
+            print 'Screenshots saved in %s' %\
+                  self.persisted['screenshot'].get('path', os.path.dirname(
+                      self.results.screenshots[0]['filename']))
 
         # handle stop events
         for handler in self.handlers:

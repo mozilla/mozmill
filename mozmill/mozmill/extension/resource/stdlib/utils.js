@@ -403,10 +403,10 @@ function saveScreenshot(aDataURL, aFilename, aCallback) {
   const FILE_PERMISSIONS = parseInt("0644", 8);
 
   var file;
-  if (frame.persisted['screenshotPath']) {
+  if (frame.persisted['screenshot']['path']) {
       file = Cc['@mozilla.org/file/local;1']
              .createInstance(Ci.nsILocalFile);
-      file.initWithPath(frame.persisted['screenshotPath']);
+      file.initWithPath(frame.persisted['screenshot']['path']);
   } else {
       file = Cc["@mozilla.org/file/directory_service;1"]
              .getService(Ci.nsIProperties).get("TmpD", Ci.nsILocalFile);
