@@ -72,13 +72,13 @@ level of the repository to help keep repository management sane:
   invoking `setup_development.py` with the virtualenv's copy of python
   is the most robust way of deploying the software
 
-- documentation.txt : the documentation strategy for packages in the
+- documentation.md : the documentation strategy for packages in the
   [Mozmill repository](http://github.com/mozautomation/mozmill) 
 
 - docs.manifest : manifest of documentation for mirroring to 
   [MDN](https://developer.mozilla.org/) using the 
   [document-it](http://k0s.org/mozilla/hg/DocumentIt) script (not 
-  included in the repository).  See `documentation.txt` for details
+  included in the repository).  See `documentation.md` for details
 
 - versionbump.py : bump the version of mozmill. Use ``python versionbump.py --help`` for help
 

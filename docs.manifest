@@ -5,7 +5,7 @@
 
 jsbridge/README.md    en/Mozmill/jsbridge
 mozmill/README.md     en/Mozmill
-mozmill/docs/event_handlers.txt         en/Mozmill/EventHandlers
-mozmill/docs/architecture.txt en/Mozmill/Architecture
-mozmill/docs/INSTALL.txt en/Mozmill/Installation
-documentation.txt     en/Mozmill/Documentation
+mozmill/docs/event_handlers.md         en/Mozmill/EventHandlers
+mozmill/docs/architecture.md en/Mozmill/Architecture
+mozmill/docs/INSTALL.md en/Mozmill/Installation
+documentation.md     en/Mozmill/Documentation
