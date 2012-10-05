@@ -86,15 +86,15 @@ var testWaitForPageLoad = function () {
    * PART IV - Make sure we don't fail when clicking links on a page
    */
 
-  controller.open("http://blog.mozilla.com");
+  controller.open(LOCATIONS[1].url);
   controller.waitForPageLoad();
 
-  var link = new elementslib.MozMillElement("Selector", "#nav-main-support>a",
+  var link = new elementslib.MozMillElement("Selector", "#link",
                                             {document: controller.tabs.activeTab});
   controller.click(link);
   controller.waitForPageLoad();
 
-  var target = new elementslib.MozMillElement("Selector", "#support-search",
+  var target = new elementslib.MozMillElement("Selector", "#test-div",
                                            {document: controller.tabs.activeTab});
   controller.waitForElement(target, 1000);
 
@@ -103,7 +103,7 @@ var testWaitForPageLoad = function () {
    */
 
   // Load the container page
-  var page = collector.addHttpResource('./files/') + "iframe.html";
+  var page = collector.addHttpResource('../_files/') + "iframe.html";
   controller.open(page);
   controller.waitForPageLoad();
 
@@ -118,7 +118,7 @@ var testWaitForPageLoad = function () {
   controller.waitForPageLoad(frameController.window.document);
 
   // Once the iframe has been loaded assert that the element exists
-  var home = new elementslib.MozMillElement("ID", "home-fx", {document: frameWindow.document});
+  var home = new elementslib.MozMillElement("ID", "test-div", {document: frameWindow.document});
   expect.ok(home.exists(), "Node in iFrame has been found");
 
   /**
