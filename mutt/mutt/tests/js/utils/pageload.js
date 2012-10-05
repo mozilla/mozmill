@@ -103,7 +103,7 @@ var testWaitForPageLoad = function () {
    */
 
   // Load the container page
-  var page = collector.addHttpResource('../_files/') + "iframe.html";
+  var page = TEST_FOLDER + "iframe.html";
   controller.open(page);
   controller.waitForPageLoad();
 
