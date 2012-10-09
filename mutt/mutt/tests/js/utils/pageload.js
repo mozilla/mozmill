@@ -118,8 +118,8 @@ var testWaitForPageLoad = function () {
   controller.waitForPageLoad(frameController.window.document);
 
   // Once the iframe has been loaded assert that the element exists
-  var home = new elementslib.MozMillElement("ID", "test-div", {document: frameWindow.document});
-  expect.ok(home.exists(), "Node in iFrame has been found");
+  var elem = new elementslib.MozMillElement("ID", "test-div", {document: frameWindow.document});
+  expect.ok(elem.exists(), "Node in iFrame has been found");
 
   /**
    * PART VI - Loading a page in another tab should wait for its completion
