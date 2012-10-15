@@ -49,8 +49,6 @@ class Telnet(asyncore.dispatcher):
         self.buffer = self.buffer[sent:]
 
     def read_all(self):
-        import socket
-
         data = ''
         while self.connected:
             try:
