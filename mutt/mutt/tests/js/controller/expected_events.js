@@ -47,10 +47,12 @@ var test = function () {
   expect.throws(function () {
     controller.rightClick(lname, 2, 2, {type: "click"});
   }, "Error", "Opening a context menu shouldn't raise a click event.");
+  controller.keypress(lname, "VK_ESCAPE", {type: "keypress"});
 
   expect.doesNotThrow(function () {
     controller.rightClick(lname, 2, 2, {type: "contextmenu"});
   }, "Error", "Opening a context menu does faire a contextmenu event.")
+  controller.keypress(lname, "VK_ESCAPE", {type: "keypress"});
 
   expect.throws(function () {
     controller.keypress(lname, "VK_TAB", {}, {target: lname});
