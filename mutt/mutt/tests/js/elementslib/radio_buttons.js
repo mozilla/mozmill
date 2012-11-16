@@ -23,9 +23,10 @@ var test = function () {
   expect.ok(radio2.getNode().checked, "Second radio button has been selected.");
 
   // Test chrome (XUL)
-  prefs = mozmill.getPreferencesController();
+  controller.open("chrome://mozmill/content/test/radio_buttons.xul");
+  controller.waitForPageLoad();
 
-  var radiogroup = findElement.ID(prefs.window.document, "saveWhere");
+  var radiogroup = findElement.ID(controller.tabs.activeTab, "saveWhere");
   radiogroup.select(0);
   expect.equal(radiogroup.getNode().selectedIndex, 0, "First radio button has been selected.");
 
