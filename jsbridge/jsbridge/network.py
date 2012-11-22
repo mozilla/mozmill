@@ -59,10 +59,8 @@ class Telnet(asyncore.dispatcher):
         return data
 
     def handle_read(self):
-        self.data = self.read_all()
-        self.process_read(self.data)
-
-    read_callback = lambda self, data: None
+        data = self.read_all()
+        self.process_read(data)
 
 decoder = simplejson.JSONDecoder()
 
