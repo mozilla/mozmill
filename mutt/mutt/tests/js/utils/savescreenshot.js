@@ -12,24 +12,12 @@ var utils = {}; Cu.import('resource://mozmill/stdlib/utils.js', utils);
 var testScreenshotSaveCorruption = function() {
   const name = "smile5x5";
 
-  const smile5x5DataURL = "data:image/jpeg;base64," + 
+  const smile5x5DataURL = "data:image/jpeg;base64," +
     "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFAQMAAAC3obSmAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAA" +
     "BlBMVEX///8AAABVwtN+AAAAF0lEQVR4XgXAgQwAAAACsCOGEkbYDcH0BEIBSflcthkAAAAASUVORK5CYII=";
 
-  var ready = false;
-  var failure = false;
-
-  function sync(aResult) {
-    if (!Components.isSuccessCode(aResult))
-      failure = true;
-    ready = true;
-  }
-
-  // Save dataURL to disk and wait for ansynchronous action to be completed
-  var filename = utils.saveScreenshot(smile5x5DataURL, name, sync);
-  utils.waitFor(function () {
-    return ready;
-  }, "DataURL '" + filename + "' has been saved.");
+  // Save dataURL to disk
+  var {filename, failure} = utils.saveScreenshot(smile5x5DataURL, name);
 
   expect.ok(!failure, "No failure while saving dataURL.");
 

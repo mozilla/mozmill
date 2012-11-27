@@ -393,20 +393,10 @@ MozMillController.prototype.screenshot = function (node, name, save, highlights)
   }
 
   // Save the screenshot to disk
-  let ready = false;
-  let failure = false;
 
-  function sync(status) {
-    if (!Components.isSuccessCode(status))
-      failure = true;
-    ready = true;
-  }
-
-  // Save screenshot to disk and wait for ansynchronous action to be completed
-  screenshot.filename = utils.saveScreenshot(screenshot.dataURL, name, sync);
-  waitFor(function () {
-    return ready;
-  }, "Screenshot '" + screenshot.filename + "' has been saved.");
+  let {filename, failure} = utils.saveScreenshot(screenshot.dataURL, name);
+  screenshot.filename = filename;
+  screenshot.failure = failure;
 
   if (failure) {
     broker.log({'function': 'controller.screenshot()',

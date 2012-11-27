@@ -395,10 +395,16 @@ function takeScreenshot(node, highlights) {
 }
 
 /**
- * Takes a canvas as input and saves it to the file tempdir/name.png
- * Returns the filepath of the saved file
+ * Save the dataURL content to the specified file. It will be stored in the temporary folder.
+ *
+ * @param {String} aDataURL
+ *        The dataURL to save
+ * @param {String} aFilename
+ *        Target file name without extension
+ *
+ * @returns {Object} The hash containing the path of saved file, and the faillure bit
  */
-function saveScreenshot(aDataURL, aFilename, aCallback) {
+function saveScreenshot(aDataURL, aFilename) {
   const FILE_PERMISSIONS = parseInt("0644", 8);
 
   let file = Cc["@mozilla.org/file/directory_service;1"]
@@ -408,11 +414,11 @@ function saveScreenshot(aDataURL, aFilename, aCallback) {
   file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, FILE_PERMISSIONS);
 
   // Create an output stream to write to file
-  var foStream = Cc["@mozilla.org/network/file-output-stream;1"]
+  let foStream = Cc["@mozilla.org/network/file-output-stream;1"]
                  .createInstance(Ci.nsIFileOutputStream);
   foStream.init(file, 0x02 | 0x08 | 0x10, FILE_PERMISSIONS, foStream.DEFER_OPEN);
 
-  var dataURI = NetUtil.newURI(aDataURL, "UTF8", null);
+  let dataURI = NetUtil.newURI(aDataURL, "UTF8", null);
   if (!dataURI.schemeIs("data")) {
     throw TypeError("aDataURL parameter has to have 'data'" +
                     " scheme instead of '" + dataURI.scheme + "'");
@@ -420,23 +426,34 @@ function saveScreenshot(aDataURL, aFilename, aCallback) {
 
   // Write asynchronously to buffer;
   // Input and output streams are closed after write
+
+  let ready = false;
+  let failure = false;
+
+  function sync(aStatus) {
+    if (!Components.isSuccessCode(aStatus)) {
+      failure = true;
+    }
+    ready = true;
+  }
+
   NetUtil.asyncFetch(dataURI, function (aInputStream, aAsyncFetchResult) {
     if (!Components.isSuccessCode(aAsyncFetchResult)) {
         // An error occurred!
-        if (typeof(aCallback) === "function") {
-          aCallback(aAsyncFetchResult);
-        }
+        sync(aAsyncFetchResult);
     } else {
       // Consume the input stream.
       NetUtil.asyncCopy(aInputStream, foStream, function (aAsyncCopyResult) {
-        if (typeof(aCallback) === "function") {
-          aCallback(aAsyncCopyResult);
-        }
+        sync(aAsyncCopyResult);
       });
     }
   });
 
-  return file.path;
+  waitFor(function () {
+    return ready;
+  }, "Saving dataURL to '" + file.path + "' has been timed out.");
+
+  return {filename: file.path, failure: failure};
 }
 
 /**
