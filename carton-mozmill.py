@@ -47,7 +47,7 @@ def require(url):
 carton = require('http://k0s.org/mozilla/hg/carton/raw-file/tip/carton.py')
 git = which('git')
 MOZBASE = 'git://github.com/mozilla/mozbase.git'
-MOZMILL = 'git://github.com/mozautomation/mozmill.git'
+MOZMILL = 'git://github.com/mozilla/mozmill.git'
 
 
 def main(args=sys.argv[1:]):

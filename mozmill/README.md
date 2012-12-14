@@ -86,11 +86,11 @@ This will do the following:
 
 - the `test.js` file will be sent over the jsbridge where it is
   loaded and executed (see: 
-  [resource://mozmill/modules/frame.js](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/extension/resource/modules/frame.js) )
+  [resource://mozmill/modules/frame.js](https://github.com/mozilla/mozmill/blob/master/mozmill/mozmill/extension/resource/modules/frame.js) )
 
 - events will be sent from JavaScript back to python where they will
   be listened for 
-  (see: [resource://mozmill/modules/frame.js](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/extension/resource/modules/frame.js) )  
+  (see: [resource://mozmill/modules/frame.js](https://github.com/mozilla/mozmill/blob/master/mozmill/mozmill/extension/resource/modules/frame.js) )
 
 - upon test run conclusion, the results will be reported by 
   [pluggable event handlers](./EventHandlers)
@@ -99,9 +99,9 @@ This will do the following:
 ## Example API Usage
 
 Since Mozmill 2.0, the 
-[MozMill class](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py)
+[MozMill class](https://github.com/mozilla/mozmill/blob/master/mozmill/mozmill/__init__.py)
 is usable as a robust API. An example API usage is available at
-https://github.com/mozautomation/mozmill/tree/master/mozmill .
+https://github.com/mozilla/mozmill/tree/master/mozmill .
 
 
 ## Architecture
@@ -133,14 +133,14 @@ are a few mechanisms to do so:
 - [event handlers](./EventHandlers) send data from the JavaScript
   application layer to the python harness
 - the `persisted` object: a 
-  [JSObject](https://github.com/mozautomation/mozmill/blob/master/jsbridge/jsbridge/jsobjects.py) 
+  [JSObject](https://github.com/mozilla/mozmill/blob/master/jsbridge/jsbridge/jsobjects.py)
   that is persisted between tests
   even if the application under test is shutdown or restarted. Each
-  [MozMill](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py)
+  [MozMill](https://github.com/mozilla/mozmill/blob/master/mozmill/mozmill/__init__.py)
   instance carries a `persisted` object. The amount of
   persisted data must be kept small, however, or [jsbridge](./jsbridge) will fail.
 - create your own 
-  [JSObject](https://github.com/mozautomation/mozmill/blob/master/jsbridge/jsbridge/jsobjects.py) 
+  [JSObject](https://github.com/mozilla/mozmill/blob/master/jsbridge/jsbridge/jsobjects.py)
   for finer-tuned control getting data to and from the tests.  
 
 See also 
@@ -151,12 +151,12 @@ See also
 
 JavaScript tests may invoke arbitrary python using the `PythonCallbacks`
 [event handler](./EventHandlers) included with Mozmill. The 
-[mozmill JavaScript module](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/extension/resource/modules/mozmill.js)
+[mozmill JavaScript module](https://github.com/mozilla/mozmill/blob/master/mozmill/mozmill/extension/resource/modules/mozmill.js)
 has the `firePythonCallback()` function, which takes the `filename`,
 the name of the `method` in the file, a list of ordered `args`, and a
 `kwargs` object.  This function will dispatch a
 `mozmill.firePythonCallback` [event](./EventHandlers) to the
-[mozmill.python_callbacks module](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/python_callbacks.py)
+[mozmill.python_callbacks module](https://github.com/mozilla/mozmill/blob/master/mozmill/mozmill/python_callbacks.py)
 which will import and fire the appropriate callback.  The `filename`
 is relative to the location of the JavaScript test file. Note that any
 return value from the python callback will not be sent to the
@@ -164,8 +164,8 @@ JavaScript test or otherwise utilized.
 
 
 See the `mutt` 
-[python_callbacks.js test](https://github.com/mozautomation/mozmill/blob/master/mutt/mutt/tests/js/frame/python_callback.js)
-and accompanying [python_callbacks.py](https://github.com/mozautomation/mozmill/blob/master/mutt/mutt/tests/js/frame/python_callback.py)
+[python_callbacks.js test](https://github.com/mozilla/mozmill/blob/master/mutt/mutt/tests/js/frame/python_callback.js)
+and accompanying [python_callbacks.py](https://github.com/mozilla/mozmill/blob/master/mutt/mutt/tests/js/frame/python_callback.py)
 for an example.
 
 It is important for successful runs that the python callback is fired
@@ -200,7 +200,7 @@ restart.  The following parameters are sent with the event:
 
 See the methods `startUserShutdown`, `restartApplication`, and
 `stopApplication` on the  
-[MozMillController](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/extension/resource/modules/controller.js)
+[MozMillController](https://github.com/mozilla/mozmill/blob/master/mozmill/mozmill/extension/resource/modules/controller.js)
 for specifics.
 
 Additionally, `mozmill --restart` signals a harness restart between
@@ -251,7 +251,7 @@ better!
 # Updating the Documentation
 
 The [MDN](http://developer.mozilla.org/en/Mozmill) pages are mirrored
-from the [mozmill repository](https://github.com/mozautomation/mozmill).
+from the [mozmill repository](https://github.com/mozilla/mozmill).
 See the notes on our [documentation strategy](./Documentation) .
 
 
@@ -260,7 +260,7 @@ See the notes on our [documentation strategy](./Documentation) .
 Several online resources exist for Mozmill:
 
 - [MDN Mozmill page](http://developer.mozilla.org/en/Mozmill)
-- [github repository](https://github.com/mozautomation/mozmill)
+- [github repository](https://github.com/mozilla/mozmill)
 - [Python Package Index page](http://pypi.python.org/pypi/mozmill)
 - [Auto-tools Mozmill project page](https://wiki.mozilla.org/Auto-tools/Projects/Mozmill) 
   for the development of Mozmill

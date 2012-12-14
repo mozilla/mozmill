@@ -88,7 +88,7 @@ def main(args=sys.argv[1:]):
                       action='store_true', default=False,
                       help="display package information and exit")
     parser.add_option('--url', dest='url',
-                      default='git://github.com/mozautomation/mozmill.git',
+                      default='git://github.com/mozilla/mozmill.git',
                       help='git url of the repo')
     parser.add_option('-d', '--directory', dest='directory',
                       help="local directory to use")

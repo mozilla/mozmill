@@ -3,7 +3,7 @@
 Test harness for testing [Mozmill](https://developer.mozilla.org/en/Mozmill).
 mutt is a python package that contains both JavaScript and python tests for
 Mozmill and other packages in the 
-[mozmill repository](http://github.com/mozautomation/mozmill) .
+[mozmill repository](http://github.com/mozilla/mozmill) .
 
 
 ## Usage
@@ -34,7 +34,7 @@ format.
 ## Policy
 
 Run the tests *before* pushing to master or any branch of
-[mozautomation](http://github.com/mozautomation/mozmill) . What is
+[mozilla](http://github.com/mozilla/mozmill) . What is
 lost in time here is more than made up for vs. hours of regression hunting.
 
 The mutt tests should pass *all* the time on *all* platforms of

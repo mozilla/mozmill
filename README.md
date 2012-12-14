@@ -5,7 +5,7 @@ framework for Mozilla apps like Firefox and Thunderbird. It's both an
 [addon](https://addons.mozilla.org/en-US/firefox/addon/9018/) and a
 Python command-line tool. 
 
-The [Mozmill repository](http://github.com/mozautomation/mozmill)
+The [Mozmill repository](http://github.com/mozilla/mozmill)
 contains Mozmill and supporting code which is also used for MozBase
 and other [Mozilla](http://mozilla.org/) automation efforts.
 
@@ -13,21 +13,21 @@ and other [Mozilla](http://mozilla.org/) automation efforts.
 ## Installation
 
 To work with the development version of Mozmill or its utilities, check out the code
-from the [Github repo](http://github.com/mozautomation/mozmill):
+from the [Github repo](http://github.com/mozilla/mozmill):
 
     virtualenv mozmill
     cd mozmill
     . bin/activate
     mkdir src
     cd src
-    git clone http://github.com/mozautomation/mozmill.git
+    git clone http://github.com/mozilla/mozmill.git
     cd mozmill
     ./setup_development.py
 
 
 ## Repository Contents
 
-The [Mozmill repository](http://github.com/mozautomation/mozmill)
+The [Mozmill repository](http://github.com/mozilla/mozmill)
 contains python packages for
 [Mozmill](https://developer.mozilla.org/en/Mozmill)
 and MozBase.
@@ -60,20 +60,20 @@ cross-contamination and versioning woes.
 In addition to the python packages, several files exist at the top
 level of the repository to help keep repository management sane:
 
-- README.md : documents what the [Mozmill repository](http://github.com/mozautomation/mozmill) 
+- README.md : documents what the [Mozmill repository](http://github.com/mozilla/mozmill)
   is all about; the content you're reading now
 
 - setup_development.py : a python script that will install all python
-  packages in the [Mozmill repository](http://github.com/mozautomation/mozmill) 
+  packages in the [Mozmill repository](http://github.com/mozilla/mozmill)
   in development mode, respecting dependency order.  This means that
   code changes will be respected the next time the python interpreter
   is invoked. Using virtualenv, checking out the 
-  [git repository](http://github.com/mozautomation/mozmill), and
+  [git repository](http://github.com/mozilla/mozmill), and
   invoking `setup_development.py` with the virtualenv's copy of python
   is the most robust way of deploying the software
 
 - documentation.txt : the documentation strategy for packages in the
-  [Mozmill repository](http://github.com/mozautomation/mozmill) 
+  [Mozmill repository](http://github.com/mozilla/mozmill)
 
 - docs.manifest : manifest of documentation for mirroring to 
   [MDN](https://developer.mozilla.org/) using the 
@@ -85,11 +85,11 @@ level of the repository to help keep repository management sane:
 ## Help and Contributing
 
 [Mozmill](https://developer.mozilla.org/en/Mozmill) and the
-[Mozmill repository](http://github.com/mozautomation/mozmill) are
+[Mozmill repository](http://github.com/mozilla/mozmill) are
 maintained by the Mozilla 
 [Automation and Testing Team](https://wiki.mozilla.org/Auto-tools).
 
 Please file issues on
-[github](http://github.com/mozautomation/mozmill),
+[github](http://github.com/mozilla/mozmill),
 [bugzilla](https://bugzilla.mozilla.org/enter_bug.cgi?product=Testing&component=Mozmill),
 or join the `#ateam` or `#mozmill` channel on irc://irc.mozilla.org/ .

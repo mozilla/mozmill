@@ -3,7 +3,7 @@
 There are several entry points where it is desirable to have documentation available:
 
 - the MDN project page(s) for mozmill: https://developer.mozilla.org/en/Mozmill
-- the mozmill github repository: http://github.com/mozautomation/mozmill
+- the mozmill github repository: http://github.com/mozilla/mozmill
 - the python package index: http://pypi.python.org/pypi/mozmill
 - in a source checkout alongside the code
 - using python's `help()`
@@ -19,7 +19,7 @@ and high-quality resource.
 
 ## Where the Documentation Lives
 
-Several packages exist in the [mozmill repository](http://github.com/mozautomation/mozmill):
+Several packages exist in the [mozmill repository](http://github.com/mozilla/mozmill):
 
 - [mozmill](https://developer.mozilla.org/en/Mozmill) : driver,
   event-dispatcher, and test harness
@@ -56,7 +56,7 @@ work out that story this will be done by hand.
 We would love any sort of help with our documentation!  
 
 - if at all possible, make a branch with your documentation changes
-  and issue a pull request to http://github.com/mozautomation ; this
+  and issue a pull request to http://github.com/mozilla ; this
   is the most direct way to ensure that your documentation is included 
 
 - edit the MDN documents: we will go to some effort to include edits

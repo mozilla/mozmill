@@ -17,7 +17,7 @@ able to install and utilize the Mozmill python package.
 
 Depending on your needs, you may want to install Mozmill from its
 [Python Package Index page](http://pypi.python.org/pypi/mozmill) or
-its [github repository](https://github.com/mozautomation/mozmill). In
+its [github repository](https://github.com/mozilla/mozmill). In
 either case, you will need 
 [setuptools](http://peak.telecommunity.com/DevCenter/setuptools) and
 it is highly recommended that you use 
@@ -54,13 +54,13 @@ other packages you are interested in developing:
 ## Installing from github
 
 The prefered installation method is from the 
-[github mozautomation/mozmill repository](https://github.com/mozautomation/mozmill/). 
+[github mozilla/mozmill repository](https://github.com/mozilla/mozmill/).
 Clone the repository (into your virtualenv's src directory) 
 using [git](http://git-scm.com/) and run the
-[setup_development.py](https://github.com/mozautomation/mozmill/blob/master/setup_development.py)
+[setup_development.py](https://github.com/mozilla/mozmill/blob/master/setup_development.py)
 script in the activated virtualenv which will install the packages in the correct order:
 
-    git clone git://github.com/mozautomation/mozmill.git
+    git clone git://github.com/mozilla/mozmill.git
     cd mozmill
     python setup_development.py
 
@@ -75,7 +75,7 @@ You may need to run `setup_development.py` again if any of the
 `setup.py` files are changed.
 
 These instructions will give you a basic git checkout of the canonical
-(mozautomation's) master branch.  If you are interested in 
+(mozilla's) master branch.  If you are interested in
 [developing Mozmill](https://wiki.mozilla.org/Auto-tools/Projects/Mozmill)
 or related software, see more detailed instructions about
 [how to set up your repo](https://wiki.mozilla.org/Auto-tools/Projects/Mozmill/RepoSetup).

@@ -15,7 +15,7 @@ takes `obj` as an argument, e.g:
         self.persisted = obj
 
 Several event listeners are added in the 
-[Mozmill constructor](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/__init__.py)
+[Mozmill constructor](https://github.com/mozilla/mozmill/blob/master/mozmill/mozmill/__init__.py)
 vital for test harness functionality. In addition, handlers may be
 passed to the constructor from which event listeners may be added.
 
@@ -26,16 +26,16 @@ Mozmill allows python classes to plug into the event listener system.
 This is done by denoting them as a 
 [setuptools entry point](http://peak.telecommunity.com/DevCenter/setuptools#dynamic-discovery-of-services-and-plugins)
 with the key `mozmill.event_handlers` in the `entry_points` section (see mozmill's 
-[setup.py](https://github.com/mozautomation/mozmill/blob/master/mozmill/setup.py)).
+[setup.py](https://github.com/mozilla/mozmill/blob/master/mozmill/setup.py)).
 
 Three event handlers are included with Mozmill by default via
 the setuptools entry point `mozmill.event_handlers`:
 
-- [Logging](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/logger.py) :
+- [Logging](https://github.com/mozilla/mozmill/blob/master/mozmill/mozmill/logger.py) :
   log results to stdout or a file in a [format appropriate to Mozilla tests](https://developer.mozilla.org/en/Test_log_format)
-- [Report](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/report.py) :
+- [Report](https://github.com/mozilla/mozmill/blob/master/mozmill/mozmill/report.py) :
   generate a JSON report of the run
-- [PythonCallbacks](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/python_callbacks.py) :
+- [PythonCallbacks](https://github.com/mozilla/mozmill/blob/master/mozmill/mozmill/python_callbacks.py) :
   call a python module and method from JavaScript
 
 When running from the command line, these are on by default.  However,
@@ -84,7 +84,7 @@ You can also call `MozMill.add_listener(...)` or
 # Structure of an Event Handler
 
 The basic methods for an event handler is given and documented in
-[mozmill.handlers.EventHandler](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/handlers.py).  
+[mozmill.handlers.EventHandler](https://github.com/mozilla/mozmill/blob/master/mozmill/mozmill/handlers.py).
 While this class is never inherited from, it shows the basic methods that event handlers can
 have and documentation on what they are used for.
 
@@ -128,7 +128,7 @@ information (it is a handler-factory).  If the handler raises a
 instantiated or passed to the MozMill constructor.
 
 As an example, see the constructor of 
-[mozmill.report.Report](https://github.com/mozautomation/mozmill/blob/master/mozmill/mozmill/report.py).  
+[mozmill.report.Report](https://github.com/mozilla/mozmill/blob/master/mozmill/mozmill/report.py).
 If `report` is `None`, as it would be if not specified via the command
 line (see the class's `add_options` method for `--report`), then
 the class is not instantiated or utilized.
