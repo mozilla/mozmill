@@ -68,8 +68,7 @@ class JSObject(object):
     """Base javascript object representation."""
     _loaded_ = False
 
-    def __init__(self, bridge, name, override_set=False,
-                 description=None, *args, **kwargs):
+    def __init__(self, bridge, name, override_set=False, description=None):
         self._bridge_ = bridge
         if not override_set:
             name = bridge.set(name)['data']
@@ -131,8 +130,7 @@ class JSFunction(JSObject):
     name set to the full javascript call for this function.
 
     """
-    def __init__(self, bridge, name, override_set=False,
-                 description=None, *args, **kwargs):
+    def __init__(self, bridge, name, override_set=False, description=None):
         self._bridge_ = bridge
         self._name_ = name
         self._description_ = description
