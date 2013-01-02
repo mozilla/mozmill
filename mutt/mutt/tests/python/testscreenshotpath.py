@@ -37,10 +37,11 @@ class ScreenshotPathTest(unittest.TestCase):
         results = m.finish()
         screenshots = results.screenshots
 
+        assert len(screenshots) == 1
         screenshot = os.path.join(screenshots_path, '%s.jpg' % screenshot_name)
         assert screenshots[0]['filename'] == screenshot
         assert os.path.isfile(screenshot)
-        #TODO remove screenshots
+        os.remove(screenshot)
 
     def test_screenshot_without_path(self):
         screenshot_name = str(uuid.uuid4())
@@ -50,11 +51,12 @@ class ScreenshotPathTest(unittest.TestCase):
         results = m.finish()
         screenshots = results.screenshots
 
+        assert len(screenshots) == 1
         screenshots_path_suffix = os.path.join('mozmill_screenshots', '%s.jpg' % screenshot_name)
         assert tempfile.gettempdir() not in screenshots[0]['filename']
         assert screenshots[0]['filename'].endswith(screenshots_path_suffix)
         assert os.path.isfile(screenshots[0]['filename'])
-        #TODO remove screenshots
+        os.remove(screenshots[0]['filename'])
 
 if __name__ == '__main__':
     unittest.main()
