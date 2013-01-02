@@ -31,7 +31,7 @@ class ScreenshotPathTest(unittest.TestCase):
     def test_screenshot_with_path(self):
         screenshot_name = str(uuid.uuid4())
         test_path = self.make_test(screenshot_name)
-        screenshots_path = os.path.dirname(test_path)
+        screenshots_path = tempfile.gettempdir()
         m = mozmill.MozMill.create(screenshots_path=screenshots_path)
         m.run([dict(path=test_path)])
         results = m.finish()
