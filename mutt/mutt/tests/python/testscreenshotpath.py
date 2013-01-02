@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
-import uuid
-
 import os
 import unittest
 import tempfile
+import uuid
 
 import mozmill
 
@@ -32,15 +31,16 @@ class ScreenshotPathTest(unittest.TestCase):
     def test_screenshot_with_path(self):
         screenshot_name = str(uuid.uuid4())
         test_path = self.make_test(screenshot_name)
-        screenshot_path = os.path.dirname(test_path)
-        m = mozmill.MozMill.create(screenshot_path=screenshot_path)
+        screenshots_path = os.path.dirname(test_path)
+        m = mozmill.MozMill.create(screenshots_path=screenshots_path)
         m.run([dict(path=test_path)])
         results = m.finish()
         screenshots = results.screenshots
 
-        screenshot = os.path.sep.join([screenshot_path, '%s.jpg' % screenshot_name])
+        screenshot = os.path.join(screenshots_path, '%s.jpg' % screenshot_name)
         assert screenshots[0]['filename'] == screenshot
         assert os.path.isfile(screenshot)
+        #TODO remove screenshots
 
     def test_screenshot_without_path(self):
         screenshot_name = str(uuid.uuid4())
@@ -50,10 +50,11 @@ class ScreenshotPathTest(unittest.TestCase):
         results = m.finish()
         screenshots = results.screenshots
 
-        screenshot_path_suffix = os.path.sep.join(['mozmill_screenshots', '%s.jpg' % screenshot_name])
+        screenshots_path_suffix = os.path.join('mozmill_screenshots', '%s.jpg' % screenshot_name)
         assert tempfile.gettempdir() not in screenshots[0]['filename']
-        assert screenshots[0]['filename'].endswith(screenshot_path_suffix)
+        assert screenshots[0]['filename'].endswith(screenshots_path_suffix)
         assert os.path.isfile(screenshots[0]['filename'])
+        #TODO remove screenshots
 
 if __name__ == '__main__':
     unittest.main()
