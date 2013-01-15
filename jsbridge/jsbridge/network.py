@@ -17,8 +17,6 @@ except ImportError:
     import simplejson
     from simplejson.encoder import encode_basestring_ascii, encode_basestring
 
-import jsobjects
-
 
 class JavaScriptException(Exception):
     pass
@@ -70,6 +68,8 @@ decoder = simplejson.JSONDecoder()
 class JSObjectEncoder(simplejson.JSONEncoder):
     """Encoder that supports jsobject references by name."""
     def encode(self, o):
+        import jsobjects
+
         if isinstance(o, jsobjects.JSObject):
             return o._name_
         else:
@@ -77,6 +77,8 @@ class JSObjectEncoder(simplejson.JSONEncoder):
 
     def _iterencode(self, o, markers=None):
         # XXX verbosely copied from simplejson
+        import jsobjects
+
         if isinstance(o, jsobjects.JSObject):
             yield o._name_
         elif isinstance(o, basestring):
