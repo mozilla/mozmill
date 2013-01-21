@@ -395,15 +395,23 @@ function takeScreenshot(node, highlights) {
 }
 
 /**
- * Takes a canvas as input and saves it to the file tempdir/name.png
+ * Takes a dataURL as input and saves it to the file name.jpg in the persisted screenshot path (or temporary directory)
  * Returns the filepath of the saved file
  */
 function saveScreenshot(aDataURL, aFilename, aCallback) {
+  var frame = {}; Cu.import('resource://mozmill/modules/frame.js', frame);
   const FILE_PERMISSIONS = parseInt("0644", 8);
 
-  let file = Cc["@mozilla.org/file/directory_service;1"]
+  var file;
+  if (frame.persisted['screenshots']['path']) {
+      file = Cc['@mozilla.org/file/local;1']
+             .createInstance(Ci.nsILocalFile);
+      file.initWithPath(frame.persisted['screenshots']['path']);
+  } else {
+      file = Cc["@mozilla.org/file/directory_service;1"]
              .getService(Ci.nsIProperties).get("TmpD", Ci.nsILocalFile);
-  file.append("mozmill_screenshots");
+      file.append("mozmill_screenshots");
+  }
   file.append(aFilename + ".jpg");
   file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, FILE_PERMISSIONS);
 
