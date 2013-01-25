@@ -309,13 +309,13 @@ class Popen(subprocess.Popen):
                         if timeout is None:
                             while 1:
                                 os.killpg(self.pid, signal.SIG_DFL)
-                        while ((count * 2) <= timeout):
+                        while count <= timeout:
                             os.killpg(self.pid, signal.SIG_DFL)
                             # count is increased by 500ms for every 0.5s of sleep
                             time.sleep(.5); count += 500
                     except exceptions.OSError:
                         return self.returncode
-                        
+
             if timeout is None:
                 if group is True:
                     return group_wait(timeout)
