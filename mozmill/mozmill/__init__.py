@@ -314,7 +314,7 @@ class MozMill(object):
 
         # fetch the application info
         if not self.results.appinfo:
-            self.results.appinfo = self.get_appinfo(self.bridge)
+            self.results.appinfo = self.get_appinfo()
 
         try:
             frame = jsbridge.JSObject(self.bridge, js_module_frame)
@@ -418,12 +418,12 @@ class MozMill(object):
             self.running_test = None
             self.stop()
 
-    def get_appinfo(self, bridge):
+    def get_appinfo(self):
         """Collect application specific information."""
         app_info = { }
 
         try:
-            mozmill = jsbridge.JSObject(bridge, js_module_mozmill)
+            mozmill = jsbridge.JSObject(self.bridge, js_module_mozmill)
             app_info = json.loads(mozmill.getApplicationDetails())
             app_info.update(self.runner.get_repositoryInfo())
 
