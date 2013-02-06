@@ -6,7 +6,7 @@ var EXPORTED_SYMBOLS = ["Copy", "getChromeWindow", "getWindows",
                         "getWindowByTitle", "getWindowByType", "getWindowId",
                         "getMethodInWindows", "getPreference", "setPreference",
                         "sleep", "assert", "unwrapNode", "TimeoutError", "waitFor",
-                        "saveScreenshot", "takeScreenshot", "startTimer", "stopTimer",
+                        "saveDataURL", "takeScreenshot", "startTimer", "stopTimer",
                        ];
 
 const Cc = Components.classes;
@@ -404,7 +404,7 @@ function takeScreenshot(node, highlights) {
  *
  * @returns {Object} The hash containing the path of saved file, and the faillure bit
  */
-function saveScreenshot(aDataURL, aFilename) {
+function saveDataURL(aDataURL, aFilename) {
   const FILE_PERMISSIONS = parseInt("0644", 8);
 
   let file = Cc["@mozilla.org/file/directory_service;1"]

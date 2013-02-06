@@ -17,7 +17,7 @@ var testScreenshotSaveCorruption = function() {
     "BlBMVEX///8AAABVwtN+AAAAF0lEQVR4XgXAgQwAAAACsCOGEkbYDcH0BEIBSflcthkAAAAASUVORK5CYII=";
 
   // Save dataURL to disk
-  var {filename, failure} = utils.saveScreenshot(smile5x5DataURL, name);
+  var {filename, failure} = utils.saveDataURL(smile5x5DataURL, name);
 
   expect.ok(!failure, "No failure while saving dataURL.");
 

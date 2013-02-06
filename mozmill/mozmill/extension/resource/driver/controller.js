@@ -394,7 +394,7 @@ MozMillController.prototype.screenshot = function (node, name, save, highlights)
 
   // Save the screenshot to disk
 
-  let {filename, failure} = utils.saveScreenshot(screenshot.dataURL, name);
+  let {filename, failure} = utils.saveDataURL(screenshot.dataURL, name);
   screenshot.filename = filename;
   screenshot.failure = failure;
 
