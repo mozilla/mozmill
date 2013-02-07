@@ -15,14 +15,13 @@ and other [Mozilla](http://mozilla.org/) automation efforts.
 To work with the development version of Mozmill or its utilities, check out the code
 from the [Github repo](http://github.com/mozilla/mozmill):
 
-    virtualenv mozmill
-    cd mozmill
-    . bin/activate
-    mkdir src
-    cd src
-    git clone http://github.com/mozilla/mozmill.git
-    cd mozmill
-    ./setup_development.py
+```sh
+$ git clone git://github.com/mozilla/mozmill.git
+$ cd mozmill
+$ virtualenv venv
+$ source venv/bin/activate
+$ ./setup_development.py
+```
 
 
 ## Repository Contents
