@@ -4,6 +4,7 @@ import unittest
 import manifestparser
 import mozmill
 
+
 class ModuleEndTest(unittest.TestCase):
     """Bug 771517: User restart tests do no longer report final test result"""
     def test_modules(self):

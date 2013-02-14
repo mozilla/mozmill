@@ -19,14 +19,17 @@ class TestMozmillAPI(unittest.TestCase):
 
     def test_runtwice(self):
         passes = 2
-        path = self.make_test()
+        self.path = self.make_test()
 
         m = mozmill.MozMill.create()
-        m.run([dict(path=path)])
-        m.run([dict(path=path)])
+        m.run([dict(path=self.path)])
+        m.run([dict(path=self.path)])
         results = m.finish()
 
         self.assertTrue(len(results.passes) == passes)
+
+    def tearDown(self):
+        os.remove(self.path)
 
 if __name__ == '__main__':
     unittest.main()

@@ -22,10 +22,11 @@ class TestBug690154(unittest.TestCase):
 
     def test_JSON_structure(self):
         passes = 1
-        path = self.make_test()
+        self.path = self.make_test()
+        print self.path
 
         m = mozmill.MozMill.create()
-        m.run([dict(path=path)])
+        m.run([dict(path=self.path)])
         results = m.finish()
 
         # no modules pass
@@ -42,6 +43,9 @@ class TestBug690154(unittest.TestCase):
         failure = fails['fails'][0]
         self.assertTrue('exception' in failure)
         self.assertTrue(fails['name'] == '<TOP_LEVEL>')
+
+    def tearDown(self):
+        os.remove(self.path)
 
 if __name__ == '__main__':
     unittest.main()

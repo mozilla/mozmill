@@ -23,8 +23,9 @@ class ModuleTest(unittest.TestCase):
                                 relative_test_path)
         tests = [{'path': testpath}]
 
-        info_data= StringIO()
-        logger = LoggerListener(console_level="DEBUG", console_stream=info_data)
+        info_data = StringIO()
+        logger = LoggerListener(console_level="DEBUG",
+                                console_stream=info_data)
 
         m = mozmill.MozMill.create(handlers=[logger])
         m.run(tests)
@@ -38,10 +39,14 @@ class ModuleTest(unittest.TestCase):
         return results
 
     def test_modules(self):
-        results = self.do_test(self.make_test())
+        self.path = self.make_test()
+        results = self.do_test(self.path)
 
         self.assertEqual(sys.getrefcount(results), 2,
                          "Only a single reference to results exists")
+
+    def tearDown(self):
+        os.remove(self.path)
 
 if __name__ == '__main__':
     unittest.main()
