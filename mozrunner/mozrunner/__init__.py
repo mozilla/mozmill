@@ -354,6 +354,9 @@ class FirefoxProfile(Profile):
                    'extensions.checkCompatibility.9.0' : False,
                    'extensions.checkCompatibility.9.0a' : False,
                    'extensions.checkCompatibility.nightly' : False,
+                    # Don't report telemetry information
+                   'toolkit.telemetry.enabled' : False,
+                   'toolkit.telemetry.enabledPreRelease' : False,
                    }
 
     @property
