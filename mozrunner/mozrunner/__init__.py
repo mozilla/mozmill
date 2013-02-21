@@ -328,9 +328,6 @@ class FirefoxProfile(Profile):
                    'extensions.update.enabled' : False,
                    # Don't open a dialog to show available add-on updates
                    'extensions.update.notifyUser' : False,
-                   # Enable test mode to run multiple tests in parallel
-                   'focusmanager.testmode' : True,
-
                    # Disable addon compatibility checks
                    'extensions.checkCompatibility' : False,
                    'extensions.checkCompatibility.4.0' : False,
@@ -354,6 +351,10 @@ class FirefoxProfile(Profile):
                    'extensions.checkCompatibility.9.0' : False,
                    'extensions.checkCompatibility.9.0a' : False,
                    'extensions.checkCompatibility.nightly' : False,
+                   # Enable test mode to run multiple tests in parallel
+                   'focusmanager.testmode' : True,
+                   # Suppress delay for main action in popup notifications
+                   'security.notification_enable_delay' : 0,
                    # Suppress automatic safe mode after crashes
                    'toolkit.startup.max_resumed_crashes' : -1,
                    # Don't report telemetry information
