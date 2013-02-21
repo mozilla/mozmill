@@ -347,6 +347,10 @@ var MozMillController = function (window) {
     return window != null && this.isLoaded();
   }, "controller(): Window could not be initialized.", undefined, undefined, this);
 
+  // Ensure to focus the window. It will move it virtually into the foreground
+  // when focusmanager.testmode is enabled
+  this.window.focus();
+
   if ( controllerAdditions[window.document.documentElement.getAttribute('windowtype')] != undefined ) {
     this.prototype = new utils.Copy(this.prototype);
     controllerAdditions[window.document.documentElement.getAttribute('windowtype')](this);
