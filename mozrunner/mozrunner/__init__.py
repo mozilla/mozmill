@@ -315,6 +315,8 @@ class FirefoxProfile(Profile):
                    'browser.tabs.warnOnClose' : False,
                    # Don't warn when exiting the browser
                    'browser.warnOnQuit': False,
+                   # Don't send Firefox health reports to the production server
+                   'datareporting.healthreport.documentServerURI' : 'http://%(server)s/healthreport/',
                    # Only install add-ons from the profile and the application scope
                    # Also ensure that those are not getting disabled.
                    # see: https://developer.mozilla.org/en/Installing_extensions
