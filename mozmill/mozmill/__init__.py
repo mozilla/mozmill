@@ -607,7 +607,7 @@ class CLI(mozrunner.CLI):
             # user handlers
             try:
                 handler_class = handlers.load_handler(handler)
-            except BaseException, e:
+            except BaseException as e:
                 self.parser.error(str(e))
             _handler = handlers.instantiate_handler(handler_class,
                                                     self.options)
@@ -744,7 +744,7 @@ class CLI(mozrunner.CLI):
             try:
                 mozmill.start_runner()
                 mozmill.runner.wait()
-            except JSBridgeDisconnectError, KeyboardInterrupt:
+            except (JSBridgeDisconnectError, KeyboardInterrupt):
                 pass
             return
 

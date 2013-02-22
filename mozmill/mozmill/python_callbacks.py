@@ -30,7 +30,7 @@ class PythonCallbacks(object):
             module = imp.load_source('callbacks', path)
             method = getattr(module, obj['method'])
             method(*obj.get('args', []), **obj.get('kwargs', {}))
-        except BaseException, e:
+        except BaseException as e:
             print "PythonCallbacks error:"
             print repr(e)
             raise

@@ -159,7 +159,7 @@ class Bridge(Telnet):
         exec_string += '\r\n'
         try:
             self.send(exec_string)
-        except Exception, e:
+        except Exception as e:
             print str(e)
             print "String: %s" % exec_string
 
@@ -235,7 +235,7 @@ class Bridge(Telnet):
                 # Try to get a json object from the data stream
             try:
                 obj, index = decoder.raw_decode(self.sbuffer)
-            except Exception, e:
+            except Exception:
                 self.parsing = False
                 # If we got an object fire the callback infra
             if self.parsing:

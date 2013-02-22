@@ -10,7 +10,7 @@ import datetime
 
 try:
     import json
-except:
+except ImportError:
     import simplejson as json
 
 from handlers import HandlerMatchException
@@ -81,7 +81,7 @@ class Report(object):
             filename = report_url.split('file://', 1)[1]
             try:
                 f = file(filename, 'w')
-            except Exception, e:
+            except Exception as e:
                 print "Printing results to '%s' failed (%s)." % (filename, e)
                 return
         if f:
@@ -108,10 +108,10 @@ class Report(object):
             print "Report document created at '%s%s'" % (report_url,
                                                          data['id'])
             return data
-        except urllib2.HTTPError, e:
+        except urllib2.HTTPError as e:
             data = json.loads(e.read())
             print "Sending results to '%s' failed (%s)." % (report_url,
                                                             data['reason'])
-        except urllib2.URLError, e:
+        except urllib2.URLError as e:
             print "Sending results to '%s' failed (%s)." % (report_url,
                                                             e.reason)

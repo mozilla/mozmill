@@ -146,14 +146,14 @@ def test_all(tests, options):
         pyresult = test_all_python(pytests, options)
         if pyresult.failures or pyresult.errors:
             fail = True
-    except SystemExit, e:
+    except SystemExit as e:
         fail = (e.code != 0) or fail
 
     try:
         jsresult = test_all_js(jstests, options)
         if jsresult.fails:
             fail = True
-    except SystemExit, e:
+    except SystemExit as e:
         fail = (e.code != 0) or fail
 
     # XXX unify this with main function below
