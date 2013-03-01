@@ -27,10 +27,10 @@ def find_port():
 
 
 def wait_and_create_network(host, port, timeout=wait_to_create_timeout):
-    deadline = datetime.now() + timedelta(seconds=timeout)
+    deadline = datetime.utcnow() + timedelta(seconds=timeout)
     connected = False
 
-    while datetime.now() < deadline:
+    while datetime.utcnow() < deadline:
         try:
             s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             s.connect((host, port))
