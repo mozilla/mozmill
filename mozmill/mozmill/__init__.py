@@ -116,8 +116,10 @@ class MozMill(object):
         preferences = profile_args.setdefault('preferences', {})
         if isinstance(preferences, dict):
             preferences['extensions.jsbridge.port'] = jsbridge_port
+            preferences['focusmanager.testmode'] = True
         elif isinstance(preferences, list):
             preferences.append(('extensions.jsbridge.port', jsbridge_port))
+            preferences.append(('focusmanager.testmode', True))
         else:
             raise Exception('Invalid type for preferences in profile_args')
 
@@ -699,7 +701,8 @@ class CLI(mozrunner.CLI):
         profile_args.setdefault('addons', []).extend(ADDONS)
 
         profile_args['preferences'] = {
-            'extensions.jsbridge.port': self.jsbridge_port
+            'extensions.jsbridge.port': self.jsbridge_port,
+            'focusmanager.testmode': True
         }
 
         if self.options.debug:
