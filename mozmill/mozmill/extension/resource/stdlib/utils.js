@@ -395,21 +395,23 @@ function takeScreenshot(node, highlights) {
 }
 
 /**
- * Save the dataURL content to the specified file. It will be stored in the temporary folder.
+ * Save the dataURL content to the specified file. It will be stored in either the persisted screenshot or temporary folder.
  *
  * @param {String} aDataURL
  *        The dataURL to save
  * @param {String} aFilename
  *        Target file name without extension
  *
- * @returns {Object} The hash containing the path of saved file, and the faillure bit
+ * @returns {Object} The hash containing the path of saved file, and the failure bit
  */
 function saveDataURL(aDataURL, aFilename) {
+  var frame = {}; Cu.import('resource://mozmill/modules/frame.js', frame);
   const FILE_PERMISSIONS = parseInt("0644", 8);
 
-  let file = Cc["@mozilla.org/file/directory_service;1"]
-             .getService(Ci.nsIProperties).get("TmpD", Ci.nsILocalFile);
-  file.append("mozmill_screenshots");
+  var file;
+  file = Cc['@mozilla.org/file/local;1']
+         .createInstance(Ci.nsILocalFile);
+  file.initWithPath(frame.persisted['screenshots']['path']);
   file.append(aFilename + ".jpg");
   file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, FILE_PERMISSIONS);
 

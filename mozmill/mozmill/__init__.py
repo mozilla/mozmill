@@ -6,6 +6,7 @@
 import os
 import socket
 import sys
+import tempfile
 import traceback
 try:
     import json
@@ -97,7 +98,7 @@ class MozMill(object):
     @classmethod
     def create(cls, jsbridge_timeout=JSBRIDGE_TIMEOUT,
                handlers=None, app='firefox', profile_args=None,
-               runner_args=None):
+               runner_args=None, screenshots_path=None):
 
         jsbridge_port = jsbridge.find_port()
 
@@ -131,10 +132,11 @@ class MozMill(object):
 
         # create a mozmill
         return cls(runner, jsbridge_port, jsbridge_timeout=jsbridge_timeout,
-                   handlers=handlers)
+                   handlers=handlers, screenshots_path=screenshots_path)
 
     def __init__(self, runner, jsbridge_port,
-                 jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=None):
+                 jsbridge_timeout=JSBRIDGE_TIMEOUT, handlers=None,
+                 screenshots_path=None):
         """Constructor of the Mozmill class.
 
         Arguments:
@@ -144,6 +146,7 @@ class MozMill(object):
         Keyword arguments:
         jsbridge_timeout -- How long to wait without a jsbridge communication
         handlers -- pluggable event handlers
+        screenshots_path -- Path where screenshots will be saved
 
         """
         # the MozRunner
@@ -173,6 +176,14 @@ class MozMill(object):
         self.listener_dict = {}  # by event type
         self.global_listeners = []
         self.handlers = []
+
+        # screenshots data
+        self.persisted['screenshots'] = {}
+        if screenshots_path:
+            path = os.path.abspath(screenshots_path)
+            if not os.path.isdir(path):
+                os.makedirs(path)
+        self.persisted['screenshots']['path'] = screenshots_path or tempfile.mkdtemp()
 
         # setup event handlers and register listeners
         self.setup_listeners()
@@ -445,6 +456,9 @@ class MozMill(object):
         """Do the final reporting and such."""
         self.results.endtime = datetime.utcnow()
 
+        if self.results.screenshots:
+            print 'Screenshots saved in %s' % self.persisted['screenshots']['path']
+
         # handle stop events
         for handler in self.handlers:
             if hasattr(handler, 'stop'):
@@ -667,6 +681,11 @@ class CLI(mozrunner.CLI):
                          metavar='PATH:CLASS',
                          help="Specify an event handler given a file PATH "
                               "and the CLASS in the file")
+        group.add_option('--screenshots-path',
+                         dest='screenshots_path',
+                         metavar='PATH',
+                         help='Path of directory to use for screenshots')
+
         if self.handlers:
             group.add_option('--disable',
                              dest='disable',
@@ -736,7 +755,7 @@ class CLI(mozrunner.CLI):
         mozmill = MozMill(runner, self.jsbridge_port,
                           jsbridge_timeout=self.options.timeout,
                           handlers=self.event_handlers,
-                          )
+                          screenshots_path=self.options.screenshots_path)
 
         # set debugger arguments
         mozmill.set_debugger(*self.debugger_arguments())
