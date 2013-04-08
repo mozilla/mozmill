@@ -11,7 +11,7 @@ const Cu = Components.utils;
 
 
 // Import local JS modules
-Cu.import("resource://jsbridge/modules/NSPR.jsm");
+Cu.import("resource://jsbridge/modules/NSS.jsm");
 
 
 var Sockets = { };
@@ -30,9 +30,9 @@ Sockets.Client.prototype = {
 
     var event = {
       notify: function (timer) {
-        var buffer = new NSPR.Sockets.buffer(bufsize);
-        var bytes = NSPR.Sockets.PR_Recv(self.fd, buffer, bufsize, 0,
-                                         NSPR.Sockets.PR_INTERVAL_NO_WAIT);
+        var buffer = new NSS.Sockets.buffer(bufsize);
+        var bytes = NSS.Sockets.PR_Recv(self.fd, buffer, bufsize, 0,
+                                         NSS.Sockets.PR_INTERVAL_NO_WAIT);
 
         if (bytes > 0) {
           var message = buffer.readString();
@@ -60,47 +60,47 @@ Sockets.Client.prototype = {
   },
 
   sendMessage: function (message) {
-    var buffer = new NSPR.Sockets.buffer(message);
-    NSPR.Sockets.PR_Send(this.fd, buffer, message.length, 0, NSPR.Sockets.PR_INTERVAL_MAX);
+    var buffer = new NSS.Sockets.buffer(message);
+    NSS.Sockets.PR_Send(this.fd, buffer, message.length, 0, NSS.Sockets.PR_INTERVAL_MAX);
   },
 
   close : function () {
-    return NSPR.Sockets.PR_Close(this.fd);
+    return NSS.Sockets.PR_Close(this.fd);
   }
 };
 
 
 Sockets.ServerSocket = function (aPort) {
-  let addr = NSPR.Types.PRNetAddr();
-  NSPR.Sockets.PR_SetNetAddr(NSPR.Sockets.PR_IpAddrLoopback,
-                             NSPR.Sockets.PR_AF_INET,
+  let addr = NSS.Types.PRNetAddr();
+  NSS.Sockets.PR_SetNetAddr(NSS.Sockets.PR_IpAddrLoopback,
+                             NSS.Sockets.PR_AF_INET,
                              aPort, addr.address());
 
-  let fd = NSPR.Sockets.PR_OpenTCPSocket(NSPR.Sockets.PR_AF_INET);
+  let fd = NSS.Sockets.PR_OpenTCPSocket(NSS.Sockets.PR_AF_INET);
 
   // don't block for accept/send/recv
-  let opt = NSPR.Types.PRSocketOptionData();
-  opt.non_blocking = NSPR.Sockets.PR_TRUE;
-  opt.option = NSPR.Sockets.PR_SockOpt_Nonblocking;
-  NSPR.Sockets.PR_SetSocketOption(fd, opt.address());
+  let opt = NSS.Types.PRSocketOptionData();
+  opt.non_blocking = NSS.Sockets.PR_TRUE;
+  opt.option = NSS.Sockets.PR_SockOpt_Nonblocking;
+  NSS.Sockets.PR_SetSocketOption(fd, opt.address());
 
   // don't buffer when sending
-  opt = NSPR.Types.PRSocketOptionData();
-  opt.non_blocking = NSPR.Sockets.PR_TRUE; // same space
-  opt.option = NSPR.Sockets.PR_SockOpt_NoDelay;
-  NSPR.Sockets.PR_SetSocketOption(fd, opt.address());
+  opt = NSS.Types.PRSocketOptionData();
+  opt.non_blocking = NSS.Sockets.PR_TRUE; // same space
+  opt.option = NSS.Sockets.PR_SockOpt_NoDelay;
+  NSS.Sockets.PR_SetSocketOption(fd, opt.address());
 
   // allow local address re-use
-  opt = NSPR.Types.PRSocketOptionData();
-  opt.non_blocking = NSPR.Sockets.PR_TRUE; // same space
-  opt.option = NSPR.Sockets.PR_SockOpt_Reuseaddr;
-  NSPR.Sockets.PR_SetSocketOption(fd, opt.address());
+  opt = NSS.Types.PRSocketOptionData();
+  opt.non_blocking = NSS.Sockets.PR_TRUE; // same space
+  opt.option = NSS.Sockets.PR_SockOpt_Reuseaddr;
+  NSS.Sockets.PR_SetSocketOption(fd, opt.address());
 
-  let status = NSPR.Sockets.PR_Bind(fd, addr.address());
+  let status = NSS.Sockets.PR_Bind(fd, addr.address());
   if (status !== 0)
     throw Error("Socket failed to bind, kill all firefox processes");
 
-  status = NSPR.Sockets.PR_Listen(fd, -1);
+  status = NSS.Sockets.PR_Listen(fd, -1);
   if (status !== 0)
     throw Error("Socket failed to listen");
 
@@ -117,8 +117,8 @@ Sockets.ServerSocket.prototype = {
 
     var event = {
       notify: function (timer) {
-        let newfd = NSPR.Sockets.PR_Accept(self.fd, self.addr.address(),
-                                           NSPR.Sockets.PR_INTERVAL_NO_WAIT);
+        let newfd = NSS.Sockets.PR_Accept(self.fd, self.addr.address(),
+                                           NSS.Sockets.PR_INTERVAL_NO_WAIT);
         if (!newfd.isNull()) {
           callback(new Sockets.Client(newfd));
         }
@@ -132,6 +132,6 @@ Sockets.ServerSocket.prototype = {
     this.timer.cancel();
     this.timer = null;
 
-    return NSPR.Sockets.PR_Close(this.fd);
+    return NSS.Sockets.PR_Close(this.fd);
   }
 };

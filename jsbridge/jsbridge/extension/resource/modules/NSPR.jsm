@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var EXPORTED_SYMBOLS = ["NSPR"];
+var EXPORTED_SYMBOLS = ["NSS"];
 
 
 const Ci = Components.interfaces;
@@ -15,22 +15,22 @@ Cu.import("resource://gre/modules/Services.jsm");
 
 
 /**
- * Object to access the nspr4 library via ctypes
+ * Object to access the nss3 library via ctypes
  */
-var NSPR = {
+var NSS = {
   init: function () {
     let file = Services.dirsvc.get("GreD", Ci.nsILocalFile);
-    file.append(ctypes.libraryName("nspr4"));
+    file.append(ctypes.libraryName("nss3"));
 
-    // Open the NSSPR library
-    NSPR._library = ctypes.open(file.path);
+    // Open the NSS library
+    NSS._library = ctypes.open(file.path);
   }
 }
 
-NSPR.init();
+NSS.init();
 
 
-NSPR.Types = {
+NSS.Types = {
   PRFileDesc: ctypes.StructType("PRFileDesc"),
 
   PRNetAddr: ctypes.StructType("PRNetAddr", [
@@ -47,7 +47,7 @@ NSPR.Types = {
 }
 
 
-NSPR.Sockets = {
+NSS.Sockets = {
   PR_TRUE: 1,
   PR_AF_INET: 2,
   PR_IpAddrAny: 1,
@@ -60,62 +60,62 @@ NSPR.Sockets = {
 
   buffer: ctypes.ArrayType(ctypes.char),
 
-  PR_SetNetAddr: NSPR._library.declare("PR_SetNetAddr",
+  PR_SetNetAddr: NSS._library.declare("PR_SetNetAddr",
   ctypes.default_abi,
   ctypes.int32_t, // really doesn't return anything
   ctypes.int32_t, // val
   ctypes.uint16_t, // af
   ctypes.uint16_t, // port
-  NSPR.Types.PRNetAddr.ptr),
+  NSS.Types.PRNetAddr.ptr),
 
-  PR_OpenTCPSocket: NSPR._library.declare("PR_OpenTCPSocket",
+  PR_OpenTCPSocket: NSS._library.declare("PR_OpenTCPSocket",
   ctypes.default_abi, // cdecl calling convention
-  NSPR.Types.PRFileDesc.ptr, // return (PRFileDesc*)
+  NSS.Types.PRFileDesc.ptr, // return (PRFileDesc*)
   ctypes.int32_t), // first arg
 
-  PR_SetSocketOption: NSPR._library.declare("PR_SetSocketOption",
+  PR_SetSocketOption: NSS._library.declare("PR_SetSocketOption",
   ctypes.default_abi,
   ctypes.int32_t,
-  NSPR.Types.PRFileDesc.ptr,
-  NSPR.Types.PRSocketOptionData.ptr),
+  NSS.Types.PRFileDesc.ptr,
+  NSS.Types.PRSocketOptionData.ptr),
 
-  PR_Bind: NSPR._library.declare("PR_Bind",
+  PR_Bind: NSS._library.declare("PR_Bind",
   ctypes.default_abi,
   ctypes.int32_t,
-  NSPR.Types.PRFileDesc.ptr,
-  NSPR.Types.PRNetAddr.ptr),
+  NSS.Types.PRFileDesc.ptr,
+  NSS.Types.PRNetAddr.ptr),
 
-  PR_Listen: NSPR._library.declare("PR_Listen",
+  PR_Listen: NSS._library.declare("PR_Listen",
   ctypes.default_abi,
   ctypes.int32_t,
-  NSPR.Types.PRFileDesc.ptr, // fd
+  NSS.Types.PRFileDesc.ptr, // fd
   ctypes.int32_t), // backlog
 
-  PR_Accept: NSPR._library.declare("PR_Accept",
+  PR_Accept: NSS._library.declare("PR_Accept",
   ctypes.default_abi,
-  NSPR.Types.PRFileDesc.ptr, // new socket fd
-  NSPR.Types.PRFileDesc.ptr, // rendezvous socket fd
-  NSPR.Types.PRNetAddr.ptr, //addr
+  NSS.Types.PRFileDesc.ptr, // new socket fd
+  NSS.Types.PRFileDesc.ptr, // rendezvous socket fd
+  NSS.Types.PRNetAddr.ptr, //addr
   ctypes.uint32_t), // timeout interval
 
-  PR_Close: NSPR._library.declare("PR_Close",
+  PR_Close: NSS._library.declare("PR_Close",
   ctypes.default_abi,
   ctypes.int32_t,
-  NSPR.Types.PRFileDesc.ptr),
+  NSS.Types.PRFileDesc.ptr),
 
-  PR_Recv: NSPR._library.declare("PR_Recv",
+  PR_Recv: NSS._library.declare("PR_Recv",
   ctypes.default_abi,
   ctypes.int32_t, // return
-  NSPR.Types.PRFileDesc.ptr, // socket
+  NSS.Types.PRFileDesc.ptr, // socket
   ctypes.voidptr_t, // buffer
   ctypes.int32_t, // buffer length
   ctypes.int32_t, // must be 0, deprecated
   ctypes.uint32_t), // timeout interval
 
-  PR_Send: NSPR._library.declare("PR_Send",
+  PR_Send: NSS._library.declare("PR_Send",
   ctypes.default_abi,
   ctypes.int32_t, // return
-  NSPR.Types.PRFileDesc.ptr, // socket
+  NSS.Types.PRFileDesc.ptr, // socket
   ctypes.voidptr_t, // buffer
   ctypes.int32_t, // buffer length
   ctypes.int32_t, // must be 0, deprecated
