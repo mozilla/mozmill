@@ -416,17 +416,19 @@ function initialize() {
   observerService.addObserver(windowReadyObserver, "toplevel-window-ready", false);
   observerService.addObserver(windowCloseObserver, "outer-window-destroyed", false);
 
-  // Attach event listeners to all open windows
+  // Attach event listeners to all already open top-level windows
   var enumerator = Cc["@mozilla.org/appshell/window-mediator;1"].
                    getService(Ci.nsIWindowMediator).getEnumerator("");
   while (enumerator.hasMoreElements()) {
     var win = enumerator.getNext();
-    attachEventListeners(win);
 
-    // For windows or dialogs already open we have to explicitly set the property
-    // otherwise windows which load really quick on startup never gets the
-    // property set and we fail to create the controller
-    controller.windowMap.update(utils.getWindowId(win), "loaded", true);
+    // For top-level windows which are already open set the loaded state
+    // to the current readyState. For slowly loading windows (like for debug
+    // builds) it will be overwritten again by the onload listener later.
+    var loaded = (win.document.readyState === 'complete');
+    controller.windowMap.update(utils.getWindowId(win), "loaded", loaded);
+
+    attachEventListeners(win);
   }
 }
 
