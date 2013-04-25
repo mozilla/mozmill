@@ -20,7 +20,14 @@ Cu.import("resource://gre/modules/Services.jsm");
 var NSS = {
   init: function () {
     let file = Services.dirsvc.get("GreD", Ci.nsILocalFile);
-    file.append(ctypes.libraryName("nss3"));
+    file.append(ctypes.libraryName("nspr4"));
+
+    // Even we would have to use nss3 by default, we don't do it because for
+    // versions older than 22.0 nss3 already exists but doesn't offer the
+    // necessary ctypes methods to us. So we try nspr4 first.
+    if (!file.exists()) {
+      file.leafName = ctypes.libraryName("nss3");
+    }
 
     // Open the NSS library
     NSS._library = ctypes.open(file.path);
