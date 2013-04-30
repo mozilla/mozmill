@@ -8,7 +8,7 @@ from setuptools import setup, find_packages
 PACKAGE_NAME = "mozmill"
 PACKAGE_VERSION = "2.0rc2"
 
-deps = ['jsbridge == 3.0rc1',
+deps = ['jsbridge == 3.0rc2',
         'ManifestDestiny == 0.5.6',
         'mozinfo == 0.4',
         'mozrunner == 5.15',
