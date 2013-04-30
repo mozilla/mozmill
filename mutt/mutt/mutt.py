@@ -96,16 +96,18 @@ def get_pytests(testdict):
 
 
 def report(fail, pyresults=None, jsresults=None, options=None):
-    if not fail:
-        print "All tests were successful.  Ship it!"
-        return 0
+    fail_total = 0
+    skipped_total = 0
+    test_total = 0
 
     # Print the failures
-    print "\nSome tests were unsuccessful.\n"
 
     print "=" * 75
     if pyresults:
         print "Python Failures:"
+        fail_total += len(pyresults.failures) + len(pyresults.errors)
+        test_total += pyresults.testsRun
+        skipped_total += len(pyresults.skipped)
         for failure in pyresults.failures:
             print "%s\n" % str(failure)
         for failure in pyresults.errors:
@@ -116,7 +118,9 @@ def report(fail, pyresults=None, jsresults=None, options=None):
     print "\n", "=" * 75
     if jsresults:
         print "Javascript Failures:"
-
+        fail_total += len(jsresults.fails)
+        test_total += len(jsresults.alltests)
+        skipped_total += len(jsresults.skipped)
         for module in jsresults.fails:
             for failure in module["fails"]:
                 if 'exception' in failure:
@@ -133,7 +137,11 @@ def report(fail, pyresults=None, jsresults=None, options=None):
     else:
         print "No Javascript Failures"
 
-    return 1
+    print "\nTotal passed: %d" % (test_total - fail_total)
+    print "Total failed: %d" % fail_total
+    print "Total skipped: %d" % skipped_total
+
+    return int(fail)
 
 
 def test_all(tests, options):
