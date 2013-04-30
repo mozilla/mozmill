@@ -21,7 +21,7 @@ var Expect = function () {}
 Expect.prototype = {
 
   // The following deepEquals implementation is from Narwhal under this license:
-  
+
   // http://wiki.commonjs.org/wiki/Unit_Testing/1.0
   //
   // THIS IS NOT TESTED NOR LIKELY TO WORK OUTSIDE V8!
@@ -250,7 +250,7 @@ Expect.prototype = {
   ok: function Expect_ok(aValue, aMessage) {
     let condition = !!aValue;
     let diagnosis = "got '" + aValue + "'";
-  
+
     return this._test(condition, aMessage, diagnosis);
   },
 
@@ -411,8 +411,8 @@ Expect.prototype = {
 
     return this._test(condition, aMessage, diagnosis);
   },
-  
-  
+
+
   /**
    * Test if a code block throws an exception.
    *
@@ -442,10 +442,10 @@ Expect.prototype = {
   doesNotThrow : function Expect_doesNotThrow(block, /*optional*/error, /*optional*/message) {
     return this._throws.apply(this, [false].concat(Array.prototype.slice.call(arguments)));
   },
-  
+
   /* Tests whether a code block throws the expected exception
      class. helper for throws() and doesNotThrow()
-     
+
      adapted from node.js's assert._throws()
      https://github.com/joyent/node/blob/master/lib/assert.js
   */

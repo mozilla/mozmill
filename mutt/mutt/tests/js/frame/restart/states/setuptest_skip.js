@@ -28,7 +28,7 @@ function testTwo() {
 }
 
 function teardownTest() {
-  assert.equal(state, 1, 'Only setupModule ran prior to teardownTest so state is 1'); 
+  assert.equal(state, 1, 'Only setupModule ran prior to teardownTest so state is 1');
   state = 3;
 }
 

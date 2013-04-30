@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var EXPORTED_SYMBOLS = ['loadFile','Collector','Runner','events', 
+var EXPORTED_SYMBOLS = ['loadFile','Collector','Runner','events',
                         'jsbridge', 'runTestFile', 'log', 'getThread',
                         'timers', 'persisted'];
 
@@ -148,7 +148,7 @@ function stateChangeBase (possibilties, restrictions, target, cmeta, v) {
     if (!arrays.inArray(possibilties, v)) {
       // TODO Error value not in this.poss
       return;
-    } 
+    }
   }
 
   if (restrictions) {
@@ -224,7 +224,7 @@ events.endTest = function (test) {
   // use the current test unless specified
   if (test === undefined) {
     test = events.currentTest;
-  }  
+  }
 
   // If no test is set it has already been reported.
   // We don't want to do it a second time.
@@ -233,7 +233,7 @@ events.endTest = function (test) {
 
   // report the end of a test
   test.status = 'done';
-  events.currentTest = null; 
+  events.currentTest = null;
   test.__end__ = Date.now();
 
   var obj = {'filename': events.currentModule.__file__,
@@ -271,7 +271,7 @@ events.endTest = function (test) {
 
 events.setModule = function (aModule) {
   aModule.__start__ = Date.now();
-  var result = stateChangeBase( null, [function (aModule) {return (aModule.__file__ != undefined)}], 
+  var result = stateChangeBase( null, [function (aModule) {return (aModule.__file__ != undefined)}],
                           'currentModule', 'setModule', aModule);
   aModule.__status__ = 'running';
 

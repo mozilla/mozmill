@@ -3,10 +3,10 @@
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
 var EXPORTED_SYMBOLS = ["controller", "utils", "elementslib", "os",
-                        "getBrowserController", "newBrowserController", 
-                        "getAddonsController", "getPreferencesController", 
-                        "newMail3PaneController", "getMail3PaneController", 
-                        "wm", "platform", "getAddrbkController", 
+                        "getBrowserController", "newBrowserController",
+                        "getAddonsController", "getPreferencesController",
+                        "newMail3PaneController", "getMail3PaneController",
+                        "wm", "platform", "getAddrbkController",
                         "getMsgComposeController", "getDownloadsController",
                         "Application", "cleanQuit", "findElement",
                         "getPlacesController", 'isMac', 'isLinux', 'isWindows',
@@ -224,7 +224,7 @@ function getPreferencesController() {
 function newMail3PaneController () {
   return new controller.MozMillController(utils.getMethodInWindows('toMessengerWindow')());
 }
- 
+
 function getMail3PaneController () {
   var mail3PaneWindow = wm.getMostRecentWindow("mail:3pane");
 

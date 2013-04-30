@@ -60,7 +60,7 @@ var brodyFile2DataURL = {
     inputStream.init(aFile,-1,-1,0);
     var dataURL = this.getDataURLFromIStream(inputStream, contentType);
     inputStream.close();
-    
+
     return dataURL;
   },
 }

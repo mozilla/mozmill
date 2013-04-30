@@ -89,7 +89,7 @@ function getWindowByType(type) {
 
 /**
  * Retrieve the outer window id for the given window.
- * 
+ *
  * @param {Number} aWindow
  *        Window to retrieve the id from.
  * @returns {Boolean} The outer window id
@@ -223,7 +223,7 @@ function unwrapNode(aNode) {
   var node = aNode;
   if (node) {
     // unwrap is not available on older branches (3.5 and 3.6) - Bug 533596
-    if ("unwrap" in XPCNativeWrapper) {	   
+    if ("unwrap" in XPCNativeWrapper) {
       node = XPCNativeWrapper.unwrap(node);
     }
     else if (node.wrappedJSObject != null) {
@@ -299,7 +299,7 @@ function waitFor(callback, message, timeout, interval, thisObject) {
 /**
  * Calculates the x and y chrome offset for an element
  * See https://developer.mozilla.org/en/DOM/window.innerHeight
- * 
+ *
  * Note this function will not work if the user has custom toolbars (via extension) at the bottom or left/right of the screen
  */
 function getChromeOffset(elem) {
@@ -307,7 +307,7 @@ function getChromeOffset(elem) {
   // Calculate x offset
   var chromeWidth = 0;
 
-  if (win["name"] != "sidebar") { 
+  if (win["name"] != "sidebar") {
     chromeWidth = win.outerWidth - win.innerWidth;
   }
 
@@ -327,11 +327,11 @@ function getChromeOffset(elem) {
     }
   }
 
-  return {'x':chromeWidth, 'y':chromeHeight}; 
+  return {'x':chromeWidth, 'y':chromeHeight};
 }
 
 /**
- * Takes a screenshot of the specified DOM node 
+ * Takes a screenshot of the specified DOM node
  */
 function takeScreenshot(node, highlights) {
   var rect, win, width, height, left, top, needsOffset;
@@ -478,7 +478,7 @@ function startTimer(){
  * Checks the timer and outputs current elapsed time since start of timer. It
  * will print out a message you provide with its "time check" so you can
  * correlate in the log file and figure out elapsed time of specific functions.
- * 
+ *
  * @param aMsg    string The debug message to print with the timer check
  *
  * @returns none

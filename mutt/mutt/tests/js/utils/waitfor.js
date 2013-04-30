@@ -47,7 +47,7 @@ var testWaitForFalseAfterTrue = function () {
 
 var testWaitForCallbackCounter = function () {
   let counter = -1;
-  
+
   expect.doesNotThrow(function () {
     controller.waitFor(function () {
       counter++;

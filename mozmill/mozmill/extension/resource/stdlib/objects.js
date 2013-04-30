@@ -24,15 +24,15 @@ var getLength = function (obj) {
 //   if (recursion == undefined) {
 //     var recursion = 0;
 //   }
-//   
+//
 //   if (recursion > depth) {
 //     return true;
 //   }
-//   
+//
 //   if (typeof(obj1) != typeof(obj2)) {
 //     return false;
 //   }
-//   
+//
 //   if (typeof(obj1) == "object" && typeof(obj2) == "object") {
 //     if ([x for (x in obj1)].length != [x for (x in obj2)].length) {
 //       return false;

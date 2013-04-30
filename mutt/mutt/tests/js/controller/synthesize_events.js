@@ -31,7 +31,7 @@ var test = function () {
   controller.type(fname, "Fire");
   expect.equal(fname.getNode().value, "Fire",
                "type() without expected event succeeded.");
-  
+
   // A focus event for the next element in the tab order should be fired
   controller.keypress(fname, "VK_TAB", {});
   expect.equal(lname.getNode(), controller.tabs.activeTab.activeElement,
