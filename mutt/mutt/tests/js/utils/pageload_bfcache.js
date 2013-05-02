@@ -9,7 +9,7 @@ var setupModule = function () {
   controller = mozmill.getBrowserController();
 }
 
-var testWaitForPageLoad = function()  {
+var testBFCache = function ()  {
   controller.open(TEST_FOLDER + "link.html");
   controller.waitForPageLoad();
 
@@ -21,5 +21,5 @@ var testWaitForPageLoad = function()  {
   controller.waitForPageLoad();
 
   link = findElement.ID(controller.tabs.activeTab, "link");
-  domains.click();
+  link.click();
 }

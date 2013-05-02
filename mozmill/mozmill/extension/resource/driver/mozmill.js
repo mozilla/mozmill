@@ -20,12 +20,13 @@ const Cu = Components.utils;
 const DEBUG = false;
 
 // imports
+var broker = {};      Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 var controller = {};  Cu.import('resource://mozmill/driver/controller.js', controller);
 var elementslib = {}; Cu.import('resource://mozmill/driver/elementslib.js', elementslib);
-var broker = {};      Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 var findElement = {}; Cu.import('resource://mozmill/driver/mozelement.js', findElement);
-var utils = {};       Cu.import('resource://mozmill/stdlib/utils.js', utils);
 var os = {};          Cu.import('resource://mozmill/stdlib/os.js', os);
+var utils = {};       Cu.import('resource://mozmill/stdlib/utils.js', utils);
+var windows = {};     Cu.import('resource://mozmill/modules/windows.js', windows);
 
 // This is a useful "check" timer. See utils.js, good for debugging
 if (DEBUG) {
@@ -287,149 +288,11 @@ timer.prototype.end = function () {
 
 // Initialization
 
-// Observer when a new top-level window is ready
-var windowReadyObserver = {
-  observe: function (aSubject, aTopic, aData) {
-    attachEventListeners(aSubject);
-  }
-};
-
-
-// Observer when a top-level window is closed
-var windowCloseObserver = {
-  observe: function (aSubject, aTopic, aData) {
-    controller.windowMap.remove(utils.getWindowId(aSubject));
-  }
-};
-
-
-/**
- * Attach event listeners
- *
- * @param {ChromeWindow} aWindow
- *        Window to attach listeners on.
- */
-function attachEventListeners(aWindow) {
-  // These are the event handlers
-  var pageShowHandler = function (aEvent) {
-    var doc = aEvent.originalTarget;
-
-    // Only update the flag if we have a document as target
-    // see https://bugzilla.mozilla.org/show_bug.cgi?id=690829
-    if ("defaultView" in doc) {
-      var id = utils.getWindowId(doc.defaultView);
-      controller.windowMap.update(id, "loaded", true);
-      //dump("*** pageshow event: " + id + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
-    }
-
-    // We need to add/remove the unload/pagehide event listeners to preserve caching.
-    aWindow.getBrowser().addEventListener("beforeunload", beforeUnloadHandler, true);
-    aWindow.getBrowser().addEventListener("pagehide", pageHideHandler, true);
-  };
-
-  var DOMContentLoadedHandler = function (aEvent) {
-    var doc = aEvent.originalTarget;
-
-    var errorRegex = /about:.+(error)|(blocked)\?/;
-    if (errorRegex.exec(doc.baseURI)) {
-      // Wait about 1s to be sure the DOM is ready
-      utils.sleep(1000);
-
-      // Only update the flag if we have a document as target
-      if ("defaultView" in doc) {
-        var id = utils.getWindowId(doc.defaultView);
-        controller.windowMap.update(id, "loaded", true);
-        //dump("*** DOMContentLoaded event: " + id + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
-      }
-
-      // We need to add/remove the unload event listener to preserve caching.
-      aWindow.getBrowser().addEventListener("beforeunload", beforeUnloadHandler, true);
-    }
-  };
-
-  // beforeunload is still needed because pagehide doesn't fire before the page is unloaded.
-  // still use pagehide for cases when beforeunload doesn't get fired
-  var beforeUnloadHandler = function (aEvent) {
-    var doc = aEvent.originalTarget;
-
-    // Only update the flag if we have a document as target
-    if ("defaultView" in doc) {
-      var id = utils.getWindowId(doc.defaultView);
-      controller.windowMap.update(id, "loaded", false);
-      //dump("*** beforeunload event: " + id + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
-    }
-
-    aWindow.getBrowser().removeEventListener("beforeunload", beforeUnloadHandler, true);
-  };
-
-  var pageHideHandler = function (aEvent) {
-    // If event.persisted is false, the beforeUnloadHandler should fire
-    // and there is no need for this event handler.
-    if (aEvent.persisted) {
-      var doc = aEvent.originalTarget;
-
-      // Only update the flag if we have a document as target
-      if ("defaultView" in doc) {
-        var id = utils.getWindowId(doc.defaultView);
-        controller.windowMap.update(id, "loaded", false);
-        //dump("*** pagehide event: " + id + ", " + doc.location + ", baseURI=" + doc.baseURI + "\n");
-      }
-
-      aWindow.getBrowser().removeEventListener("beforeunload", beforeUnloadHandler, true);
-    }
-  };
-
-  var onWindowLoaded = function (aEvent) {
-    controller.windowMap.update(utils.getWindowId(aWindow), "loaded", true);
-
-    var browser = ("getBrowser" in aWindow) ? aWindow.getBrowser() : null;
-    if (browser) {
-      // Page is ready
-      browser.addEventListener("pageshow", pageShowHandler, true);
-
-      // Note: Error pages will never fire a "pageshow" event. For those we
-      // have to wait for the "DOMContentLoaded" event. That's the final state.
-      // Error pages will always have a baseURI starting with
-      // "about:" followed by "error" or "blocked".
-      browser.addEventListener("DOMContentLoaded", DOMContentLoadedHandler, true);
-
-      // Leave page (use caching)
-      browser.addEventListener("pagehide", pageHideHandler, true);
-    }
-  }
-
-  // Add the event handlers to the tabbedbrowser once its window has loaded
-  if (aWindow.content) {
-    onWindowLoaded();
-  } else {
-    aWindow.addEventListener("load", onWindowLoaded, false);
-  }
-}
-
 /**
  * Initialize Mozmill
  */
 function initialize() {
-  // Activate observer for new top level windows
-  var observerService = Cc["@mozilla.org/observer-service;1"].
-                        getService(Ci.nsIObserverService);
-  observerService.addObserver(windowReadyObserver, "toplevel-window-ready", false);
-  observerService.addObserver(windowCloseObserver, "outer-window-destroyed", false);
-
-  // Attach event listeners to all already open top-level windows
-  var enumerator = Cc["@mozilla.org/appshell/window-mediator;1"].
-                   getService(Ci.nsIWindowMediator).getEnumerator("");
-  while (enumerator.hasMoreElements()) {
-    var win = enumerator.getNext();
-
-    // For top-level windows which are already open set the loaded state
-    // to the current readyState. For slowly loading windows (like for debug
-    // builds) it will be overwritten again by the onload listener later.
-    var loaded = (win.document.readyState === 'complete');
-    controller.windowMap.update(utils.getWindowId(win), "loaded", loaded);
-
-    attachEventListeners(win);
-  }
+  windows.init();
 }
 
 initialize();
