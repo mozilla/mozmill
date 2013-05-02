@@ -65,6 +65,11 @@ Sockets.Client.prototype = {
   },
 
   close : function () {
+    if (this.timer) {
+      this.timer.cancel();
+      this.timer = null;
+    }
+
     return NSS.Sockets.PR_Close(this.fd);
   }
 };
