@@ -82,8 +82,11 @@ function MozMillElement(locatorType, locator, args) {
   this._locatorType = locatorType;
   this._locator = locator;
   this._element = args["element"];
-  this._document = args["document"];
   this._owner = args["owner"];
+
+  this._document = this._element ? this._element.ownerDocument : args["document"];
+  this._defaultView = this._document ? this._document.defaultView : null;
+
   // Used to maintain backwards compatibility with controller.js
   this.isElement = true;
 }
@@ -95,6 +98,13 @@ MozMillElement.isType = function (node) {
 
 // This getter is the magic behind lazy loading (note distinction between _element and element)
 MozMillElement.prototype.__defineGetter__("element", function () {
+  // If the document is invalid (e.g. reload of the page), invalidate the cached
+  // element and update the document cache
+  if (this._defaultView && this._defaultView.document !== this._document) {
+    this._document = this._defaultView.document;
+    this._element = undefined;
+  }
+
   if (this._element == undefined) {
     if (elementslib[this._locatorType]) {
       this._element = elementslib[this._locatorType](this._document, this._locator);
