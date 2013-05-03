@@ -401,331 +401,349 @@ MozMillElement.prototype.dispatchEvent = function (eventType, canBubble, modifie
 };
 
 
-//---------------------------------------------------------------------------------------------------------------------------------------
-
-
 /**
- * MozMillCheckBox
- * Checkbox element, inherits from MozMillElement
+ * MozMillCheckBox, which inherits from MozMillElement
  */
-MozMillCheckBox.prototype = new MozMillElement();
-MozMillCheckBox.prototype.parent = MozMillElement.prototype;
-MozMillCheckBox.prototype.constructor = MozMillCheckBox;
 function MozMillCheckBox(locatorType, locator, args) {
-  this.parent.constructor.call(this, locatorType, locator, args);
+  MozMillElement.call(this, locatorType, locator, args);
 }
 
-// Static method returns true if node is this type of element
-MozMillCheckBox.isType = function (node) {
-  if ((node.localName.toLowerCase() == "input" && node.getAttribute("type") == "checkbox") ||
-      (node.localName.toLowerCase() == 'toolbarbutton' && node.getAttribute('type') == 'checkbox') ||
-      (node.localName.toLowerCase() == 'checkbox')) {
-    return true;
+
+MozMillCheckBox.prototype = Object.create(MozMillElement.prototype, {
+  check : {
+    /**
+     * Enable/Disable a checkbox depending on the target state
+     *
+     * @param {boolean} state State to set
+     * @return {boolean} Success state
+     */
+    value : function MMCB_check(state) {
+      var result = false;
+
+      if (!this.element) {
+        throw new Error("could not find element " + this.getInfo());
+      }
+
+      // If we have a XUL element, unwrap its XPCNativeWrapper
+      if (this.element.namespaceURI == NAMESPACE_XUL) {
+        this.element = utils.unwrapNode(this.element);
+      }
+
+      state = (typeof(state) == "boolean") ? state : false;
+      if (state != this.element.checked) {
+        this.click();
+        var element = this.element;
+
+        utils.waitFor(function () {
+          return element.checked == state;
+        }, "Checkbox " + this.getInfo() + " could not be checked/unchecked", 500);
+
+        result = true;
+      }
+
+      broker.pass({'function':'MozMillCheckBox.check(' + this.getInfo() +
+                   ', state: ' + state + ')'});
+
+      return result;
+    }
   }
-
-  return false;
-};
-
-/**
- * Enable/Disable a checkbox depending on the target state
- */
-MozMillCheckBox.prototype.check = function (state) {
-  var result = false;
-
-  if (!this.element) {
-    throw new Error("could not find element " + this.getInfo());
-  }
-
-  // If we have a XUL element, unwrap its XPCNativeWrapper
-  if (this.element.namespaceURI == NAMESPACE_XUL) {
-    this.element = utils.unwrapNode(this.element);
-  }
-
-  state = (typeof(state) == "boolean") ? state : false;
-  if (state != this.element.checked) {
-    this.click();
-    var element = this.element;
-
-    utils.waitFor(function () {
-      return element.checked == state;
-    }, "Checkbox " + this.getInfo() + " could not be checked/unchecked", 500);
-
-    result = true;
-  }
-
-  broker.pass({'function':'MozMillCheckBox.check(' + this.getInfo() +
-               ', state: ' + state + ')'});
-  return result;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------
+});
 
 
 /**
- * MozMillRadio
- * Radio button inherits from MozMillElement
+ * Returns true if node is of type MozMillCheckBox
+ *
+ * @static
+ * @param {DOMNode} node Node to check for its type
+ * @return {boolean} True if node is of type checkbox
  */
-MozMillRadio.prototype = new MozMillElement();
-MozMillRadio.prototype.parent = MozMillElement.prototype;
-MozMillRadio.prototype.constructor = MozMillRadio;
+MozMillCheckBox.isType = function MMCB_isType(node) {
+  return ((node.localName.toLowerCase() == "input" && node.getAttribute("type") == "checkbox") ||
+    (node.localName.toLowerCase() == 'toolbarbutton' && node.getAttribute('type') == 'checkbox') ||
+    (node.localName.toLowerCase() == 'checkbox'));
+};
+
+
+/**
+ * MozMillRadio, which inherits from MozMillElement
+ */
 function MozMillRadio(locatorType, locator, args) {
-  this.parent.constructor.call(this, locatorType, locator, args);
+  MozMillElement.call(this, locatorType, locator, args);
 }
 
-// Static method returns true if node is this type of element
-MozMillRadio.isType = function (node) {
-  if ((node.localName.toLowerCase() == 'input' && node.getAttribute('type') == 'radio') ||
-      (node.localName.toLowerCase() == 'toolbarbutton' && node.getAttribute('type') == 'radio') ||
-      (node.localName.toLowerCase() == 'radio') ||
-      (node.localName.toLowerCase() == 'radiogroup')) {
-    return true;
-  }
 
-  return false;
-};
+MozMillRadio.prototype = Object.create(MozMillElement.prototype, {
+  select : {
+    /**
+     * Select the given radio button
+     *
+     * @param {number} [index=0]
+     *        Specifies which radio button in the group to select (only
+     *        applicable to radiogroup elements)
+     * @return {boolean} Success state
+     */
+    value : function MMR_select(index) {
+      if (!this.element) {
+        throw new Error("could not find element " + this.getInfo());
+      }
 
-/**
- * Select the given radio button
- *
- * index - Specifies which radio button in the group to select (only applicable to radiogroup elements)
- *         Defaults to the first radio button in the group
- */
-MozMillRadio.prototype.select = function (index) {
-  if (!this.element) {
-    throw new Error("could not find element " + this.getInfo());
-  }
+      if (this.element.localName.toLowerCase() == "radiogroup") {
+        var element = this.element.getElementsByTagName("radio")[index || 0];
+        new MozMillRadio("Elem", element).click();
+      } else {
+        var element = this.element;
+        this.click();
+      }
 
-  if (this.element.localName.toLowerCase() == "radiogroup") {
-    var element = this.element.getElementsByTagName("radio")[index || 0];
-    new MozMillRadio("Elem", element).click();
-  } else {
-    var element = this.element;
-    this.click();
-  }
+      utils.waitFor(function () {
+        // If we have a XUL element, unwrap its XPCNativeWrapper
+        if (element.namespaceURI == NAMESPACE_XUL) {
+          element = utils.unwrapNode(element);
+          return element.selected == true;
+        }
 
-  utils.waitFor(function () {
-    // If we have a XUL element, unwrap its XPCNativeWrapper
-    if (element.namespaceURI == NAMESPACE_XUL) {
-      element = utils.unwrapNode(element);
-      return element.selected == true;
+        return element.checked == true;
+      }, "Radio button " + this.getInfo() + " could not be selected", 500);
+
+      broker.pass({'function':'MozMillRadio.select(' + this.getInfo() + ')'});
+
+      return true;
     }
-
-    return element.checked == true;
-  }, "Radio button " + this.getInfo() + " could not be selected", 500);
-
-  broker.pass({'function':'MozMillRadio.select(' + this.getInfo() + ')'});
-
-  return true;
-};
-
-//----------------------------------------------------------------------------------------------------------------------------------------
+  }
+});
 
 
 /**
- * MozMillDropList
- * DropList inherits from MozMillElement
+ * Returns true if node is of type MozMillRadio
+ *
+ * @static
+ * @param {DOMNode} node Node to check for its type
+ * @return {boolean} True if node is of type radio
  */
-MozMillDropList.prototype = new MozMillElement();
-MozMillDropList.prototype.parent = MozMillElement.prototype;
-MozMillDropList.prototype.constructor = MozMillDropList;
+MozMillRadio.isType = function MMR_isType(node) {
+  return ((node.localName.toLowerCase() == 'input' && node.getAttribute('type') == 'radio') ||
+    (node.localName.toLowerCase() == 'toolbarbutton' && node.getAttribute('type') == 'radio') ||
+    (node.localName.toLowerCase() == 'radio') ||
+    (node.localName.toLowerCase() == 'radiogroup'));
+};
+
+
+/**
+ * MozMillDropList, which inherits from MozMillElement
+ */
 function MozMillDropList(locatorType, locator, args) {
-  this.parent.constructor.call(this, locatorType, locator, args);
-};
+  MozMillElement.call(this, locatorType, locator, args);
+}
 
-// Static method returns true if node is this type of element
-MozMillDropList.isType = function (node) {
-  if ((node.localName.toLowerCase() == 'toolbarbutton' && (node.getAttribute('type') == 'menu' || node.getAttribute('type') == 'menu-button')) ||
-      (node.localName.toLowerCase() == 'menu') ||
-      (node.localName.toLowerCase() == 'menulist') ||
-      (node.localName.toLowerCase() == 'select' )) {
-    return true;
-  }
 
-  return false;
-};
-
-/* Select the specified option and trigger the relevant events of the element */
-MozMillDropList.prototype.select = function (indx, option, value) {
-  if (!this.element){
-    throw new Error("Could not find element " + this.getInfo());
-  }
-
-  //if we have a select drop down
-  if (this.element.localName.toLowerCase() == "select"){
-    var item = null;
-
-    // The selected item should be set via its index
-    if (indx != undefined) {
-      // Resetting a menulist has to be handled separately
-      if (indx == -1) {
-        this.dispatchEvent('focus', false);
-        this.element.selectedIndex = indx;
-        this.dispatchEvent('change', true);
-
-        broker.pass({'function':'MozMillDropList.select()'});
-
-        return true;
-      } else {
-        item = this.element.options.item(indx);
+MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
+  select : {
+    /**
+     * Select the specified option and trigger the relevant events of the element
+     * @return {boolean}
+     */
+    value : function MMDL_select(indx, option, value) {
+      if (!this.element){
+        throw new Error("Could not find element " + this.getInfo());
       }
-    } else {
-      for (var i = 0; i < this.element.options.length; i++) {
-        var entry = this.element.options.item(i);
-        if (option != undefined && entry.innerHTML == option ||
-            value != undefined && entry.value == value) {
-          item = entry;
-          break;
+
+      //if we have a select drop down
+      if (this.element.localName.toLowerCase() == "select"){
+        var item = null;
+
+        // The selected item should be set via its index
+        if (indx != undefined) {
+          // Resetting a menulist has to be handled separately
+          if (indx == -1) {
+            this.dispatchEvent('focus', false);
+            this.element.selectedIndex = indx;
+            this.dispatchEvent('change', true);
+
+            broker.pass({'function':'MozMillDropList.select()'});
+
+            return true;
+          } else {
+            item = this.element.options.item(indx);
+          }
+        } else {
+          for (var i = 0; i < this.element.options.length; i++) {
+            var entry = this.element.options.item(i);
+            if (option != undefined && entry.innerHTML == option ||
+              value != undefined && entry.value == value) {
+              item = entry;
+              break;
+            }
+          }
+        }
+
+        // Click the item
+        try {
+          // EventUtils.synthesizeMouse doesn't work.
+          this.dispatchEvent('focus', false);
+          item.selected = true;
+          this.dispatchEvent('change', true);
+
+          broker.pass({'function':'MozMillDropList.select()'});
+
+          return true;
+        } catch (e) {
+          throw new Error("No item selected for element " + this.getInfo());
+        }
+      }
+      //if we have a xul menupopup select accordingly
+      else if (this.element.namespaceURI.toLowerCase() == NAMESPACE_XUL) {
+        var ownerDoc = this.element.ownerDocument;
+        // Unwrap the XUL element's XPCNativeWrapper
+        this.element = utils.unwrapNode(this.element);
+        // Get the list of menuitems
+        menuitems = this.element.getElementsByTagName("menupopup")[0].getElementsByTagName("menuitem");
+
+        var item = null;
+
+        if (indx != undefined) {
+          if (indx == -1) {
+            this.dispatchEvent('focus', false);
+            this.element.boxObject.QueryInterface(Ci.nsIMenuBoxObject).activeChild = null;
+            this.dispatchEvent('change', true);
+
+            broker.pass({'function':'MozMillDropList.select()'});
+
+            return true;
+          } else {
+            item = menuitems[indx];
+          }
+        } else {
+          for (var i = 0; i < menuitems.length; i++) {
+            var entry = menuitems[i];
+            if (option != undefined && entry.label == option ||
+              value != undefined && entry.value == value) {
+              item = entry;
+              break;
+            }
+          }
+        }
+
+        // Click the item
+        try {
+          EventUtils.synthesizeMouse(this.element, 1, 1, {}, ownerDoc.defaultView);
+
+          // Scroll down until item is visible
+          for (var i = 0; i <= menuitems.length; ++i) {
+            var selected = this.element.boxObject.QueryInterface(Ci.nsIMenuBoxObject).activeChild;
+            if (item == selected) {
+              break;
+            }
+            EventUtils.synthesizeKey("VK_DOWN", {}, ownerDoc.defaultView);
+          }
+
+          EventUtils.synthesizeMouse(item, 1, 1, {}, ownerDoc.defaultView);
+
+          broker.pass({'function':'MozMillDropList.select()'});
+
+          return true;
+        } catch (e) {
+          throw new Error('No item selected for element ' + this.getInfo());
         }
       }
     }
-
-    // Click the item
-    try {
-      // EventUtils.synthesizeMouse doesn't work.
-      this.dispatchEvent('focus', false);
-      item.selected = true;
-      this.dispatchEvent('change', true);
-
-      broker.pass({'function':'MozMillDropList.select()'});
-
-      return true;
-    } catch (e) {
-      throw new Error("No item selected for element " + this.getInfo());
-    }
   }
-  //if we have a xul menupopup select accordingly
-  else if (this.element.namespaceURI.toLowerCase() == NAMESPACE_XUL) {
-    var ownerDoc = this.element.ownerDocument;
-    // Unwrap the XUL element's XPCNativeWrapper
-    this.element = utils.unwrapNode(this.element);
-    // Get the list of menuitems
-    menuitems = this.element.getElementsByTagName("menupopup")[0].getElementsByTagName("menuitem");
-
-    var item = null;
-
-    if (indx != undefined) {
-      if (indx == -1) {
-        this.dispatchEvent('focus', false);
-        this.element.boxObject.QueryInterface(Ci.nsIMenuBoxObject).activeChild = null;
-        this.dispatchEvent('change', true);
-
-        broker.pass({'function':'MozMillDropList.select()'});
-
-        return true;
-      } else {
-        item = menuitems[indx];
-      }
-    } else {
-      for (var i = 0; i < menuitems.length; i++) {
-        var entry = menuitems[i];
-        if (option != undefined && entry.label == option ||
-            value != undefined && entry.value == value) {
-          item = entry;
-          break;
-        }
-      }
-    }
-
-    // Click the item
-    try {
-      EventUtils.synthesizeMouse(this.element, 1, 1, {}, ownerDoc.defaultView);
-
-      // Scroll down until item is visible
-      for (var i = 0; i <= menuitems.length; ++i) {
-        var selected = this.element.boxObject.QueryInterface(Ci.nsIMenuBoxObject).activeChild;
-        if (item == selected) {
-          break;
-        }
-        EventUtils.synthesizeKey("VK_DOWN", {}, ownerDoc.defaultView);
-      }
-
-      EventUtils.synthesizeMouse(item, 1, 1, {}, ownerDoc.defaultView);
-
-      broker.pass({'function':'MozMillDropList.select()'});
-
-      return true;
-    } catch (e) {
-      throw new Error('No item selected for element ' + this.getInfo());
-    }
-  }
-};
-
-
-//----------------------------------------------------------------------------------------------------------------------------------------
+});
 
 
 /**
- * MozMillTextBox
- * TextBox inherits from MozMillElement
- */
-MozMillTextBox.prototype = new MozMillElement();
-MozMillTextBox.prototype.parent = MozMillElement.prototype;
-MozMillTextBox.prototype.constructor = MozMillTextBox;
-function MozMillTextBox(locatorType, locator, args) {
-  this.parent.constructor.call(this, locatorType, locator, args);
-};
-
-// Static method returns true if node is this type of element
-MozMillTextBox.isType = function (node) {
-  if ((node.localName.toLowerCase() == 'input' && (node.getAttribute('type') == 'text' || node.getAttribute('type') == 'search')) ||
-      (node.localName.toLowerCase() == 'textarea') ||
-      (node.localName.toLowerCase() == 'textbox')) {
-    return true;
-  }
-
-  return false;
-};
-
-/**
- * Synthesize keypress events for each character on the given element
+ * Returns true if node is of type MozMillDropList
  *
- * @param {string} aText
- *        The text to send as single keypress events
- * @param {object} aModifiers
- *        Information about the modifier keys to send
- *        Elements: accelKey   - Hold down the accelerator key (ctrl/meta)
- *                               [optional - default: false]
- *                  altKey     - Hold down the alt key
- *                              [optional - default: false]
- *                  ctrlKey    - Hold down the ctrl key
- *                               [optional - default: false]
- *                  metaKey    - Hold down the meta key (command key on Mac)
- *                               [optional - default: false]
- *                  shiftKey   - Hold down the shift key
- *                               [optional - default: false]
- * @param {object} aExpectedEvent
- *        Information about the expected event to occur
- *        Elements: target     - Element which should receive the event
- *                               [optional - default: current element]
- *                  type       - Type of the expected key event
+ * @static
+ * @param {DOMNode} node Node to check for its type
+ * @return {boolean} True if node is of type dropdown list
  */
-MozMillTextBox.prototype.sendKeys = function (aText, aModifiers, aExpectedEvent) {
-  if (!this.element) {
-    throw new Error("could not find element " + this.getInfo());
-  }
+MozMillDropList.isType = function MMR_isType(node) {
+  return ((node.localName.toLowerCase() == 'toolbarbutton' &&
+    (node.getAttribute('type') == 'menu' || node.getAttribute('type') == 'menu-button')) ||
+    (node.localName.toLowerCase() == 'menu') ||
+    (node.localName.toLowerCase() == 'menulist') ||
+    (node.localName.toLowerCase() == 'select' ));
+};
 
-  var element = this.element;
-  Array.forEach(aText, function (letter) {
-    var win = element.ownerDocument ? element.ownerDocument.defaultView
-                                    : element;
-    element.focus();
 
-    if (aExpectedEvent) {
-      if (!aExpectedEvent.type) {
-        throw new Error(arguments.callee.name + ": Expected event type not specified");
+/**
+ * MozMillTextBox, which inherits from MozMillElement
+ */
+function MozMillTextBox(locatorType, locator, args) {
+  MozMillElement.call(this, locatorType, locator, args);
+}
+
+
+MozMillTextBox.prototype = Object.create(MozMillElement.prototype, {
+  sendKeys : {
+    /**
+     * Synthesize keypress events for each character on the given element
+     *
+     * @param {string} aText
+     *        The text to send as single keypress events
+     * @param {object} aModifiers
+     *        Information about the modifier keys to send
+     *        Elements: accelKey   - Hold down the accelerator key (ctrl/meta)
+     *                               [optional - default: false]
+     *                  altKey     - Hold down the alt key
+     *                              [optional - default: false]
+     *                  ctrlKey    - Hold down the ctrl key
+     *                               [optional - default: false]
+     *                  metaKey    - Hold down the meta key (command key on Mac)
+     *                               [optional - default: false]
+     *                  shiftKey   - Hold down the shift key
+     *                               [optional - default: false]
+     * @param {object} aExpectedEvent
+     *        Information about the expected event to occur
+     *        Elements: target     - Element which should receive the event
+     *                               [optional - default: current element]
+     *                  type       - Type of the expected key event
+     * @return {boolean} Success state
+     */
+    value : function MMTB_sendKeys(aText, aModifiers, aExpectedEvent) {
+      if (!this.element) {
+        throw new Error("could not find element " + this.getInfo());
       }
 
-      var target = aExpectedEvent.target ? aExpectedEvent.target.getNode()
-                                         : element;
-      EventUtils.synthesizeKeyExpectEvent(letter, aModifiers || {}, target,
-                                          aExpectedEvent.type,
-                                          "MozMillTextBox.sendKeys()", win);
-    } else {
-      EventUtils.synthesizeKey(letter, aModifiers || {}, win);
+      var element = this.element;
+      Array.forEach(aText, function (letter) {
+        var win = element.ownerDocument ? element.ownerDocument.defaultView
+          : element;
+        element.focus();
+
+        if (aExpectedEvent) {
+          if (!aExpectedEvent.type) {
+            throw new Error(arguments.callee.name + ": Expected event type not specified");
+          }
+
+          var target = aExpectedEvent.target ? aExpectedEvent.target.getNode()
+            : element;
+          EventUtils.synthesizeKeyExpectEvent(letter, aModifiers || {}, target,
+            aExpectedEvent.type,
+            "MozMillTextBox.sendKeys()", win);
+        } else {
+          EventUtils.synthesizeKey(letter, aModifiers || {}, win);
+        }
+      });
+
+      broker.pass({'function':'MozMillTextBox.type()'});
+
+      return true;
     }
-  });
+  }
+});
 
-  broker.pass({'function':'MozMillTextBox.type()'});
 
-  return true;
+/**
+ * Returns true if node is of type MozMillTextBox
+ *
+ * @static
+ * @param {DOMNode} node Node to check for its type
+ * @return {boolean} True if node is of type textbox
+ */
+MozMillTextBox.isType = function MMR_isType(node) {
+  return ((node.localName.toLowerCase() == 'input' &&
+    (node.getAttribute('type') == 'text' || node.getAttribute('type') == 'search')) ||
+    (node.localName.toLowerCase() == 'textarea') ||
+    (node.localName.toLowerCase() == 'textbox'));
 };
