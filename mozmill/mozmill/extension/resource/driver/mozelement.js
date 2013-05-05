@@ -28,22 +28,24 @@ var subclasses = [MozMillCheckBox, MozMillRadio, MozMillDropList, MozMillTextBox
  * The type of the element is automatically determined
  */
 function createInstance(locatorType, locator, elem, document) {
+  var args = { "document": document, "element": elem };
+
+  // If we already have an element lets determine the best MozMillElement type
   if (elem) {
-    var args = { "element": elem,
-                 "document": document };
     for (var i = 0; i < subclasses.length; ++i) {
       if (subclasses[i].isType(elem)) {
         return new subclasses[i](locatorType, locator, args);
       }
     }
-
-    if (MozMillElement.isType(elem)) {
-      return new MozMillElement(locatorType, locator, args);
-    }
   }
 
-  throw new Error("could not find element " + locatorType + ": " + locator);
-};
+  // By default we create a base MozMillElement
+  if (MozMillElement.isType(elem)) {
+    return new MozMillElement(locatorType, locator, args);
+  }
+
+  throw new Error("Unsupported element type " + locatorType + ": " + locator);
+}
 
 var Elem = function (node) {
   return createInstance("Elem", node, node);
