@@ -15,12 +15,14 @@ const TIMEOUT_SHUTDOWN_HTTPD = 15000;
 
 Cu.import('resource://mozmill/stdlib/httpd.js');
 
+var broker = {};  Cu.import('resource://mozmill/driver/msgbroker.js', broker);
+var assertions = {}; Cu.import('resource://mozmill/modules/assertions.js', assertions);
 var os = {};      Cu.import('resource://mozmill/stdlib/os.js', os);
 var strings = {}; Cu.import('resource://mozmill/stdlib/strings.js', strings);
 var arrays = {};  Cu.import('resource://mozmill/stdlib/arrays.js', arrays);
 var withs = {};   Cu.import('resource://mozmill/stdlib/withs.js', withs);
 var utils = {};   Cu.import('resource://mozmill/stdlib/utils.js', utils);
-var broker = {};  Cu.import('resource://mozmill/driver/msgbroker.js', broker);
+
 var securableModule = {};  Cu.import('resource://mozmill/stdlib/securable-module.js', securableModule);
 
 var aConsoleService = Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService);
@@ -70,7 +72,6 @@ var loadFile = function (path, collector) {
   var uri = ios.newFileURI(file).spec;
 
   loadTestResources();
-  var assertions = moduleLoader.require("assertions");
 
   var module = {
     assert: new assertions.Assert(),

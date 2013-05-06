@@ -2,11 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
+var EXPORTED_SYMBOLS = ['findCallerFrame'];
+
+
 /**
  * @namespace Defines utility methods for handling stack frames
  */
-var stack = exports;
-
 
 /**
  * Find the frame to use for logging the test result. If a start frame has
@@ -40,6 +41,3 @@ function findCallerFrame(aStartFrame) {
 
   return frame;
 }
-
-// Export of functions
-stack.findCallerFrame = findCallerFrame;

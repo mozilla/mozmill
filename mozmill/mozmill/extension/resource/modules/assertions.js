@@ -2,18 +2,17 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-// Use the frame module of Mozmill to raise non-fatal failures
-var mozmillFrame = {};
-Cu.import('resource://mozmill/modules/frame.js', mozmillFrame);
+var EXPORTED_SYMBOLS = ['Assert', 'Expect'];
 
-var stack = require('stack');
+const Cu = Components.utils;
+
+var broker = {}; Cu.import('resource://mozmill/driver/msgbroker.js', broker);
+var stack = {}; Cu.import('resource://mozmill/modules/stack.js', stack);
 
 /**
  * @name assertions
  * @namespace Defines expect and assert methods to be used for assertions.
  */
-var assertions = exports;
-
 
 /* non-fatal assertions */
 var Expect = function () {}
@@ -153,7 +152,7 @@ Expect.prototype = {
    *   </dl>
    */
   _logFail: function Expect__logFail(aResult) {
-    mozmillFrame.events.fail({fail: aResult});
+    broker.fail({fail: aResult});
   },
 
   /**
@@ -173,7 +172,7 @@ Expect.prototype = {
    *   </dl>
    */
   _logPass: function Expect__logPass(aResult) {
-    mozmillFrame.events.pass({pass: aResult});
+    broker.pass({pass: aResult});
   },
 
   /**
@@ -571,8 +570,3 @@ Assert.prototype._logFail = function Assert__logFail(aResult) {
                            aResult.lineNumber,
                            aResult.name);
 }
-
-
-// Export of variables
-assertions.Expect = Expect;
-assertions.Assert = Assert;
