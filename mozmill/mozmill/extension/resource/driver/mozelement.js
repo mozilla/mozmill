@@ -72,7 +72,12 @@ var Name = function (document, nName) {
 };
 
 var Lookup = function (document, expression) {
-  return createInstance("Lookup", expression, elementslib.Lookup(document, expression), document);
+  var elem = createInstance("Lookup", expression, elementslib.Lookup(document, expression), document);
+
+  // Bug 864268 - Expose the expression property to maintain backwards compatibility
+  elem.expression = elem._locator;
+
+  return elem;
 };
 
 /**
