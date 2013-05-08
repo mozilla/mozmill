@@ -5,7 +5,7 @@
    <Description about="urn:mozilla:install-manifest">
      <em:id>mozmill@mozilla.com</em:id>
      <em:name>Mozmill</em:name>
-     <em:version>2.0rc2</em:version>
+     <em:version>2.0rc3</em:version>
      <em:description>UI Automation tool for Mozilla applications</em:description>
      <em:unpack>true</em:unpack>
 
