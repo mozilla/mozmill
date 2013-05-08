@@ -2,8 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-// Include necessary modules
-const { Expect } = require("assertions");
+var assertions = {}; Cu.import('resource://mozmill/modules/assertions.js', assertions);
 
 const TEST_DATA = [
   { fun: "pass", params: ["has to pass"], result: true},
@@ -71,7 +70,7 @@ function Err() {
  * Expect class for assertions which doesn't add failing and passing frames
  */
 var SoftExpect = function() {}
-SoftExpect.prototype = new Expect();
+SoftExpect.prototype = new assertions.Expect();
 SoftExpect.prototype.constructor = SoftExpect;
 
 SoftExpect.prototype._logPass = function SoftExpect__logPass(aResult) {
