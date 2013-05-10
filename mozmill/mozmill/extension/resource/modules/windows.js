@@ -85,22 +85,21 @@ var map = {
    * Update the internal loaded state of the given content window. To identify
    * an active (re)load action we make use of an uuid.
    *
-   * @param {Window} aWindow - The window to update
+   * @param {Window} aId - The outer id of the window to update
    * @param {Boolean} aIsLoaded - Has the window been loaded
    */
-  updatePageLoadStatus : function (aWindow, aIsLoaded) {
-    var id = utils.getWindowId(aWindow);
-    this.update(id, "loaded", aIsLoaded);
+  updatePageLoadStatus : function (aId, aIsLoaded) {
+    this.update(aId, "loaded", aIsLoaded);
 
-    var uuid = this.getValue(id, "id_load_in_transition");
+    var uuid = this.getValue(aId, "id_load_in_transition");
 
     // If no uuid has been set yet or when the page gets unloaded create a new id
     if (!uuid || !aIsLoaded) {
       uuid = uuidgen.generateUUID();
-      this.update(id, "id_load_in_transition", uuid);
+      this.update(aId, "id_load_in_transition", uuid);
     }
 
-    // dump("*** Page status updated: id=" + id + ", loaded=" + aIsLoaded + ", load_uuid=" + uuid + "\n");
+    // dump("*** Page status updated: id=" + aId + ", loaded=" + aIsLoaded + ", uuid=" + uuid + "\n");
   },
 
   /**
@@ -108,25 +107,23 @@ var map = {
    * been successfully loaded or reloaded. An uuid allows us to wait for the next
    * load action triggered by e.g. controller.open().
    *
-   * @param {Window} aWindow - The content window to check
+   * @param {Window} aId - The outer id of the content window to check
    *
    * @returns {Boolean} True if the content window has been loaded
    */
-  hasPageLoaded : function (aWindow) {
-    var id = utils.getWindowId(aWindow);
+  hasPageLoaded : function (aId) {
+    var load_current = this.getValue(aId, "id_load_in_transition");
+    var load_handled = this.getValue(aId, "id_load_handled");
 
-    var load_current = this.getValue(id, "id_load_in_transition");
-    var load_handled = this.getValue(id, "id_load_handled");
-
-    var isLoaded = this.contains(id) && this.getValue(id, "loaded") &&
+    var isLoaded = this.contains(aId) && this.getValue(aId, "loaded") &&
                    (load_current !== load_handled);
 
     if (isLoaded) {
       // Backup the current uuid so we can check later if another page load happened.
-      this.update(id, "id_load_handled", load_current);
-
-      // dump("** Page has been finished loading: id=" + id + ", uuid=" + load_current + "\n");
+      this.update(aId, "id_load_handled", load_current);
     }
+
+    // dump("** Page has been finished loading: id=" + aId + ", status=" + isLoaded + ", uuid=" + load_current + "\n");
 
     return isLoaded;
   }
@@ -146,7 +143,7 @@ var windowCloseObserver = {
   observe: function (aSubject, aTopic, aData) {
     var id = utils.getWindowId(aSubject);
     map.remove(id);
-    // dump("*** DOMWindow close event: id=" + id + "\n");
+    // dump("*** 'close' event: id=" + id + "\n");
   }
 };
 
@@ -165,8 +162,9 @@ function attachEventListeners(aWindow) {
     // Only update the flag if we have a document as target
     // see https://bugzilla.mozilla.org/show_bug.cgi?id=690829
     if ("defaultView" in doc) {
-      // dump("*** pageshow event: baseURI=" + doc.baseURI + "\n");
-      map.updatePageLoadStatus(doc.defaultView, true);
+      var id = utils.getWindowId(doc.defaultView);
+      // dump("*** 'pageshow' event: id=" + id + ", baseURI=" + doc.baseURI + "\n");
+      map.updatePageLoadStatus(id, true);
     }
 
     // We need to add/remove the unload/pagehide event listeners to preserve caching.
@@ -184,8 +182,9 @@ function attachEventListeners(aWindow) {
 
       // Only update the flag if we have a document as target
       if ("defaultView" in doc) {
-        // dump("*** DOMContentLoaded event: baseURI=" + doc.baseURI + "\n");
-        map.updatePageLoadStatus(doc.defaultView, true);
+        var id = utils.getWindowId(doc.defaultView);
+        // dump("*** 'DOMContentLoaded' event: id=" + id + ", baseURI=" + doc.baseURI + "\n");
+        map.updatePageLoadStatus(id, true);
       }
 
       // We need to add/remove the unload event listener to preserve caching.
@@ -200,8 +199,9 @@ function attachEventListeners(aWindow) {
 
     // Only update the flag if we have a document as target
     if ("defaultView" in doc) {
-      // dump("*** beforeunload event: baseURI=" + doc.baseURI + "\n");
-      map.updatePageLoadStatus(doc.defaultView, false);
+      var id = utils.getWindowId(doc.defaultView);
+      // dump("*** 'beforeunload' event: id=" + id + ", baseURI=" + doc.baseURI + "\n");
+      map.updatePageLoadStatus(id, false);
     }
 
     aWindow.getBrowser().removeEventListener("beforeunload", beforeUnloadHandler, true);
@@ -215,8 +215,9 @@ function attachEventListeners(aWindow) {
 
       // Only update the flag if we have a document as target
       if ("defaultView" in doc) {
-        // dump("*** pagehide event: baseURI=" + doc.baseURI + "\n");
-        map.updatePageLoadStatus(doc.defaultView, false);
+        var id = utils.getWindowId(doc.defaultView);
+        // dump("*** 'pagehide' event: id=" + id + ", baseURI=" + doc.baseURI + "\n");
+        map.updatePageLoadStatus(id, false);
       }
 
       aWindow.getBrowser().removeEventListener("beforeunload", beforeUnloadHandler, true);
@@ -224,8 +225,9 @@ function attachEventListeners(aWindow) {
   };
 
   var onWindowLoaded = function (aEvent) {
-    // dump("*** DOMWindow load event: baseURI=" + aWindow.document.baseURI + "\n");
-    map.update(utils.getWindowId(aWindow), "loaded", true);
+    var id = utils.getWindowId(aWindow);
+    // dump("*** 'load' event: id=" + id + ", baseURI=" + aWindow.document.baseURI + "\n");
+    map.update(id, "loaded", true);
 
     // Check if we have a browser window. If that's the case attach handlers for tabs
     var browser = ("getBrowser" in aWindow) ? aWindow.getBrowser() : null;

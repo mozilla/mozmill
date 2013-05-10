@@ -966,7 +966,7 @@ function browserAdditions (controller) {
 
     // Wait until the content in the tab has been loaded
     this.waitFor(function () {
-      return windows.map.hasPageLoaded(win);
+      return windows.map.hasPageLoaded(utils.getWindowId(win));
     }, "controller.waitForPageLoad(): Timeout waiting for page loaded.",
         timeout, aInterval, this);
 
