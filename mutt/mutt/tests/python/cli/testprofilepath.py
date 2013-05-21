@@ -38,9 +38,11 @@ class TestProfilePath(unittest.TestCase):
         process = ProcessHandler(['mozmill',
                                   '-t', 'test_dummy.js',
                                   '--profile=testprofilepath'],
-                                 cwd=tempdir)
+                                 cwd=tempdir,
+                                 # stop mozmill from printing output to console
+                                 processOutputLine=[lambda line: None])
         process.run()
-        process.waitForFinish()
+        process.wait()
 
         self.assertNotEqual(process.proc.poll(), None)
 

@@ -27,7 +27,6 @@ class TestBug690154(unittest.TestCase):
     def test_JSON_structure(self):
         passes = 1
         self.path = self.make_test()
-        print self.path
 
         m = mozmill.MozMill.create()
         m.run([dict(path=self.path)])

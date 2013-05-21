@@ -22,9 +22,11 @@ class TestManifestTestsOptions(unittest.TestCase):
                                   '-t', os.path.join(testdir,
                                                      'test_module1.js'),
                                   '-m', os.path.join(testdir, 'example.ini')
-                                 ])
+                                 ],
+                                 # stop mozmill from printing output to console
+                                 processOutputLine=[lambda line: None])
         process.run()
-        process.waitForFinish()
+        process.wait()
 
         self.assertNotEqual(process.proc.poll(), 0,
                             'Parser error due to -t and -m are mutually exclusive')
