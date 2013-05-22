@@ -421,9 +421,6 @@ class MozMill(object):
                         self.report_disconnect()
                         self.stop_runner()
 
-            # do final reporting
-            self.finish()
-
             # stop the runner
             if frame:
                 self.stop_runner()
