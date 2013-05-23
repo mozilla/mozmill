@@ -4,14 +4,12 @@
 
 const { getEntity } = require("l10n");
 
-
-const DTD_FILE = "chrome://branding/locale/brand.dtd";
-
+const TEST_DATA = "chrome://branding/locale/brand.dtd";
 
 var test = function () {
   // Test a known entity
   try {
-    let value = getEntity([DTD_FILE], "vendorShortName");
+    let value = getEntity([TEST_DATA], "vendorShortName");
     expect.ok(value, "Localized content of a known entity has been retrieved");
   } catch (e) {
     expect.fail("Localized content of a known entity has not been retrieved");
@@ -19,7 +17,7 @@ var test = function () {
 
   // Test an invalid entity
   try {
-    getEntity([DTD_FILE], "test_entity");
+    getEntity([TEST_DATA], "test_entity");
     expect.fail("Localized content of an unknown entity has been retrieved");
   } catch (e) {
     expect.pass("Localized content of an unknown entity has not been retrieved");

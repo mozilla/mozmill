@@ -8,24 +8,24 @@
  * successive tests will fail because of an inappropriate shutdown of the server
  **/
 
-var setupModule = function () {
-  baseURL = collector.addHttpResource('../../_files/');
-  testPages = [
-    baseURL + 'complex.html',
-    baseURL + 'singlediv.html'
-  ];
+const BASE_URL = collector.addHttpResource("../../_files/");
+const TEST_DATA = [
+  BASE_URL + "complex.html",
+  BASE_URL + "singlediv.html"
+];
 
+var setupModule = function () {
   controller = mozmill.getBrowserController();
 }
 
 var testOpenLocalPages = function () {
-  testPages.forEach(function (aPage) {
+  TEST_DATA.forEach(function (aPage) {
     controller.open(aPage);
     controller.waitForPageLoad();
 
     controller.sleep(500);
   });
 
-  controller.open(testPages[0]);
+  controller.open(TEST_DATA[0]);
   controller.waitForPageLoad();
 }

@@ -2,7 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const TEST_FOLDER = collector.addHttpResource('../_files/');
+const BASE_URL = collector.addHttpResource("../_files/");
+const TEST_DATA = BASE_URL + "form.html";
 
 const TEST_STRINGS = [
   "tanowiących",
@@ -14,7 +15,7 @@ var setupModule = function () {
 };
 
 var test = function () {
-  controller.open(TEST_FOLDER + "form.html");
+  controller.open(TEST_DATA);
   controller.waitForPageLoad();
 
   var textbox = new elementslib.ID(controller.tabs.activeTab, "fname");

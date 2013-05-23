@@ -4,20 +4,21 @@
 
 var utils = {}; Cu.import('resource://mozmill/stdlib/utils.js', utils);
 
+const TEST_DATA = "data:image/jpeg;base64," +
+  "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFAQMAAAC3obSmAAAACXBIWXMAAA7DAAAOwwHH" +
+  "b6hkAAAABlBMVEX///8AAABVwtN+AAAAF0lEQVR4XgXAgQwAAAACsCOGEkbYDcH0BEIB" +
+  "SflcthkAAAAASUVORK5CYII=";
+
+const NAME = "smile5x5";
 
 /**
  * testScreenshotSaveCorruption
  * Saves a dataURL and reads back the saved file.
  */
 var testScreenshotSaveCorruption = function() {
-  const name = "smile5x5";
-
-  const smile5x5DataURL = "data:image/jpeg;base64," +
-    "iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFAQMAAAC3obSmAAAACXBIWXMAAA7DAAAOwwHHb6hkAAAA" +
-    "BlBMVEX///8AAABVwtN+AAAAF0lEQVR4XgXAgQwAAAACsCOGEkbYDcH0BEIBSflcthkAAAAASUVORK5CYII=";
 
   // Save dataURL to disk
-  var {filename, failure} = utils.saveDataURL(smile5x5DataURL, name);
+  var {filename, failure} = utils.saveDataURL(TEST_DATA, NAME);
 
   expect.ok(!failure, "No failure while saving dataURL.");
 
@@ -29,7 +30,7 @@ var testScreenshotSaveCorruption = function() {
   assert.ok(file.exists(), "File '" + file.path + "' exists.");
 
   var loadedDataURL = brodyFile2DataURL.getDataURLFromFile(file);
-  expect.equal(smile5x5DataURL, loadedDataURL, "DataURL has been saved correctly.");
+  expect.equal(TEST_DATA, loadedDataURL, "DataURL has been saved correctly.");
 
   file.remove(true);
 }

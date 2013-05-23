@@ -2,12 +2,14 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
+const TEST_DATA = "chrome://mozmill/content/test/test.xul";
+
 var setupModule = function () {
   controller = mozmill.getBrowserController();
 }
 
 var test = function () {
-  controller.open("chrome://mozmill/content/test/test.xul");
+  controller.open(TEST_DATA);
   controller.waitForPageLoad();
 
   let bar = new elementslib.ID(controller.window.document, "item1");

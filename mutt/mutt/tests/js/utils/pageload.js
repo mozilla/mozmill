@@ -2,13 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const TEST_FOLDER = collector.addHttpResource('../_files/');
-
-const LOCATIONS = [
+const BASE_URL = collector.addHttpResource("../_files/");
+const TEST_DATA = [
   // Normal pages
-  {url: TEST_FOLDER + "form.html", type: "ID", value: "fname"},
-  {url: TEST_FOLDER + "link.html", type: "ID", value: "link"},
-  {url: TEST_FOLDER + "singlediv.html", type: "ID", value: "test-div"},
+  {url: BASE_URL + "form.html", type: "ID", value: "fname"},
+  {url: BASE_URL + "link.html", type: "ID", value: "link"},
+  {url: BASE_URL + "singlediv.html", type: "ID", value: "test-div"},
 
   // FTP pages
   {url: "ftp://ftp.mozilla.org/pub/", type: "Link", value: "firefox" },
@@ -16,9 +15,11 @@ const LOCATIONS = [
   // Error pages
   {url: "https://mur.at", type: "ID", value: "cert_domain_link"},
   {url: "http://www.mozilla.org/firefox/its-a-trap.html", type: "ID", value: "ignoreWarningButton"},
-  {url: "http://www.mozilla.org/firefox/its-a-trap.html", type: "ID", value: "getMeOutButton"}
-];
+  {url: "http://www.mozilla.org/firefox/its-a-trap.html", type: "ID", value: "getMeOutButton"},
 
+  // Container page
+  {url: BASE_URL + "iframe.html", type: "ID", value: "iframe"}
+];
 
 var setupModule = function () {
   controller = mozmill.getBrowserController();
@@ -30,20 +31,21 @@ var testWaitForPageLoad = function () {
   /**
    * PART I - Check different types of pages
    */
-  LOCATIONS.forEach(function (location) {
-    controller.open(location.url);
+  // We specify test data pages above to check, omit Container page [7]
+  for (var n in [0, 1, 2, 3, 4, 5, 6]) {
+    controller.open(TEST_DATA[n].url);
     controller.waitForPageLoad();
 
     // Check that the expected element exists
-    var elem = new elementslib.MozMillElement(location.type, location.value,
+    var elem = new elementslib.MozMillElement(TEST_DATA[n].type, TEST_DATA[n].value,
                                               {document: controller.tabs.activeTab});
-    expect.ok(elem.exists(), "Element '" + location.value + "' has been found.");
-  });
+    expect.ok(elem.exists(), "Element '" + TEST_DATA[n].value + "' has been found.");
+  }
 
   /**
    * PART II - Test different parameter sets
    */
-  var location = LOCATIONS[0];
+  var location = TEST_DATA[0];
   for (var i = 0; i < 7; i++) {
     controller.open(location.url);
 
@@ -76,7 +78,7 @@ var testWaitForPageLoad = function () {
    * PART III - Check that we correctly handle timeouts for waitForPageLoad
    */
   try {
-    controller.open(LOCATIONS[0].url);
+    controller.open(TEST_DATA[0].url);
     controller.waitForPageLoad(0);
 
     throw new Error("controller.waitForPageLoad() not timed out for timeout=0.");
@@ -86,7 +88,7 @@ var testWaitForPageLoad = function () {
    * PART IV - Make sure we don't fail when clicking links on a page
    */
 
-  controller.open(LOCATIONS[1].url);
+  controller.open(TEST_DATA[1].url);
   controller.waitForPageLoad();
 
   var link = new elementslib.MozMillElement("Selector", "#link",
@@ -102,9 +104,8 @@ var testWaitForPageLoad = function () {
    * PART V - Loading an iFrame
    */
 
-  // Load the container page
-  var page = TEST_FOLDER + "iframe.html";
-  controller.open(page);
+  // Load the Container page
+  controller.open(TEST_DATA[7].url);
   controller.waitForPageLoad();
 
   // Get trigger element and the controller for the iFrame
@@ -125,20 +126,20 @@ var testWaitForPageLoad = function () {
    * PART VI - Loading a page in another tab should wait for its completion
    */
   var bkgndTabIndex = controller.tabs.activeTabIndex;
-  controller.open(LOCATIONS[1].url);
+  controller.open(TEST_DATA[1].url);
 
   // Open a new tab now
   controller.keypress(win, "t", {accelKey: true});
-  controller.open(LOCATIONS[0].url);
+  controller.open(TEST_DATA[0].url);
 
   // Wait for our old tab to load in the background
   controller.waitForPageLoad(controller.tabs.getTab(bkgndTabIndex));
 
-  var element = new elementslib.MozMillElement(LOCATIONS[1].type, LOCATIONS[1].value,
+  var element = new elementslib.MozMillElement(TEST_DATA[1].type, TEST_DATA[1].value,
                                                {document: controller.tabs.getTab(bkgndTabIndex)});
-  expect.ok(element.exists(), "Element '" + LOCATIONS[1].value + "'in background tab has been found");
+  expect.ok(element.exists(), "Element '" + TEST_DATA[1].value +
+            "'in background tab has been found");
 
   controller.keypress(win, "w", {accelKey: true});
 
 }
-

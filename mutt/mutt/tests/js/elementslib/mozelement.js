@@ -2,15 +2,15 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const TEST_FOLDER = collector.addHttpResource('../_files/');
-const TEST_PAGE = TEST_FOLDER + "form.html";
+const BASE_URL = collector.addHttpResource("../_files/");
+const TEST_DATA = BASE_URL + "form.html";
 
 var setupModule = function () {
   controller = mozmill.getBrowserController();
 }
 
 var test = function () {
-  controller.open(TEST_PAGE);
+  controller.open(TEST_DATA);
   controller.waitForPageLoad();
 
   let textbox = findElement.ID(controller.tabs.activeTab, "fname");
@@ -24,7 +24,7 @@ var test = function () {
   let previousURL = urlbar.getNode().value;
 
   urlbar.keypress("a", {accelKey: true});
-  urlbar.sendKeys(TEST_PAGE);
+  urlbar.sendKeys(TEST_DATA);
   urlbar.keypress("VK_RETURN", {});
   controller.waitForPageLoad();
 

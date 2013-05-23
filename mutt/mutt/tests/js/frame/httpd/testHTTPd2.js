@@ -4,6 +4,8 @@
 
 Cu.import("resource://gre/modules/Services.jsm");
 
+const BASE_URL = collector.addHttpResource("../../_files/");
+const TEST_DATA = BASE_URL + "link.html";
 
 observer = {
   observe: function (subject, topic, data) {
@@ -16,18 +18,12 @@ observer = {
 
 
 var setupModule = function () {
-  baseURL = collector.addHttpResource('../../_files/');
-  testPages = [
-    baseURL + 'link.html'
-  ];
-
   controller = mozmill.getBrowserController();
-
   Services.obs.addObserver(observer, "http-on-examine-response", false);
 }
 
 var testHttpFailure = function() {
-  controller.open(testPages[0]);
+  controller.open(TEST_DATA);
   controller.waitForPageLoad();
 
   controller.waitFor(function () {

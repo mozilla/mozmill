@@ -2,8 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const TEST_FOLDER = collector.addHttpResource('../_files/');
-
+const BASE_URL = collector.addHttpResource("../_files/");
+const TEST_DATA = BASE_URL + "radio_button.html";
 
 var setupModule = function () {
   controller = mozmill.getBrowserController();
@@ -11,7 +11,7 @@ var setupModule = function () {
 
 var test = function () {
   // Test content
-  controller.open(TEST_FOLDER + "radio_button.html");
+  controller.open(TEST_DATA);
   controller.waitForPageLoad();
 
   let radio1 = findElement.ID(controller.tabs.activeTab, "radio1");
