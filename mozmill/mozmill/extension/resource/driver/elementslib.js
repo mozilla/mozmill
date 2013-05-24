@@ -443,7 +443,21 @@ function Lookup(_document, expression) {
   var nCases = {'id':_byID, 'name':_byName, 'attrib':_byAttrib, 'index':_byIndex};
   var aCases = {'name':_anonByName, 'attrib':_anonByAttrib, 'index':_anonByIndex};
 
-  var reduceLookup = function (parent, exp) {
+  /**
+   * Reduces the lookup expression
+   * @param {Object} parentNode
+   *        Parent node (previousValue of the formerly executed reduce callback)
+   * @param {String} exp
+   *        Lookup expression for the parents child node
+   *
+   * @returns {Object} Node found by the given expression
+   */
+  var reduceLookup = function (parentNode, exp) {
+    // Abort in case the parent node was not found
+    if (!parentNode) {
+      return false;
+    }
+
     // Handle case where only index is provided
     var cases = nCases;
 
@@ -462,14 +476,14 @@ function Lookup(_document, expression) {
       try {
         var obj = json2.JSON.parse(strings.vslice(exp, '[', ']'));
       } catch (e) {
-        throw new Error(e + '. String to be parsed was || ' +
-                        strings.vslice(exp, '[', ']') + ' ||');
+        throw new SyntaxError(e + '. String to be parsed was || ' +
+                              strings.vslice(exp, '[', ']') + ' ||');
       }
 
-      var r = cases['index'](_document, parent, obj);
+      var r = cases['index'](_document, parentNode, obj);
       if (r == null) {
-        throw new Error('Expression "' + exp +
-                        '" returned null. Anonymous == ' + (cases == aCases));
+        throw new SyntaxError('Expression "' + exp +
+                              '" returned null. Anonymous == ' + (cases == aCases));
       }
 
       return r;
@@ -480,31 +494,26 @@ function Lookup(_document, expression) {
         try {
           var obj = json2.JSON.parse(strings.vslice(exp, '(', ')'))
         } catch (e) {
-           throw new Error(e + '. String to be parsed was || ' +
-                           strings.vslice(exp, '(', ')') + '  ||');
+           throw new SyntaxError(e + '. String to be parsed was || ' +
+                                 strings.vslice(exp, '(', ')') + '  ||');
         }
-        var result = cases[c](_document, parent, obj);
+        var result = cases[c](_document, parentNode, obj);
       }
     }
 
     if (!result) {
-      if ( withs.startsWith(exp, '{') ) {
+      if (withs.startsWith(exp, '{')) {
         try {
           var obj = json2.JSON.parse(exp);
         } catch (e) {
-          throw new Error(e + '. String to be parsed was || ' + exp + ' ||');
+          throw new SyntaxError(e + '. String to be parsed was || ' + exp + ' ||');
         }
 
         if (cases == aCases) {
-          var result = _anonByAttrib(_document, parent, obj);
+          var result = _anonByAttrib(_document, parentNode, obj);
         } else {
-          var result = _byAttrib(parent, obj);
+          var result = _byAttrib(parentNode, obj);
         }
-      }
-
-      if (!result) {
-        throw new Error('Expression "' + exp +
-                        '" returned null. Anonymous == ' + (cases == aCases));
       }
     }
 
