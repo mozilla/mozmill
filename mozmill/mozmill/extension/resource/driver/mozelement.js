@@ -9,6 +9,7 @@ var EXPORTED_SYMBOLS = ["Elem", "Selector", "ID", "Link", "XPath", "Name", "Look
 
 const NAMESPACE_XUL = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
 
+const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
@@ -124,6 +125,114 @@ MozMillElement.prototype.__defineGetter__("element", function () {
 
   return this._element;
 });
+
+/**
+ * Drag an element to the specified offset on another element, firing mouse and
+ * drag events. Adapted from ChromeUtils.js synthesizeDrop()
+ *
+ * By default it will drag the source element over the destination's element
+ * center with a "move" dropEffect.
+ *
+ * @param {MozElement} aElement
+ *        Destination element over which the drop occurs
+ * @param {Number} [aOffsetX=aElement.width/2]
+ *        Relative x offset for dropping on aElement
+ * @param {Number} [aOffsetY=aElement.height/2]
+ *        Relative y offset for dropping on aElement
+ * @param {DOMWindow} [aSourceWindow=this.element.ownerDocument.defaultView]
+ *        Custom source Window to be used.
+ * @param {DOMWindow} [aDestWindow=aElement.getNode().ownerDocument.defaultView]
+ *        Custom destination Window to be used.
+ * @param {String} [aDropEffect="move"]
+ *        Possible values: copy, move, link, none
+ * @param {Object[]} [aDragData]
+ *        An array holding custom drag data to be used during the drag event
+ *        Format: [{ type: "text/plain", "Text to drag"}, ...]
+ *
+ * @returns {String} the captured dropEffect
+ */
+MozMillElement.prototype.dragToElement = function(aElement, aOffsetX, aOffsetY,
+                                                  aSourceWindow, aDestWindow,
+                                                  aDropEffect, aDragData) {
+  if (!this.element) {
+    throw new Error("Could not find element " + this.getInfo());
+  }
+  if (!aElement) {
+    throw new Error("Missing destination element");
+  }
+
+  var srcNode = this.element;
+  var destNode = aElement.getNode();
+  var srcWindow = aSourceWindow ||
+                  (srcNode.ownerDocument ? srcNode.ownerDocument.defaultView
+                                         : srcNode);
+  var destWindow = aDestWindow ||
+                  (destNode.ownerDocument ? destNode.ownerDocument.defaultView
+                                          : destNode);
+
+  var srcRect = srcNode.getBoundingClientRect();
+  var srcCoords = {
+    x: srcRect.width / 2,
+    y: srcRect.height / 2
+  };
+  var destRect = destNode.getBoundingClientRect();
+  var destCoords = {
+    x: isNaN(aOffsetX) ? destRect.width / 2 : aOffsetX,
+    y: isNaN(aOffsetY) ? destRect.height / 2 : aOffsetY
+  };
+
+  var windowUtils = destWindow.QueryInterface(Ci.nsIInterfaceRequestor)
+                              .getInterface(Ci.nsIDOMWindowUtils);
+  var ds = Cc["@mozilla.org/widget/dragservice;1"].getService(Ci.nsIDragService);
+
+  var dataTransfer;
+  var trapDrag = function (event) {
+    srcWindow.removeEventListener("dragstart", trapDrag, true);
+    dataTransfer = event.dataTransfer;
+
+    if (!aDragData) {
+      return;
+    }
+
+    for (var i = 0; i < aDragData.length; i++) {
+      var item = aDragData[i];
+      for (var j = 0; j < item.length; j++) {
+        dataTransfer.mozSetDataAt(item[j].type, item[j].data, i);
+      }
+    }
+
+    dataTransfer.dropEffect = aDropEffect || "move";
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  ds.startDragSession();
+
+  try {
+    srcWindow.addEventListener("dragstart", trapDrag, true);
+    EventUtils.synthesizeMouse(srcNode, srcCoords.x, srcCoords.y,
+                               { type: "mousedown" }, srcWindow);
+    EventUtils.synthesizeMouse(destNode, destCoords.x, destCoords.y,
+                               { type: "mousemove" }, destWindow);
+
+    var event = destWindow.document.createEvent("DragEvents");
+    event.initDragEvent("dragenter", true, true, destWindow, 0, 0, 0, 0, 0,
+                        false, false, false, false, 0, null, dataTransfer);
+    event.initDragEvent("dragover", true, true, destWindow, 0, 0, 0, 0, 0,
+                        false, false, false, false, 0, null, dataTransfer);
+    event.initDragEvent("drop", true, true, destWindow, 0, 0, 0, 0, 0,
+                        false, false, false, false, 0, null, dataTransfer);
+    windowUtils.dispatchDOMEventViaPresShell(destNode, event, true);
+
+    EventUtils.synthesizeMouse(destNode, destCoords.x, destCoords.y,
+                               { type: "mouseup" }, destWindow);
+
+    return dataTransfer.dropEffect;
+  } finally {
+    ds.endDragSession(true);
+  }
+
+};
 
 // Returns the actual wrapped DOM node
 MozMillElement.prototype.getNode = function () {

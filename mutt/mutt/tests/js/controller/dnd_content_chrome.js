@@ -17,7 +17,7 @@ var test = function () {
 
   let link = new elementslib.ID(controller.tabs.activeTab, "link");
   controller.waitForElement(link);
-  controller.dragToElement(link, urlbar, 100, 20);
+  link.dragToElement(urlbar);
   controller.waitForPageLoad();
 
   let div = new elementslib.ID(controller.tabs.activeTab, "test-div");

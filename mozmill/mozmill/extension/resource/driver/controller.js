@@ -823,65 +823,35 @@ MozMillController.prototype.mouseMove = function (doc, start, dest) {
 
 /**
  * Drag an element to the specified offset on another element, firing mouse and
- * drag events. Returns the captured dropEffect.
- * Adapted from EventUtils' synthesizeDrop()
+ * drag events. Adapted from ChromeUtils.js synthesizeDrop()
+ *
+ * @deprecated Use the MozMillElement object
+ *
+ * @param {MozElement} aSrc
+ *        Source element to be dragged
+ * @param {MozElement} aDest
+ *        Destination element over which the drop occurs
+ * @param {Number} [aOffsetX=element.width/2]
+ *        Relative x offset for dropping on the aDest element
+ * @param {Number} [aOffsetY=element.height/2]
+ *        Relative y offset for dropping on the aDest element
+ * @param {DOMWindow} [aSourceWindow=this.element.ownerDocument.defaultView]
+ *        Custom source Window to be used.
+ * @param {String} [aDropEffect="move"]
+ *        Effect used for the drop event
+ * @param {Object[]} [aDragData]
+ *        An array holding custom drag data to be used during the drag event
+ *        Format: [{ type: "text/plain", "Text to drag"}, ...]
+ *
+ * @returns {String} the captured dropEffect
  */
-MozMillController.prototype.dragToElement = function (src, dest, offsetX,
-                                                      offsetY, aWindow,
-                                                      dropEffect, dragData) {
-  srcElement = src.getNode();
-  destElement = dest.getNode();
-  aWindow = aWindow || srcElement.ownerDocument.defaultView;
-  offsetX = offsetX || 20;
-  offsetY = offsetY || 20;
-
-  var dataTransfer;
-
-  var trapDrag = function (event) {
-    dataTransfer = event.dataTransfer;
-    if (!dragData)
-      return;
-
-    for (var i = 0; i < dragData.length; i++) {
-      var item = dragData[i];
-      for (var j = 0; j < item.length; j++) {
-        dataTransfer.mozSetDataAt(item[j].type, item[j].data, i);
-      }
-    }
-
-    dataTransfer.dropEffect = dropEffect || "move";
-    event.preventDefault();
-    event.stopPropagation();
-  }
-
-  aWindow.addEventListener("dragstart", trapDrag, true);
-  // Fire mousedown 2 pixels from corner of element
-  EventUtils.synthesizeMouse(srcElement, 2, 2, { type: "mousedown" }, aWindow);
-  EventUtils.synthesizeMouse(srcElement, 11, 11, { type: "mousemove" }, aWindow);
-  EventUtils.synthesizeMouse(srcElement, offsetX, offsetY, { type: "mousemove" }, aWindow);
-  aWindow.removeEventListener("dragstart", trapDrag, true);
-
-  var event = aWindow.document.createEvent("DragEvents");
-  event.initDragEvent("dragenter", true, true, aWindow, 0, 0, 0, 0, 0,
-                      false, false, false, false, 0, null, dataTransfer);
-  destElement.dispatchEvent(event);
-
-  var event = aWindow.document.createEvent("DragEvents");
-  event.initDragEvent("dragover", true, true, aWindow, 0, 0, 0, 0, 0,
-                      false, false, false, false, 0, null, dataTransfer);
-  if (destElement.dispatchEvent(event)) {
-    EventUtils.synthesizeMouse(destElement, offsetX, offsetY, { type: "mouseup" }, aWindow);
-    return "none";
-  }
-
-  event = aWindow.document.createEvent("DragEvents");
-  event.initDragEvent("drop", true, true, aWindow, 0, 0, 0, 0, 0,
-                      false, false, false, false, 0, null, dataTransfer);
-  destElement.dispatchEvent(event);
-  EventUtils.synthesizeMouse(destElement, offsetX, offsetY, { type: "mouseup" }, aWindow);
-
-  return dataTransfer.dropEffect;
-}
+MozMillController.prototype.dragToElement = function (aSrc, aDest, aOffsetX,
+                                                      aOffsetY, aSourceWindow,
+                                                      aDropEffect, aDragData) {
+  logDeprecated("controller.dragToElement", "Use the MozMillElement object.");
+  return aSrc.dragToElement(aDest, aOffsetX, aOffsetY, aSourceWindow, null,
+                            aDropEffect, aDragData);
+};
 
 function Tabs(controller) {
   this.controller = controller;

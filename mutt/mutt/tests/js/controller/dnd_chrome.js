@@ -12,10 +12,10 @@ var test = function () {
   controller.open(TEST_DATA);
   controller.waitForPageLoad();
 
-  let bar = new elementslib.ID(controller.window.document, "item1");
-  let box = new elementslib.ID(controller.window.document, "item2");
+  let bar = new findElement.ID(controller.window.document, "item1");
+  let box = new findElement.ID(controller.window.document, "item2");
 
-  controller.dragToElement(bar, box);
+  bar.dragToElement(box);
 
   // successful drop makes bar disappear
   expect.ok(!bar.exists(), "Element 'bar' no longer exists");
