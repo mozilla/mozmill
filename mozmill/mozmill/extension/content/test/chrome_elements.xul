@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+
+<?xml-stylesheet href="chrome://global/skin/global.css" type="text/css"?>
+
+<window id="mozmill_chrome_elements"
+        xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul"
+        title="Menu Lists Testing Window">
+  <caption label="Menu list testing"/>
+  <menulist id="menulist" style="max-width: 200px !important;">
+    <menupopup>
+      <menuitem label="Select from here" value="Start" />
+      <menuitem label='Alabama' value="AL" />
+      <menuitem label='Alaska' value="AK" />
+      <menuitem label='Arizona' value="AZ" />
+      <menuitem label='Arkansas' value="AR" />
+      <menuitem label='California' value="CA" />
+      <menuitem label='Colorado' value="CO" />
+      <menuitem label='Connecticut' value="CT" />
+      <menuitem label='Delaware' value="DE" />
+      <menuitem label='Florida' value="FL" />
+      <menuitem label='Georgia' value="GA" />
+      <menuitem label='Hawaii' value="HI" />
+      <menuitem label='Idaho' value="ID" />
+      <menuitem label='Illinois' value="IL" />
+      <menuitem label='Indiana' value="IN" />
+      <menuitem label='Iowa' value="IA" />
+      <menuitem label='Kansas' value="KS" />
+      <menuitem label='Kentucky' value="KY" />
+      <menuitem label='Louisiana' value="LA" />
+      <menuitem label='Maine' value="ME" />
+      <menuitem label='Maryland' value="MD" />
+      <menuitem label='Massachusetts' value="MA" />
+      <menuitem label='Michigan' value="MI" />
+      <menuitem label='Minnesota' value="MN" />
+      <menuitem label='Mississippi' value="MS" />
+      <menuitem label='Missouri' value="MO" />
+      <menuitem label='Montana' value="MT" />
+      <menuitem label='Nebraska' value="NE" />
+      <menuitem label='Nevada' value="NV" />
+      <menuitem label='New Hampshire' value="NH" />
+      <menuitem label='New Jersey' value="NJ" />
+      <menuitem label='New Mexico' value="NM" />
+      <menuitem label='New York' value="NY" />
+      <menuitem label='North Carolina' value="NC" />
+      <menuitem label='North Dakota' value="ND" />
+    </menupopup>
+   </menulist>
+</window>
