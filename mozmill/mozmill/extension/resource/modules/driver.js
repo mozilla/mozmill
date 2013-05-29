@@ -80,6 +80,14 @@ function openBrowserWindow() {
  */
 var sleep = utils.sleep;
 
+/**
+ * Wait until the given condition via the callback returns true.
+ *
+ * @type utils.waitFor
+ * @memberOf driver
+ */
+var waitFor = utils.waitFor;
+
 //
 // INTERNAL WINDOW ENUMERATIONS
 //
@@ -270,6 +278,7 @@ driver.getBrowserWindow = getBrowserWindow;
 driver.getHiddenWindow = getHiddenWindow;
 driver.openBrowserWindow = openBrowserWindow;
 driver.sleep = sleep;
+driver.waitFor = waitFor;
 
 driver.windowFilterByMethod = windowFilterByMethod;
 driver.windowFilterByTitle = windowFilterByTitle;

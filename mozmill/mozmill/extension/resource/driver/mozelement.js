@@ -14,15 +14,12 @@ const Cu = Components.utils;
 
 var EventUtils = {};  Cu.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
 
-var assertions = {};  Cu.import('resource://mozmill/modules/assertions.js', assertions);
 var broker = {};      Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 var elementslib = {}; Cu.import('resource://mozmill/driver/elementslib.js', elementslib);
 var utils = {};       Cu.import('resource://mozmill/stdlib/utils.js', utils);
 
 // A list of all the subclasses available.  Shared modules can push their own subclasses onto this list
 var subclasses = [MozMillCheckBox, MozMillRadio, MozMillDropList, MozMillTextBox];
-
-var assert = new assertions.Assert();
 
 /**
  * createInstance()
@@ -379,7 +376,7 @@ MozMillElement.prototype.rightClick = function (left, top, expectedEvent) {
 MozMillElement.prototype.waitForElement = function (timeout, interval) {
   var elem = this;
 
-  assert.waitFor(function () {
+  utils.waitFor(function () {
     return elem.exists();
   }, "Timeout exceeded for waitForElement " + this.getInfo(), timeout, interval);
 
@@ -389,7 +386,7 @@ MozMillElement.prototype.waitForElement = function (timeout, interval) {
 MozMillElement.prototype.waitForElementNotPresent = function (timeout, interval) {
   var elem = this;
 
-  assert.waitFor(function () {
+  utils.waitFor(function () {
     return !elem.exists();
   }, "Timeout exceeded for waitForElementNotPresent " + this.getInfo(), timeout, interval);
 
@@ -454,7 +451,7 @@ MozMillCheckBox.prototype = Object.create(MozMillElement.prototype, {
         this.click();
         var element = this.element;
 
-        assert.waitFor(function () {
+        utils.waitFor(function () {
           return element.checked == state;
         }, "Checkbox " + this.getInfo() + " could not be checked/unchecked", 500);
 
@@ -515,7 +512,7 @@ MozMillRadio.prototype = Object.create(MozMillElement.prototype, {
         this.click();
       }
 
-      assert.waitFor(function () {
+      utils.waitFor(function () {
         // If we have a XUL element, unwrap its XPCNativeWrapper
         if (element.namespaceURI == NAMESPACE_XUL) {
           element = utils.unwrapNode(element);

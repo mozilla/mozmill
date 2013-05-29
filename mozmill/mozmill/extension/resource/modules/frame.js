@@ -33,8 +33,6 @@ var uuidgen = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator
 
 var persisted = {};
 
-var assert = new assertions.Assert();
-
 var mozmill = undefined;
 var mozelement = undefined;
 var modules = undefined;
@@ -495,7 +493,7 @@ Collector.prototype.stopHttpd = function () {
   var shutdown = false;
   this.httpd.stop(function () { shutdown = true; });
 
-  assert.waitFor(function () {
+  utils.waitFor(function () {
     return shutdown;
   }, "Local HTTP server has been stopped", TIMEOUT_SHUTDOWN_HTTPD);
 

@@ -4,12 +4,7 @@
 
 var EXPORTED_SYMBOLS = ['Assert', 'Expect'];
 
-const Cc = Components.classes;
-const Ci = Components.interfaces;
 const Cu = Components.utils;
-
-var hwindow = Cc["@mozilla.org/appshell/appShellService;1"]
-              .getService(Ci["nsIAppShellService"]).hiddenDOMWindow;
 
 var broker = {}; Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 var stack = {}; Cu.import('resource://mozmill/modules/stack.js', stack);
@@ -513,70 +508,6 @@ Expect.prototype = {
     let diagnosis = "'" + aString + "' should not contain '" + aPattern + "'";
 
     return this._test(condition, aMessage, diagnosis);
-  },
-
-  /**
-   * Waits for the callback evaluates to true
-   *
-   * @param {Function} aCallback Callback for evaluation
-   * @param {String} aMessage Message to show for result
-   * @param {Number} aTimeout Timeout in waiting for evaluation
-   * @param {Number} aInterval Interval between evaluation attempts
-   * @param {Object} aThisObject this object
-   */
-  waitFor: function Expect_waitFor(aCallback, aMessage, aTimeout, aInterval, aThisObject) {
-    broker.log({'function': 'waitFor() - DEPRECATED',
-                'message': 'waitFor() is deprecated. '});
-
-    let condition = true;
-    let message = aMessage;
-
-    try {
-      aTimeout = aTimeout || 5000;
-      aInterval = aInterval || 100;
-
-       var self = {
-         timeIsUp: false,
-         result: aCallback.call(aThisObject)
-       };
-       var deadline = Date.now() + aTimeout;
-
-       function wait() {
-         if (self.result !== true) {
-           self.result = aCallback.call(aTimeout);
-           self.timeIsUp = Date.now() > deadline;
-         }
-       }
-
-       var timeoutInterval = hwindow.setInterval(wait, aInterval);
-       var thread = Cc["@mozilla.org/thread-manager;1"]
-                    .getService().currentThread;
-
-       while (self.result !== true && !self.timeIsUp) {
-         thread.processNextEvent(true);
-
-         let type = typeof(self.result);
-         if (type !== 'boolean') {
-           throw TypeError("waitFor() callback has to return a boolean" +
-                           " instead of '" + type + "'");
-         }
-       }
-
-       hwindow.clearInterval(timeoutInterval);
-
-       if (self.result !== true && self.timeIsUp) {
-         message = message || 
-                   arguments.callee.name + ": Timeout exceeded for '" + aCallback + "'";
-         throw new TimeoutError(message);
-       }
-
-       return true;
-    } catch (ex) {
-      message = ex.message;
-      condition = false;
-    }
-
-    return this._test(condition, message);
   }
 }
 
