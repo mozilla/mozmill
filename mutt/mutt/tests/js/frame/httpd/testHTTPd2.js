@@ -26,7 +26,7 @@ var testHttpFailure = function() {
   controller.open(TEST_DATA);
   controller.waitForPageLoad();
 
-  controller.waitFor(function () {
+  assert.waitFor(function () {
     return persisted.requestSucceeded;
   }, "HTTPd.js does not respond with a Bad Request");
 }

@@ -8,25 +8,25 @@ var setupModule = function () {
 
 var testWaitForCallback = function () {
   expect.doesNotThrow(function () {
-    controller.waitFor(function () {
+    assert.waitFor(function () {
       return true;
     });
   }, "TypeError", "Return type 'boolean' in callback is supported.");
 
   expect.throws(function () {
-    controller.waitFor(function () {
+    assert.waitFor(function () {
       return 4;
     });
   }, "TypeError", "Return type 'number' in callback is not supported.");
 
   expect.throws(function () {
-    controller.waitFor(function () {
+    assert.waitFor(function () {
       return "true";
     });
   }, "TypeError", "Return type 'string' in callback is not supported.");
 
   expect.throws(function () {
-    controller.waitFor(function () {
+    assert.waitFor(function () {
       return new Object();
     });
   }, "TypeError", "Return type 'Object' in callback is not supported.");
@@ -36,7 +36,7 @@ var testWaitForFalseAfterTrue = function () {
   let onlyTheFirst = true;
 
   expect.doesNotThrow(function () {
-    controller.waitFor(function () {
+    assert.waitFor(function () {
       let res = onlyTheFirst;
       onlyTheFirst = false;
 
@@ -49,7 +49,7 @@ var testWaitForCallbackCounter = function () {
   let counter = -1;
 
   expect.doesNotThrow(function () {
-    controller.waitFor(function () {
+    assert.waitFor(function () {
       counter++;
       return counter > 0;
     }, undefined, 200);
@@ -77,7 +77,7 @@ var testWaitForTimeoutAccuracy = function () {
   var time = Date.now();
 
   expect.throws(function () {
-    controller.waitFor(function () {
+    assert.waitFor(function () {
       controller.sleep(waitForInnerSleep);
       return false;
     }, null, waitForTimeout, waitForInterval);

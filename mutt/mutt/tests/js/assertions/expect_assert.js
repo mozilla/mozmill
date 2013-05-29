@@ -44,6 +44,9 @@ const TEST_DATA = [
   { fun: "notMatch", params: ["Mozilla", /firefox/, "regex does not match string"], result: true},
   { fun: "notMatch", params: ["Mozilla", /Mozilla/, "regex matches string"], result: false},
 
+  { fun: "waitFor", params: [function () { return true; }, "Evaluation pass"], result: true},
+  { fun: "waitFor", params: [function () { return false; }, "Evaluation fail"], result: false},
+
   { fun: "throws", params: [function () { throw new Error(); }, undefined, "Throws an error"], result: true},
   { fun: "throws", params: [function () { throw new Error(); }, Error, "Throws a specific error"], result: true},
   { fun: "throws", params: [function () { throw new Error(); }, Err, "Catches the wrong error"],

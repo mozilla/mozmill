@@ -11,6 +11,7 @@ const Cu = Components.utils;
 
 var EventUtils = {}; Cu.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
 
+var assertions = {}; Cu.import('resource://mozmill/modules/assertions.js', assertions);
 var broker = {}; Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 var elementslib = {}; Cu.import('resource://mozmill/driver/elementslib.js', elementslib);
 var mozelement = {}; Cu.import('resource://mozmill/driver/mozelement.js', mozelement);
@@ -24,8 +25,8 @@ var hwindow = Cc["@mozilla.org/appshell/appShellService;1"]
 
 // Declare most used utils functions in the controller namespace
 var sleep = utils.sleep;
-var assert = utils.assert;
-var waitFor = utils.waitFor;
+var assert = new assertions.Assert();
+var waitFor = assert.waitFor;
 
 // For Mozmill 1.5 backward compatibility
 var windowMap = windows.map;
@@ -62,7 +63,7 @@ waitForEvents.prototype = {
    */
   wait: function waitForEvents_wait(timeout, interval) {
     for (var e in this.registry) {
-      utils.waitFor(function () {
+      assert.waitFor(function () {
         return this.node.firedEvents[e] == true;
       }, "Timeout happened before event '" + ex +"' was fired.", timeout, interval);
 
@@ -244,7 +245,7 @@ var MozMillController = function (window) {
   this.mozmillModule = {};
   Cu.import('resource://mozmill/driver/mozmill.js', this.mozmillModule);
 
-  utils.waitFor(function () {
+  assert.waitFor(function () {
     return window != null && this.isLoaded();
   }, "controller(): Window could not be initialized.", undefined, undefined, this);
 
@@ -362,7 +363,7 @@ MozMillController.prototype.isLoaded = function (aWindow) {
 
 MozMillController.prototype.waitFor = function (callback, message, timeout,
                                                 interval, thisObject) {
-  utils.waitFor(callback, message, timeout, interval, thisObject);
+  assert.waitFor(callback, message, timeout, interval, thisObject);
   broker.pass({'function':'controller.waitFor()'});
 }
 
