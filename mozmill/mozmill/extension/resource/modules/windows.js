@@ -133,7 +133,13 @@ var map = {
 // Observer when a new top-level window is ready
 var windowReadyObserver = {
   observe: function (aSubject, aTopic, aData) {
-    attachEventListeners(aSubject);
+    // Not in all cases we get a ChromeWindow. So ensure we really operate
+    // on such an instance. Otherwise load events will not be handled.
+    var win = utils.getChromeWindow(aSubject);
+
+    // var id = utils.getWindowId(win);
+    // dump("*** 'toplevel-window-ready' observer notification: id=" + id + "\n");
+    attachEventListeners(win);
   }
 };
 
@@ -142,8 +148,9 @@ var windowReadyObserver = {
 var windowCloseObserver = {
   observe: function (aSubject, aTopic, aData) {
     var id = utils.getWindowId(aSubject);
+    // dump("*** 'outer-window-destroyed' observer notification: id=" + id + "\n");
+
     map.remove(id);
-    // dump("*** 'close' event: id=" + id + "\n");
   }
 };
 
@@ -227,6 +234,7 @@ function attachEventListeners(aWindow) {
   var onWindowLoaded = function (aEvent) {
     var id = utils.getWindowId(aWindow);
     // dump("*** 'load' event: id=" + id + ", baseURI=" + aWindow.document.baseURI + "\n");
+
     map.update(id, "loaded", true);
 
     // Check if we have a browser window. If that's the case attach handlers for tabs
@@ -248,7 +256,7 @@ function attachEventListeners(aWindow) {
 
   // If the window has already been finished loading, call the load handler
   // directly. Otherwise attach it to the current window.
-  if (aWindow.content) {
+  if (aWindow.document.readyState === 'complete') {
     onWindowLoaded();
   } else {
     aWindow.addEventListener("load", onWindowLoaded, false);
@@ -268,11 +276,5 @@ function init() {
   while (enumerator.hasMoreElements()) {
     var win = enumerator.getNext();
     attachEventListeners(win);
-
-    // For top-level windows which are already open set the loaded state
-    // to the current readyState. For slowly loading windows (like for debug
-    // builds) it will be overwritten again by the onload listener later.
-    var loaded = (win.document.readyState === 'complete');
-    map.update(utils.getWindowId(win), "loaded", loaded);
   }
 }
