@@ -16,6 +16,7 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/NetUtil.jsm");
 
+var broker = {}; Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 
 var hwindow = Cc["@mozilla.org/appshell/appShellService;1"]
               .getService(Ci.nsIAppShellService).hiddenDOMWindow;
@@ -198,6 +199,8 @@ function sleep(milliseconds) {
   while (!timeup) {
     thread.processNextEvent(true);
   }
+
+  broker.pass({'function':'utils.sleep()'});
 }
 
 /**
@@ -293,6 +296,7 @@ function waitFor(callback, message, timeout, interval, thisObject) {
     throw new TimeoutError(message);
   }
 
+  broker.pass({'function':'utils.waitFor()'});
   return true;
 }
 

@@ -271,6 +271,7 @@ MozMillController.prototype.__defineGetter__("rootElement", function () {
 });
 
 MozMillController.prototype.sleep = utils.sleep;
+MozMillController.prototype.waitFor = utils.waitFor;
 
 // Open the specified url in the current tab
 MozMillController.prototype.open = function (url) {
@@ -359,12 +360,6 @@ MozMillController.prototype.isLoaded = function (aWindow) {
 
   return windows.map.getValue(utils.getWindowId(win), "loaded") || false;
 };
-
-MozMillController.prototype.waitFor = function (callback, message, timeout,
-                                                interval, thisObject) {
-  utils.waitFor(callback, message, timeout, interval, thisObject);
-  broker.pass({'function':'controller.waitFor()'});
-}
 
 MozMillController.prototype.__defineGetter__("waitForEvents", function () {
   if (this._waitForEvents == undefined) {
