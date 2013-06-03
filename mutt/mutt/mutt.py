@@ -194,7 +194,7 @@ def test_all_js(tests, options):
         exception_type, exception, tb = sys.exc_info()
         traceback.print_exception(exception_type, exception, tb)
 
-    return m.results
+    return m.finish()
 
 
 class JSResults(object):
