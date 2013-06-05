@@ -58,6 +58,10 @@ if (platform == "linux"){
 }
 
 var appInfo = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo);
+
+var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
+                 .getService(Ci.nsIAppStartup);
+
 var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
 
 const applicationDictionary = {
@@ -160,9 +164,10 @@ function cleanQuit () {
   // jsbridge enough time to signal back to python before the shutdown starts
   // TODO: for some reason observers on shutdown don't work here?
   //       if we don't do this we crash on shutdown in linux
-  var quitmethod = utils.getMethodInWindows('goQuitApplication');
-  var settimeoutmethod = utils.getMethodInWindows('setTimeout');
-  settimeoutmethod(quitmethod, 50);
+  var setTimeout = utils.getMethodInWindows('setTimeout');
+  setTimeout(function () {
+    appStartup.quit(Ci.nsIAppStartup.eAttemptQuit);
+  }, 50);
 }
 
 function addHttpResource (directory, namespace) {
