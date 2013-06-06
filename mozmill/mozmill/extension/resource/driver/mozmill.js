@@ -167,7 +167,7 @@ function cleanQuit () {
   var setTimeout = utils.getMethodInWindows('setTimeout');
   setTimeout(function () {
     appStartup.quit(Ci.nsIAppStartup.eAttemptQuit);
-  }, 50);
+  }, 150);
 }
 
 function addHttpResource (directory, namespace) {

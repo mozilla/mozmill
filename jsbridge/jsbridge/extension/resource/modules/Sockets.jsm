@@ -19,6 +19,7 @@ var Sockets = { };
 
 Sockets.Client = function (fd) {
   this.fd = fd;
+  this._is_closing = false;
   this.timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
 };
 
@@ -45,11 +46,13 @@ Sockets.Client.prototype = {
           return;
         }
 
-        self.timer.initWithCallback(this, interval, Ci.nsITimer.TYPE_ONE_SHOT);
+        if (self.timer)
+          self.timer.initWithCallback(this, interval, Ci.nsITimer.TYPE_ONE_SHOT);
       }
     };
 
-    this.timer.initWithCallback(event, interval, Ci.nsITimer.TYPE_ONE_SHOT);
+    if (this.timer)
+      this.timer.initWithCallback(event, interval, Ci.nsITimer.TYPE_ONE_SHOT);
   },
 
   onDisconnect: function (callback) {
@@ -60,11 +63,16 @@ Sockets.Client.prototype = {
   },
 
   sendMessage: function (message) {
-    var buffer = new NSS.Sockets.buffer(message);
-    NSS.Sockets.PR_Send(this.fd, buffer, message.length, 0, NSS.Sockets.PR_INTERVAL_MAX);
+    if (!this._is_closing) {
+      var buffer = new NSS.Sockets.buffer(message);
+      NSS.Sockets.PR_Send(this.fd, buffer, message.length, 0, NSS.Sockets.PR_INTERVAL_MAX);
+    } else {
+      dump("Attempting to send message after socket closed: msg length: " + message.length + " with contents: " + message + "\n");
+    }
   },
 
   close : function () {
+    this._is_closing = true;
     if (this.timer) {
       this.timer.cancel();
       this.timer = null;
