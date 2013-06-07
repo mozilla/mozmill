@@ -260,6 +260,15 @@ var MozMillController = function (window) {
   }
 }
 
+/**
+ * Returns the global browser object of the window
+ *
+ * @returns {Object} The browser object
+ */
+MozMillController.prototype.__defineGetter__("browserObject", function () {
+  return utils.getBrowserObject(this.window);
+});
+
 // constructs a MozMillElement from the controller's window
 MozMillController.prototype.__defineGetter__("rootElement", function () {
   if (this._rootElement == undefined) {
@@ -277,8 +286,8 @@ MozMillController.prototype.waitFor = utils.waitFor;
 MozMillController.prototype.open = function (url) {
   switch (this.mozmillModule.Application) {
     case "Firefox":
-    case "SeaMonkey":
-      this.window.getBrowser().loadURI(url);
+    case "MetroFirefox":
+      this.browserObject.loadURI(url);
       break;
     default:
       throw new Error("MozMillController.open not supported.");
@@ -874,33 +883,16 @@ MozMillController.prototype.dragToElement = function (src, dest, offsetX,
   return dataTransfer.dropEffect;
 }
 
-function preferencesAdditions(controller) {
-  var mainTabs = controller.window.document.getAnonymousElementByAttribute(controller.window.document.documentElement, 'anonid', 'selector');
-  controller.tabs = {};
-
-  for (var i = 0; i < mainTabs.childNodes.length; i++) {
-    var node  = mainTabs.childNodes[i];
-    var obj = {'button':node}
-    controller.tabs[i] = obj;
-    var label = node.attributes.item('label').value.replace('pane', '');
-    controller.tabs[label] = obj;
-  }
-
-  controller.prototype.__defineGetter__("activeTabButton", function () {
-    return mainTabs.getElementsByAttribute('selected', true)[0];
-  })
-}
-
 function Tabs(controller) {
   this.controller = controller;
 }
 
 Tabs.prototype.getTab = function (index) {
-  return this.controller.window.getBrowser().browsers[index].contentDocument;
+  return this.controller.browserObject.browsers[index].contentDocument;
 }
 
 Tabs.prototype.__defineGetter__("activeTab", function () {
-  return this.controller.window.getBrowser().contentDocument;
+  return this.controller.browserObject.selectedBrowser.contentDocument;
 });
 
 Tabs.prototype.selectTab = function (index) {
@@ -926,15 +918,32 @@ Tabs.prototype.__defineGetter__("activeTabWindow", function () {
 });
 
 Tabs.prototype.__defineGetter__("length", function () {
-  return this.controller.window.getBrowser().browsers.length;
+  return this.controller.browserObject.browsers.length;
 });
 
 Tabs.prototype.__defineGetter__("activeTabIndex", function () {
-  return this.controller.window.getBrowser().tabContainer.selectedIndex;
+  var browser = this.controller.browserObject;
+
+  switch(this.controller.mozmillModule.Application) {
+    case "MetroFirefox":
+      return browser.tabs.indexOf(browser.selectedTab);
+    case "Firefox":
+    default:
+      return browser.tabContainer.selectedIndex;
+  }
 });
 
-Tabs.prototype.selectTabIndex = function (i) {
-  this.controller.window.getBrowser().selectTabAtIndex(i);
+Tabs.prototype.selectTabIndex = function (aIndex) {
+  var browser = this.controller.browserObject;
+
+  switch(this.controller.mozmillModule.Application) {
+    case "MetroFirefox":
+      browser.selectedTab = browser.tabs[aIndex];
+      break;
+    case "Firefox":
+    default:
+      browser.selectTabAtIndex(aIndex);
+  }
 }
 
 function browserAdditions (controller) {
@@ -957,7 +966,7 @@ function browserAdditions (controller) {
 
     // If no document has been specified, fallback to the default view of the
     // currently selected tab browser
-    win = win || this.window.getBrowser().contentWindow;
+    win = win || this.browserObject.selectedBrowser.contentWindow;
 
     // Wait until the content in the tab has been loaded
     this.waitFor(function () {
@@ -970,7 +979,6 @@ function browserAdditions (controller) {
 }
 
 var controllerAdditions = {
-  'Browser:Preferences':preferencesAdditions,
   'navigator:browser'  :browserAdditions
 };
 

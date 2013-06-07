@@ -79,7 +79,10 @@ function defaultDocuments() {
             .getService(Ci.nsIWindowMediator)
             .getMostRecentWindow("navigator:browser");
 
-  return [win.getBrowser().contentDocument, win.document];
+  return [
+    win.document,
+    utils.getBrowserObject(win).selectedBrowser.contentWindow.document
+  ];
 };
 
 /**

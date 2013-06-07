@@ -47,7 +47,7 @@ var map = {
       var win = this._windows[aWindowId];
 
       return (aProperty in win) ? win[aProperty]
-        : undefined;
+                                : undefined;
     }
   },
 
@@ -58,8 +58,10 @@ var map = {
    *        Outer ID of the window to check.
    */
   remove : function (aWindowId) {
-    if (this.contains(aWindowId))
+    if (this.contains(aWindowId)) {
       delete this._windows[aWindowId];
+    }
+
     //dump("* current map: " + JSON.stringify(this._windows) + "\n");
   },
 
@@ -74,8 +76,9 @@ var map = {
    *        Value to set
    */
   update : function (aWindowId, aProperty, aValue) {
-    if (!this.contains(aWindowId))
+    if (!this.contains(aWindowId)) {
       this._windows[aWindowId] = { };
+    }
 
     this._windows[aWindowId][aProperty] = aValue;
     //dump("* current map: " + JSON.stringify(this._windows) + "\n");
@@ -175,8 +178,8 @@ function attachEventListeners(aWindow) {
     }
 
     // We need to add/remove the unload/pagehide event listeners to preserve caching.
-    aWindow.getBrowser().addEventListener("beforeunload", beforeUnloadHandler, true);
-    aWindow.getBrowser().addEventListener("pagehide", pageHideHandler, true);
+    aWindow.addEventListener("beforeunload", beforeUnloadHandler, true);
+    aWindow.addEventListener("pagehide", pageHideHandler, true);
   };
 
   var DOMContentLoadedHandler = function (aEvent) {
@@ -197,7 +200,7 @@ function attachEventListeners(aWindow) {
       }
 
       // We need to add/remove the unload event listener to preserve caching.
-      aWindow.getBrowser().addEventListener("beforeunload", beforeUnloadHandler, true);
+      aWindow.addEventListener("beforeunload", beforeUnloadHandler, true);
     }
   };
 
@@ -213,7 +216,7 @@ function attachEventListeners(aWindow) {
       map.updatePageLoadStatus(id, false);
     }
 
-    aWindow.getBrowser().removeEventListener("beforeunload", beforeUnloadHandler, true);
+    aWindow.removeEventListener("beforeunload", beforeUnloadHandler, true);
   };
 
   var pageHideHandler = function (aEvent) {
@@ -229,7 +232,7 @@ function attachEventListeners(aWindow) {
         map.updatePageLoadStatus(id, false);
       }
 
-      aWindow.getBrowser().removeEventListener("beforeunload", beforeUnloadHandler, true);
+      aWindow.removeEventListener("beforeunload", beforeUnloadHandler, true);
     }
   };
 
@@ -239,21 +242,17 @@ function attachEventListeners(aWindow) {
 
     map.update(id, "loaded", true);
 
-    // Check if we have a browser window. If that's the case attach handlers for tabs
-    var browser = ("getBrowser" in aWindow) ? aWindow.getBrowser() : null;
-    if (browser) {
-      // Note: Error pages will never fire a "pageshow" event. For those we
-      // have to wait for the "DOMContentLoaded" event. That's the final state.
-      // Error pages will always have a baseURI starting with
-      // "about:" followed by "error" or "blocked".
-      browser.addEventListener("DOMContentLoaded", DOMContentLoadedHandler, true);
+    // Note: Error pages will never fire a "pageshow" event. For those we
+    // have to wait for the "DOMContentLoaded" event. That's the final state.
+    // Error pages will always have a baseURI starting with
+    // "about:" followed by "error" or "blocked".
+    aWindow.addEventListener("DOMContentLoaded", DOMContentLoadedHandler, true);
 
-      // Page is ready
-      browser.addEventListener("pageshow", pageShowHandler, true);
+    // Page is ready
+    aWindow.addEventListener("pageshow", pageShowHandler, true);
 
-      // Leave page (use caching)
-      browser.addEventListener("pagehide", pageHideHandler, true);
-    }
+    // Leave page (use caching)
+    aWindow.addEventListener("pagehide", pageHideHandler, true);
   };
 
   // If the window has already been finished loading, call the load handler

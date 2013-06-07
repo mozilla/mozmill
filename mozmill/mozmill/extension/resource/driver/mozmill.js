@@ -57,26 +57,13 @@ if (platform == "linux"){
   isLinux = true;
 }
 
-var appInfo = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo);
-
 var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
                  .getService(Ci.nsIAppStartup);
 
 var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
 
-const applicationDictionary = {
-  "{718e30fb-e89b-41dd-9da7-e25a45638b28}": "Sunbird",
-  "{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}": "SeaMonkey",
-  "{ec8030f7-c20a-464f-9b0e-13a3a9e97384}": "Firefox",
-  "{3550f703-e582-4d05-9a08-453d09bdfdc6}": 'Thunderbird'
-};
-
-var Application = applicationDictionary[appInfo.ID];
-
-if (Application == undefined) {
-  // Default to Firefox
-  var Application = 'Firefox';
-}
+var appInfo = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo);
+var Application = appInfo.name;
 
 // get startup time if available
 // see http://blog.mozilla.com/tglek/2011/04/26/measuring-startup-speed-correctly/

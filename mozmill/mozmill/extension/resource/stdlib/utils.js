@@ -2,7 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var EXPORTED_SYMBOLS = ["Copy", "getChromeWindow", "getWindows",
+var EXPORTED_SYMBOLS = ["Copy", "getBrowserObject", "getChromeWindow", "getWindows",
                         "getWindowByTitle", "getWindowByType", "getWindowId",
                         "getMethodInWindows", "getPreference", "setPreference",
                         "sleep", "assert", "unwrapNode", "TimeoutError", "waitFor",
@@ -18,6 +18,8 @@ Cu.import("resource://gre/modules/NetUtil.jsm");
 
 var broker = {}; Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 
+var appInfo = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo);
+
 var hwindow = Cc["@mozilla.org/appshell/appShellService;1"]
               .getService(Ci.nsIAppShellService).hiddenDOMWindow;
 
@@ -26,6 +28,24 @@ var uuidgen = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator
 function Copy (obj) {
   for (var n in obj) {
     this[n] = obj[n];
+  }
+}
+
+/**
+ * Returns the browser object of the specified window
+ *
+ * @param {Window} aWindow
+ *        Window to get the browser element from.
+ *
+ * @returns {Object} The browser element
+ */
+function getBrowserObject(aWindow) {
+  switch(appInfo.name) {
+    case "MetroFirefox":
+      return aWindow.Browser;
+    case "Firefox":
+    default:
+      return aWindow.gBrowser;
   }
 }
 
