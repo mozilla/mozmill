@@ -15,10 +15,10 @@ class ModuleTest(unittest.TestCase):
     def test_expectstack(self):
         # This is going to simply call mozmill and get the output.  In the
         # old method of running, we wouldn't even see the name of our
-        # test in the output (the test in this case is expectstack.js)
+        # test in the output (the test in this case is testExpectStack.js)
         # and so we can verify this bug is fixed by ensuring that exists
         # and that the stack is valid JSON.  Here goes...
-        relpath = os.path.join("js-tests", "expectstack.js")
+        relpath = os.path.join("js-modules", "testExpectStack.js")
         testpath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 relpath)
         p = subprocess.Popen(["mozmill", "-t", testpath],
@@ -35,7 +35,7 @@ class ModuleTest(unittest.TestCase):
                 while not found:
                     if (("filename" in node) and
                         (node["filename"] is not None) and
-                        ("expectstack.js" in node["filename"])):
+                        ("testExpectStack.js" in node["filename"])):
                         self.assertTrue(True, msg="Found expected stackframe")
                         found = True
                     else:

@@ -20,8 +20,8 @@ class TestManifestTestsOptions(unittest.TestCase):
         process = ProcessHandler(['mozmill',
                                   '-b', os.environ['BROWSER_PATH'],
                                   '-t', os.path.join(testdir,
-                                                     'test_module1.js'),
-                                  '-m', os.path.join(testdir, 'example.ini')
+                                                     'testUsemozmillControllerOpen.js'),
+                                  '-m', os.path.join(testdir, 'tests-null.ini')
                                  ],
                                  # stop mozmill from printing output to console
                                  processOutputLine=[lambda line: None])

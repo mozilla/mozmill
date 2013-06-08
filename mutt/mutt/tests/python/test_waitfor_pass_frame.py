@@ -18,7 +18,7 @@ class TestBug795579(unittest.TestCase):
     jsbridge_timeout = 5.
 
     def test_waitfor_send_pass_frame(self):
-        testpath = os.path.join("js-tests", "test_waitFor_pass_frame.js")
+        testpath = os.path.join("js-modules", "testWaitForPassFrame.js")
         self.do_test(testpath, passes=2, fails=0, skips=0)
 
     def do_test(self, relative_test_path, passes=0, fails=0, skips=0):

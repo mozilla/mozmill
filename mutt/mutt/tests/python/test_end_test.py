@@ -14,8 +14,9 @@ class ModuleEndTest(unittest.TestCase):
     def test_modules(self):
         manifest = manifestparser.TestManifest(
             manifests=[os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                    "js-tests",
-                                    "restart_endtest",
+                                    "js-modules",
+                                    "restartTests",
+                                    "testEndTest",
                                     "tests.ini")],
             strict=False)
 
