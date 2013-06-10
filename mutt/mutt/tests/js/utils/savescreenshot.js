@@ -11,6 +11,10 @@ const TEST_DATA = "data:image/jpeg;base64," +
 
 const NAME = "smile5x5";
 
+var setupModule = function (aModule) {
+  aModule.controller = mozmill.getBrowserController();
+}
+
 /**
  * testScreenshotSaveCorruption
  * Saves a dataURL and reads back the saved file.
@@ -49,7 +53,7 @@ var brodyFile2DataURL = {
     var binaryStream = Cc["@mozilla.org/binaryinputstream;1"]
                        .createInstance(Ci.nsIBinaryInputStream);
     binaryStream.setInputStream(aInputStream);
-    var encoding = btoa(binaryStream.readBytes(binaryStream.available()));
+    var encoding = controller.window.btoa(binaryStream.readBytes(binaryStream.available()));
     return "data:" + contentType + ";base64," + encoding;
   },
 

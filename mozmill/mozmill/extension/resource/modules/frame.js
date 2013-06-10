@@ -12,6 +12,7 @@ const Cu = Components.utils;
 
 const TIMEOUT_SHUTDOWN_HTTPD = 15000;
 
+Cu.import("resource://gre/modules/Services.jsm");
 
 Cu.import('resource://mozmill/stdlib/httpd.js');
 
@@ -73,21 +74,21 @@ var loadFile = function (path, collector) {
 
   loadTestResources();
 
-  var module = {
-    assert: new assertions.Assert(),
-    Cc: Cc,
-    Ci: Ci,
-    Cr: Components.results,
-    Cu: Cu,
-    collector: collector,
-    driver: moduleLoader.require("driver"),
-    elementslib: mozelement,
-    expect: new assertions.Expect(),
-    findElement: mozelement,
-    log: log,
-    mozmill: mozmill,
-    persisted: persisted
-  }
+  var systemPrincipal = Services.scriptSecurityManager.getSystemPrincipal();
+  var module = new Components.utils.Sandbox(systemPrincipal);
+  module.assert = new assertions.Assert();
+  module.Cc = Cc;
+  module.Ci = Ci;
+  module.Cr = Components.results;
+  module.Cu = Cu;
+  module.collector = collector;
+  module.driver = moduleLoader.require("driver");
+  module.elementslib = mozelement;
+  module.expect = new assertions.Expect();
+  module.findElement = mozelement;
+  module.log = log;
+  module.mozmill = mozmill;
+  module.persisted = persisted;
 
   module.require = function (mod) {
     var loader = new securableModule.Loader({

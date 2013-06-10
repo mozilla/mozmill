@@ -182,15 +182,17 @@ function attachEventListeners(aWindow) {
   var DOMContentLoadedHandler = function (aEvent) {
     var doc = aEvent.originalTarget;
 
-    var errorRegex = /about:.+(error)|(blocked)\?/;
-    if (errorRegex.exec(doc.baseURI)) {
-      // Wait about 1s to be sure the DOM is ready
-      utils.sleep(1000);
+    // Only update the flag if we have a document as target
+    if ("defaultView" in doc) {
+      var id = utils.getWindowId(doc.defaultView);
+      // dump("*** 'DOMContentLoaded' event: id=" + id + ", baseURI=" + doc.baseURI + "\n");
 
-      // Only update the flag if we have a document as target
-      if ("defaultView" in doc) {
-        var id = utils.getWindowId(doc.defaultView);
-        // dump("*** 'DOMContentLoaded' event: id=" + id + ", baseURI=" + doc.baseURI + "\n");
+      // We only care about error pages for DOMContentLoaded
+      var errorRegex = /about:.+(error)|(blocked)\?/;
+      if (errorRegex.exec(doc.baseURI)) {
+        // Wait about 1s to be sure the DOM is ready
+        utils.sleep(1000);
+
         map.updatePageLoadStatus(id, true);
       }
 

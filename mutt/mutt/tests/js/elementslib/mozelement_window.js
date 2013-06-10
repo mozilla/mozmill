@@ -8,10 +8,10 @@ const TEST_DATA = BASE_URL + "form.html";
 // Bug 677364:
 // Fix controller keyboard methods to allow a null parameter for the target element
 
-var setupModule = function () {
-  controller = mozmill.getBrowserController();
+var setupModule = function (aModule) {
+  aModule.controller = mozmill.getBrowserController();
 
-  win = new mozelement.MozMillElement("Elem", controller.window);
+  aModule.win = new elementslib.MozMillElement("Elem", controller.window);
 }
 
 var testContent = function () {
