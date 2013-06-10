@@ -41,6 +41,7 @@ var EXPORTED_SYMBOLS = ['loadFile','register_function','Collector','Runner','eve
 
 const TIMEOUT_SHUTDOWN_HTTPD = 15000;
 
+Components.utils.import("resource://gre/modules/Services.jsm");
 
 Components.utils.import('resource://mozmill/stdlib/httpd.js');
 
@@ -92,7 +93,8 @@ var loadFile = function(path, collector) {
   file.initWithPath(path);
   var uri = ios.newFileURI(file).spec;
 
-  var module = {};  
+  var systemPrincipal = Services.scriptSecurityManager.getSystemPrincipal();
+  var module = new Components.utils.Sandbox(systemPrincipal);
   module.registeredFunctions = registeredFunctions;
   module.collector = collector
   loadTestResources();
