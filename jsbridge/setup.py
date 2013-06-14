@@ -7,7 +7,7 @@ import sys
 from setuptools import setup, find_packages
 
 PACKAGE_NAME = "jsbridge"
-PACKAGE_VERSION = "3.0rc3"
+PACKAGE_VERSION = "3.0rc4"
 
 # package dependencies
 deps = []
