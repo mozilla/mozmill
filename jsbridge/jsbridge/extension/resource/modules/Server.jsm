@@ -38,11 +38,16 @@ Server.Session.prototype.send = function (string) {
   if (typeof(string) != "string")
     throw "jsbridge can only send strings";
 
-  this.client.sendMessage(toUnicode(string, 'utf-8'));
+  if (this.client) {
+    this.client.sendMessage(toUnicode(string, 'utf-8'));
+  } else {
+    Log.dump("Attempting to send message after session closed", string);
+  }
 };
 
 Server.Session.prototype.quit = function () {
   this.client.close();
+  this.client = null;
 };
 
 Server.Session.prototype.encodeOut = function (obj) {
@@ -72,7 +77,7 @@ Server.Server = function (port) {
 
 Server.Server.prototype = {
   start: function () {
-    Log.dump("Start server on port", this._port);
+    Log.dump("Start JSBridge server on port", this._port);
 
     this._socket.onConnect(function (client) {
       sessions.add(new Server.Session(client));
@@ -80,9 +85,12 @@ Server.Server.prototype = {
   },
 
   stop: function () {
-    this._socket.close();
+    Log.dump("Stop JSBridge server on port", this._port);
+
     sessions.quit();
-    this._socket = undefined;
+
+    this._socket.close();
+    this._socket = null;
   }
 };
 
@@ -96,8 +104,11 @@ var sessions = {
 
   remove: function (session) {
     var index = this._list.indexOf(session);
-    if (index != -1)
-      this._list.splice(index, 1);
+    if (index != -1) {
+      return this._list.splice(index, 1);
+    }
+
+    return null;
   },
 
   get: function (index) {

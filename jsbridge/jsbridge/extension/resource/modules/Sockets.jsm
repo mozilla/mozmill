@@ -19,7 +19,6 @@ var Sockets = { };
 
 Sockets.Client = function (fd) {
   this.fd = fd;
-  this._is_closing = false;
   this.timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
 };
 
@@ -38,7 +37,6 @@ Sockets.Client.prototype = {
         if (bytes > 0) {
           var message = buffer.readString();
           callback(message);
-
         } else if (bytes === 0) {
           if (self.handleDisconnect)
             self.handleDisconnect();
@@ -63,20 +61,13 @@ Sockets.Client.prototype = {
   },
 
   sendMessage: function (message) {
-    if (!this._is_closing) {
-      var buffer = new NSS.Sockets.buffer(message);
-      NSS.Sockets.PR_Send(this.fd, buffer, message.length, 0, NSS.Sockets.PR_INTERVAL_MAX);
-    } else {
-      dump("Attempting to send message after socket closed: msg length: " + message.length + " with contents: " + message + "\n");
-    }
+    var buffer = new NSS.Sockets.buffer(message);
+    NSS.Sockets.PR_Send(this.fd, buffer, message.length, 0, NSS.Sockets.PR_INTERVAL_MAX);
   },
 
   close : function () {
-    this._is_closing = true;
-    if (this.timer) {
-      this.timer.cancel();
-      this.timer = null;
-    }
+    this.timer.cancel();
+    this.timer = null;
 
     return NSS.Sockets.PR_Close(this.fd);
   }
