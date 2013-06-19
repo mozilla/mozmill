@@ -14,10 +14,42 @@ var stack = {}; Cu.import('resource://mozmill/modules/stack.js', stack);
  * @namespace Defines expect and assert methods to be used for assertions.
  */
 
-/* non-fatal assertions */
-var Expect = function () {}
+/**
+* AssertionError
+*
+* Error object thrown by failing assertions
+*/
+function AssertionError(aMessage, aFileName, aLineNumber, aName) {
+  var err = new Error();
 
-Expect.prototype = {
+  if (err.stack) {
+    this.stack = err.stack;
+  }
+
+  this.message = aMessage || err.message;
+  this.fileName = aFileName || err.fileName;
+  this.lineNumber = aLineNumber || err.lineNumber;
+  this.name = aName || err.name;
+}
+
+AssertionError.prototype = new Error();
+AssertionError.prototype.constructor = AssertionError;
+AssertionError.prototype.name = 'AssertionError';
+
+/**
+ * The Assert class implements fatal assertions, and can be used in cases
+ * when a failing test has to directly abort the current test function. All
+ * remaining tasks will not be performed.
+ *
+ */
+var Assert = function () {}
+
+Assert.prototype = {
+
+  /**
+   * Error object thrown by the Assert class
+   */
+  AssertionError: AssertionError,
 
   // The following deepEquals implementation is from Narwhal under this license:
 
@@ -119,7 +151,7 @@ Expect.prototype = {
     return true;
   },
 
-  _expectedException : function Expect__expectedException(actual, expected) {
+  _expectedException : function Assert__expectedException(actual, expected) {
     if (!actual || !expected) {
       return false;
     }
@@ -136,7 +168,7 @@ Expect.prototype = {
   },
 
   /**
-   * Log a test as failing by adding a fail frame.
+   * Log a test as failing by throwing an AssertionException.
    *
    * @param {object} aResult
    *   Test result details used for reporting.
@@ -150,9 +182,14 @@ Expect.prototype = {
    *     <dd>message</dd>
    *     <dt>Message why the assertion failed.</dt>
    *   </dl>
+   * @throws {AssertionError}
+   *
    */
-  _logFail: function Expect__logFail(aResult) {
-    broker.fail({fail: aResult});
+  _logFail: function Assert__logFail(aResult) {
+    throw new AssertionError(aResult.message,
+                             aResult.fileName,
+                             aResult.lineNumber,
+                             aResult.name);
   },
 
   /**
@@ -171,7 +208,7 @@ Expect.prototype = {
    *     <dt>Message why the assertion failed.</dt>
    *   </dl>
    */
-  _logPass: function Expect__logPass(aResult) {
+  _logPass: function Assert__logPass(aResult) {
     broker.pass({pass: aResult});
   },
 
@@ -184,9 +221,11 @@ Expect.prototype = {
    *   Message to show for the test result
    * @param {string} aDiagnosis
    *   Diagnose message to show for the test result
+   * @throws {AssertionError}
+   *
    * @returns {boolean} Result of the test.
    */
-  _test: function Expect__test(aCondition, aMessage, aDiagnosis) {
+  _test: function Assert__test(aCondition, aMessage, aDiagnosis) {
     let diagnosis = aDiagnosis || "";
     let message = aMessage || "";
 
@@ -222,7 +261,7 @@ Expect.prototype = {
    *   Message to show for the test result.
    * @returns {boolean} Always returns true.
    */
-  pass: function Expect_pass(aMessage) {
+  pass: function Assert_pass(aMessage) {
     return this._test(true, aMessage, undefined);
   },
 
@@ -231,9 +270,11 @@ Expect.prototype = {
    *
    * @param {string} aMessage
    *   Message to show for the test result.
+   * @throws {AssertionError}
+   *
    * @returns {boolean} Always returns false.
    */
-  fail: function Expect_fail(aMessage) {
+  fail: function Assert_fail(aMessage) {
     return this._test(false, aMessage, undefined);
   },
 
@@ -244,9 +285,11 @@ Expect.prototype = {
    *   Value to test.
    * @param {string} aMessage
    *   Message to show for the test result.
+   * @throws {AssertionError}
+   *
    * @returns {boolean} Result of the test.
    */
-  ok: function Expect_ok(aValue, aMessage) {
+  ok: function Assert_ok(aValue, aMessage) {
     let condition = !!aValue;
     let diagnosis = "got '" + aValue + "'";
 
@@ -262,9 +305,11 @@ Expect.prototype = {
    *   Value to strictly compare with.
    * @param {string} aMessage
    *   Message to show for the test result
+   * @throws {AssertionError}
+   *
    * @returns {boolean} Result of the test.
    */
-  equal: function Expect_equal(aValue, aExpected, aMessage) {
+  equal: function Assert_equal(aValue, aExpected, aMessage) {
     let condition = (aValue === aExpected);
     let diagnosis = "'" + aValue + "' should equal '" + aExpected + "'";
 
@@ -280,9 +325,11 @@ Expect.prototype = {
    *   Value to strictly compare with.
    * @param {string} aMessage
    *   Message to show for the test result
+   * @throws {AssertionError}
+   *
    * @returns {boolean} Result of the test.
    */
-  notEqual: function Expect_notEqual(aValue, aExpected, aMessage) {
+  notEqual: function Assert_notEqual(aValue, aExpected, aMessage) {
     let condition = (aValue !== aExpected);
     let diagnosis = "'" + aValue + "' should not equal '" + aExpected + "'";
 
@@ -298,6 +345,8 @@ Expect.prototype = {
    *   The object to strictly compare with.
    * @param {string} aMessage
    *   Message to show for the test result
+   * @throws {AssertionError}
+   *
    * @returns {boolean} Result of the test.
    */
   deepEqual: function equal(aValue, aExpected, aMessage) {
@@ -328,6 +377,8 @@ Expect.prototype = {
    *   The object to strictly compare with.
    * @param {string} aMessage
    *   Message to show for the test result
+   * @throws {AssertionError}
+   *
    * @returns {boolean} Result of the test.
    */
   notDeepEqual: function notEqual(aValue, aExpected, aMessage) {
@@ -358,9 +409,11 @@ Expect.prototype = {
    *   Regular expression to use for testing that a match exists.
    * @param {string} aMessage
    *   Message to show for the test result
+   * @throws {AssertionError}
+   *
    * @returns {boolean} Result of the test.
    */
-  match: function Expect_match(aString, aRegex, aMessage) {
+  match: function Assert_match(aString, aRegex, aMessage) {
     // XXX Bug 634948
     // Regex objects are transformed to strings when evaluated in a sandbox
     // For now lets re-create the regex from its string representation
@@ -389,9 +442,11 @@ Expect.prototype = {
    *   Regular expression to use for testing that a match does not exist.
    * @param {string} aMessage
    *   Message to show for the test result
+   * @throws {AssertionError}
+   *
    * @returns {boolean} Result of the test.
    */
-  notMatch: function Expect_notMatch(aString, aRegex, aMessage) {
+  notMatch: function Assert_notMatch(aString, aRegex, aMessage) {
     // XXX Bug 634948
     // Regex objects are transformed to strings when evaluated in a sandbox
     // For now lets re-create the regex from its string representation
@@ -421,9 +476,11 @@ Expect.prototype = {
    *   the expected error class
    * @param {string} message
    *   message to present if assertion fails
+   * @throws {AssertionError}
+   *
    * @returns {boolean} Result of the test.
    */
-  throws : function Expect_throws(block, /*optional*/error, /*optional*/message) {
+  throws : function Assert_throws(block, /*optional*/error, /*optional*/message) {
     return this._throws.apply(this, [true].concat(Array.prototype.slice.call(arguments)));
   },
 
@@ -436,9 +493,11 @@ Expect.prototype = {
    *   the expected error class
    * @param {string} message
    *   message to present if assertion fails
+   * @throws {AssertionError}
+   *
    * @returns {boolean} Result of the test.
    */
-  doesNotThrow : function Expect_doesNotThrow(block, /*optional*/error, /*optional*/message) {
+  doesNotThrow : function Assert_doesNotThrow(block, /*optional*/error, /*optional*/message) {
     return this._throws.apply(this, [false].concat(Array.prototype.slice.call(arguments)));
   },
 
@@ -448,7 +507,7 @@ Expect.prototype = {
      adapted from node.js's assert._throws()
      https://github.com/joyent/node/blob/master/lib/assert.js
   */
-  _throws : function Expect__throws(shouldThrow, block, expected, message) {
+  _throws : function Assert__throws(shouldThrow, block, expected, message) {
     var actual;
 
     if (typeof expected === 'string') {
@@ -486,9 +545,11 @@ Expect.prototype = {
    * @param {String} aString String to test.
    * @param {String} aPattern Pattern to look for in the string
    * @param {String} aMessage Message to show for the test result
+   * @throws {AssertionError}
+   *
    * @returns {Boolean} Result of the test.
    */
-  contain: function Expect_contain(aString, aPattern, aMessage) {
+  contain: function Assert_contain(aString, aPattern, aMessage) {
     let condition = (aString.indexOf(aPattern) !== -1);
     let diagnosis = "'" + aString + "' should contain '" + aPattern + "'";
 
@@ -501,54 +562,26 @@ Expect.prototype = {
    * @param {String} aString String to test.
    * @param {String} aPattern Pattern to look for in the string
    * @param {String} aMessage Message to show for the test result
+   * @throws {AssertionError}
+   *
    * @returns {Boolean} Result of the test.
    */
-  notContain: function Expect_notContain(aString, aPattern, aMessage) {
+  notContain: function Assert_notContain(aString, aPattern, aMessage) {
     let condition = (aString.indexOf(aPattern) === -1);
     let diagnosis = "'" + aString + "' should not contain '" + aPattern + "'";
 
     return this._test(condition, aMessage, diagnosis);
   }
+
 }
 
-/**
-* AssertionError
-*
-* Error object thrown by failing assertions
-*/
-function AssertionError(aMessage, aFileName, aLineNumber, aName) {
-  var err = new Error();
+/* non-fatal assertions */
+var Expect = function () {}
 
-  if (err.stack) {
-    this.stack = err.stack;
-  }
-
-  this.message = aMessage || err.message;
-  this.fileName = aFileName || err.fileName;
-  this.lineNumber = aLineNumber || err.lineNumber;
-  this.name = aName || err.name;
-}
-
-AssertionError.prototype = new Error();
-AssertionError.prototype.constructor = AssertionError;
-AssertionError.prototype.name = 'AssertionError';
-
-
-var Assert = function () {}
-
-Assert.prototype = new Expect();
-
-Assert.prototype.AssertionError = AssertionError;
+Expect.prototype = new Assert();
 
 /**
- * The Assert class implements fatal assertions, and can be used in cases
- * when a failing test has to directly abort the current test function. All
- * remaining tasks will not be performed.
- *
- */
-
-/**
- * Log a test as failing by throwing an AssertionException.
+ * Log a test as failing by adding a fail frame.
  *
  * @param {object} aResult
  *   Test result details used for reporting.
@@ -562,11 +595,7 @@ Assert.prototype.AssertionError = AssertionError;
  *     <dd>message</dd>
  *     <dt>Message why the assertion failed.</dt>
  *   </dl>
- * @throws {AssertionError }
  */
-Assert.prototype._logFail = function Assert__logFail(aResult) {
-  throw new AssertionError(aResult.message,
-                           aResult.fileName,
-                           aResult.lineNumber,
-                           aResult.name);
+Expect.prototype._logFail = function Expect__logFail(aResult) {
+  broker.fail({fail: aResult});
 }
