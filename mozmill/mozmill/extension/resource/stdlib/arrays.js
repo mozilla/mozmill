@@ -2,7 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var EXPORTED_SYMBOLS = ['inArray', 'getSet', 'indexOf', 'rindexOf', 'compare'];
+var EXPORTED_SYMBOLS = ['inArray', 'getSet', 'indexOf',
+                        'remove', 'rindexOf', 'compare'];
+
+
+function remove(array, from, to) {
+  var rest = array.slice((to || from) + 1 || array.length);
+  array.length = from < 0 ? array.length + from : from;
+
+  return array.push.apply(array, rest);
+}
 
 function inArray(array, value) {
   for (var i in array) {
