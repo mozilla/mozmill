@@ -307,6 +307,8 @@ class FirefoxProfile(Profile):
     """Specialized Profile subclass for Firefox"""
     preferences = {# Don't automatically update the application
                    'app.update.enabled' : False,
+                   # Disable new tab preloading
+                   'browser.newtab.preload' : False,
                    # Don't restore the last open set of tabs if the browser has crashed
                    'browser.sessionstore.resume_from_crash': False,
                    # Don't check for the default web browser
