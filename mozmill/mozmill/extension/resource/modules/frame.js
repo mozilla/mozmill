@@ -17,6 +17,7 @@ Cu.import('resource://mozmill/stdlib/httpd.js');
 
 var broker = {};  Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 var assertions = {}; Cu.import('resource://mozmill/modules/assertions.js', assertions);
+var errors = {}; Cu.import('resource://mozmill/modules/errors.js', errors);
 var os = {};      Cu.import('resource://mozmill/stdlib/os.js', os);
 var strings = {}; Cu.import('resource://mozmill/stdlib/strings.js', strings);
 var arrays = {};  Cu.import('resource://mozmill/stdlib/arrays.js', arrays);
@@ -524,6 +525,7 @@ Collector.prototype.loadFile = function (path, collector) {
   module.collector = collector;
   module.driver = moduleLoader.require("driver");
   module.elementslib = mozelement;
+  module.errors = errors;
   module.expect = new assertions.Expect();
   module.findElement = mozelement;
   module.log = log;

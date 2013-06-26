@@ -42,7 +42,7 @@ var testWaitForFalseAfterTrue = function () {
 
       return res;
     }, undefined, 200);
-  }, "TimeoutError", "waitFor() has to pass after the first true is returned.");
+  }, errors.TimeoutError, "waitFor() has to pass after the first true is returned.");
 }
 
 var testWaitForCallbackCounter = function () {
@@ -53,7 +53,7 @@ var testWaitForCallbackCounter = function () {
       counter++;
       return counter > 0;
     }, undefined, 200);
-  }, "TimeoutError", "waitFor() shouldn't call callback after the first true result.");
+  }, errors.TimeoutError, "waitFor() shouldn't call callback after the first true result.");
 
   expect.equal(counter, 1, "waitFor() shouldn't call callback after the first true result. (Second check)");
 }
@@ -81,7 +81,7 @@ var testWaitForTimeoutAccuracy = function () {
       controller.sleep(waitForInnerSleep);
       return false;
     }, null, waitForTimeout, waitForInterval);
-  }, "TimeoutError", "waitFor() should have run into a timeout.");
+  }, errors.TimeoutError, "waitFor() should have run into a timeout.");
 
   var endTime = Date.now();
   var elaspedTime = endTime - time;

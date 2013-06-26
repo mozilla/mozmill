@@ -5,7 +5,7 @@
 var EXPORTED_SYMBOLS = ["Copy", "getBrowserObject", "getChromeWindow", "getWindows",
                         "getWindowByTitle", "getWindowByType", "getWindowId",
                         "getMethodInWindows", "getPreference", "setPreference",
-                        "sleep", "assert", "unwrapNode", "TimeoutError", "waitFor",
+                        "sleep", "assert", "unwrapNode", "waitFor",
                         "saveDataURL", "takeScreenshot", "startTimer", "stopTimer",
                        ];
 
@@ -17,6 +17,7 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/NetUtil.jsm");
 
 var broker = {}; Cu.import('resource://mozmill/driver/msgbroker.js', broker);
+var errors = {}; Cu.import('resource://mozmill/modules/errors.js', errors);
 
 var appInfo = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo);
 
@@ -258,25 +259,6 @@ function unwrapNode(aNode) {
 }
 
 /**
- * TimeoutError
- *
- * Error object used for timeouts
- */
-function TimeoutError(message, fileName, lineNumber) {
-  var err = new Error();
-  this.message = (message === undefined ? err.message : message);
-  this.fileName = (fileName === undefined ? err.fileName : fileName);
-  this.lineNumber = (lineNumber === undefined ? err.lineNumber : lineNumber);
-
-  if (err.stack) {
-    this.stack = err.stack;
-  }
-}
-TimeoutError.prototype = new Error();
-TimeoutError.prototype.constructor = TimeoutError;
-TimeoutError.prototype.name = 'TimeoutError';
-
-/**
  * Waits for the callback evaluates to true
  */
 function waitFor(callback, message, timeout, interval, thisObject) {
@@ -313,7 +295,7 @@ function waitFor(callback, message, timeout, interval, thisObject) {
 
   if (self.result !== true && self.timeIsUp) {
     message = message || arguments.callee.name + ": Timeout exceeded for '" + callback + "'";
-    throw new TimeoutError(message);
+    throw new errors.TimeoutError(message);
   }
 
   broker.pass({'function':'utils.waitFor()'});

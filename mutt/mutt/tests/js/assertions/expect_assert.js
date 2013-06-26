@@ -115,11 +115,11 @@ var testAssert = function () {
     if (test.result === true) {
       expect.doesNotThrow(function() {
         assert[test.fun].apply(assert, test.params);
-      }, assert.AssertionError, message);
+      }, errors.AssertionError, message);
     } else {
       assert.throws(function() {
         assert[test.fun].apply(assert, test.params);
-      }, test.throws || assert.AssertionError, message);
+      }, test.throws || errors.AssertionError, message);
     }
   }
 }

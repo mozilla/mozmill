@@ -11,11 +11,11 @@ var test = function () {
     driver.waitFor(function () {
       return true;
     }, undefined, 10, 100);
-  }, "TimeoutError", "WaitFor has to pass if true is returned.");
+  }, errors.TimeoutError, "WaitFor has to pass if true is returned.");
 
   expect.throws(function () {
     driver.waitFor(function () {
       return false;
     }, "Throws TimeoutError", 10, 100);
-  }, "TimeoutError", "waitFor() should have run into a timeout.");
+  }, errors.TimeoutError, "waitFor() should have run into a timeout.");
 }

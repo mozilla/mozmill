@@ -7,34 +7,13 @@ var EXPORTED_SYMBOLS = ['Assert', 'Expect'];
 const Cu = Components.utils;
 
 var broker = {}; Cu.import('resource://mozmill/driver/msgbroker.js', broker);
+var errors = {}; Cu.import('resource://mozmill/modules/errors.js', errors);
 var stack = {}; Cu.import('resource://mozmill/modules/stack.js', stack);
 
 /**
  * @name assertions
  * @namespace Defines expect and assert methods to be used for assertions.
  */
-
-/**
-* AssertionError
-*
-* Error object thrown by failing assertions
-*/
-function AssertionError(aMessage, aFileName, aLineNumber, aName) {
-  var err = new Error();
-
-  if (err.stack) {
-    this.stack = err.stack;
-  }
-
-  this.message = aMessage || err.message;
-  this.fileName = aFileName || err.fileName;
-  this.lineNumber = aLineNumber || err.lineNumber;
-  this.name = aName || err.name;
-}
-
-AssertionError.prototype = new Error();
-AssertionError.prototype.constructor = AssertionError;
-AssertionError.prototype.name = 'AssertionError';
 
 /**
  * The Assert class implements fatal assertions, and can be used in cases
@@ -45,11 +24,6 @@ AssertionError.prototype.name = 'AssertionError';
 var Assert = function () {}
 
 Assert.prototype = {
-
-  /**
-   * Error object thrown by the Assert class
-   */
-  AssertionError: AssertionError,
 
   // The following deepEquals implementation is from Narwhal under this license:
 
@@ -184,14 +158,14 @@ Assert.prototype = {
    *     <dd>message</dd>
    *     <dt>Message why the assertion failed.</dt>
    *   </dl>
-   * @throws {AssertionError}
+   * @throws {errors.AssertionError}
    *
    */
   _logFail: function Assert__logFail(aResult) {
-    throw new AssertionError(aResult.message,
-                             aResult.fileName,
-                             aResult.lineNumber,
-                             aResult.name);
+    throw new errors.AssertionError(aResult.message,
+                                    aResult.fileName,
+                                    aResult.lineNumber,
+                                    aResult.name);
   },
 
   /**
@@ -223,7 +197,7 @@ Assert.prototype = {
    *   Message to show for the test result
    * @param {string} aDiagnosis
    *   Diagnose message to show for the test result
-   * @throws {AssertionError}
+   * @throws {errors.AssertionError}
    *
    * @returns {boolean} Result of the test.
    */
@@ -272,7 +246,7 @@ Assert.prototype = {
    *
    * @param {string} aMessage
    *   Message to show for the test result.
-   * @throws {AssertionError}
+   * @throws {errors.AssertionError}
    *
    * @returns {boolean} Always returns false.
    */
@@ -287,7 +261,7 @@ Assert.prototype = {
    *   Value to test.
    * @param {string} aMessage
    *   Message to show for the test result.
-   * @throws {AssertionError}
+   * @throws {errors.AssertionError}
    *
    * @returns {boolean} Result of the test.
    */
@@ -307,7 +281,7 @@ Assert.prototype = {
    *   Value to strictly compare with.
    * @param {string} aMessage
    *   Message to show for the test result
-   * @throws {AssertionError}
+   * @throws {errors.AssertionError}
    *
    * @returns {boolean} Result of the test.
    */
@@ -327,7 +301,7 @@ Assert.prototype = {
    *   Value to strictly compare with.
    * @param {string} aMessage
    *   Message to show for the test result
-   * @throws {AssertionError}
+   * @throws {errors.AssertionError}
    *
    * @returns {boolean} Result of the test.
    */
@@ -347,7 +321,7 @@ Assert.prototype = {
    *   The object to strictly compare with.
    * @param {string} aMessage
    *   Message to show for the test result
-   * @throws {AssertionError}
+   * @throws {errors.AssertionError}
    *
    * @returns {boolean} Result of the test.
    */
@@ -379,7 +353,7 @@ Assert.prototype = {
    *   The object to strictly compare with.
    * @param {string} aMessage
    *   Message to show for the test result
-   * @throws {AssertionError}
+   * @throws {errors.AssertionError}
    *
    * @returns {boolean} Result of the test.
    */
@@ -411,7 +385,7 @@ Assert.prototype = {
    *   Regular expression to use for testing that a match exists.
    * @param {string} aMessage
    *   Message to show for the test result
-   * @throws {AssertionError}
+   * @throws {errors.AssertionError}
    *
    * @returns {boolean} Result of the test.
    */
@@ -444,7 +418,7 @@ Assert.prototype = {
    *   Regular expression to use for testing that a match does not exist.
    * @param {string} aMessage
    *   Message to show for the test result
-   * @throws {AssertionError}
+   * @throws {errors.AssertionError}
    *
    * @returns {boolean} Result of the test.
    */
@@ -478,7 +452,7 @@ Assert.prototype = {
    *   the expected error class
    * @param {string} message
    *   message to present if assertion fails
-   * @throws {AssertionError}
+   * @throws {errors.AssertionError}
    *
    * @returns {boolean} Result of the test.
    */
@@ -495,7 +469,7 @@ Assert.prototype = {
    *   the expected error class
    * @param {string} message
    *   message to present if assertion fails
-   * @throws {AssertionError}
+   * @throws {errors.AssertionError}
    *
    * @returns {boolean} Result of the test.
    */
@@ -547,7 +521,7 @@ Assert.prototype = {
    * @param {String} aString String to test.
    * @param {String} aPattern Pattern to look for in the string
    * @param {String} aMessage Message to show for the test result
-   * @throws {AssertionError}
+   * @throws {errors.AssertionError}
    *
    * @returns {Boolean} Result of the test.
    */
@@ -564,7 +538,7 @@ Assert.prototype = {
    * @param {String} aString String to test.
    * @param {String} aPattern Pattern to look for in the string
    * @param {String} aMessage Message to show for the test result
-   * @throws {AssertionError}
+   * @throws {errors.AssertionError}
    *
    * @returns {Boolean} Result of the test.
    */
