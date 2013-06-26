@@ -162,6 +162,8 @@ Assert.prototype = {
       return true;
     } else if (expected.call({}, actual) === true) {
       return true;
+    } else if (actual.name === expected.name) {
+      return true;
     }
 
     return false;
