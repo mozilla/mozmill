@@ -6,8 +6,9 @@ var setupTest = function () {
   controller = mozmill.getBrowserController();
 }
 
-var testRestartBeforeTimeout = function () {
-  controller.startUserShutdown(2000, true);
+// This test will pass
+var testShutdownBeforeTimeout = function () {
+  controller.startUserShutdown(2000, false);
   controller.sleep(1000);
-  controller.window.Application.restart();
+  controller.mainMenu.click("#menu_FileQuitItem");
 }

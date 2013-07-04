@@ -7,8 +7,8 @@ var setupModule = function () {
 }
 
 // This test should fail
-var testRestartAfterTimeout = function () {
-  controller.startUserShutdown(1000, true);
+var testShutdownAfterTimeout = function () {
+  controller.startUserShutdown(1000, false);
   controller.sleep(2000);
-  controller.window.Application.restart();
+  controller.mainMenu.click("#menu_FileQuitItem");
 }

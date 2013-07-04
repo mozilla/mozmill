@@ -13,12 +13,11 @@ var EventUtils = {}; Cu.import('resource://mozmill/stdlib/EventUtils.js', EventU
 
 var broker = {}; Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 var elementslib = {}; Cu.import('resource://mozmill/driver/elementslib.js', elementslib);
+var errors = {}; Cu.import('resource://mozmill/modules/errors.js', errors);
 var mozelement = {}; Cu.import('resource://mozmill/driver/mozelement.js', mozelement);
 var utils = {}; Cu.import('resource://mozmill/stdlib/utils.js', utils);
 var windows = {}; Cu.import('resource://mozmill/modules/windows.js', windows);
 
-var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
-                 .getService(Ci.nsIAppStartup);
 var hwindow = Cc["@mozilla.org/appshell/appShellService;1"]
               .getService(Ci.nsIAppShellService).hiddenDOMWindow;
 
@@ -407,33 +406,74 @@ MozMillController.prototype.startUserShutdown = function (timeout, restart, next
     throw new Error("You can't have a user-restart and reset the profile; there is a race condition");
   }
 
-  let shutdownObj = {'user': true,
+  let shutdownObj = {
+    'user': true,
     'restart': Boolean(restart),
     'next': next,
-    'resetProfile': Boolean(resetProfile)};
+    'resetProfile': Boolean(resetProfile),
+    'timeout': timeout
+  };
 
-  broker.sendMessage('userShutdown', shutdownObj);
-  this.window.setTimeout(broker.sendMessage, timeout, 'userShutdown', shutdownObj);
+  broker.sendMessage('shutdown', shutdownObj);
 }
 
-MozMillController.prototype.restartApplication = function (next, resetProfile) {
-  // restart the application via the python runner
-  // - next : name of the next test function to run after restart
-  // - resetProfile : whether to reset the profile after restart
-  broker.sendMessage('userShutdown', {'user': false,
-                                      'restart': true,
-                                      'next': next,
-                                      'resetProfile': Boolean(resetProfile)});
-  appStartup.quit(Ci.nsIAppStartup.eAttemptQuit | Ci.nsIAppStartup.eRestart);
+/**
+ * Restart the application via the Python runner
+ *
+ * @param {string} aNext
+ *        Name of the next test function to run after restart
+ * @param {boolean} [aResetProfile=false]
+ *        Whether to reset the profile during restart
+ * @param {boolean} [aFlags=undefined]
+ *        Additional flags how to handle the shutdown or restart. The attributes
+ *        eRestarti386 and eRestartx86_64 have not been documented yet.
+ * @see https://developer.mozilla.org/nsIAppStartup#Attributes
+ */
+MozMillController.prototype.restartApplication = function (aNext, aResetProfile, aFlags) {
+  var flags = Ci.nsIAppStartup.eRestart;
+
+  if (aFlags) {
+    flags |= aFlags;
+  }
+
+  broker.sendMessage('shutdown', {'user': false,
+                                  'restart': true,
+                                  'flags': flags,
+                                  'next': aNext,
+                                  'resetProfile': Boolean(aResetProfile),
+                                  'timeout': 0 });
+
+  // We have to ensure to stop the test from continuing until the application is
+  // shutting down. The only way to do that is by throwing an exception.
+  throw new errors.ApplicationQuitError();
 }
 
-MozMillController.prototype.stopApplication = function (resetProfile) {
-  // stop the application via the python runner
-  // - resetProfile : whether to reset the profile after shutdown
-  broker.sendMessage('userShutdown', {'user': false,
-                                      'restart': false,
-                                      'resetProfile': Boolean(resetProfile)});
-  appStartup.quit(Ci.nsIAppStartup.eAttemptQuit);
+/**
+ * Stop the application via the Python runner
+ *
+ * @param {boolean} [aResetProfile=false]
+ *        Whether to reset the profile during restart
+ * @param {boolean} [aFlags=undefined]
+ *        Additional flags how to handle the shutdown or restart. The attributes
+ *        eRestarti386 and eRestartx86_64 have not been documented yet.
+ * @see https://developer.mozilla.org/nsIAppStartup#Attributes
+ */
+MozMillController.prototype.stopApplication = function (aResetProfile, aFlags) {
+  var flags = null;
+
+  if (aFlags) {
+    flags |= aFlags;
+  }
+
+  broker.sendMessage('shutdown', {'user': false,
+                                  'restart': false,
+                                  'flags': flags,
+                                  'resetProfile': Boolean(aResetProfile),
+                                  'timeout': 0 });
+
+  // We have to ensure to stop the test from continuing until the application is
+  // shutting down. The only way to do that is by throwing an exception.
+  throw new errors.ApplicationQuitError();
 }
 
 //Browser navigation functions

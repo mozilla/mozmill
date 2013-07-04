@@ -151,7 +151,7 @@ Assert.prototype = {
    *   <dl>
    *     <dd>fileName</dd>
    *     <dt>Name of the file in which the assertion failed.</dt>
-   *     <dd>function</dd>
+   *     <dd>functionName</dd>
    *     <dt>Function in which the assertion failed.</dt>
    *     <dd>lineNumber</dd>
    *     <dt>Line number of the file in which the assertion failed.</dt>
@@ -165,6 +165,7 @@ Assert.prototype = {
     throw new errors.AssertionError(aResult.message,
                                     aResult.fileName,
                                     aResult.lineNumber,
+                                    aResult.functionName,
                                     aResult.name);
   },
 
@@ -176,7 +177,7 @@ Assert.prototype = {
    *   <dl>
    *     <dd>fileName</dd>
    *     <dt>Name of the file in which the assertion failed.</dt>
-   *     <dd>function</dd>
+   *     <dd>functionName</dd>
    *     <dt>Function in which the assertion failed.</dt>
    *     <dd>lineNumber</dd>
    *     <dt>Line number of the file in which the assertion failed.</dt>
@@ -212,10 +213,10 @@ Assert.prototype = {
     let frame = stack.findCallerFrame(Components.stack);
 
     let result = {
-      'fileName'   : frame.filename.replace(/(.*)-> /, ""),
-      'name'   : frame.name,
-      'lineNumber' : frame.lineNumber,
-      'message'    : message
+      'fileName'     : frame.filename.replace(/(.*)-> /, ""),
+      'functionName' : frame.name,
+      'lineNumber'   : frame.lineNumber,
+      'message'      : message
     };
 
     // Log test result
@@ -512,6 +513,7 @@ Assert.prototype = {
         !this._expectedException(actual, expected)) || (!shouldThrow && actual)) {
       throw actual;
     }
+
     return this._test(true, message);
   },
 
@@ -548,7 +550,6 @@ Assert.prototype = {
 
     return this._test(condition, aMessage, diagnosis);
   }
-
 }
 
 /* non-fatal assertions */
@@ -564,7 +565,7 @@ Expect.prototype = new Assert();
  *   <dl>
  *     <dd>fileName</dd>
  *     <dt>Name of the file in which the assertion failed.</dt>
- *     <dd>function</dd>
+ *     <dd>functionName</dd>
  *     <dt>Function in which the assertion failed.</dt>
  *     <dd>lineNumber</dd>
  *     <dt>Line number of the file in which the assertion failed.</dt>

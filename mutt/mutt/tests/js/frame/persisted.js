@@ -8,9 +8,7 @@ var setupTest = function () {
 
 var testOne = function () {
   persisted.data = {foo: "bar"};
-
-  controller.startUserShutdown(2000, true, 'testTwo');
-  controller.window.Application.restart();
+  controller.restartApplication('testTwo');
 }
 
 var testTwo = function () {
@@ -23,4 +21,8 @@ var testTwo = function () {
 
 var testThree = function () {
   expect.ok(!persisted.data, "User-defined object has been removed.");
+}
+
+var teardownModule = function (aModule) {
+  delete persisted.data;
 }

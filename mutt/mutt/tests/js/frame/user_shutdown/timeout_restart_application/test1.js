@@ -6,7 +6,7 @@ Cu.import("resource://gre/modules/Services.jsm");
 
 var observer = {
   observe: function (aSubject, aTopic, aData) {
-    Services.obs.removeObserver(observer, "quit-application", false);
+    Services.obs.removeObserver(observer, "quit-application-requested", false);
     persisted.restarted = true;
   }
 }
@@ -15,7 +15,7 @@ var setupTest = function () {
   controller = mozmill.getBrowserController();
 
   persisted.restarted = false;
-  Services.obs.addObserver(observer, "quit-application", false);
+  Services.obs.addObserver(observer, "quit-application-requested", false);
 }
 
 // Do not restart the application even by telling so

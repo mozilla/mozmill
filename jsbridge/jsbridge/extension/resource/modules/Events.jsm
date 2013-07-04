@@ -22,8 +22,6 @@ var Events = {
   },
 
   fireEvent: function (aName, aObj) {
-    Log.dump("Fire event", aName);
-
     if (this.backChannels.length == 0) {
       throw new Error("No backchannels registered yet to send messages.");
     }

@@ -39,6 +39,8 @@ Server.Session.prototype.send = function (string) {
     throw "jsbridge can only send strings";
 
   if (this.client) {
+    Log.dump("Sending message", string);
+
     this.client.sendMessage(toUnicode(string, 'utf-8'));
   } else {
     Log.dump("Attempting to send message after session closed", string);

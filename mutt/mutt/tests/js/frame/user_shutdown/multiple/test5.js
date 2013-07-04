@@ -7,6 +7,6 @@ var setupModule = function (aModule) {
 }
 
 var teardownModule = function (aModule) {
-  aModule.controller.startUserShutdown(1000, true);
-  aModule.controller.window.Application.restart();
+  aModule.controller.startUserShutdown(1000, false);
+  controller.mainMenu.click("#menu_FileQuitItem");
 }

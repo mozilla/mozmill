@@ -2,8 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var EXPORTED_SYMBOLS = ['Collector', 'Runner', 'events', 'runTestFile', 'log',
-                        'timers', 'persisted'];
+var EXPORTED_SYMBOLS = ['Collector','Runner','events', 'runTestFile', 'log',
+                        'timers', 'persisted', 'shutdownApplication'];
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
@@ -33,6 +33,9 @@ var subscriptLoader = Cc["@mozilla.org/moz/jssubscript-loader;1"]
                       .getService(Ci.mozIJSSubScriptLoader);
 var uuidgen = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator);
 
+var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
+                 .getService(Ci.nsIAppStartup);
+
 var persisted = {};
 
 var mozmill = undefined;
@@ -41,6 +44,41 @@ var modules = undefined;
 
 var timers = [];
 
+
+/**
+ * Shutdown or restart the application
+ *
+ * @param {boolean} [aFlags=undefined]
+ *        Additional flags how to handle the shutdown or restart. The attributes
+ *        eRestarti386 and eRestartx86_64 have not been documented yet.
+ * @see https://developer.mozilla.org/nsIAppStartup#Attributes
+ */
+function shutdownApplication(aFlags) {
+  var flags = Ci.nsIAppStartup.eAttemptQuit;
+
+  if (aFlags) {
+    flags |= aFlags;
+  }
+
+  // Send a request to shutdown the application. That will allow us and other
+  // components to finish up with any shutdown code. Please note that we don't
+  // care if other components or add-ons want to prevent this via cancelQuit,
+  // we really force the shutdown.
+  let cancelQuit = Components.classes["@mozilla.org/supports-PRBool;1"].
+                   createInstance(Components.interfaces.nsISupportsPRBool);
+  Services.obs.notifyObservers(cancelQuit, "quit-application-requested", null);
+
+  // Use a timer to trigger the application restart, which will allow us to
+  // send an ACK packet via jsbridge if the method has been called via Python.
+  var event = {
+    notify: function(timer) {
+      appStartup.quit(flags);
+    }
+  }
+
+  var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+  timer.initWithCallback(event, 100, Ci.nsITimer.TYPE_ONE_SHOT);
+}
 
 function stateChangeBase(possibilties, restrictions, target, cmeta, v) {
   if (possibilties) {
@@ -67,11 +105,13 @@ function stateChangeBase(possibilties, restrictions, target, cmeta, v) {
 
 
 var events = {
-  appQuit         : false,
-  currentModule   : null,
-  currentState    : null,
-  currentTest     : null,
-  userShutdown    : false,
+  appQuit           : false,
+  currentModule     : null,
+  currentState      : null,
+  currentTest       : null,
+  shutdownRequested : false,
+  userShutdown      : null,
+  userShutdownTimer : null,
 
   listeners       : {},
   globalListeners : []
@@ -84,26 +124,54 @@ events.setState = function (v) {
 }
 
 events.toggleUserShutdown = function (obj){
-  if (this.userShutdown) {
-    this.fail({'function':'frame.events.toggleUserShutdown',
-               'message':'Shutdown expected but none detected before timeout',
-               'userShutdown': obj});
-  }
+  if (!this.userShutdown) {
+    this.userShutdown = obj;
 
-  this.userShutdown = obj;
+    var event = {
+      notify: function(timer) {
+       events.toggleUserShutdown(obj);
+      }
+    }
+
+    this.userShutdownTimer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+    this.userShutdownTimer.initWithCallback(event, obj.timeout, Ci.nsITimer.TYPE_ONE_SHOT);
+
+  } else {
+    this.userShutdownTimer.cancel();
+
+    // If the application is not going to shutdown, the user shutdown failed and
+    // we have to force a shutdown.
+    if (!events.appQuit) {
+      this.fail({'function':'events.toggleUserShutdown',
+                 'message':'Shutdown expected but none detected before timeout',
+                 'userShutdown': obj});
+
+      var flags = Ci.nsIAppStartup.eAttemptQuit;
+      if (events.isRestartShutdown()) {
+        flags |= Ci.nsIAppStartup.eRestart;
+      }
+
+      shutdownApplication(flags);
+    }
+  }
 }
 
 events.isUserShutdown = function () {
-  return Boolean(this.userShutdown);
+  return this.userShutdown ? this.userShutdown["user"] : false;
 }
 
 events.isRestartShutdown = function () {
   return this.userShutdown.restart;
 }
 
-events.startUserShutdown = function (obj) {
-  events.toggleUserShutdown(obj);
-  events.fireEvent('userShutdown', obj);
+events.startShutdown = function (obj) {
+  events.fireEvent('shutdown', obj);
+
+  if (obj["user"]) {
+    events.toggleUserShutdown(obj);
+  } else {
+    shutdownApplication(obj.flags);
+  }
 }
 
 events.setTest = function (test) {
@@ -124,15 +192,14 @@ events.endTest = function (test) {
     test = events.currentTest;
   }
 
-  // If no test is set it has already been reported.
-  // We don't want to do it a second time.
-  if (!test)
+  // If no test is set it has already been reported. Beside that we don't want
+  // to report it a second time.
+  if (!test || test.status === 'done')
     return;
 
   // report the end of a test
   test.__end__ = Date.now();
   test.status = 'done';
-  events.currentTest = null;
 
   var obj = {'filename': events.currentModule.__file__,
              'passed': test.__passes__.length,
@@ -169,16 +236,20 @@ events.endTest = function (test) {
 
 events.setModule = function (aModule) {
   aModule.__start__ = Date.now();
+  aModule.__status__ = 'running';
 
   var result = stateChangeBase(null,
                                [function (aModule) {return (aModule.__file__ != undefined)}],
                                'currentModule', 'setModule', aModule);
-  aModule.__status__ = 'running';
 
   return result;
 }
 
 events.endModule = function (aModule) {
+  // It should only reported once, so check if it already has been done
+  if (aModule.__status__ === 'done')
+    return;
+
   aModule.__end__ = Date.now();
   aModule.__status__ = 'done';
 
@@ -255,6 +326,11 @@ events.skip = function (reason) {
 }
 
 events.fireEvent = function (name, obj) {
+  if (events.appQuit) {
+    // dump('* Event discarded: ' + name + ' ' + JSON.stringify(obj) + '\n');
+    return;
+  }
+
   if (this.listeners[name]) {
     for (var i in this.listeners[name]) {
       this.listeners[name][i](obj);
@@ -326,14 +402,15 @@ var log = function (obj) {
 }
 
 // Register the listeners
-broker.addObject({'pass': events.pass,
+broker.addObject({'endTest': events.endTest,
                   'fail': events.fail,
-                  'log': log,
-                  'persist': events.persist,
-                  'endTest': events.endTest,
-                  'userShutdown': events.startUserShutdown,
                   'firePythonCallback': events.firePythonCallback,
-                  'screenshot': events.screenshot});
+                  'log': log,
+                  'pass': events.pass,
+                  'persist': events.persist,
+                  'screenshot': events.screenshot,
+                  'shutdown': events.startShutdown,
+                 });
 
 try {
   Cu.import('resource://jsbridge/modules/Events.jsm');
@@ -349,40 +426,36 @@ try {
 /**
  * Observer for notifications when the application is going to shutdown
  */
-function AppQuitObserver(aRunner) {
-  this._runner = aRunner;
-  this.register();
+function AppQuitObserver() {
+  this.runner = null;
+
+  Services.obs.addObserver(this, "quit-application-requested", false);
 }
 
 AppQuitObserver.prototype = {
   observe: function (aSubject, aTopic, aData) {
     switch (aTopic) {
-      case "quit-application":
-        Services.obs.removeObserver(this, "quit-application");
+      case "quit-application-requested":
+        Services.obs.removeObserver(this, "quit-application-requested");
 
         // If we observe a quit notification make sure to send the
         // results of the current test. In those cases we don't reach
         // the equivalent code in runTestModule()
-        events.pass({'message': 'AppQuitObserver: ' + aData,
+        events.pass({'message': 'AppQuitObserver: ' + JSON.stringify(aData),
                      'userShutdown': events.userShutdown});
-        events.endTest();
+
+        if (this.runner) {
+          this.runner.end();
+        }
 
         events.appQuit = true;
-        this._runner.end();
 
         break;
     }
-  },
-
-  register: function () {
-    Services.obs.addObserver(this, "quit-application", false);
-  },
-
-  unregister: function () {
-    Services.obs.removeObserver(this, "quit-application");
   }
 }
 
+var appQuitObserver = new AppQuitObserver();
 
 /**
  * The collector handles HTTPd.js and initilizing the module
@@ -589,11 +662,11 @@ Collector.prototype.loadFile = function (path, collector) {
 
 Collector.prototype.loadTestResources = function () {
   // load resources we want in our tests
-  if (mozmill == undefined) {
+  if (mozmill === undefined) {
     mozmill = {};
     Cu.import("resource://mozmill/driver/mozmill.js", mozmill);
   }
-  if (mozelement == undefined) {
+  if (mozelement === undefined) {
     mozelement = {};
     Cu.import("resource://mozmill/driver/mozelement.js", mozelement);
   }
@@ -602,6 +675,7 @@ Collector.prototype.loadTestResources = function () {
 
 function Runner() {
   this.collector = new Collector();
+  this.ended = false;
 
   var m = {}; Cu.import('resource://mozmill/driver/mozmill.js', m);
   this.platform = m.platform;
@@ -610,10 +684,17 @@ function Runner() {
 }
 
 Runner.prototype.end = function () {
-  events.persist();
-  this.collector.stopHttpd();
+  if (!this.ended) {
+    this.ended = true;
 
-  events.fireEvent('endRunner', true);
+    appQuitObserver.runner = null;
+    this.collector.stopHttpd();
+
+    events.endTest();
+    events.endModule(events.currentModule);
+    events.fireEvent('endRunner', true);
+    events.persist();
+  }
 };
 
 Runner.prototype.runTestFile = function (filename, name) {
@@ -621,10 +702,10 @@ Runner.prototype.runTestFile = function (filename, name) {
   this.runTestModule(module);
 };
 
-Runner.prototype.runTestModule = function (module) {
-  events.setModule(module);
 
-  var observer = new AppQuitObserver(this);
+Runner.prototype.runTestModule = function (module) {
+  appQuitObserver.runner = this;
+  events.setModule(module);
 
   if (module.__setupModule__) {
     events.setState('setupModule');
@@ -638,7 +719,7 @@ Runner.prototype.runTestModule = function (module) {
   }
 
   if (setupModulePassed) {
-    if (module.__setupTest__) {
+    if (module.__setupTest__ && !events.shutdownRequested) {
       events.setState('setupTest');
       events.setTest(module.__setupTest__);
       this.wrapper(module.__setupTest__, module);
@@ -649,35 +730,34 @@ Runner.prototype.runTestModule = function (module) {
       var setupTestPassed = true;
     }
 
-    if (setupTestPassed) {
-      for (var i in module.__tests__) {
-        events.appQuit = false;
-        var test = module.__tests__[i];
+    for each (var test in module.__tests__) {
+      if (events.shutdownRequested) {
+        break;
+      }
 
+      if (setupTestPassed) {
         events.setState('test');
         events.setTest(test);
         this.wrapper(test);
+        events.endTest(test)
         if (events.userShutdown) {
           break;
         }
-        events.endTest(test)
-      }
-    } else {
-      for each(var test in module.__tests__) {
+      } else {
         events.setTest(test);
         events.skip("setupTest failed.");
         events.endTest(test);
       }
     }
 
-    if (module.__teardownTest__) {
+    if (module.__teardownTest__ && !events.shutdownRequested) {
       events.setState('teardownTest');
       events.setTest(module.__teardownTest__);
       this.wrapper(module.__teardownTest__, module);
       events.endTest(module.__teardownTest__);
     }
-  } else {
-    for each(var test in module.__tests__) {
+  } else if (!events.shutdownRequested) {
+    for each (var test in module.__tests__) {
       events.setTest(test);
       events.skip("setupModule failed.");
       events.endTest(test);
@@ -687,14 +767,12 @@ Runner.prototype.runTestModule = function (module) {
   // We only call teardownModule if we are not about to do a restart of
   // the application - i.e. call it in a single test or the last test of
   // a restart chain.
-  if (module.__teardownModule__ && (events.userShutdown == false)) {
+  if (module.__teardownModule__ && !events.shutdownRequested && !events.isUserShutdown()) {
     events.setState('teardownModule');
     events.setTest(module.__teardownModule__);
     this.wrapper(module.__teardownModule__, module);
     events.endTest(module.__teardownModule__);
   }
-
-  observer.unregister();
 
   events.endModule(module);
 };
@@ -716,40 +794,21 @@ Runner.prototype.wrapper = function (func, arg) {
 
   // execute the test function
   try {
-    if (arg) {
-      func(arg);
-    } else {
-      func();
-    }
-
-    // If a user shutdown was expected but the application hasn't quit yet,
-    // throw a failure and mark the test as failed.
-    if (events.isUserShutdown()) {
-      // Prevents race condition between mozrunner hard process kill
-      // and normal FFx shutdown
-      utils.sleep(500);
-
-      if (events.userShutdown['user'] && !events.appQuit) {
-        events.fail({'function': 'Runner.wrapper',
-                     'message':'Shutdown expected but none detected before end of test',
-                     'userShutdown': events.userShutdown});
-        events.endTest();
-
-        // Depending on the shutdown mode quit or restart the application
-        let flags = Ci.nsIAppStartup.eAttemptQuit;
-        if (events.isRestartShutdown()) {
-          flags |= Ci.nsIAppStartup.eRestart;
-        }
-
-        let appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
-                         .getService(Ci.nsIAppStartup);
-        appStartup.quit(flags);
-      }
-    }
+    func(arg);
   } catch (e) {
-    // Allow the exception if it's not an user shutdown
-    if (!events.isUserShutdown()) {
+    if (e instanceof errors.ApplicationQuitError) {
+      events.shutdownRequested = true;
+    }
+    else {
       events.fail({'exception': e, 'test': func})
+    }
+  } finally {
+    // If a user shutdown has been requested and the function already returned,
+    // we can assume that a shutdown will not happen anymore. We should force a
+    // shutdown then, to prevent the next test from being executed.
+    if (events.isUserShutdown()) {
+      events.shutdownRequested = true;
+      events.toggleUserShutdown(events.userShutdown);
     }
   }
 };

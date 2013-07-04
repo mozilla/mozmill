@@ -8,7 +8,7 @@ var EXPORTED_SYMBOLS = ["controller", "utils", "elementslib", "os",
                         "newMail3PaneController", "getMail3PaneController",
                         "wm", "platform", "getAddrbkController",
                         "getMsgComposeController", "getDownloadsController",
-                        "Application", "cleanQuit", "findElement",
+                        "Application", "findElement",
                         "getPlacesController", 'isMac', 'isLinux', 'isWindows',
                         "firePythonCallback"
                        ];
@@ -33,12 +33,6 @@ if (DEBUG) {
   utils.startTimer();
 }
 
-try {
-  Cu.import("resource://gre/modules/AddonManager.jsm");
-} catch (e) {
-  /* Firefox 4 only */
-}
-
 // platform information
 var platform = os.getPlatform();
 var isMac = false;
@@ -57,35 +51,24 @@ if (platform == "linux"){
   isLinux = true;
 }
 
-var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
-                 .getService(Ci.nsIAppStartup);
-
 var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
 
 var appInfo = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo);
 var Application = appInfo.name;
 
-// get startup time if available
-// see http://blog.mozilla.com/tglek/2011/04/26/measuring-startup-speed-correctly/
-function getStartupInfo() {
-  var startupInfo = {};
+var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
+                 .getService(Ci.nsIAppStartup);
 
-  try {
-    var _startupInfo = Cc["@mozilla.org/toolkit/app-startup;1"]
-                       .getService(Ci.nsIAppStartup).getStartupInfo();
-    for (var time in _startupInfo) {
-      // convert from Date object to ms since epoch
-      startupInfo[time] = _startupInfo[time].getTime();
-    }
-  } catch (e) {
-    startupInfo = null;
-  }
-
-  return startupInfo;
-}
 
 // keep list of installed addons to send to jsbridge for test run report
 var addons = "null"; // this will be JSON parsed
+
+try {
+  Cu.import("resource://gre/modules/AddonManager.jsm");
+} catch (e) {
+  /* Firefox 4 only */
+}
+
 if (typeof AddonManager != "undefined") {
   AddonManager.getAllAddons(function (addonList) {
       var converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
@@ -146,20 +129,25 @@ function getApplicationDetails() {
   return JSON.stringify(details);
 }
 
-function cleanQuit () {
-  // Cause a quit to happen. We need the timeout in order to allow
-  // jsbridge enough time to signal back to python before the shutdown starts
-  // TODO: for some reason observers on shutdown don't work here?
-  //       if we don't do this we crash on shutdown in linux
-  var setTimeout = utils.getMethodInWindows('setTimeout');
-  setTimeout(function () {
-    appStartup.quit(Ci.nsIAppStartup.eAttemptQuit);
-  }, 150);
+// get startup time if available
+// see http://blog.mozilla.com/tglek/2011/04/26/measuring-startup-speed-correctly/
+function getStartupInfo() {
+  var startupInfo = {};
+
+  try {
+    var _startupInfo = appStartup.getStartupInfo();
+    for (var time in _startupInfo) {
+      // convert from Date object to ms since epoch
+      startupInfo[time] = _startupInfo[time].getTime();
+    }
+  } catch (e) {
+    startupInfo = null;
+  }
+
+  return startupInfo;
 }
 
-function addHttpResource (directory, namespace) {
-  return 'http://localhost:4545/'+namespace;
-}
+
 
 function newBrowserController () {
   return new controller.MozMillController(utils.getMethodInWindows('OpenBrowserWindow')());

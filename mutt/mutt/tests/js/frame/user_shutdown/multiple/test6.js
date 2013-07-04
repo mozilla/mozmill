@@ -5,6 +5,22 @@
 var setupModule = function () {
   controller = mozmill.getBrowserController();
 
-  controller.startUserShutdown(1000, true);
-  controller.window.Application.restart();
+  controller.startUserShutdown(1000, false);
+  controller.mainMenu.click("#menu_FileQuitItem");
+}
+
+var setupTest = function () {
+  assert.fail("setupTest should not have been run.");
+}
+
+var testSkip = function () {
+  assert.fail("The test should not have been run.");
+}
+
+var teardownTest = function () {
+  assert.fail("teardownTest should not have been run.");
+}
+
+var teardownModule = function () {
+  assert.fail("teardownModule should not have been run.");
 }

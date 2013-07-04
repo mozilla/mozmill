@@ -42,14 +42,10 @@ MozmillHandlers.prototype = {
       // we also have to register for the final-ui-startup notification.
       case "profile-after-change":
         Services.console.registerListener(ConsoleObserver);
-
         Services.obs.addObserver(this, "quit-application", false);
-
         break;
-
       case "quit-application":
         Services.obs.removeObserver(this, "quit-application", false);
-
         Services.console.unregisterListener(ConsoleObserver);
         break;
     }
@@ -65,7 +61,7 @@ var ConsoleObserver = {
       Cu.import("resource://jsbridge/modules/Events.jsm");
 
       Events.fireEvent("mozmill.frameworkFail", {message: msg});
-      Events.fireEvent("mozmill.userShutdown", {
+      Events.fireEvent("mozmill.shutdown", {
         'user': false,
         'restart': false,
         'resetProfile': false

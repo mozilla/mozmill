@@ -220,8 +220,8 @@ class MozMill(object):
                           eventType='mozmill.screenshot')
         self.add_listener(self.startTest_listener,
                           eventType='mozmill.setTest')
-        self.add_listener(self.userShutdown_listener,
-                          eventType='mozmill.userShutdown')
+        self.add_listener(self.shutdown_listener,
+                          eventType='mozmill.shutdown')
 
     def add_listener(self, callback, eventType):
         self.listener_dict.setdefault(eventType, []).append(callback)
@@ -242,10 +242,10 @@ class MozMill(object):
     def endRunner_listener(self, obj):
         self.endRunnerCalled = True
 
-    def userShutdown_listener(self, obj):
-        """Listener for userShutdown events.
+    def shutdown_listener(self, obj):
+        """Listener for shutdown events.
 
-        Listen for the 'userShutdown' event and set some state so
+        Listen for the 'shutdown' event and set some state so
         that the (Python) instance knows what to do.
 
         Arguments:
@@ -503,8 +503,8 @@ class MozMill(object):
         # this *will* cause a disconnect error
         # (not sure what the socket.error is all about)
         try:
-            mozmill = jsbridge.JSObject(self.bridge, js_module_mozmill)
-            mozmill.cleanQuit()
+            frame = jsbridge.JSObject(self.bridge, js_module_frame)
+            frame.shutdownApplication()
         except (socket.error, JSBridgeDisconnectError):
             pass
 
