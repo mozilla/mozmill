@@ -52,3 +52,12 @@ var teardownModule = function (aModule) {
   aModule.windowController1.window.close();
   aModule.windowController2.window.close();
 }
+
+if (Services.vc.compare(Services.appinfo.version, "25.0a1") < 0) {
+  setupModule.__force_skip__ = "Bug 887718 - Windows are being incorrectly " +
+                               "reordered when focused with testMode " +
+                               "enabled prior to Firefox 25";
+  teardownModule.__force_skip__ = "Bug 887718 - Windows are being incorrectly " +
+                                  "reordered when focused with testMode " +
+                                  "enabled prior to Firefox 25";
+}
