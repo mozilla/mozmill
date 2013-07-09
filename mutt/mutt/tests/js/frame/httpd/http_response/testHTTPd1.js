@@ -8,7 +8,7 @@
  * successive tests will fail because of an inappropriate shutdown of the server
  **/
 
-const BASE_URL = collector.addHttpResource("../../_files/");
+const BASE_URL = collector.addHttpResource("../../../_files/");
 const TEST_DATA = [
   BASE_URL + "complex.html",
   BASE_URL + "singlediv.html"

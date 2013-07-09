@@ -4,7 +4,7 @@
 
 Cu.import("resource://gre/modules/Services.jsm");
 
-const BASE_URL = collector.addHttpResource("../../_files/");
+const BASE_URL = collector.addHttpResource("../../../_files/");
 const TEST_DATA = BASE_URL + "link.html";
 
 observer = {

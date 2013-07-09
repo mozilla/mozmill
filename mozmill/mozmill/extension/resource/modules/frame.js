@@ -36,6 +36,7 @@ var uuidgen = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator
 var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
                  .getService(Ci.nsIAppStartup);
 
+var httpd = null;
 var persisted = {};
 
 var mozmill = undefined;
@@ -448,6 +449,10 @@ AppQuitObserver.prototype = {
           this.runner.end();
         }
 
+        if (httpd) {
+          httpd.stop();
+        }
+
         events.appQuit = true;
 
         break;
@@ -463,73 +468,13 @@ var appQuitObserver = new AppQuitObserver();
 function Collector() {
   this.test_modules_by_filename = {};
   this.testing = [];
-
-  this.httpd_started = false;
-  this.http_port = 43336;
-  this.httpd = null;
 }
 
-Collector.prototype.getServer = function (port, basePath) {
-  if (basePath) {
-    var lp = Cc["@mozilla.org/file/local;1"]
-      .createInstance(Ci.nsILocalFile);
-    lp.initWithPath(basePath);
-  }
+Collector.prototype.addHttpResource = function (aDirectory, aPath) {
+  var fp = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
+  fp.initWithPath(os.abspath(aDirectory, this.current_file));
 
-  var srv = new HttpServer();
-  if (lp) {
-    srv.registerDirectory("/", lp);
-  }
-
-  srv.registerContentType("sjs", "sjs");
-  srv.identity.setPrimary("http", "localhost", port);
-
-  return srv;
-}
-
-Collector.prototype.startHttpd = function () {
-  while (!this.httpd) {
-    try {
-      var http_server = this.getServer(this.http_port);
-      http_server.start(this.http_port);
-      this.httpd = http_server;
-    } catch (e) { // Failure most likely due to port conflict
-      this.http_port++;
-    }
-  }
-}
-
-Collector.prototype.stopHttpd = function () {
-  if (!this.httpd) {
-    return;
-  }
-
-  var shutdown = false;
-  this.httpd.stop(function () { shutdown = true; });
-
-  utils.waitFor(function () {
-    return shutdown;
-  }, "Local HTTP server has been stopped", TIMEOUT_SHUTDOWN_HTTPD);
-
-  this.httpd = null;
-}
-
-Collector.prototype.addHttpResource = function (directory, ns) {
-  if (!this.httpd) {
-    this.startHttpd();
-  }
-
-  if (!ns) {
-    ns = '/';
-  } else {
-    ns = '/' + ns + '/';
-  }
-
-  var lp = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
-  lp.initWithPath(os.abspath(directory, this.current_file));
-  this.httpd.registerDirectory(ns, lp);
-
-  return 'http://localhost:' + this.http_port + ns
+  return httpd.addHttpResource(fp, aPath);
 }
 
 Collector.prototype.initTestModule = function (filename, testname) {
@@ -673,6 +618,64 @@ Collector.prototype.loadTestResources = function () {
 }
 
 
+/**
+ *
+ */
+function Httpd(aPort) {
+  this.http_port = aPort;
+
+  while (true) {
+    try {
+      var srv = new HttpServer();
+      srv.registerContentType("sjs", "sjs");
+      srv.identity.setPrimary("http", "localhost", this.http_port);
+      srv.start(this.http_port);
+
+      this._httpd = srv;
+      break;
+    }
+    catch (e) {
+      // Failure most likely due to port conflict
+      this.http_port++;
+    }
+  }
+}
+
+Httpd.prototype.addHttpResource = function (aDir, aPath) {
+  var path = aPath ? ("/" + aPath + "/") : "/";
+
+  try {
+    this._httpd.registerDirectory(path, aDir);
+    return 'http://localhost:' + this.http_port + path;
+  }
+  catch (e) {
+    throw Error("Failure to register directory: " + aDir.path);
+  }
+};
+
+Httpd.prototype.stop = function () {
+  if (!this._httpd) {
+    return;
+  }
+
+  var shutdown = false;
+  this._httpd.stop(function () { shutdown = true; });
+
+  utils.waitFor(function () {
+    return shutdown;
+  }, "Local HTTP server has been stopped", TIMEOUT_SHUTDOWN_HTTPD);
+
+  this._httpd = null;
+};
+
+function startHTTPd() {
+  if (!httpd) {
+    // Ensure that we start the HTTP server only once during a session
+    httpd = new Httpd(43336);
+  }
+}
+
+
 function Runner() {
   this.collector = new Collector();
   this.ended = false;
@@ -688,7 +691,6 @@ Runner.prototype.end = function () {
     this.ended = true;
 
     appQuitObserver.runner = null;
-    this.collector.stopHttpd();
 
     events.endTest();
     events.endModule(events.currentModule);
