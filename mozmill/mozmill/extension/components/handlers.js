@@ -56,23 +56,35 @@ MozmillHandlers.prototype = {
 var ConsoleObserver = {
   observe: function (aSubject, aTopic, aData) {
     var msg = aSubject.message;
-    var re = /^\[.*Error:.*(chrome|resource):\/\/(mozmill|jsbridge).*/i;
-    if (msg.match(re)) {
+    var errorRegEx = /^\[.*Error:.*(chrome|resource):\/\/(mozmill|jsbridge).*/i;
+
+    if (msg.match(errorRegEx)) {
+      // If there is an exception happening in a background thread caused by a
+      // test, don't raise a framework failure because the error gets forwarded
+      // through the console service.
+      var externalFileRegEx = /.*\.js -> file:\/\/\/.*/;
+
       Cu.import("resource://jsbridge/modules/Events.jsm");
 
-      Events.fireEvent("mozmill.frameworkFail", {message: msg});
-      Events.fireEvent("mozmill.shutdown", {
-        'user': false,
-        'restart': false,
-        'resetProfile': false
-      });
+      if (msg.match(externalFileRegEx)) {
+        Components.utils.import('resource://mozmill/modules/assertions.js');
+        new Expect().fail(msg);
+      }
+      else {
+        Events.fireEvent("mozmill.frameworkFail", {message: msg});
+        Events.fireEvent("mozmill.shutdown", {
+          'user': false,
+          'restart': false,
+          'resetProfile': false
+        });
 
-      // Quit the application and do not wait until a timeout happens
-      var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
-                       .getService(Ci.nsIAppStartup);
-      appStartup.quit(Ci.nsIAppStartup.eAttemptQuit);
+        // Quit the application and do not wait until a timeout happens
+        var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
+                         .getService(Ci.nsIAppStartup);
+        appStartup.quit(Ci.nsIAppStartup.eAttemptQuit);
+      }
     }
   }
-}
+};
 
 const NSGetFactory = XPCOMUtils.generateNSGetFactory([MozmillHandlers]);
