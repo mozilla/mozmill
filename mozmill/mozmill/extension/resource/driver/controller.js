@@ -286,6 +286,7 @@ MozMillController.prototype.open = function (url) {
   switch (this.mozmillModule.Application) {
     case "Firefox":
     case "MetroFirefox":
+      this.browserObject.stop();
       this.browserObject.loadURI(url);
       break;
     default:

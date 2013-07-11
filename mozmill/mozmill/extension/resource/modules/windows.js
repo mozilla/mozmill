@@ -62,7 +62,7 @@ var map = {
       delete this._windows[aWindowId];
     }
 
-    //dump("* current map: " + JSON.stringify(this._windows) + "\n");
+    // dump("* current map: " + JSON.stringify(this._windows) + "\n");
   },
 
   /**
@@ -81,7 +81,7 @@ var map = {
     }
 
     this._windows[aWindowId][aProperty] = aValue;
-    //dump("* current map: " + JSON.stringify(this._windows) + "\n");
+    // dump("* current map: " + JSON.stringify(this._windows) + "\n");
   },
 
   /**

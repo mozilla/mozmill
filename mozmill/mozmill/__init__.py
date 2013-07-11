@@ -332,7 +332,7 @@ class MozMill(object):
             frame = jsbridge.JSObject(self.bridge, js_module_frame)
 
             # start HTTPd server
-            frame.startHTTPd();
+            frame.startHTTPd()
 
             # transfer persisted data
             frame.persisted = self.persisted
