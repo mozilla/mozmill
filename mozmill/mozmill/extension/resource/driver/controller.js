@@ -419,19 +419,17 @@ MozMillController.prototype.startUserShutdown = function (timeout, restart, next
 }
 
 /**
- * Restart the application via the Python runner
+ * Restart the application
  *
  * @param {string} aNext
  *        Name of the next test function to run after restart
- * @param {boolean} [aResetProfile=false]
- *        Whether to reset the profile during restart
  * @param {boolean} [aFlags=undefined]
  *        Additional flags how to handle the shutdown or restart. The attributes
- *        eRestarti386 and eRestartx86_64 have not been documented yet.
+ *        eRestarti386 (0x20) and eRestartx86_64 (0x30) have not been documented yet.
  * @see https://developer.mozilla.org/nsIAppStartup#Attributes
  */
-MozMillController.prototype.restartApplication = function (aNext, aResetProfile, aFlags) {
-  var flags = Ci.nsIAppStartup.eRestart;
+MozMillController.prototype.restartApplication = function (aNext, aFlags) {
+  var flags = Ci.nsIAppStartup.eAttemptQuit | Ci.nsIAppStartup.eRestart;
 
   if (aFlags) {
     flags |= aFlags;
@@ -441,7 +439,6 @@ MozMillController.prototype.restartApplication = function (aNext, aResetProfile,
                                   'restart': true,
                                   'flags': flags,
                                   'next': aNext,
-                                  'resetProfile': Boolean(aResetProfile),
                                   'timeout': 0 });
 
   // We have to ensure to stop the test from continuing until the application is
@@ -450,7 +447,7 @@ MozMillController.prototype.restartApplication = function (aNext, aResetProfile,
 }
 
 /**
- * Stop the application via the Python runner
+ * Stop the application
  *
  * @param {boolean} [aResetProfile=false]
  *        Whether to reset the profile during restart
@@ -460,7 +457,7 @@ MozMillController.prototype.restartApplication = function (aNext, aResetProfile,
  * @see https://developer.mozilla.org/nsIAppStartup#Attributes
  */
 MozMillController.prototype.stopApplication = function (aResetProfile, aFlags) {
-  var flags = null;
+  var flags = Ci.nsIAppStartup.eAttemptQuit;
 
   if (aFlags) {
     flags |= aFlags;
@@ -469,7 +466,7 @@ MozMillController.prototype.stopApplication = function (aResetProfile, aFlags) {
   broker.sendMessage('shutdown', {'user': false,
                                   'restart': false,
                                   'flags': flags,
-                                  'resetProfile': Boolean(aResetProfile),
+                                  'resetProfile': aResetProfile,
                                   'timeout': 0 });
 
   // We have to ensure to stop the test from continuing until the application is

@@ -33,9 +33,6 @@ var subscriptLoader = Cc["@mozilla.org/moz/jssubscript-loader;1"]
                       .getService(Ci.mozIJSSubScriptLoader);
 var uuidgen = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator);
 
-var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
-                 .getService(Ci.nsIAppStartup);
-
 var httpd = null;
 var persisted = {};
 
@@ -73,7 +70,7 @@ function shutdownApplication(aFlags) {
   // send an ACK packet via jsbridge if the method has been called via Python.
   var event = {
     notify: function(timer) {
-      appStartup.quit(flags);
+      Services.startup.quit(flags);
     }
   }
 

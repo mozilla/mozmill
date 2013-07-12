@@ -308,8 +308,7 @@ class MozMill(object):
         """Start the MozRunner."""
 
         # if user restart we don't need to start the browser back up
-        if not (self.shutdownMode.get('user', False)
-                and self.shutdownMode.get('restart', False)):
+        if not self.shutdownMode.get('restart', False):
             if self.shutdownMode.get('resetProfile'):
                 # reset the profile
                 self.runner.reset()
