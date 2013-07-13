@@ -38,6 +38,12 @@ NSS.init();
 
 
 NSS.Types = {
+  // Error codes
+  // See http://mxr.mozilla.org/mozilla-central/source/nsprpub/pr/include/prerr.h
+  PR_WOULD_BLOCK_ERROR: -5998,
+
+  PRErrorCode: ctypes.int32_t,
+
   PRFileDesc: ctypes.StructType("PRFileDesc"),
 
   PRNetAddr: ctypes.StructType("PRNetAddr", [
@@ -67,64 +73,78 @@ NSS.Sockets = {
 
   buffer: ctypes.ArrayType(ctypes.char),
 
-  PR_SetNetAddr: NSS._library.declare("PR_SetNetAddr",
-  ctypes.default_abi,
-  ctypes.int32_t, // really doesn't return anything
-  ctypes.int32_t, // val
-  ctypes.uint16_t, // af
-  ctypes.uint16_t, // port
-  NSS.Types.PRNetAddr.ptr),
-
-  PR_OpenTCPSocket: NSS._library.declare("PR_OpenTCPSocket",
-  ctypes.default_abi, // cdecl calling convention
-  NSS.Types.PRFileDesc.ptr, // return (PRFileDesc*)
-  ctypes.int32_t), // first arg
-
-  PR_SetSocketOption: NSS._library.declare("PR_SetSocketOption",
-  ctypes.default_abi,
-  ctypes.int32_t,
-  NSS.Types.PRFileDesc.ptr,
-  NSS.Types.PRSocketOptionData.ptr),
+  PR_Accept: NSS._library.declare("PR_Accept",
+    ctypes.default_abi,
+    NSS.Types.PRFileDesc.ptr, // new socket fd
+    NSS.Types.PRFileDesc.ptr, // rendezvous socket fd
+    NSS.Types.PRNetAddr.ptr, //addr
+    ctypes.uint32_t // timeout interval
+  ),
 
   PR_Bind: NSS._library.declare("PR_Bind",
-  ctypes.default_abi,
-  ctypes.int32_t,
-  NSS.Types.PRFileDesc.ptr,
-  NSS.Types.PRNetAddr.ptr),
-
-  PR_Listen: NSS._library.declare("PR_Listen",
-  ctypes.default_abi,
-  ctypes.int32_t,
-  NSS.Types.PRFileDesc.ptr, // fd
-  ctypes.int32_t), // backlog
-
-  PR_Accept: NSS._library.declare("PR_Accept",
-  ctypes.default_abi,
-  NSS.Types.PRFileDesc.ptr, // new socket fd
-  NSS.Types.PRFileDesc.ptr, // rendezvous socket fd
-  NSS.Types.PRNetAddr.ptr, //addr
-  ctypes.uint32_t), // timeout interval
+    ctypes.default_abi,
+    ctypes.int32_t,
+    NSS.Types.PRFileDesc.ptr,
+    NSS.Types.PRNetAddr.ptr
+  ),
 
   PR_Close: NSS._library.declare("PR_Close",
-  ctypes.default_abi,
-  ctypes.int32_t,
-  NSS.Types.PRFileDesc.ptr),
+    ctypes.default_abi,
+    ctypes.int32_t,
+    NSS.Types.PRFileDesc.ptr
+  ),
+
+  PR_GetError: NSS._library.declare("PR_GetError",
+    ctypes.default_abi,
+    NSS.Types.PRErrorCode
+  ),
+
+  PR_Listen: NSS._library.declare("PR_Listen",
+    ctypes.default_abi,
+    ctypes.int32_t,
+    NSS.Types.PRFileDesc.ptr, // fd
+    ctypes.int32_t // backlog
+  ),
+
+  PR_OpenTCPSocket: NSS._library.declare("PR_OpenTCPSocket",
+    ctypes.default_abi, // cdecl calling convention
+    NSS.Types.PRFileDesc.ptr, // return (PRFileDesc*)
+    ctypes.int32_t            // first arg
+  ),
 
   PR_Recv: NSS._library.declare("PR_Recv",
-  ctypes.default_abi,
-  ctypes.int32_t, // return
-  NSS.Types.PRFileDesc.ptr, // socket
-  ctypes.voidptr_t, // buffer
-  ctypes.int32_t, // buffer length
-  ctypes.int32_t, // must be 0, deprecated
-  ctypes.uint32_t), // timeout interval
+    ctypes.default_abi,
+    ctypes.int32_t, // return
+    NSS.Types.PRFileDesc.ptr, // socket
+    ctypes.voidptr_t, // buffer
+    ctypes.int32_t, // buffer length
+    ctypes.int32_t, // must be 0, deprecated
+    ctypes.uint32_t // timeout interval
+  ),
 
   PR_Send: NSS._library.declare("PR_Send",
-  ctypes.default_abi,
-  ctypes.int32_t, // return
-  NSS.Types.PRFileDesc.ptr, // socket
-  ctypes.voidptr_t, // buffer
-  ctypes.int32_t, // buffer length
-  ctypes.int32_t, // must be 0, deprecated
-  ctypes.uint32_t) // timeout interval
+    ctypes.default_abi,
+    ctypes.int32_t, // return
+    NSS.Types.PRFileDesc.ptr, // socket
+    ctypes.voidptr_t, // buffer
+    ctypes.int32_t, // buffer length
+    ctypes.int32_t, // must be 0, deprecated
+    ctypes.uint32_t // timeout interval
+  ),
+
+  PR_SetNetAddr: NSS._library.declare("PR_SetNetAddr",
+    ctypes.default_abi,
+    ctypes.int32_t,  // really doesn't return anything
+    ctypes.int32_t,  // val
+    ctypes.uint16_t, // af
+    ctypes.uint16_t, // port
+    NSS.Types.PRNetAddr.ptr
+  ),
+
+  PR_SetSocketOption: NSS._library.declare("PR_SetSocketOption",
+    ctypes.default_abi,
+    ctypes.int32_t,
+    NSS.Types.PRFileDesc.ptr,
+    NSS.Types.PRSocketOptionData.ptr
+  )
 }

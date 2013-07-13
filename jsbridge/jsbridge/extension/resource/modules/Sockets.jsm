@@ -11,6 +11,7 @@ const Cu = Components.utils;
 
 
 // Import local JS modules
+Cu.import("resource://jsbridge/modules/Log.jsm");
 Cu.import("resource://jsbridge/modules/NSS.jsm");
 
 
@@ -32,7 +33,7 @@ Sockets.Client.prototype = {
       notify: function (timer) {
         var buffer = new NSS.Sockets.buffer(bufsize);
         var bytes = NSS.Sockets.PR_Recv(self.fd, buffer, bufsize, 0,
-                                         NSS.Sockets.PR_INTERVAL_NO_WAIT);
+                                        NSS.Sockets.PR_INTERVAL_NO_WAIT);
 
         if (bytes > 0) {
           var message = buffer.readString();
@@ -61,8 +62,25 @@ Sockets.Client.prototype = {
   },
 
   sendMessage: function (message) {
-    var buffer = new NSS.Sockets.buffer(message);
-    NSS.Sockets.PR_Send(this.fd, buffer, message.length, 0, NSS.Sockets.PR_INTERVAL_MAX);
+    var buffer;
+    var count;
+    var sent = 0;
+
+    // We have to send a final '\0' so we need one more char
+    while (sent < message.length + 1) {
+      buffer = new NSS.Sockets.buffer(message.substring(sent));
+      count = NSS.Sockets.PR_Send(this.fd, buffer, buffer.length,
+                                  0, NSS.Sockets.PR_INTERVAL_MAX);
+      if (count < 0) {
+        var error = NSS.Sockets.PR_GetError();
+        if (error !== NSS.Types.PR_WOULD_BLOCK_ERROR) {
+          Log.dump("PR_Send", "Failed with error " + error);
+          break;
+        }
+      } else {
+        sent += count;
+      }
+    }
   },
 
   close : function () {
