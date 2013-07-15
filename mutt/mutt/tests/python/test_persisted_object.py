@@ -62,9 +62,10 @@ class TestMozmillPersisted(unittest.TestCase):
 
     def inspect_persisted(self, persisted):
         """inspect the persisted data following the test"""
-        self.assertTrue(persisted == {u'fleem': 2,
-                                      u'bar': u'bar',
-                                      u'number': 2})
+        self.assertEqual(persisted['fleem'], 2)
+        self.assertEqual(persisted['bar'], 'bar')
+        self.assertEqual(persisted['number'], 2)
+        self.assertFalse('foo' in persisted)
 
     def tearDown(self):
         os.remove(self.path)
