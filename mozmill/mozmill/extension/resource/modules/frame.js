@@ -312,9 +312,9 @@ events.skip = function (reason) {
   events.currentTest.skipped = true;
   events.currentTest.skipped_reason = reason;
 
-  for each(var timer in timers) {
+  for (var timer of timers) {
     timer.actions.push(
-      {"currentTest":events.currentModule.__file__ + "::" + events.currentTest.__name__,
+      {"currentTest": events.currentModule.__file__ + "::" + events.currentTest.__name__,
        "obj": reason,
        "result": "skip"}
     );
@@ -701,94 +701,61 @@ Runner.prototype.runTestFile = function (filename, name) {
   this.runTestModule(module);
 };
 
-
 Runner.prototype.runTestModule = function (module) {
   appQuitObserver.runner = this;
   events.setModule(module);
 
-  if (module.__setupModule__) {
-    events.setState('setupModule');
-    events.setTest(module.__setupModule__);
-    this.wrapper(module.__setupModule__, module);
-    var setupModulePassed = (events.currentTest.__fails__.length == 0 &&
-                             !events.currentTest.skipped);
-    events.endTest(module.__setupModule__);
-  } else {
-    var setupModulePassed = true;
-  }
-
-  if (setupModulePassed) {
-    if (module.__setupTest__ && !events.shutdownRequested) {
-      events.setState('setupTest');
-      events.setTest(module.__setupTest__);
-      this.wrapper(module.__setupTest__, module);
-      var setupTestPassed = (events.currentTest.__fails__.length == 0 &&
-                             !events.currentTest.skipped);
-      events.endTest(module.__setupTest__);
-    } else {
-      var setupTestPassed = true;
-    }
-
-    for each (var test in module.__tests__) {
+  // If setupModule passes, run all the tests. Otherwise mark them as skipped.
+  if (this.execFunction(module.__setupModule__, module)) {
+    for (var test of module.__tests__) {
       if (events.shutdownRequested) {
         break;
       }
 
-      if (setupTestPassed) {
-        events.setState('test');
-        events.setTest(test);
-        this.wrapper(test);
-        events.endTest(test)
-        if (events.userShutdown) {
-          break;
-        }
+      // If setupTest passes, run the test. Otherwise mark it as skipped.
+      if (this.execFunction(module.__setupTest__, module)) {
+        this.execFunction(test);
       } else {
-        events.setTest(test);
-        events.skip("setupTest failed.");
-        events.endTest(test);
+        this.skipFunction(test, module.__setupTest__.__name__ + " failed");
       }
+
+      this.execFunction(module.__teardownTest__, module);
     }
 
-    if (module.__teardownTest__ && !events.shutdownRequested) {
-      events.setState('teardownTest');
-      events.setTest(module.__teardownTest__);
-      this.wrapper(module.__teardownTest__, module);
-      events.endTest(module.__teardownTest__);
-    }
-  } else if (!events.shutdownRequested) {
-    for each (var test in module.__tests__) {
-      events.setTest(test);
-      events.skip("setupModule failed.");
-      events.endTest(test);
+  } else {
+    for (var test of module.__tests__) {
+      this.skipFunction(test, module.__setupModule__.__name__ + " failed");
     }
   }
 
-  // We only call teardownModule if we are not about to do a restart of
-  // the application - i.e. call it in a single test or the last test of
-  // a restart chain.
-  if (module.__teardownModule__ && !events.shutdownRequested && !events.isUserShutdown()) {
-    events.setState('teardownModule');
-    events.setTest(module.__teardownModule__);
-    this.wrapper(module.__teardownModule__, module);
-    events.endTest(module.__teardownModule__);
-  }
-
+  this.execFunction(module.__teardownModule__, module);
   events.endModule(module);
 };
 
-Runner.prototype.wrapper = function (func, arg) {
+Runner.prototype.execFunction = function (func, arg) {
+  if (typeof func !== "function" || events.shutdownRequested) {
+    return true;
+  }
+
+  var isTest = withs.startsWith(func.__name__, "test");
+
+  events.setState(isTest ? "test" : func.__name);
+  events.setTest(func);
+
   // skip excluded platforms
   if (func.EXCLUDED_PLATFORMS != undefined) {
     if (arrays.inArray(func.EXCLUDED_PLATFORMS, this.platform)) {
       events.skip("Platform exclusion");
-      return;
+      events.endTest(func);
+      return false;
     }
   }
 
   // skip function if requested
   if (func.__force_skip__ != undefined) {
     events.skip(func.__force_skip__);
-    return;
+    events.endTest(func);
+    return false;
   }
 
   // execute the test function
@@ -797,19 +764,21 @@ Runner.prototype.wrapper = function (func, arg) {
   } catch (e) {
     if (e instanceof errors.ApplicationQuitError) {
       events.shutdownRequested = true;
-    }
-    else {
+    } else {
       events.fail({'exception': e, 'test': func})
     }
-  } finally {
-    // If a user shutdown has been requested and the function already returned,
-    // we can assume that a shutdown will not happen anymore. We should force a
-    // shutdown then, to prevent the next test from being executed.
-    if (events.isUserShutdown()) {
-      events.shutdownRequested = true;
-      events.toggleUserShutdown(events.userShutdown);
-    }
   }
+
+  // If a user shutdown has been requested and the function already returned,
+  // we can assume that a shutdown will not happen anymore. We should force a
+  // shutdown then, to prevent the next test from being executed.
+  if (events.isUserShutdown()) {
+    events.shutdownRequested = true;
+    events.toggleUserShutdown(events.userShutdown);
+  }
+
+  events.endTest(func);
+  return events.currentTest.__fails__.length == 0;
 };
 
 function runTestFile(filename, name) {
@@ -819,3 +788,9 @@ function runTestFile(filename, name) {
 
   return true;
 }
+
+Runner.prototype.skipFunction = function (func, message) {
+  events.setTest(func);
+  events.skip(message);
+  events.endTest(func);
+};

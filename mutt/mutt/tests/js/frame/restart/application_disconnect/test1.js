@@ -12,12 +12,12 @@ var setupTest = function () {
 
 // Restart and check frame after a direct return from run_test_file
 var testOne = function () {
-  controller.restartApplication('testTwo', true);
+  controller.restartApplication('testTwo');
 }
 
 // Restart again to have a recursive call into run_test_file
 var testTwo = function () {
-  controller.restartApplication('testThree', true);
+  controller.restartApplication('testThree');
 }
 
 // Do not restart this time so we reuse the latest frame instance
