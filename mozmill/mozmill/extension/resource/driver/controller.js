@@ -286,9 +286,14 @@ MozMillController.prototype.open = function (url) {
   switch (this.mozmillModule.Application) {
     case "Firefox":
     case "MetroFirefox":
-      this.browserObject.stop();
+      // Stop a running page load to not overlap requests
+      if (this.browserObject.selectedBrowser) {
+        this.browserObject.selectedBrowser.stop();
+      }
+
       this.browserObject.loadURI(url);
       break;
+
     default:
       throw new Error("MozMillController.open not supported.");
   }
