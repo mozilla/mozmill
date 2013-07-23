@@ -11,6 +11,7 @@ const Cu = Components.utils;
 
 var EventUtils = {}; Cu.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
 
+var assertions = {}; Cu.import('resource://mozmill/modules/assertions.js', assertions);
 var broker = {}; Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 var elementslib = {}; Cu.import('resource://mozmill/driver/elementslib.js', elementslib);
 var errors = {}; Cu.import('resource://mozmill/modules/errors.js', errors);
@@ -22,9 +23,10 @@ var hwindow = Cc["@mozilla.org/appshell/appShellService;1"]
               .getService(Ci.nsIAppShellService).hiddenDOMWindow;
 
 // Declare most used utils functions in the controller namespace
+var assert = new assertions.Assert();
+var waitFor = assert.waitFor;
+
 var sleep = utils.sleep;
-var assert = utils.assert;
-var waitFor = utils.waitFor;
 
 // For Mozmill 1.5 backward compatibility
 var windowMap = windows.map;
@@ -61,9 +63,9 @@ waitForEvents.prototype = {
    */
   wait: function waitForEvents_wait(timeout, interval) {
     for (var e in this.registry) {
-      utils.waitFor(function () {
+      assert.waitFor(function () {
         return this.node.firedEvents[e] == true;
-      }, "Timeout happened before event '" + ex +"' was fired.", timeout, interval);
+      }, "waitForEvents.wait(): Event '" + ex + "' has been fired.", timeout, interval);
 
       this.node.removeEventListener(e, this.registry[e], true);
     }
@@ -112,7 +114,7 @@ Menu.prototype = {
     if ((menu.localName == "popup" || menu.localName == "menupopup") &&
         contextElement && contextElement.exists()) {
       this._controller.rightClick(contextElement);
-      this._controller.waitFor(function () {
+      assert.waitFor(function () {
         return menu.state == "open";
       }, "Context menu has been opened.");
     }
@@ -132,7 +134,7 @@ Menu.prototype = {
     var menu = this._menu.getNode();
 
     this._controller.keypress(this._menu, "VK_ESCAPE", {});
-    this._controller.waitFor(function () {
+    assert.waitFor(function () {
       return menu.state == "closed";
     }, "Context menu has been closed.");
 
@@ -243,9 +245,10 @@ var MozMillController = function (window) {
   this.mozmillModule = {};
   Cu.import('resource://mozmill/driver/mozmill.js', this.mozmillModule);
 
-  utils.waitFor(function () {
-    return window != null && this.isLoaded();
-  }, "controller(): Window could not be initialized.", undefined, undefined, this);
+  var self = this;
+  assert.waitFor(function () {
+    return window != null && self.isLoaded();
+  }, "controller(): Window has been initialized.");
 
   // Ensure to focus the window which will move it virtually into the foreground
   // when focusmanager.testmode is set enabled.
@@ -279,7 +282,7 @@ MozMillController.prototype.__defineGetter__("rootElement", function () {
 });
 
 MozMillController.prototype.sleep = utils.sleep;
-MozMillController.prototype.waitFor = utils.waitFor;
+MozMillController.prototype.waitFor = assert.waitFor;
 
 // Open the specified url in the current tab
 MozMillController.prototype.open = function (url) {

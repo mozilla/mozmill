@@ -24,7 +24,7 @@ var testSleep = function () {
 var testWaitFor = function () {
   for (var i = 0; i < gSecondsToWait; i++){
     var step = 0;
-    utils.waitFor(function () {
+    assert.waitFor(function () {
       step++;
       return step > 1;
     }, undefined, 2000, 1000);

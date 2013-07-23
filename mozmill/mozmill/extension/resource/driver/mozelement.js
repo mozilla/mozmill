@@ -15,9 +15,12 @@ const Cu = Components.utils;
 
 var EventUtils = {};  Cu.import('resource://mozmill/stdlib/EventUtils.js', EventUtils);
 
+var assertions = {};  Cu.import('resource://mozmill/modules/assertions.js', assertions);
 var broker = {};      Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 var elementslib = {}; Cu.import('resource://mozmill/driver/elementslib.js', elementslib);
 var utils = {};       Cu.import('resource://mozmill/stdlib/utils.js', utils);
+
+var assert = new assertions.Assert();
 
 // A list of all the subclasses available.  Shared modules can push their own subclasses onto this list
 var subclasses = [MozMillCheckBox, MozMillRadio, MozMillDropList, MozMillTextBox];
@@ -485,9 +488,10 @@ MozMillElement.prototype.rightClick = function (left, top, expectedEvent) {
 MozMillElement.prototype.waitForElement = function (timeout, interval) {
   var elem = this;
 
-  utils.waitFor(function () {
+  assert.waitFor(function () {
     return elem.exists();
-  }, "Timeout exceeded for waitForElement " + this.getInfo(), timeout, interval);
+  }, "Element.waitForElement(): Element '" + this.getInfo() +
+     "' has been found", timeout, interval);
 
   broker.pass({'function':'MozMillElement.waitForElement()'});
 };
@@ -495,9 +499,10 @@ MozMillElement.prototype.waitForElement = function (timeout, interval) {
 MozMillElement.prototype.waitForElementNotPresent = function (timeout, interval) {
   var elem = this;
 
-  utils.waitFor(function () {
+  assert.waitFor(function () {
     return !elem.exists();
-  }, "Timeout exceeded for waitForElementNotPresent " + this.getInfo(), timeout, interval);
+  }, "Element.waitForElementNotPresent(): Element '" + this.getInfo() +
+     "' has not been found", timeout, interval);
 
   broker.pass({'function':'MozMillElement.waitForElementNotPresent()'});
 };
@@ -560,9 +565,9 @@ MozMillCheckBox.prototype = Object.create(MozMillElement.prototype, {
         this.click();
         var element = this.element;
 
-        utils.waitFor(function () {
+        assert.waitFor(function () {
           return element.checked == state;
-        }, "Checkbox " + this.getInfo() + " could not be checked/unchecked", 500);
+        }, "CheckBox.check(): Checkbox " + this.getInfo() + " could not be checked/unchecked", 500);
 
         result = true;
       }
@@ -621,7 +626,7 @@ MozMillRadio.prototype = Object.create(MozMillElement.prototype, {
         this.click();
       }
 
-      utils.waitFor(function () {
+      assert.waitFor(function () {
         // If we have a XUL element, unwrap its XPCNativeWrapper
         if (element.namespaceURI == NAMESPACE_XUL) {
           element = utils.unwrapNode(element);
@@ -629,7 +634,7 @@ MozMillRadio.prototype = Object.create(MozMillElement.prototype, {
         }
 
         return element.checked == true;
-      }, "Radio button " + this.getInfo() + " could not be selected", 500);
+      }, "Radio.select(): Radio button " + this.getInfo() + " has been selected", 500);
 
       broker.pass({'function':'MozMillRadio.select(' + this.getInfo() + ')'});
 
@@ -711,7 +716,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
 
           var self = this;
           var selected = index || option || value;
-          utils.waitFor(function () {
+          assert.waitFor(function () {
             switch (selected) {
               case index:
                 return selected === self.element.selectedIndex;
@@ -723,7 +728,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
                 return selected === item.value;
                 break;
             }
-          }, "The correct item has been selected");
+          }, "DropList.select(): The correct item has been selected");
 
           broker.pass({'function':'MozMillDropList.select()'});
 
@@ -777,7 +782,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
 
           var self = this;
           var selected = index || option || value;
-          utils.waitFor(function () {
+          assert.waitFor(function () {
             switch (selected) {
               case index:
                 return selected === self.element.selectedIndex;
@@ -789,7 +794,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
                 return selected === self.element.value;
                 break;
             }
-          }, "The correct item has been selected");
+          }, "DropList.select(): The correct item has been selected");
 
           broker.pass({'function':'MozMillDropList.select()'});
 

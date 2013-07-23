@@ -57,7 +57,11 @@ const TEST_DATA = [
   { fun: "doesNotThrow", params: [function () { throw new Error(); }, Err, "Catches wrong error"],
     result: false, throws: Error},
   { fun: "doesNotThrow", params: [function () { throw new Error(); }, undefined, "Throws error"],
-    result: false, throws: Error}
+    result: false, throws: Error},
+
+  { fun: "waitFor", params: [function () { return true; }, "Evaluation pass"], result: true},
+  { fun: "waitFor", params: [function () { return (this instanceof String); }, "Evaluation pass", 100, 10, "no_this_object"],
+    result: true}
 ];
 
 

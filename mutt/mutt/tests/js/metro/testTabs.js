@@ -7,7 +7,7 @@ function test() {
   controller.waitForPageLoad();
 
   controller.keypress(null, "t", { accelKey: true });
-  controller.waitFor(function () {
+  assert.waitFor(function () {
     return controller.tabs.length == 2;
   }, "A second tab has been opened");
 
@@ -28,7 +28,7 @@ function test() {
 
   controller.keypress(null, "w", { accelKey: true });
 
-  controller.waitFor(function () {
+  assert.waitFor(function () {
     return controller.tabs.length == 1;
   }, "The second tab has been closed");
 }

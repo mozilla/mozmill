@@ -6,6 +6,8 @@ var EXPORTED_SYMBOLS = ['Assert', 'Expect'];
 
 const Cu = Components.utils;
 
+Cu.import("resource://gre/modules/Services.jsm");
+
 var broker = {}; Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 var errors = {}; Cu.import('resource://mozmill/modules/errors.js', errors);
 var stack = {}; Cu.import('resource://mozmill/modules/stack.js', stack);
@@ -549,6 +551,64 @@ Assert.prototype = {
     let diagnosis = "'" + aString + "' should not contain '" + aPattern + "'";
 
     return this._test(condition, aMessage, diagnosis);
+  },
+
+  /**
+   * Waits for the callback evaluates to true
+   *
+   * @param {Function} aCallback
+   *        Callback for evaluation
+   * @param {String} aMessage
+   *        Message to show for result
+   * @param {Number} aTimeout
+   *        Timeout in waiting for evaluation
+   * @param {Number} aInterval
+   *        Interval between evaluation attempts
+   * @param {Object} aThisObject
+   *        this object
+   * @throws {errors.AssertionError}
+   *
+   * @returns {Boolean} Result of the test.
+   */
+  waitFor: function Assert_waitFor(aCallback, aMessage, aTimeout, aInterval, aThisObject) {
+    var timeout = aTimeout || 5000;
+    var interval = aInterval || 100;
+
+    var self = {
+      timeIsUp: false,
+      result: aCallback.call(aThisObject)
+    };
+    var deadline = Date.now() + timeout;
+
+    function wait() {
+      if (self.result !== true) {
+        self.result = aCallback.call(aThisObject);
+        self.timeIsUp = Date.now() > deadline;
+      }
+    }
+
+    var hwindow = Services.appShell.hiddenDOMWindow;
+    var timeoutInterval = hwindow.setInterval(wait, interval);
+    var thread = Services.tm.currentThread;
+
+    while (self.result !== true && !self.timeIsUp) {
+      thread.processNextEvent(true);
+
+      let type = typeof(self.result);
+      if (type !== 'boolean')
+        throw TypeError("waitFor() callback has to return a boolean" +
+                        " instead of '" + type + "'");
+    }
+
+    hwindow.clearInterval(timeoutInterval);
+
+    if (self.result !== true && self.timeIsUp) {
+      aMessage = aMessage || arguments.callee.name + ": Timeout exceeded for '" + aCallback + "'";
+      throw new errors.AssertionError(aMessage);
+    }
+
+    broker.pass({'function':'assert.waitFor()'});
+    return true;
   }
 }
 
@@ -575,4 +635,33 @@ Expect.prototype = new Assert();
  */
 Expect.prototype._logFail = function Expect__logFail(aResult) {
   broker.fail({fail: aResult});
+}
+
+/**
+ * Waits for the callback evaluates to true
+ *
+ * @param {Function} aCallback
+ *        Callback for evaluation
+ * @param {String} aMessage
+ *        Message to show for result
+ * @param {Number} aTimeout
+ *        Timeout in waiting for evaluation
+ * @param {Number} aInterval
+ *        Interval between evaluation attempts
+ * @param {Object} aThisObject
+ *        this object
+ */
+Expect.prototype.waitFor = function Expect_waitFor(aCallback, aMessage, aTimeout, aInterval, aThisObject) {
+  let condition = true;
+  let message = aMessage;
+
+  try {
+    Assert.prototype.waitFor.apply(this, arguments);
+  }
+  catch (ex if ex instanceof errors.AssertionError) {
+    message = ex.message;
+    condition = false;
+  }
+
+  return this._test(condition, message);
 }

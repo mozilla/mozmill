@@ -8,7 +8,8 @@
 var driver = exports;
 
 
-// Temporarily include utils module to re-use sleep and waitFor
+// Temporarily include utils module to re-use sleep
+var assertions = {}; Cu.import('resource://mozmill/modules/assertions.js', assertions);
 var mozmill = {}; Cu.import("resource://mozmill/driver/mozmill.js", mozmill);
 var utils = {}; Cu.import('resource://mozmill/stdlib/utils.js', utils);
 
@@ -86,7 +87,7 @@ var sleep = utils.sleep;
  * @type utils.waitFor
  * @memberOf driver
  */
-var waitFor = utils.waitFor;
+var waitFor = assertions.Assert.waitFor;
 
 //
 // INTERNAL WINDOW ENUMERATIONS

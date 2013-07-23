@@ -25,7 +25,7 @@ var testExceptionBackgroundThread = function () {
 
   timer.initWithCallback(event, 100, Ci.nsITimer.TYPE_ONE_SHOT);
 
-  controller.waitFor(function () {
+  assert.waitFor(function () {
     return failure;
   }, "Exception in background thread has been caught", 500);
 

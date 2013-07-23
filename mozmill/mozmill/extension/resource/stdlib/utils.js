@@ -16,8 +16,11 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/NetUtil.jsm");
 
+var assertions = {}; Cu.import('resource://mozmill/modules/assertions.js', assertions);
 var broker = {}; Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 var errors = {}; Cu.import('resource://mozmill/modules/errors.js', errors);
+
+var assert = new assertions.Assert();
 
 var appInfo = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo);
 
@@ -262,44 +265,9 @@ function unwrapNode(aNode) {
  * Waits for the callback evaluates to true
  */
 function waitFor(callback, message, timeout, interval, thisObject) {
-  timeout = timeout || 5000;
-  interval = interval || 100;
-
-  var self = {
-    timeIsUp: false,
-    result: callback.call(thisObject)
-  };
-  var deadline = Date.now() + timeout;
-
-  function wait() {
-    if (self.result !== true) {
-      self.result = callback.call(thisObject);
-      self.timeIsUp = Date.now() > deadline;
-    }
-  }
-
-  var timeoutInterval = hwindow.setInterval(wait, interval);
-  var thread = Cc["@mozilla.org/thread-manager;1"]
-               .getService().currentThread;
-
-  while (self.result !== true && !self.timeIsUp) {
-    thread.processNextEvent(true);
-
-    let type = typeof(self.result);
-    if (type !== 'boolean')
-      throw TypeError("waitFor() callback has to return a boolean" +
-                      " instead of '" + type + "'");
-  }
-
-  hwindow.clearInterval(timeoutInterval);
-
-  if (self.result !== true && self.timeIsUp) {
-    message = message || arguments.callee.name + ": Timeout exceeded for '" + callback + "'";
-    throw new errors.TimeoutError(message);
-  }
-
-  broker.pass({'function':'utils.waitFor()'});
-  return true;
+  broker.log({'function': 'utils.waitFor() - DEPRECATED',
+              'message': 'utils.waitFor() is deprecated. Use assert.waitFor() instead'});
+  assert.waitFor(callback, message, timeout, interval, thisObject);
 }
 
 /**
@@ -457,9 +425,9 @@ function saveDataURL(aDataURL, aFilename) {
     }
   });
 
-  waitFor(function () {
+  assert.waitFor(function () {
     return ready;
-  }, "Saving dataURL to '" + file.path + "' has been timed out.");
+  }, "DataURL has been saved to '" + file.path + "'");
 
   return {filename: file.path, failure: failure};
 }

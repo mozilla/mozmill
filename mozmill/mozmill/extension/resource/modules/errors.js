@@ -79,25 +79,3 @@ function AssertionError(aMessage, aFileName, aLineNumber, aFunctionName) {
 AssertionError.prototype = Object.create(BaseError.prototype, {
   constructor : { value : AssertionError }
 });
-
-
-/**
- * Creates a new instance of a timeout error
- *
- * @class Represents an error object thrown by timeouts
- * @param {string} [aMessage=Error().message]
- *        The error message to show
- * @param {string} [aFileName=Error().fileName]
- *        The file name where the error has been raised
- * @param {string} [aLineNumber=Error().lineNumber]
- *        The line number of the file where the error has been raised
- * @param {string} [aFunctionName=undefined]
- *        The function name in which the error has been raised
- */
-function TimeoutError(aMessage, aFileName, aLineNumber, aFunctionName) {
-  BaseError.apply(this, arguments);
-}
-
-TimeoutError.prototype = Object.create(BaseError.prototype, {
-  constructor : { value : TimeoutError }
-});

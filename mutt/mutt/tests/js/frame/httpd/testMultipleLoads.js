@@ -66,7 +66,7 @@ function loadPage(aUrl, aResponseType) {
   controller.open(aUrl);
   controller.waitForPageLoad();
 
-  controller.waitFor(function () {
+  assert.waitFor(function () {
     return !!response.requestSucceeded;
   }, "HTTPd.js successfully loaded local test page: " + aUrl, 1000);
 
