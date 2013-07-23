@@ -217,17 +217,8 @@ events.endTest = function (test) {
     obj.meta = test.meta;
   }
 
-  // Report the test result only if the test is a true test or if it is a
-  // failing setup/teardown
-  var shouldSkipReporting = false;
-  var modulelist = ['setupModule', 'teardownModule', 'setupTest', 'teardownTest'];
-
-  if (test.__passes__ &&
-      (modulelist.indexOf(test.__name__) != -1)) {
-    shouldSkipReporting = true;
-  }
-
-  if (!shouldSkipReporting) {
+  // Report the test result only if the test is a true test or if it is failing
+  if (withs.startsWith(test.__name__, "test") || test.__fails__.length > 0) {
     events.fireEvent('endTest', obj);
   }
 }

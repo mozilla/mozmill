@@ -10,14 +10,29 @@ import mozmill
 
 class ModuleTest(unittest.TestCase):
     def test_modules(self):
-        testpath = os.path.join("js-modules", "testUseMozmillTestPass.js")
+        testpath = os.path.join('js-modules', 'useMozmill', 'testTestPass.js')
         self.do_test(testpath, passes=1, fails=0, skips=0)
 
-        testpath = os.path.join("js-modules", "testUseMozmillTestFails.js")
+        testpath = os.path.join('js-modules', 'useMozmill', 'testTestFails.js')
         self.do_test(testpath, passes=0, fails=1, skips=0)
 
-        testpath = os.path.join("js-modules", "testUseMozmillTestSkip.js")
-        self.do_test(testpath, passes=0, fails=0, skips=1)
+        testpath = os.path.join('js-modules', 'useMozmill', 'testSetupModuleFails.js')
+        self.do_test(testpath, passes=0, fails=1, skips=1)
+
+        testpath = os.path.join('js-modules', 'useMozmill', 'testSetupTestFails.js')
+        self.do_test(testpath, passes=0, fails=1, skips=1)
+
+        testpath = os.path.join('js-modules', 'useMozmill', 'testSetupModuleAndSetupTestFails.js')
+        self.do_test(testpath, passes=0, fails=1, skips=1)
+
+        testpath = os.path.join('js-modules', 'useMozmill', 'testTeardownModuleFails.js')
+        self.do_test(testpath, passes=1, fails=1, skips=0)
+
+        testpath = os.path.join('js-modules', 'useMozmill', 'testTeardownTestFails.js')
+        self.do_test(testpath, passes=1, fails=1, skips=0)
+
+        testpath = os.path.join('js-modules', 'useMozmill', 'testTeardownModuleAndTeardownTestFails.js')
+        self.do_test(testpath, passes=1, fails=2, skips=0)
 
     def do_test(self, relative_test_path, passes=0, fails=0, skips=0):
         testpath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -29,9 +44,9 @@ class ModuleTest(unittest.TestCase):
         results = m.finish(())
 
         # From the first test, there is one passing test
-        self.assertEqual(len(results.passes), passes, "Passes should match")
-        self.assertEqual(len(results.fails), fails, "Fails should match")
-        self.assertEqual(len(results.skipped), skips, "Skips should match")
+        self.assertEqual(len(results.passes), passes, 'Passes should match')
+        self.assertEqual(len(results.fails), fails, 'Fails should match')
+        self.assertEqual(len(results.skipped), skips, 'Skips should match')
 
 if __name__ == '__main__':
     unittest.main()
