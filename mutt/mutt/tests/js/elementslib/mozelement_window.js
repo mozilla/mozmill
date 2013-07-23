@@ -8,20 +8,20 @@ const TEST_DATA = BASE_URL + "form.html";
 // Bug 677364:
 // Fix controller keyboard methods to allow a null parameter for the target element
 
-var setupModule = function (aModule) {
+function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();
 
   aModule.win = new elementslib.MozMillElement("Elem", controller.window);
 }
 
-var testContent = function () {
+function testContent() {
   controller.open(TEST_DATA);
   controller.waitForPageLoad();
 
-  let textbox = new elementslib.ID(controller.tabs.activeTab, "fname");
+  let textbox = new findElement.ID(controller.tabs.activeTab, "fname");
 
   // Focus the textbox
-  textbox.click(textbox);
+  textbox.click();
 
   // A key event sent to the window will be propagated to the
   // currently active element.
@@ -30,11 +30,14 @@ var testContent = function () {
                "keypress added letter to textbox.");
 }
 
-var testChrome = function () {
+function testChrome() {
+  controller.open('about:blank');
+  controller.waitForPageLoad();
+
   let urlbar = new findElement.ID(controller.window.document, "urlbar");
 
   // Focus the location bar
-  urlbar.click(urlbar);
+  urlbar.click();
 
   // A key event sent to the window will be propagated to the
   // currently active element.
