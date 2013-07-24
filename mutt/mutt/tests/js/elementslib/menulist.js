@@ -51,3 +51,35 @@ var testChromeSelect = function () {
   menulist.select(null, 'Missouri');
   expect.equal(menulist.getNode().value, 'MO', "Value has been selected");
 }
+
+var testXULMenuList = function () {
+  controller.open("about:addons");
+  controller.waitForPageLoad();
+
+  // Open Plugins section and add an event listener to wait for the view to change
+  var self = { changed: false };
+  function onViewChanged() { self.changed = true; }
+  controller.window.document.addEventListener("ViewChanged",
+                                              onViewChanged, false);
+
+  var plugin = new elementslib.ID(controller.window.document, "category-plugin");
+  controller.click(plugin);
+
+  assert.waitFor(function () {
+    return self.changed;
+  }, "Category has been changed.");
+
+  // Select by option
+  var parent = controller.tabs.activeTab.querySelector(".addon.addon-view");
+  var node = controller.tabs.activeTab.
+             getAnonymousElementByAttribute(parent, "anonid", "state-menulist");
+  var menulist =  new elementslib.Elem(node);
+
+  menulist.select(null, "Never Activate");
+  expect.equal(menulist.getNode().label, "Never Activate",
+               "Never activate value has been selected");
+
+  menulist.select(null, "Always Activate");
+  expect.equal(menulist.getNode().label, "Always Activate",
+               "Always activate value has been selected");
+}
