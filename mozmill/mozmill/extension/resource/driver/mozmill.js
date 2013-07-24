@@ -71,35 +71,7 @@ try {
 
 if (typeof AddonManager != "undefined") {
   AddonManager.getAllAddons(function (addonList) {
-      var converter = Cc["@mozilla.org/intl/scriptableunicodeconverter"]
-                      .createInstance(Ci.nsIScriptableUnicodeConverter);
-      converter.charset = 'utf-8';
-
-      function replacer(key, value) {
-        if (typeof(value) == "string") {
-          try {
-            return converter.ConvertToUnicode(value);
-          } catch (e) {
-            var newstring = '';
-            for (var i=0; i < value.length; i++) {
-              replacement = '';
-              if ((32 <= value.charCodeAt(i)) && (value.charCodeAt(i) < 127)) {
-                // eliminate non-convertable characters;
-                newstring += value.charAt(i);
-              } else {
-                newstring += replacement;
-              }
-            }
-            return newstring;
-          }
-        }
-
-        return value;
-      }
-
-      // Bug 793764: Extra encode add-on details to circumvent
-      // an unicode issue with JSBridge
-      addons = converter.ConvertToUnicode(JSON.stringify(addonList, replacer));
+    addons = JSON.stringify(addonList);
   });
 }
 

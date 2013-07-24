@@ -29,7 +29,6 @@ Server.Session = function (client) {
   sandbox.bridge = new Bridge(this);
 
   client.onMessage(function (data) {
-    data = toUnicode(data, "utf-8");
     Cu.evalInSandbox(data, sandbox);
   });
 }
@@ -41,7 +40,7 @@ Server.Session.prototype.send = function (string) {
   if (this.client) {
     Log.dump("Sending message", string);
 
-    this.client.sendMessage(toUnicode(string, 'utf-8'));
+    this.client.sendMessage(string);
   } else {
     Log.dump("Attempting to send message after session closed", string);
   }
