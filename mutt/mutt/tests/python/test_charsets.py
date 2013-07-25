@@ -13,7 +13,7 @@ import manifestparser
 import mozmill
 
 
-class TestRestartTests(unittest.TestCase):
+class TestCharsets(unittest.TestCase):
 
     def do_test(self, test_path=None, manifest_path=None, persisted=None,
                 passes=0, fails=0, skips=0):

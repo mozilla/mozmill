@@ -17,9 +17,11 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-const DEBUG = false;
+
+Cu.import("resource://gre/modules/AddonManager.jsm");
 
 // imports
+var assertions = {};  Cu.import('resource://mozmill/modules/assertions.js', assertions);
 var broker = {};      Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 var controller = {};  Cu.import('resource://mozmill/driver/controller.js', controller);
 var elementslib = {}; Cu.import('resource://mozmill/driver/elementslib.js', elementslib);
@@ -28,10 +30,15 @@ var os = {};          Cu.import('resource://mozmill/stdlib/os.js', os);
 var utils = {};       Cu.import('resource://mozmill/stdlib/utils.js', utils);
 var windows = {};     Cu.import('resource://mozmill/modules/windows.js', windows);
 
+
+const DEBUG = false;
+
 // This is a useful "check" timer. See utils.js, good for debugging
 if (DEBUG) {
   utils.startTimer();
 }
+
+var assert = new assertions.Assert();
 
 // platform information
 var platform = os.getPlatform();
@@ -60,19 +67,28 @@ var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
                  .getService(Ci.nsIAppStartup);
 
 
-// keep list of installed addons to send to jsbridge for test run report
-var addons = "null"; // this will be JSON parsed
+/**
+ * Retrieves the list with information about installed add-ons.
+ *
+ * @returns {String} JSON data of installed add-ons
+ */
+function getAddons() {
+  var addons = null;
 
-try {
-  Cu.import("resource://gre/modules/AddonManager.jsm");
-} catch (e) {
-  /* Firefox 4 only */
-}
-
-if (typeof AddonManager != "undefined") {
   AddonManager.getAllAddons(function (addonList) {
-    addons = JSON.stringify(addonList);
+    addons = addonList;
   });
+
+  try {
+    // Sychronize with getAllAddons so we do not return too early
+    assert.waitFor(function () {
+      return !!addons;
+    })
+
+    return addons;
+  } catch (e) {
+    return null;
+  }
 }
 
 /**
@@ -94,7 +110,7 @@ function getApplicationDetails() {
     application_locale: locale,
     platform_buildid: appInfo.platformBuildID,
     platform_version: appInfo.platformVersion,
-    addons: addons,
+    addons: getAddons(),
     startupinfo: getStartupInfo()
   };
 
