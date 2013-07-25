@@ -743,9 +743,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
         // Unwrap the XUL element's XPCNativeWrapper
         this.element = utils.unwrapNode(this.element);
         // Get the list of menuitems
-        menuitems = this.element.
-                    getElementsByTagNameNS(NAMESPACE_XUL, "menupopup")[0].
-                    getElementsByTagNameNS(NAMESPACE_XUL, "menuitem");
+        menuitems = this.element.getElementsByTagName("menupopup")[0].getElementsByTagName("menuitem");
 
         var item = null;
 
@@ -774,9 +772,13 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
 
         // Click the item
         try {
-          this.element.click();
+          EventUtils.synthesizeMouse(this.element, 1, 1, {}, ownerDoc.defaultView);
+          utils.sleep(0);
+
           item.scrollIntoView();
-          item.click();
+
+          EventUtils.synthesizeMouse(item, 1, 1, {}, ownerDoc.defaultView);
+          utils.sleep(0);
 
           var self = this;
           var selected = index || option || value;
