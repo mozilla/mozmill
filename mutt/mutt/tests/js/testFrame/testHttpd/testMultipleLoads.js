@@ -45,33 +45,61 @@ function testLoadFromDifferentSources() {
 
 
 function loadPage(aUrl, aResponseType) {
-  var response = {};
+  var request = { succeeded: false };
 
   observer = {
     observe: function (aSubject, aTopic, aData) {
-      Services.obs.removeObserver(this, "http-on-examine-response", false);
-      Services.obs.removeObserver(this, "http-on-examine-cached-response", false);
-
       var channel = aSubject.QueryInterface(Ci.nsIHttpChannel);
-      response = {
-        type : aTopic,
-        requestSucceeded : channel.requestSucceeded
-      };
+
+      switch (aTopic) {
+        case "http-on-modify-request":
+          Services.obs.removeObserver(observer, "http-on-modify-request", false);
+          break;
+
+        case "http-on-examine-response":
+        case "http-on-examine-cached-response":
+        case "http-on-examine-merged-response":
+          if (channel.originalURI.spec === aUrl) {
+            Services.obs.removeObserver(observer, "http-on-examine-response", false);
+            Services.obs.removeObserver(observer, "http-on-examine-cached-response", false);
+            Services.obs.removeObserver(observer, "http-on-examine-merged-response", false);
+
+            request.responseStatus = channel.responseStatus;
+            request.responseType = aTopic;
+            request.succeeded = channel.requestSucceeded;
+          }
+      }
     }
   };
 
-  Services.obs.addObserver(observer, "http-on-examine-response", false);
-  Services.obs.addObserver(observer, "http-on-examine-cached-response", false);
+  try {
+    Services.obs.addObserver(observer, "http-on-modify-request", false);
+    Services.obs.addObserver(observer, "http-on-examine-response", false);
+    Services.obs.addObserver(observer, "http-on-examine-cached-response", false);
+    Services.obs.addObserver(observer, "http-on-examine-merged-response", false);
 
-  controller.open(aUrl);
-  controller.waitForPageLoad();
+    controller.open(aUrl);
+    controller.waitForPageLoad();
 
-  assert.waitFor(function () {
-    return !!response.requestSucceeded;
-  }, "HTTPd.js successfully loaded local test page: " + aUrl, 1000);
+    expect.equal(request.responseType, aResponseType,
+                 "Page has been loaded from the expected source.");
 
-  expect.equal(response.type, aResponseType,
-               "Page has been loaded from the expected source.");
+    expect.equal(request.responseStatus, 200,
+                 "The expected response status is set.");
+
+    assert.ok(request.succeeded,
+              "HTTPd.js successfully loaded the local page: " + aUrl);
+  }
+  finally {
+    try {
+      Services.obs.removeObserver(observer, "http-on-modify-request", false);
+      Services.obs.removeObserver(observer, "http-on-examine-response", false);
+      Services.obs.removeObserver(observer, "http-on-examine-cached-response", false);
+      Services.obs.removeObserver(observer, "http-on-examine-merged-response", false);
+    }
+    catch (e) {
+    }
+  }
 }
 
 
