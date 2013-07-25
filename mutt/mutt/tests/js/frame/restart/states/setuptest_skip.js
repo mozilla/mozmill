@@ -3,6 +3,7 @@
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
 var state = 0;
+var iteration = 0;
 
 function setupModule() {
   controller = mozmill.getBrowserController();
@@ -16,20 +17,21 @@ function setupTest() {
 
 // Will be skipped due to setupTest failure
 function testOne() {
-  state++;
+  state += 2;
   controller.restartApplication('testTwo');
 }
 
+// Will be skipped due to setupTest failure
 function testTwo() {
-  // second test - won't be run because testOne is skipped.
-  // adding it as a passing test because this test expects to fail...
-  // have to turn your head around on this one.
+  state += 4
   assert.pass('testTwo should not be run');
 }
 
 function teardownTest() {
-  assert.equal(state, 1, 'Only setupModule ran prior to teardownTest so state is 1');
-  state = 3;
+  assert.equal(1, state - iteration,
+               'Only setupModule ran prior to teardownTest so state is 1');
+  state += 1;
+  iteration++;
 }
 
 function teardownModule() {
