@@ -34,7 +34,7 @@ global_options = [
     (("-m", "--manifest"),
      dict(dest="manifest",
           default=os.path.join(os.path.dirname(__file__),
-                               "tests", "all-tests.ini"),
+                               "tests", "manifest.ini"),
           help="Use a specific manifest rather than %default")),
     (("-v", "--verbose"),
      dict(dest="verbose",
