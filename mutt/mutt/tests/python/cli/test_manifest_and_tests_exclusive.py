@@ -15,13 +15,14 @@ class TestManifestTestsOptions(unittest.TestCase):
 
     def test_options(self):
         absdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        testdir = os.path.join(absdir, 'js-tests')
+        testdir = os.path.join(absdir, 'js-modules')
 
         process = ProcessHandler(['mozmill',
                                   '-b', os.environ['BROWSER_PATH'],
                                   '-t', os.path.join(testdir,
-                                                     'testUsemozmillControllerOpen.js'),
-                                  '-m', os.path.join(testdir, 'tests-null.ini')
+                                                     'useMozmill',
+                                                     'testTestPass.js'),
+                                  '-m', os.path.join(testdir, 'manifest-empty.ini')
                                  ],
                                  # stop mozmill from printing output to console
                                  processOutputLine=[lambda line: None])
