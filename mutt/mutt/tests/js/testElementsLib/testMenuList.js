@@ -8,6 +8,8 @@ const TEST_DATA = [
   "chrome://mozmill/content/test/chrome_elements.xul"
 ];
 
+const TIMEOUT_REMOTE = 15000;
+
 var setupModule = function (aModule) {
   aModule.controller = mozmill.getBrowserController();
 }
@@ -50,4 +52,44 @@ var testChromeSelect = function () {
   // Select by option
   menulist.select(null, 'Missouri');
   expect.equal(menulist.getNode().value, 'MO', "Value has been selected");
+}
+
+var testXULMenuList = function () {
+  // Open Addons Manager and add an event listener to wait for the view to change
+  var self = { changed: false };
+  function onViewChanged() { self.changed = true; }
+  controller.window.document.addEventListener("ViewChanged",
+                                              onViewChanged, false);
+
+  controller.open("about:addons");
+  controller.waitForPageLoad();
+
+  assert.waitFor(function () {
+    return self.changed;
+  }, "Category 'Discovery' has been loaded.", TIMEOUT_REMOTE);
+
+  self = { changed: false };
+
+  var plugin = new elementslib.ID(controller.window.document, "category-plugin");
+  controller.click(plugin);
+  assert.waitFor(function () {
+    return self.changed;
+  }, "Category has been changed.");
+
+  this.controller.window.document.removeEventListener("ViewChanged",
+                                                      onViewChanged, false);
+
+  // Select by option
+  var parent = controller.tabs.activeTab.querySelector(".addon.addon-view");
+  var node = controller.tabs.activeTab.
+             getAnonymousElementByAttribute(parent, "anonid", "state-menulist");
+  var menulist =  new elementslib.Elem(node);
+
+  menulist.select(null, "Never Activate");
+  expect.equal(menulist.getNode().label, "Never Activate",
+               "Never activate value has been selected");
+
+  menulist.select(null, "Always Activate");
+  expect.equal(menulist.getNode().label, "Always Activate",
+               "Always activate value has been selected");
 }
