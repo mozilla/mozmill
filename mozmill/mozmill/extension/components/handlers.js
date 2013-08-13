@@ -56,7 +56,7 @@ MozmillHandlers.prototype = {
 var ConsoleObserver = {
   observe: function (aSubject, aTopic, aData) {
     var msg = aSubject.message;
-    var errorRegEx = /\[.*(Error|Exception).*(chrome|resource):\/\/(mozmill|jsbridge).*/i;
+    var errorRegEx = /^\[.*Error:.*(chrome|resource):\/\/(mozmill|jsbridge).*/i;
 
     if (msg.match(errorRegEx)) {
       // If there is an exception happening in a background thread caused by a
