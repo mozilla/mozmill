@@ -176,10 +176,10 @@ class Profile(object):
         return the id for a given addon, or None if not found
         - addon_path : path to the addon directory
         """
-        
+
         def find_id(desc):
             """finds the addon id give its description"""
-            
+
             addon_id = None
             for elem in desc:
 
@@ -189,7 +189,7 @@ class Profile(object):
                 if apps:
                     for app in apps:
                         elem.removeChild(app)
-                        
+
                     # find the id tag
                     if elem.getElementsByTagName('em:id'):
                         addon_id = str(elem.getElementsByTagName('em:id')[0].firstChild.data)
@@ -197,11 +197,11 @@ class Profile(object):
                         addon_id = str(elem.getAttribute('em:id'))
                     elif elem.getElementsByTagName('id'):
                         addon_id = str(elem.getElementsByTagName('id')[0].firstChild.data)
-                        
+
             return addon_id
 
-        doc = minidom.parse(os.path.join(addon_path, 'install.rdf')) 
-        
+        doc = minidom.parse(os.path.join(addon_path, 'install.rdf'))
+
         for tag in 'Description', 'RDF:Description':
             desc = doc.getElementsByTagName(tag)
             addon_id = find_id(desc)
@@ -211,7 +211,7 @@ class Profile(object):
 
     def install_addon(self, path):
         """Installs the given addon or directory of addons in the profile."""
-        
+
         # if the addon is a directory, install all addons in it
         addons = [path]
         if not path.endswith('.xpi') and not os.path.exists(os.path.join(path, 'install.rdf')):
@@ -286,7 +286,7 @@ class Profile(object):
         f = open(os.path.join(self.profile, 'user.js'), 'w')
         f.write(cleaned_prefs) ; f.flush() ; f.close()
 
-    ### cleanup 
+    ### cleanup
 
     def cleanup(self):
         """Cleanup operations on the profile."""
@@ -301,7 +301,7 @@ class Profile(object):
             self.clean_addons()
 
     __del__ = cleanup
-    
+
 
 class FirefoxProfile(Profile):
     """Specialized Profile subclass for Firefox"""
@@ -357,6 +357,8 @@ class FirefoxProfile(Profile):
                    'extensions.checkCompatibility.nightly' : False,
                    # Enable test mode to run multiple tests in parallel
                    'focusmanager.testmode' : True,
+                   # Enable test mode to not raise an OS level dialog for location sharing
+                   'geo.provider.testing' : True,
                    # Suppress delay for main action in popup notifications
                    'security.notification_enable_delay' : 0,
                    # Suppress automatic safe mode after crashes
@@ -441,7 +443,7 @@ class Runner(object):
             except: # XXX not sure what type of exception this should be
                 pass
 
-            # search for the binary in the path            
+            # search for the binary in the path
             for name in reversed(self.names):
                 binary = findInPath(name)
                 if sys.platform == 'cygwin':
@@ -532,7 +534,7 @@ class Runner(object):
 
         if not self.process_handler:
             return
-        
+
         if sys.platform != 'win32':
             self.process_handler.kill()
             for name in self.names:
@@ -556,7 +558,7 @@ class Runner(object):
             self.profile.cleanup()
 
     __del__ = cleanup
-    
+
 
 class FirefoxRunner(Runner):
     """Specialized Runner subclass for running Firefox."""
@@ -592,7 +594,7 @@ class CLI(object):
                                                 metavar=None, default=None),
                       ('-p', "--profile",): dict(dest="profile", help="Profile path.",
                                                  metavar=None, default=None),
-                      ('-a', "--addons",): dict(dest="addons", 
+                      ('-a', "--addons",): dict(dest="addons",
                                                 help="Addons paths to install.",
                                                 metavar=None, default=None),
                       ("--info",): dict(dest="info", default=False,
@@ -611,13 +613,13 @@ class CLI(object):
         if self.options.info:
             self.print_metadata()
             sys.exit(0)
-            
+
         # XXX should use action='append' instead of rolling our own
         try:
             self.addons = self.options.addons.split(',')
         except:
             self.addons = []
-            
+
     def get_metadata_from_egg(self):
         import pkg_resources
         ret = {}
@@ -627,10 +629,10 @@ class CLI(object):
                 key, value = line.split(':', 1)
                 ret[key] = value
         if dist.has_metadata("requires.txt"):
-            ret["Dependencies"] = "\n" + dist.get_metadata("requires.txt")    
+            ret["Dependencies"] = "\n" + dist.get_metadata("requires.txt")
         return ret
-        
-    def print_metadata(self, data=("Name", "Version", "Summary", "Home-page", 
+
+    def print_metadata(self, data=("Name", "Version", "Summary", "Home-page",
                                    "Author", "Author-email", "License", "Platform", "Dependencies")):
         for key in data:
             if key in self.metadata:
@@ -679,5 +681,5 @@ def print_addon_ids(args=sys.argv[1:]):
     """print addon ids for testing"""
     for arg in args:
         print Profile.addon_id(arg)
-    
-    
+
+
