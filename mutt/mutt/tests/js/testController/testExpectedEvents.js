@@ -5,8 +5,8 @@
 const BASE_URL = collector.addHttpResource("../data/");
 const TEST_DATA = BASE_URL + "form.html";
 
-var setupModule = function () {
-  controller = mozmill.getBrowserController();
+var setupModule = function (aModule) {
+  aModule.controller = mozmill.getBrowserController();
 }
 
 var test = function () {
@@ -17,16 +17,16 @@ var test = function () {
   let lname = new elementslib.ID(controller.tabs.activeTab, "lname");
 
   expect.doesNotThrow(function () {
-    controller.click(fname, 2, 2, {type: "focus"});
+    fname.click(2, 2, {type: "focus"});
   }, "Error", "click() on a text field raises a focus event.");
 
   expect.throws(function () {
-    controller.click(fname, 2, 2, {type: "keypress"});
+    fname.click(2, 2, {type: "keypress"});
   }, "Error", "click() on a text field does not raise a keypress event.");
 
   // Synthesize keypress event
   expect.doesNotThrow(function () {
-    controller.keypress(fname, "i", {}, {type: "keypress"});
+    fname.keypress("i", {}, {type: "keypress"});
   }, "Error", "keypress() does fire a keypress event.");
   expect.equal(fname.getNode().value, "i", "text field contains the expected value.");
   fname.getNode().value = "";
@@ -37,24 +37,24 @@ var test = function () {
   expect.equal(fname.getNode().value, "fox", "text field contains the expected value.");
 
   expect.doesNotThrow(function () {
-    controller.keypress(fname, "a", {accelKey: true}, {type: "keypress"});
+    fname.keypress("a", {accelKey: true}, {type: "keypress"});
   }, "Error", "Using Cmd/Ctrl+A should fire a select event on that element.");
 
   expect.doesNotThrow(function () {
-    controller.keypress(fname, "VK_TAB", {}, {type: "focus", target: lname});
+    fname.keypress("VK_TAB", {}, {type: "focus", target: lname});
   }, "Error", "The tab key focuses the next element in the tab order.");
 
   expect.throws(function () {
-    controller.rightClick(lname, 2, 2, {type: "click"});
+    lname.rightClick(2, 2, {type: "click"});
   }, "Error", "Opening a context menu shouldn't raise a click event.");
-  controller.keypress(lname, "VK_ESCAPE", {type: "keypress"});
+  lname.keypress("VK_ESCAPE");
 
   expect.doesNotThrow(function () {
-    controller.rightClick(lname, 2, 2, {type: "contextmenu"});
-  }, "Error", "Opening a context menu does faire a contextmenu event.")
-  controller.keypress(lname, "VK_ESCAPE", {type: "keypress"});
+    lname.rightClick(2, 2, {type: "contextmenu"});
+  }, "Error", "Opening a context menu does fire a contextmenu event.");
+  lname.keypress("VK_ESCAPE");
 
   expect.throws(function () {
-    controller.keypress(lname, "VK_TAB", {}, {target: lname});
+    lname.keypress("VK_TAB", {}, {target: lname});
   }, "Error", "Missing expected event type has to throw an exception.");
 }
