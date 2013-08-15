@@ -1,9 +1,21 @@
+/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
+
+const TEST_DATA = [
+  "http://mozqa.com/data",
+  "http://mozqa.com/data/firefox"
+];
+
 function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();
 }
 
-function test() {
-  controller.open('http://mozqa.com/data');
+/**
+ * Validate tab manipulation under the Metro interface
+ */
+function testMetroTabs() {
+  controller.open(TEST_DATA[0]);
   controller.waitForPageLoad();
 
   controller.keypress(null, "t", { accelKey: true });
@@ -16,7 +28,7 @@ function test() {
   expect.equal(controller.tabs.getTab(1), controller.tabs.activeTab,
                "The second tab is the active tab");
 
-  controller.open('http://mozqa.com/data/firefox');
+  controller.open(TEST_DATA[1]);
   controller.waitForPageLoad();
 
   controller.tabs.selectTabIndex(0);
