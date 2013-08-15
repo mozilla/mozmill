@@ -9,7 +9,8 @@ from setuptools import setup, find_packages
 PACKAGE_NAME = "mutt"
 PACKAGE_VERSION = "0.1"
 
-deps = ['ManifestDestiny == 0.5.6', 'mozmill']
+deps = ['ManifestDestiny==0.5.7',
+        'mozmill==2.0rc4']
 
 desc = "Test Harness for Mozmill"
 license = 'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
