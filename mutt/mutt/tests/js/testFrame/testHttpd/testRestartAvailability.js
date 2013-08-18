@@ -10,7 +10,7 @@
 var http_server_available = false;
 
 try {
-  collector.addHttpResource("../../data/");
+  collector.addHttpResource("../../../data/");
   http_server_available = true;
 }
 catch (ex) {

@@ -4,7 +4,7 @@
 
 Cu.import("resource://gre/modules/Services.jsm");
 
-const BASE_URL = collector.addHttpResource("../data/");
+const BASE_URL = collector.addHttpResource("../../data/");
 const TEST_DATA = BASE_URL + "complex.html";
 
 var setupModule = function (aModule) {
