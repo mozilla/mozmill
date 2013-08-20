@@ -180,8 +180,8 @@ MozMillElement.prototype.dragToElement = function(aElement, aOffsetX, aOffsetY,
   };
   var destRect = destNode.getBoundingClientRect();
   var destCoords = {
-    x: isNaN(aOffsetX) ? destRect.width / 2 : aOffsetX,
-    y: isNaN(aOffsetY) ? destRect.height / 2 : aOffsetY
+    x: (!aOffsetX || isNaN(aOffsetX)) ? (destRect.width / 2) : aOffsetX,
+    y: (!aOffsetY || isNaN(aOffsetY)) ? (destRect.height / 2) : aOffsetY
   };
 
   var windowUtils = destWindow.QueryInterface(Ci.nsIInterfaceRequestor)
@@ -354,11 +354,11 @@ MozMillElement.prototype.mouseEvent = function (aOffsetX, aOffsetY, aEvent, aExp
 
   var rect = this.element.getBoundingClientRect();
 
-  if (isNaN(aOffsetX)) {
+  if (!aOffsetX || isNaN(aOffsetX)) {
     aOffsetX = rect.width / 2;
   }
 
-  if (isNaN(aOffsetY)) {
+  if (!aOffsetY || isNaN(aOffsetY)) {
     aOffsetY = rect.height / 2;
   }
 
@@ -395,12 +395,12 @@ MozMillElement.prototype.mouseEvent = function (aOffsetX, aOffsetY, aEvent, aExp
 /**
  * Synthesize a mouse click event on the given element
  */
-MozMillElement.prototype.click = function (left, top, expectedEvent) {
+MozMillElement.prototype.click = function (aOffsetX, aOffsetY, aExpectedEvent) {
   // Handle menu items differently
   if (this.element && this.element.tagName == "menuitem") {
     this.element.click();
   } else {
-    this.mouseEvent(left, top, {}, expectedEvent);
+    this.mouseEvent(aOffsetX, aOffsetY, {}, aExpectedEvent);
   }
 
   broker.pass({'function':'MozMillElement.click()'});
@@ -411,8 +411,8 @@ MozMillElement.prototype.click = function (left, top, expectedEvent) {
 /**
  * Synthesize a double click on the given element
  */
-MozMillElement.prototype.doubleClick = function (left, top, expectedEvent) {
-  this.mouseEvent(left, top, {clickCount: 2}, expectedEvent);
+MozMillElement.prototype.doubleClick = function (aOffsetX, aOffsetY, aExpectedEvent) {
+  this.mouseEvent(aOffsetX, aOffsetY, {clickCount: 2}, aExpectedEvent);
 
   broker.pass({'function':'MozMillElement.doubleClick()'});
 
@@ -422,8 +422,8 @@ MozMillElement.prototype.doubleClick = function (left, top, expectedEvent) {
 /**
  * Synthesize a mouse down event on the given element
  */
-MozMillElement.prototype.mouseDown = function (button, left, top, expectedEvent) {
-  this.mouseEvent(left, top, {button: button, type: "mousedown"}, expectedEvent);
+MozMillElement.prototype.mouseDown = function (aButton, aOffsetX, aOffsetY, aExpectedEvent) {
+  this.mouseEvent(aOffsetX, aOffsetY, {button: aButton, type: "mousedown"}, aExpectedEvent);
 
   broker.pass({'function':'MozMillElement.mouseDown()'});
 
@@ -433,8 +433,8 @@ MozMillElement.prototype.mouseDown = function (button, left, top, expectedEvent)
 /**
  * Synthesize a mouse out event on the given element
  */
-MozMillElement.prototype.mouseOut = function (button, left, top, expectedEvent) {
-  this.mouseEvent(left, top, {button: button, type: "mouseout"}, expectedEvent);
+MozMillElement.prototype.mouseOut = function (aButton, aOffsetX, aOffsetY, aExpectedEvent) {
+  this.mouseEvent(aOffsetX, aOffsetY, {button: aButton, type: "mouseout"}, aExpectedEvent);
 
   broker.pass({'function':'MozMillElement.mouseOut()'});
 
@@ -444,8 +444,8 @@ MozMillElement.prototype.mouseOut = function (button, left, top, expectedEvent) 
 /**
  * Synthesize a mouse over event on the given element
  */
-MozMillElement.prototype.mouseOver = function (button, left, top, expectedEvent) {
-  this.mouseEvent(left, top, {button: button, type: "mouseover"}, expectedEvent);
+MozMillElement.prototype.mouseOver = function (aButton, aOffsetX, aOffsetY, aExpectedEvent) {
+  this.mouseEvent(aOffsetX, aOffsetY, {button: aButton, type: "mouseover"}, aExpectedEvent);
 
   broker.pass({'function':'MozMillElement.mouseOver()'});
 
@@ -455,8 +455,8 @@ MozMillElement.prototype.mouseOver = function (button, left, top, expectedEvent)
 /**
  * Synthesize a mouse up event on the given element
  */
-MozMillElement.prototype.mouseUp = function (button, left, top, expectedEvent) {
-  this.mouseEvent(left, top, {button: button, type: "mouseup"}, expectedEvent);
+MozMillElement.prototype.mouseUp = function (aButton, aOffsetX, aOffsetY, aExpectedEvent) {
+  this.mouseEvent(aOffsetX, aOffsetY, {button: aButton, type: "mouseup"}, aExpectedEvent);
 
   broker.pass({'function':'MozMillElement.mouseUp()'});
 
@@ -466,8 +466,8 @@ MozMillElement.prototype.mouseUp = function (button, left, top, expectedEvent) {
 /**
  * Synthesize a mouse middle click event on the given element
  */
-MozMillElement.prototype.middleClick = function (left, top, expectedEvent) {
-  this.mouseEvent(left, top, {button: 1}, expectedEvent);
+MozMillElement.prototype.middleClick = function (aOffsetX, aOffsetY, aExpectedEvent) {
+  this.mouseEvent(aOffsetX, aOffsetY, {button: 1}, aExpectedEvent);
 
   broker.pass({'function':'MozMillElement.middleClick()'});
 
@@ -477,10 +477,241 @@ MozMillElement.prototype.middleClick = function (left, top, expectedEvent) {
 /**
  * Synthesize a mouse right click event on the given element
  */
-MozMillElement.prototype.rightClick = function (left, top, expectedEvent) {
-  this.mouseEvent(left, top, {type : "contextmenu", button: 2 }, expectedEvent);
+MozMillElement.prototype.rightClick = function (aOffsetX, aOffsetY, aExpectedEvent) {
+  this.mouseEvent(aOffsetX, aOffsetY, {type : "contextmenu", button: 2 }, aExpectedEvent);
 
   broker.pass({'function':'MozMillElement.rightClick()'});
+
+  return true;
+};
+
+/**
+ * Synthesize a general touch event on the given element
+ *
+ * @param {Number} [aOffsetX=aElement.width / 2]
+ *        Relative x offset in the elements bounds to click on
+ * @param {Number} [aOffsetY=aElement.height / 2]
+ *        Relative y offset in the elements bounds to click on
+ * @param {Object} [aEvent]
+ *        Information about the event to send
+ * @param {Boolean} [aEvent.altKey=false]
+ *        A Boolean value indicating whether or not the alt key was down when
+ *        the touch event was fired
+ * @param {Number} [aEvent.angle=0]
+ *        The angle (in degrees) that the ellipse described by rx and
+ *        ry must be rotated, clockwise, to most accurately cover the area
+ *        of contact between the user and the surface.
+ * @param {Touch[]} [aEvent.changedTouches]
+ *        A TouchList of all the Touch objects representing individual points of
+ *        contact whose states changed between the previous touch event and
+ *        this one
+ * @param {Boolean} [aEvent.ctrlKey]
+ *        A Boolean value indicating whether or not the control key was down
+ *        when the touch event was fired
+ * @param {Number} [aEvent.force=1]
+ *        The amount of pressure being applied to the surface by the user, as a
+ *        float between 0.0 (no pressure) and 1.0 (maximum pressure)
+ * @param {Number} [aEvent.id=0]
+ *        A unique identifier for this Touch object. A given touch (say, by a
+ *        finger) will have the same identifier for the duration of its movement
+ *        around the surface. This lets you ensure that you're tracking the same
+ *        touch all the time
+ * @param {Boolean} [aEvent.metaKey]
+ *        A Boolean value indicating whether or not the meta key was down when
+ *        the touch event was fired.
+ * @param {Number} [aEvent.rx=1]
+ *        The X radius of the ellipse that most closely circumscribes the area
+ *        of contact with the screen.
+ * @param {Number} [aEvent.ry=1]
+ *        The Y radius of the ellipse that most closely circumscribes the area
+ *        of contact with the screen.
+ * @param {Boolean} [aEvent.shiftKey]
+ *        A Boolean value indicating whether or not the shift key was down when
+ *        the touch event was fired
+ * @param {Touch[]} [aEvent.targetTouches]
+ *        A TouchList of all the Touch objects that are both currently in
+ *        contact with the touch surface and were also started on the same
+ *        element that is the target of the event
+ * @param {Touch[]} [aEvent.touches]
+ *        A TouchList of all the Touch objects representing all current points
+ *        of contact with the surface, regardless of target or changed status
+ * @param {Number} [aEvent.type=*|touchstart|touchend|touchmove|touchenter|touchleave|touchcancel]
+ *        The type of touch event that occurred
+ * @param {Element} [aEvent.target]
+ *        The target of the touches associated with this event. This target
+ *        corresponds to the target of all the touches in the targetTouches
+ *        attribute, but note that other touches in this event may have a
+ *        different target. To be careful, you should use the target associated
+ *        with individual touches
+ */
+MozMillElement.prototype.touchEvent = function (aOffsetX, aOffsetY, aEvent) {
+  if (!this.element) {
+    throw new Error(arguments.callee.name + ": could not find element " + this.getInfo());
+  }
+
+  if ("document" in this.element) {
+    throw new Error("A window cannot be a target for touch events.");
+  }
+
+  var rect = this.element.getBoundingClientRect();
+
+  if (!aOffsetX || isNaN(aOffsetX)) {
+    aOffsetX = rect.width / 2;
+  }
+
+  if (!aOffsetY || isNaN(aOffsetY)) {
+    aOffsetY = rect.height / 2;
+  }
+
+  // Scroll element into view otherwise the click will fail
+  if ("scrollIntoView" in this.element) {
+    this.element.scrollIntoView();
+  }
+
+  EventUtils.synthesizeTouch(this.element, aOffsetX, aOffsetY, aEvent,
+                             this.element.ownerDocument.defaultView);
+
+  return true;
+};
+
+/**
+ * Synthesize a touch tap event on the given element
+ *
+ * @param {Number} [aOffsetX=aElement.width / 2]
+ *        Left offset in px where the event is triggered
+ * @param {Number} [aOffsetY=aElement.height / 2]
+ *        Top offset in px where the event is triggered
+ * @param {Object} [aExpectedEvent]
+ *        Information about the expected event to occur
+ * @param {MozMillElement} [aExpectedEvent.target=this.element]
+ *        Element which should receive the event
+ * @param {MozMillElement} [aExpectedEvent.type]
+ *        Type of the expected mouse event
+ */
+MozMillElement.prototype.tap = function (aOffsetX, aOffsetY, aExpectedEvent) {
+  this.mouseEvent(aOffsetX, aOffsetY, {
+    clickCount: 1,
+    inputSource: Ci.nsIDOMMouseEvent.MOZ_SOURCE_TOUCH
+  }, aExpectedEvent);
+
+  broker.pass({'function':'MozMillElement.tap()'});
+
+  return true;
+};
+
+/**
+ * Synthesize a double tap on the given element
+ *
+ * @param {Number} [aOffsetX=aElement.width / 2]
+ *        Left offset in px where the event is triggered
+ * @param {Number} [aOffsetY=aElement.height / 2]
+ *        Top offset in px where the event is triggered
+ * @param {Object} [aExpectedEvent]
+ *        Information about the expected event to occur
+ * @param {MozMillElement} [aExpectedEvent.target=this.element]
+ *        Element which should receive the event
+ * @param {MozMillElement} [aExpectedEvent.type]
+ *        Type of the expected mouse event
+ */
+MozMillElement.prototype.doubleTap = function (aOffsetX, aOffsetY, aExpectedEvent) {
+  this.mouseEvent(aOffsetX, aOffsetY, {
+    clickCount: 2,
+    inputSource: Ci.nsIDOMMouseEvent.MOZ_SOURCE_TOUCH
+  }, aExpectedEvent);
+
+  broker.pass({'function':'MozMillElement.doubleTap()'});
+
+  return true;
+};
+
+/**
+ * Synthesize a long press
+ *
+ * @param {Number} aOffsetX
+ *        Left offset in px where the event is triggered
+ * @param {Number} aOffsetY
+ *        Top offset in px where the event is triggered
+ * @param {Number} [aTime=1000]
+ *        Duration of the "press" event in ms
+ */
+MozMillElement.prototype.longPress = function (aOffsetX, aOffsetY, aTime) {
+  var time = aTime || 1000;
+
+  this.touchStart(aOffsetX, aOffsetY);
+  utils.sleep(time);
+  this.touchEnd(aOffsetX, aOffsetY);
+
+  broker.pass({'function':'MozMillElement.longPress()'});
+
+  return true;
+};
+
+/**
+ * Synthesize a touch & drag event on the given element
+ *
+ * @param {Number} aOffsetX1
+ *        Left offset of the start position
+ * @param {Number} aOffsetY1
+ *        Top offset of the start position
+ * @param {Number} aOffsetX2
+ *        Left offset of the end position
+ * @param {Number} aOffsetY2
+ *        Top offset of the end position
+ */
+MozMillElement.prototype.touchDrag = function (aOffsetX1, aOffsetY1, aOffsetX2, aOffsetY2) {
+  this.touchStart(aOffsetX1, aOffsetY1);
+  this.touchMove(aOffsetX2, aOffsetY2);
+  this.touchEnd(aOffsetX2, aOffsetY2);
+
+  broker.pass({'function':'MozMillElement.move()'});
+
+  return true;
+};
+
+/**
+ * Synthesize a press / touchstart event on the given element
+ *
+ * @param {Number} aOffsetX
+ *        Left offset where the event is triggered
+ * @param {Number} aOffsetY
+ *        Top offset where the event is triggered
+ */
+MozMillElement.prototype.touchStart = function (aOffsetX, aOffsetY) {
+  this.touchEvent(aOffsetX, aOffsetY, { type: "touchstart" });
+
+  broker.pass({'function':'MozMillElement.touchStart()'});
+
+  return true;
+};
+
+/**
+ * Synthesize a release / touchend event on the given element
+ *
+ * @param {Number} aOffsetX
+ *        Left offset where the event is triggered
+ * @param {Number} aOffsetY
+ *        Top offset where the event is triggered
+ */
+MozMillElement.prototype.touchEnd = function (aOffsetX, aOffsetY) {
+  this.touchEvent(aOffsetX, aOffsetY, { type: "touchend" });
+
+  broker.pass({'function':'MozMillElement.touchEnd()'});
+
+  return true;
+};
+
+/**
+ * Synthesize a touchMove event on the given element
+ *
+ * @param {Number} aOffsetX
+ *        Left offset where the event is triggered
+ * @param {Number} aOffsetY
+ *        Top offset where the event is triggered
+ */
+MozMillElement.prototype.touchMove = function (aOffsetX, aOffsetY) {
+  this.touchEvent(aOffsetX, aOffsetY, { type: "touchmove" });
+
+  broker.pass({'function':'MozMillElement.touchMove()'});
 
   return true;
 };
@@ -508,9 +739,33 @@ MozMillElement.prototype.waitForElementNotPresent = function (timeout, interval)
 };
 
 MozMillElement.prototype.waitThenClick = function (timeout, interval,
-                                                   left, top, expectedEvent) {
+                                                   aOffsetX, aOffsetY, aExpectedEvent) {
   this.waitForElement(timeout, interval);
-  this.click(left, top, expectedEvent);
+  this.click(aOffsetX, aOffsetY, aExpectedEvent);
+};
+
+/**
+ * Waits for the element to be available in the DOM, then trigger a tap event
+ *
+ * @param {Number} [aTimeout=5000]
+ *        Time to wait for the element to be available
+ * @param {Number} [aInterval=100]
+ *        Interval to check for availability
+ * @param {Number} [aOffsetX=aElement.width / 2]
+ *        Left offset where the event is triggered
+ * @param {Number} [aOffsetY=aElement.height / 2]
+ *        Top offset where the event is triggered
+ * @param {Object} [aExpectedEvent]
+ *        Information about the expected event to occur
+ * @param {MozMillElement} [aExpectedEvent.target=this.element]
+ *        Element which should receive the event
+ * @param {MozMillElement} [aExpectedEvent.type]
+ *        Type of the expected mouse event
+ */
+MozMillElement.prototype.waitThenTap = function (aTimeout, aInterval,
+                                                 aOffsetX, aOffsetY, aExpectedEvent) {
+  this.waitForElement(aTimeout, aInterval);
+  this.tap(aOffsetX, aOffsetY, aExpectedEvent);
 };
 
 // Dispatches an HTMLEvent
