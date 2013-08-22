@@ -2,6 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/. */
 
+const { getEntity } = require("l10n");
+
 const BASE_URL = collector.addHttpResource("../data/");
 const TEST_DATA = [
   BASE_URL + "form.html",
@@ -85,11 +87,14 @@ var testXULMenuList = function () {
              getAnonymousElementByAttribute(parent, "anonid", "state-menulist");
   var menulist =  new elementslib.Elem(node);
 
-  menulist.select(null, "Never Activate");
-  expect.equal(menulist.getNode().label, "Never Activate",
+  var dtd = "chrome://mozapps/locale/extensions/extensions.dtd";
+  var neverActivate = getEntity([dtd], "cmd.neverActivate.label");
+  menulist.select(null, neverActivate);
+  expect.equal(menulist.getNode().label, neverActivate,
                "Never activate value has been selected");
 
-  menulist.select(null, "Always Activate");
-  expect.equal(menulist.getNode().label, "Always Activate",
+  var alwaysActivate = getEntity([dtd], "cmd.alwaysActivate.label");
+  menulist.select(null, alwaysActivate);
+  expect.equal(menulist.getNode().label, alwaysActivate,
                "Always activate value has been selected");
 }
