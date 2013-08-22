@@ -54,6 +54,8 @@ var hwindow = Components.classes["@mozilla.org/appshell/appShellService;1"]
 var aConsoleService = Components.classes["@mozilla.org/consoleservice;1"].
      getService(Components.interfaces.nsIConsoleService);
 
+const NAMESPACE_XUL = "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul";
+
 // The window map which is used to store information e.g. loaded state of each
 // open chrome and content window.
 var windowMap = {
@@ -106,12 +108,12 @@ waitForEvents.prototype = {
   init : function waitForEvents_init(node, events) {
     if (node.getNode != undefined)
       node = node.getNode();
-  
+
     this.events = events;
     this.node = node;
     node.firedEvents = {};
     this.registry = {};
-  
+
     for each(e in events) {
       var listener = function(event) {
         this.firedEvents[event.type] = true;
@@ -131,7 +133,7 @@ waitForEvents.prototype = {
       utils.waitFor(function() {
         return this.node.firedEvents[e] == true;
       }, "Timeout happened before event '" + ex +"' was fired.", timeout, interval);
-  
+
       this.node.removeEventListener(e, this.registry[e], true);
     }
   }
@@ -509,7 +511,6 @@ MozMillController.prototype.mouseEvent = function(aTarget, aOffsetX, aOffsetY,
       throw new Error(arguments.callee.name + ": could not find element " +
                       aExpectedEvent.target.getInfo());
     }
-
     EventUtils.synthesizeMouseExpectEvent(element, aOffsetX, aOffsetY, aEvent,
                                           target, aExpectedEvent.event,
                                           "controller.mouseEvent()",
@@ -632,7 +633,7 @@ MozMillController.prototype.check = function(el, state) {
   if (element.namespaceURI == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul") {
     element = utils.unwrapNode(element);
   }
-  
+
   state = (typeof(state) == "boolean") ? state : false;
   if (state != element.checked) {
     this.click(el);
@@ -768,30 +769,30 @@ MozMillController.prototype.startUserShutdown = function (timeout, restart) {
 }
 
 /* Select the specified option and trigger the relevant events of the element.*/
-MozMillController.prototype.select = function (el, indx, option, value) {
+MozMillController.prototype.select = function (el, index, option, value) {
   element = el.getNode();
-  if (!element){
+  if (!element) {
     throw new Error("Could not find element " + el.getInfo());
     return false;
   }
 
   //if we have a select drop down
-  if (element.localName.toLowerCase() == "select"){
+  if (element.localName.toLowerCase() == "select") {
     var item = null;
 
     // The selected item should be set via its index
-    if (indx != undefined) {
+    if (index != undefined) {
       // Resetting a menulist has to be handled separately
-      if (indx == -1) {
+      if (index == -1) {
         events.triggerEvent(element, 'focus', false);
-        element.selectedIndex = indx;
+        element.selectedIndex = index;
         events.triggerEvent(element, 'change', true);
 
-     frame.events.pass({'function':'Controller.select()'});
-     return true;
+        frame.events.pass({'function':'Controller.select()'});
+        return true;
       } else {
-        item = element.options.item(indx);
-    }
+        item = element.options.item(index);
+      }
     } else {
       for (var i = 0; i < element.options.length; i++) {
         var entry = element.options.item(i);
@@ -799,48 +800,50 @@ MozMillController.prototype.select = function (el, indx, option, value) {
             value != undefined && entry.value == value) {
           item = entry;
          break;
-       }
-     }
-           }
+        }
+      }
+    }
 
     // Click the item
     try {
       // EventUtils.synthesizeMouse doesn't work.
       events.triggerEvent(element, 'focus', false);
       item.selected = true;
-           events.triggerEvent(element, 'change', true);
+      events.triggerEvent(element, 'change', true);
 
       frame.events.pass({'function':'Controller.select()'});
       return true;
     } catch (ex) {
       throw new Error("No item selected for element " + el.getInfo());
      return false;
-   }
-  }
-  //if we have a xul menulist select accordingly
-  else if (element.localName.toLowerCase() == "menulist") {
-    ownerDoc = element.ownerDocument;
-    // Unwrap the XUL element's XPCNativeWrapper
-    if (element.namespaceURI.toLowerCase() == "http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul") {
-      element = utils.unwrapNode(element);
     }
-    
+  }
+
+  //if we have a xul menupopup select accordingly
+  else if (element.namespaceURI.toLowerCase() == NAMESPACE_XUL) {
+    var ownerDoc = element.ownerDocument;
+    // Unwrap the XUL element's XPCNativeWrapper
+    element = utils.unwrapNode(element);
+    // Get the list of menuitems
+    menuitems = element.getElementsByTagNameNS(NAMESPACE_XUL, "menupopup")[0].
+                        getElementsByTagNameNS(NAMESPACE_XUL, "menuitem");
+
     var item = null;
 
-    if (indx != undefined) {
-      if (indx == -1) {
+    if (index != undefined) {
+      if (index == -1) {
         events.triggerEvent(element, 'focus', false);
-        element.selectedIndex = indx;
+        element.selectedIndex = index;
         events.triggerEvent(element, 'change', true);
 
         frame.events.pass({'function':'Controller.select()'});
         return true;
       } else {
-        item = element.getItemAtIndex(indx);
+        item = menuitems[index];
       }
     } else {
       for (var i = 0; i < element.itemCount; i++) {
-        var entry = element.getItemAtIndex(i);
+        var entry = menuitems[i];
         if (option != undefined && entry.label == option ||
             value != undefined && entry.value == value) {
           item = entry;
@@ -851,22 +854,25 @@ MozMillController.prototype.select = function (el, indx, option, value) {
 
     // Click the item
     try {
-      EventUtils.synthesizeMouse(element, 1, 1, {}, ownerDoc.defaultView);
-      this.sleep(0);
+      element.click();
+      item.scrollIntoView();
+      item.click();
 
-      // Scroll down until item is visible
-      for (var i = s = element.selectedIndex; i <= element.itemCount + s; ++i) {
-        var entry = element.getItemAtIndex((i + 1) % element.itemCount);
-        EventUtils.synthesizeKey("VK_DOWN", {}, ownerDoc.defaultView);
-        if (entry.label == item.label) {
-          break;
+      var selected = index || option || value;
+      this.waitFor(function () {
+        switch (selected) {
+          case index:
+            return selected === element.selectedIndex;
+            break;
+          case option:
+            return selected === element.label;
+            break;
+          case value:
+            return selected === element.value;
+            break;
         }
-        else if (entry.label == "") i += 1;
-      }
-      
-      EventUtils.synthesizeMouse(item, 1, 1, {}, ownerDoc.defaultView);
-      this.sleep(0);
-      
+      }, "DropList.select(): The correct item has been selected");
+
       frame.events.pass({'function':'Controller.select()'});
       return true;
     } catch (ex) {
@@ -1018,7 +1024,7 @@ MozMillController.prototype.assertNotChecked = function (el) {
   return false;
 };
 
-/** 
+/**
  * Assert that an element's javascript property exists or has a particular value
  *
  * if val is undefined, will return true if the property exists.
@@ -1035,13 +1041,13 @@ MozMillController.prototype.assertJSProperty = function(el, attrib, val) {
   if (res) {
     frame.events.pass({'function':'Controller.assertJSProperty("' + el.getInfo() + '") : ' + val});
   } else {
-    throw new Error("Controller.assertJSProperty(" + el.getInfo() + ") : " + 
+    throw new Error("Controller.assertJSProperty(" + el.getInfo() + ") : " +
                      (val === undefined ? "property '" + attrib + "' doesn't exist" : val + " == " + value));
   }
   return res;
 };
 
-/** 
+/**
  * Assert that an element's javascript property doesn't exist or doesn't have a particular value
  *
  * if val is undefined, will return true if the property doesn't exist.
@@ -1064,7 +1070,7 @@ MozMillController.prototype.assertNotJSProperty = function(el, attrib, val) {
   return res;
 };
 
-/** 
+/**
  * Assert that an element's dom property exists or has a particular value
  *
  * if val is undefined, will return true if the property exists.
@@ -1080,18 +1086,18 @@ MozMillController.prototype.assertDOMProperty = function(el, attrib, val) {
   if (res && val !== undefined) {
     value = element.getAttribute(attrib);
     res = (String(value) == String(val));
-  }   
- 
+  }
+
   if (res) {
     frame.events.pass({'function':'Controller.assertDOMProperty("' + el.getInfo() + '") : ' + val});
   } else {
-    throw new Error("Controller.assertDOMProperty(" + el.getInfo() + ") : " + 
+    throw new Error("Controller.assertDOMProperty(" + el.getInfo() + ") : " +
                      (val === undefined ? "property '" + attrib + "' doesn't exist" : val + " == " + value));
   }
   return res;
 };
 
-/** 
+/**
  * Assert that an element's dom property doesn't exist or doesn't have a particular value
  *
  * if val is undefined, will return true if the property doesn't exist.
@@ -1107,11 +1113,11 @@ MozMillController.prototype.assertNotDOMProperty = function(el, attrib, val) {
   if (res && val !== undefined) {
     value = element.getAttribute(attrib);
     res = (String(value) == String(val));
-  }   
+  }
   if (!res) {
     frame.events.pass({'function':'Controller.assertNotDOMProperty("' + el.getInfo() + '") : ' + val});
   } else {
-    throw new Error("Controller.assertNotDOMProperty(" + el.getInfo() + ") : " + 
+    throw new Error("Controller.assertNotDOMProperty(" + el.getInfo() + ") : " +
                      (val == undefined ? "property '" + attrib + "' exists" : val + " == " + value));
   }
   return !res;
@@ -1119,7 +1125,7 @@ MozMillController.prototype.assertNotDOMProperty = function(el, attrib, val) {
 
 // deprecated - Use assertNotJSProperty or assertNotDOMProperty instead
 MozMillController.prototype.assertProperty = function(el, attrib, val) {
-  frame.log({'function':'controller.assertProperty() - DEPRECATED', 
+  frame.log({'function':'controller.assertProperty() - DEPRECATED',
                       'message':'assertProperty(el, attrib, val) is deprecated. Use assertJSProperty(el, attrib, val) or assertDOMProperty(el, attrib, val) instead'});
   return this.assertJSProperty(el, attrib, val);
 };
@@ -1361,7 +1367,7 @@ MozMillAsyncTest.prototype.run = function () {
 
   utils.waitFor(function() {
     return this._done == true;
-  }, "MozMillAsyncTest timed out. Done is " + this._done, 500, 100); 
+  }, "MozMillAsyncTest timed out. Done is " + this._done, 500, 100);
 
   return true;
 }
