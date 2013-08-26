@@ -10,6 +10,10 @@ const Cu = Components.utils;
 Cu.import("resource://gre/modules/XPCOMUtils.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
 
+// Import local modules
+Cu.import('resource://mozmill/modules/assertions.js');
+Cu.import("resource://jsbridge/modules/Events.jsm");
+
 
 /**
  * XPCOM component to setup necessary listeners for Mozmill.
@@ -54,20 +58,17 @@ MozmillHandlers.prototype = {
 
 
 var ConsoleObserver = {
+  var errorRegEx = /\[.*(Error|Exception).*(chrome|resource):\/\/(mozmill|jsbridge).*/i;
+  var externalFileRegEx = /.*\.js -> file:\/\/\/.*/;
+
   observe: function (aSubject, aTopic, aData) {
     var msg = aSubject.message;
-    var errorRegEx = /^\[.*Error:.*(chrome|resource):\/\/(mozmill|jsbridge).*/i;
 
     if (msg.match(errorRegEx)) {
       // If there is an exception happening in a background thread caused by a
       // test, don't raise a framework failure because the error gets forwarded
       // through the console service.
-      var externalFileRegEx = /.*\.js -> file:\/\/\/.*/;
-
-      Cu.import("resource://jsbridge/modules/Events.jsm");
-
       if (msg.match(externalFileRegEx)) {
-        Components.utils.import('resource://mozmill/modules/assertions.js');
         new Expect().fail(msg);
       }
       else {
