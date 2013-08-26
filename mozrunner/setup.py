@@ -41,7 +41,7 @@ import sys
 desc = """Reliable start/stop/configuration of Mozilla Applications (Firefox, Thunderbird, etc.)"""
 
 PACKAGE_NAME = "mozrunner"
-PACKAGE_VERSION = "2.5.15"
+PACKAGE_VERSION = "2.5.16"
 
 deps = []
 
@@ -56,9 +56,9 @@ setup(name=PACKAGE_NAME,
       version=PACKAGE_VERSION,
       description=desc,
       long_description=desc,
-      author='Mikeal Rogers, Mozilla',
-      author_email='mikeal.rogers@gmail.com',
-      url='http://github.com/mozautomation/mozmill',
+      author='Mozilla Automation and Tools team',
+      author_email='tools@lists.mozilla.org',
+      url='http://github.com/mozilla/mozmill',
       license='MPL 1.1/GPL 2.0/LGPL 2.1',
       packages=find_packages(exclude=['legacy']),
       zip_safe=False,
