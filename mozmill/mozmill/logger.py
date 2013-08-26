@@ -55,16 +55,19 @@ class LoggerListener(object):
         self.logger.setLevel(logging.DEBUG)
         formatter = logging.Formatter(template)
 
-        if console_level:
-            console = logging.StreamHandler(console_stream)
-            if format == "pprint-color":
-                formatter = ColorFormatter(template)
-            console.setFormatter(formatter)
-            console.setLevel(levels[console_level])
-            self.logger.addHandler(console)
+        use_indent = format in ["pprint", "pprint-color"]
+        print_stack = console_level not in ["WARNING", "INFO"]
+        console = logging.StreamHandler(console_stream)
+        use_color = (format == "pprint-color")
+        formatter = ColorFormatter(template, use_color=use_color, print_stack=print_stack, use_indent=use_indent)
+        console.setFormatter(formatter)
+        console.setLevel(levels[console_level])
+        self.logger.addHandler(console)
 
         if log_file:
+            print_stack = file_level not in ["WARNING", "INFO"]
             handler = logging.FileHandler(log_file, 'w')
+            formatter = ColorFormatter(template, use_color=use_color, print_stack=print_stack, use_indent=use_indent)
             handler.setFormatter(formatter)
             handler.setLevel(levels[file_level])
             self.logger.addHandler(handler)
@@ -291,10 +294,12 @@ class ColorFormatter(logging.Formatter):
             msg = msg.replace("$RESET", "").replace("$BOLD", "")
         return msg
 
-    def __init__(self, format=None, use_color=True):
+    def __init__(self, format=None, use_color=True, print_stack=False, use_indent=False):
         msg = self.formatter_msg(format, use_color)
         logging.Formatter.__init__(self, msg)
         self.use_color = use_color
+        self.print_stack = print_stack
+        self.use_indent = use_indent
 
     def format(self, record):
         levelname = record.levelname
@@ -303,4 +308,24 @@ class ColorFormatter(logging.Formatter):
             levelname_color = self.COLOR_SEQ % fore_color + \
                               levelname + self.RESET_SEQ
             record.levelname = levelname_color
+
+        if not self.print_stack:
+            try:
+                message = record.msg.rsplit("|", 1)
+                string = message[1]
+                dictionary = json.loads(string)
+                dictionary = self.removeKey(dictionary, "stack")
+                if self.use_indent:
+                    return record.levelname + " | " + message[0] + "| " + json.dumps(dictionary, indent=2)
+                return record.levelname + " | " + message[0] + "| " + json.dumps(dictionary)
+            except:
+                pass
         return logging.Formatter.format(self, record)
+
+    def removeKey(self, dictionary, key):
+        for (k,v) in dictionary.items():
+            if k == key:
+                del dictionary[k]
+            if isinstance(v, dict):
+                self.removeKey(v, key)
+        return dictionary
