@@ -4,48 +4,20 @@
    <Description about="urn:mozilla:install-manifest">
      <em:id>jsbridge@mozilla.com</em:id>
      <em:name>jsbridge</em:name>
-     <em:version>2.4.17</em:version>
-     <em:creator>Mikeal Rogers</em:creator>
+     <em:version>2.4.18</em:version>
      <em:description>Python to JavaScript bridge</em:description>
      <em:unpack>true</em:unpack>
+
+     <em:creator>Mozilla Automation and Testing Team</em:creator>
+     <em:contributor>Mikeal Rogers</em:contributor>
+
      <em:targetApplication>
-       <!-- Firefox -->
        <Description>
-         <em:id>{ec8030f7-c20a-464f-9b0e-13a3a9e97384}</em:id>
-         <em:minVersion>4.0</em:minVersion>
-         <em:maxVersion>30.*</em:maxVersion>
+         <em:id>toolkit@mozilla.org</em:id>
+         <em:minVersion>10.0</em:minVersion>
+         <em:maxVersion>31.*</em:maxVersion>
        </Description>
      </em:targetApplication>
-     <em:targetApplication>
-       <!-- Thunderbird -->
-       <Description>
-         <em:id>{3550f703-e582-4d05-9a08-453d09bdfdc6}</em:id>
-         <em:minVersion>5.0</em:minVersion>
-         <em:maxVersion>30.*</em:maxVersion>
-       </Description>
-     </em:targetApplication>
-     <em:targetApplication>
-       <!-- Sunbird -->
-       <Description>
-         <em:id>{718e30fb-e89b-41dd-9da7-e25a45638b28}</em:id>
-         <em:minVersion>1.0b5</em:minVersion>
-         <em:maxVersion>1.*</em:maxVersion>
-       </Description>
-     </em:targetApplication>
-     <em:targetApplication>
-       <!-- SeaMonkey -->
-       <Description>
-         <em:id>{92650c4d-4b8e-4d2a-b7eb-24ecf4f6b63a}</em:id>
-         <em:minVersion>2.1</em:minVersion>
-         <em:maxVersion>2.*</em:maxVersion>
-       </Description>
-     </em:targetApplication>
-     <em:targetApplication>
-         <Description>
-          <em:id>toolkit@mozilla.org</em:id>
-          <em:minVersion>2.0</em:minVersion>
-          <em:maxVersion>30.*</em:maxVersion>
-         </Description>
-     </em:targetApplication>
+
    </Description>
 </RDF>
