@@ -1030,7 +1030,20 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
         // Click the item
         try {
           this.element.click();
-          item.scrollIntoView();
+          if ("scrollIntoView" in item) {
+            item.scrollIntoView();
+          }
+          else {
+            // Workaround for ESR17 where scrollIntoView is not available
+            // Scroll down until item is visible
+            for (var i = 0; i <= menuitems.length; ++i) {
+              var selected = this.element.boxObject.QueryInterface(Ci.nsIMenuBoxObject).activeChild;
+              if (item == selected) {
+                break;
+              }
+              EventUtils.synthesizeKey("VK_DOWN", {}, ownerDoc.defaultView);
+            }
+          }
           item.click();
 
           var self = this;
