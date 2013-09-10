@@ -85,16 +85,19 @@ var testXULMenuList = function () {
   var parent = controller.tabs.activeTab.querySelector(".addon.addon-view");
   var node = controller.tabs.activeTab.
              getAnonymousElementByAttribute(parent, "anonid", "state-menulist");
-  var menulist =  new elementslib.Elem(node);
 
-  var dtd = "chrome://mozapps/locale/extensions/extensions.dtd";
-  var neverActivate = getEntity([dtd], "cmd.neverActivate.label");
-  menulist.select(null, neverActivate);
-  expect.equal(menulist.getNode().label, neverActivate,
-               "Never activate value has been selected");
+  // ESR17 does not have a xul menulist in Addons Manager - Plugins, neither dtds
+  if (node) {
+    var menulist =  new elementslib.Elem(node);
+    var dtd = "chrome://mozapps/locale/extensions/extensions.dtd";
+    var neverActivate = getEntity([dtd], "cmd.neverActivate.label");
+    menulist.select(null, neverActivate);
+    expect.equal(menulist.getNode().label, neverActivate,
+                 "Never activate value has been selected");
 
-  var alwaysActivate = getEntity([dtd], "cmd.alwaysActivate.label");
-  menulist.select(null, alwaysActivate);
-  expect.equal(menulist.getNode().label, alwaysActivate,
-               "Always activate value has been selected");
+    var alwaysActivate = getEntity([dtd], "cmd.alwaysActivate.label");
+    menulist.select(null, alwaysActivate);
+    expect.equal(menulist.getNode().label, alwaysActivate,
+                 "Always activate value has been selected");
+  }
 }
