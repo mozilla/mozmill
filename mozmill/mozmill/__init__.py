@@ -744,7 +744,7 @@ class CLI(jsbridge.CLI):
             log_options['filename'] = self.options.logfile
             log_options['filemode'] = 'w'
             log_options['level'] = logging.DEBUG
-        if self.options.test and self.options.showall:
+        if self.options.showall:
             log_options['level'] = logging.DEBUG    
         logging.basicConfig(**log_options)
 
