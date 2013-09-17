@@ -76,10 +76,46 @@ class JSObjectEncoder(simplejson.JSONEncoder):
             return simplejson.JSONEncoder.encode(self, o)
 
     def _iterencode(self, o, markers=None):
+        # XXX verbosely copied from simplejson
         if isinstance(o, jsobjects.JSObject):
             yield o._name_
+        elif isinstance(o, basestring):
+            if self.ensure_ascii:
+                encoder = encode_basestring_ascii
+            else:
+                encoder = encode_basestring
+            _encoding = self.encoding
+            if (_encoding is not None and isinstance(o, str)
+                and not (_encoding == 'utf-8')):
+                o = o.decode(_encoding)
+            yield encoder(o)
+        elif o is None:
+            yield 'null'
+        elif o is True:
+            yield 'true'
+        elif o is False:
+            yield 'false'
+        elif isinstance(o, (int, long)):
+            yield str(o)
+        elif isinstance(o, float):
+            yield getattr(simplejson.encoder, 'floatstr',
+                          simplejson.encoder._floatstr)(o, self.allow_nan)
+        elif isinstance(o, (list, tuple)):
+            for chunk in self._iterencode_list(o, markers):
+                yield chunk
+        elif isinstance(o, dict):
+            for chunk in self._iterencode_dict(o, markers):
+                yield chunk
         else:
-            yield simplejson.JSONEncoder.iterencode(self, o, markers)
+            if markers is not None:
+                markerid = id(o)
+                if markerid in markers:
+                    raise ValueError("Circular reference detected")
+                markers[markerid] = o
+            for chunk in self._iterencode_default(o, markers):
+                yield chunk
+            if markers is not None:
+                del markers[markerid]
 
 encoder = JSObjectEncoder()
 
