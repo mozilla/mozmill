@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <script type="text/javascript" >
+      function unloadHandler() {
+        window.removeEventListener('unload', unloadHandler, false);
+      };
+      window.addEventListener('unload', unloadHandler, false);
+    </script>
+    <title>Page not Back-Forward Cached</title>
+  </head>
+  <body>
+    <h1>Page not Back-Forward Cached</h1>
+  </body>
+</html>
