@@ -228,20 +228,18 @@ function attachEventListeners(aWindow) {
   };
 
   var pageHideHandler = function (aEvent) {
-    // If event.persisted is false, the beforeUnloadHandler should fire
-    // and there is no need for this event handler.
-    if (aEvent.persisted) {
-      var doc = aEvent.originalTarget;
+    var doc = aEvent.originalTarget;
 
-      // Only update the flag if we have a document as target
-      if ("defaultView" in doc) {
-        var id = utils.getWindowId(doc.defaultView);
-        // dump("*** 'pagehide' event: id=" + id + ", baseURI=" + doc.baseURI + "\n");
-        map.updatePageLoadStatus(id, false);
-      }
-
-      aWindow.removeEventListener("beforeunload", beforeUnloadHandler, true);
+    // Only update the flag if we have a document as target
+    if ("defaultView" in doc) {
+      var id = utils.getWindowId(doc.defaultView);
+      // dump("*** 'pagehide' event: id=" + id + ", baseURI=" + doc.baseURI + "\n");
+      map.updatePageLoadStatus(id, false);
     }
+    // If event.persisted is true the beforeUnloadHandler would never fire
+    // and we have to remove the event handler here to avoid memory leaks.
+    if (aEvent.persisted)
+      aWindow.removeEventListener("beforeunload", beforeUnloadHandler, true);
   };
 
   var onWindowLoaded = function (aEvent) {
