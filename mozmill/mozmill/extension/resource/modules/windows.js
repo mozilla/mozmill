@@ -157,6 +157,14 @@ var windowCloseObserver = {
   }
 };
 
+// Bug 915554
+// Support for the old Private Browsing Mode (eg. ESR17)
+// TODO: remove once ESR17 is no longer supported
+var enterLeavePrivateBrowsingObserver = {
+  observe: function (aSubject, aTopic, aData) {
+    handleAttachEventListeners();
+  }
+};
 
 /**
  * Attach event listeners
@@ -264,18 +272,23 @@ function attachEventListeners(aWindow) {
   }
 }
 
-function init() {
-  // Activate observer for new top level windows
-  var observerService = Cc["@mozilla.org/observer-service;1"].
-                        getService(Ci.nsIObserverService);
-  observerService.addObserver(windowReadyObserver, "toplevel-window-ready", false);
-  observerService.addObserver(windowCloseObserver, "outer-window-destroyed", false);
-
-  // Attach event listeners to all already open top-level windows
+// Attach event listeners to all already open top-level windows
+function handleAttachEventListeners() {
   var enumerator = Cc["@mozilla.org/appshell/window-mediator;1"].
                    getService(Ci.nsIWindowMediator).getEnumerator("");
   while (enumerator.hasMoreElements()) {
     var win = enumerator.getNext();
     attachEventListeners(win);
   }
+}
+
+function init() {
+  // Activate observer for new top level windows
+  var observerService = Cc["@mozilla.org/observer-service;1"].
+                        getService(Ci.nsIObserverService);
+  observerService.addObserver(windowReadyObserver, "toplevel-window-ready", false);
+  observerService.addObserver(windowCloseObserver, "outer-window-destroyed", false);
+  observerService.addObserver(enterLeavePrivateBrowsingObserver, "private-browsing", false);
+
+  handleAttachEventListeners();
 }
