@@ -6,6 +6,9 @@ var EXPORTED_SYMBOLS = ['listDirectory', 'getFileForPath', 'abspath', 'getPlatfo
 
 const Cc = Components.classes;
 const Ci = Components.interfaces;
+const Cu = Components.utils;
+
+Cu.import("resource://gre/modules/Services.jsm");
 
 function listDirectory(file) {
   // file is the given directory (nsIFile)
@@ -50,8 +53,5 @@ function abspath(rel, file) {
 }
 
 function getPlatform() {
-  var xulRuntime = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULRuntime);
-  mPlatform = xulRuntime.OS.toLowerCase();
-
-  return mPlatform;
+  return Services.appinfo.OS.toLowerCase();
 }

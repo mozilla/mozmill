@@ -10,6 +10,8 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
+Cu.import("resource://gre/modules/Services.jsm");
+
 var utils = {}; Cu.import('resource://mozmill/stdlib/utils.js', utils);
 var strings = {}; Cu.import('resource://mozmill/stdlib/strings.js', strings);
 var arrays = {}; Cu.import('resource://mozmill/stdlib/arrays.js', arrays);
@@ -75,9 +77,7 @@ var smartSplit = function (str) {
  * if no document is provided
  */
 function defaultDocuments() {
-  var win = Cc['@mozilla.org/appshell/window-mediator;1']
-            .getService(Ci.nsIWindowMediator)
-            .getMostRecentWindow("navigator:browser");
+  var win = Services.wm.getMostRecentWindow("navigator:browser");
 
   return [
     win.document,

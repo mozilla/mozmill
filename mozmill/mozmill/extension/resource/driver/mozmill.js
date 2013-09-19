@@ -19,6 +19,7 @@ const Cu = Components.utils;
 
 
 Cu.import("resource://gre/modules/AddonManager.jsm");
+Cu.import("resource://gre/modules/Services.jsm");
 
 // imports
 var assertions = {};  Cu.import('resource://mozmill/modules/assertions.js', assertions);
@@ -58,13 +59,10 @@ if (platform == "linux"){
   isLinux = true;
 }
 
-var wm = Cc["@mozilla.org/appshell/window-mediator;1"].getService(Ci.nsIWindowMediator);
+var wm = Services.wm;
 
-var appInfo = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo);
+var appInfo = Services.appinfo;
 var Application = appInfo.name;
-
-var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
-                 .getService(Ci.nsIAppStartup);
 
 
 /**
@@ -140,7 +138,7 @@ function getStartupInfo() {
   var startupInfo = {};
 
   try {
-    var _startupInfo = appStartup.getStartupInfo();
+    var _startupInfo = Services.startup.getStartupInfo();
     for (var time in _startupInfo) {
       // convert from Date object to ms since epoch
       startupInfo[time] = _startupInfo[time].getTime();
