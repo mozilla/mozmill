@@ -1,3 +1,13 @@
+2.0rc6 / 2013-09-19
+===================
+
+  * Bug 918255 - Filter out functions from addon properties because they break JSON.stringify()
+  * Bug 912941 - Update mozelement.select() to not use scrollIntoView() itself
+  * Bug 885221 - Page hide event does not update window status if persisted is true
+  * Bug 915554 - Fix handling of the old private browsing mode for Firefox 17.0 ESR
+  * Bug 912941 - Call scrollIntoView only if available
+  * Bug 914528 - Skip XUL menulist check if it is not present plugins section
+
 2.0rc5 / 2013-08-27
 ===================
 

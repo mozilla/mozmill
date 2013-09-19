@@ -1,4 +1,9 @@
-2.0rc5 / 2013-08-27
+3.0rc6 / 2013-09-19
+===================
+
+  * Revert "Bug 656632 - jsbridge JSONEncoder copy+pastes from simplejson code" due to jsbridge disconnects
+
+3.0rc5 / 2013-08-27
 ===================
 
 * Bug 761603 - Do not convert any data to unicode for sending through jsbridge
