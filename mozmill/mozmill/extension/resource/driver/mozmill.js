@@ -76,7 +76,24 @@ function getAddons() {
   var addons = null;
 
   AddonManager.getAllAddons(function (addonList) {
-    addons = addonList;
+    var tmp_list = [ ];
+
+    addonList.forEach(function (addon) {
+      var tmp = { };
+
+      // We have to filter out properties of type 'function' of the addon
+      // object, which will break JSON.stringify() and result in incomplete
+      // addon information.
+      for (var key in addon) {
+        if (typeof(addon[key]) !== "function") {
+          tmp[key] = addon[key];
+        }
+      }
+
+      tmp_list.push(tmp);
+    });
+
+    addons = tmp_list;
   });
 
   try {
