@@ -19,9 +19,6 @@ var mozelement = {}; Cu.import('resource://mozmill/driver/mozelement.js', mozele
 var utils = {}; Cu.import('resource://mozmill/stdlib/utils.js', utils);
 var windows = {}; Cu.import('resource://mozmill/modules/windows.js', windows);
 
-var hwindow = Cc["@mozilla.org/appshell/appShellService;1"]
-              .getService(Ci.nsIAppShellService).hiddenDOMWindow;
-
 // Declare most used utils functions in the controller namespace
 var assert = new assertions.Assert();
 var waitFor = assert.waitFor;

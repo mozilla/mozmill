@@ -15,6 +15,7 @@ const Cu = Components.utils;
 
 
 Cu.import("resource://gre/modules/NetUtil.jsm");
+Cu.import("resource://gre/modules/Services.jsm");
 
 var assertions = {}; Cu.import('resource://mozmill/modules/assertions.js', assertions);
 var broker = {}; Cu.import('resource://mozmill/driver/msgbroker.js', broker);
@@ -22,10 +23,7 @@ var errors = {}; Cu.import('resource://mozmill/modules/errors.js', errors);
 
 var assert = new assertions.Assert();
 
-var appInfo = Cc["@mozilla.org/xre/app-info;1"].getService(Ci.nsIXULAppInfo);
-
-var hwindow = Cc["@mozilla.org/appshell/appShellService;1"]
-              .getService(Ci.nsIAppShellService).hiddenDOMWindow;
+var hwindow = Services.appShell.hiddenDOMWindow;
 
 var uuidgen = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator);
 
@@ -44,7 +42,7 @@ function Copy (obj) {
  * @returns {Object} The browser element
  */
 function getBrowserObject(aWindow) {
-  switch(appInfo.name) {
+  switch(Services.appinfo.name) {
     case "MetroFirefox":
       return aWindow.Browser;
     case "Firefox":
@@ -71,8 +69,7 @@ function getWindows(type) {
   }
 
   var windows = [];
-  var enumerator = Cc["@mozilla.org/appshell/window-mediator;1"]
-                   .getService(Ci.nsIWindowMediator).getEnumerator(type);
+  var enumerator = Services.wm.getEnumerator(type);
 
   while (enumerator.hasMoreElements()) {
     windows.push(enumerator.getNext());
@@ -106,10 +103,7 @@ function getWindowByTitle(title) {
 }
 
 function getWindowByType(type) {
-  var wm = Cc["@mozilla.org/appshell/window-mediator;1"]
-           .getService(Ci.nsIWindowMediator);
-
-  return wm.getMostRecentWindow(type);
+  return Services.wm.getMostRecentWindow(type);
 }
 
 /**
@@ -154,8 +148,7 @@ var checkChrome = function () {
  */
 function getPreference(aPrefName, aDefaultValue) {
   try {
-    var branch = Cc["@mozilla.org/preferences-service;1"]
-                 .getService(Ci.nsIPrefBranch);
+    var branch = Services.prefs;
 
     switch (typeof aDefaultValue) {
       case ('boolean'):
@@ -185,8 +178,7 @@ function getPreference(aPrefName, aDefaultValue) {
  */
 function setPreference(aName, aValue) {
   try {
-    var branch = Cc["@mozilla.org/preferences-service;1"]
-                 .getService(Ci.nsIPrefBranch);
+    var branch = Services.prefs;
 
     switch (typeof aValue) {
       case ('boolean'):
@@ -218,8 +210,8 @@ function sleep(milliseconds) {
   var timeup = false;
 
   hwindow.setTimeout(function () { timeup = true; }, milliseconds);
-  var thread = Cc["@mozilla.org/thread-manager;1"]
-               .getService().currentThread;
+  var thread = Services.tm.currentThread;
+
   while (!timeup) {
     thread.processNextEvent(true);
   }

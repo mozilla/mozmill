@@ -27,10 +27,6 @@ var utils = {};   Cu.import('resource://mozmill/stdlib/utils.js', utils);
 var securableModule = {};
 Cu.import('resource://mozmill/stdlib/securable-module.js', securableModule);
 
-var aConsoleService = Cc["@mozilla.org/consoleservice;1"].getService(Ci.nsIConsoleService);
-var ios = Cc["@mozilla.org/network/io-service;1"].getService(Ci.nsIIOService);
-var subscriptLoader = Cc["@mozilla.org/moz/jssubscript-loader;1"]
-                      .getService(Ci.mozIJSSubScriptLoader);
 var uuidgen = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator);
 
 var httpd = null;
@@ -410,7 +406,7 @@ try {
     Events.fireEvent('mozmill.' + name, obj);
   });
 } catch (e) {
-  aConsoleService.logStringMessage("Event module of JSBridge not available.");
+  Services.console.logStringMessage("Event module of JSBridge not available.");
 }
 
 
@@ -519,7 +515,7 @@ Collector.prototype.loadFile = function (path, collector) {
   // load a test module from a file and add some candy
   var file = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
   file.initWithPath(path);
-  var uri = ios.newFileURI(file).spec;
+  var uri = Services.io.newFileURI(file).spec;
 
   this.loadTestResources();
 
@@ -542,7 +538,7 @@ Collector.prototype.loadFile = function (path, collector) {
 
   module.require = function (mod) {
     var loader = new securableModule.Loader({
-      rootPaths: [ios.newFileURI(file.parent).spec,
+      rootPaths: [Services.io.newFileURI(file.parent).spec,
                   "resource://mozmill/modules/"],
       defaultPrincipal: "system",
       globals : { mozmill: mozmill,
@@ -571,7 +567,7 @@ Collector.prototype.loadFile = function (path, collector) {
   }
 
   try {
-    subscriptLoader.loadSubScript(uri, module, "UTF-8");
+    Services.scriptloader.loadSubScript(uri, module, "UTF-8");
   } catch (e) {
     var obj = {
       'filename': path,

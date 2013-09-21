@@ -80,9 +80,7 @@ var ConsoleObserver = {
         });
 
         // Quit the application and do not wait until a timeout happens
-        var appStartup = Cc["@mozilla.org/toolkit/app-startup;1"]
-                         .getService(Ci.nsIAppStartup);
-        appStartup.quit(Ci.nsIAppStartup.eAttemptQuit);
+        Services.startup.quit(Ci.nsIAppStartup.eAttemptQuit);
       }
     }
   }

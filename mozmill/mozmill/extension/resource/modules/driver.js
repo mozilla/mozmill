@@ -7,16 +7,12 @@
  */
 var driver = exports;
 
+Cu.import("resource://gre/modules/Services.jsm");
 
 // Temporarily include utils module to re-use sleep
 var assertions = {}; Cu.import('resource://mozmill/modules/assertions.js', assertions);
 var mozmill = {}; Cu.import("resource://mozmill/driver/mozmill.js", mozmill);
 var utils = {}; Cu.import('resource://mozmill/stdlib/utils.js', utils);
-
-
-var wm = Cc["@mozilla.org/appshell/window-mediator;1"].
-         getService(Ci.nsIWindowMediator);
-
 
 /**
  * Gets the topmost browser window. If there are none at that time, optionally
@@ -51,9 +47,7 @@ function getBrowserWindow(aOpenIfNone) {
  * @returns {DOMWindow} The hidden window
  */
 function getHiddenWindow() {
-  return Cc["@mozilla.org/appshell/appShellService;1"].
-            getService(Ci.nsIAppShellService).
-            hiddenDOMWindow;
+  return Services.appShell.hiddenDOMWindow;
 }
 
 
@@ -190,7 +184,7 @@ function windowFilterByType(aType) {
  * @returns {DOMWindow[]} List of windows.
  */
 function getWindowsByAge(aFilterCallback, aStrict) {
-  var windows = _getWindows(wm.getEnumerator(""),
+  var windows = _getWindows(Services.wm.getEnumerator(""),
                             aFilterCallback, aStrict);
 
   // Reverse the list, since naturally comes back old->new
@@ -209,7 +203,7 @@ function getWindowsByAge(aFilterCallback, aStrict) {
  * @returns {DOMWindow[]} List of windows.
  */
 function getWindowsByZOrder(aFilterCallback, aStrict) {
-  return _getWindows(wm.getZOrderDOMWindowEnumerator("", true),
+  return _getWindows(Services.wm.getZOrderDOMWindowEnumerator("", true),
                      aFilterCallback, aStrict);
 }
 
@@ -263,7 +257,7 @@ function getTopmostWindowByType(aWindowType, aStrict) {
   if (typeof aStrict === 'undefined')
     aStrict = true;
 
-  var win = wm.getMostRecentWindow(aWindowType);
+  var win = Services.wm.getMostRecentWindow(aWindowType);
 
   if (win === null && aStrict) {
     var message = 'No windows of type "' + aWindowType + '" were found';

@@ -7,6 +7,8 @@
  */
 var l10n = exports;
 
+Cu.import("resource://gre/modules/Services.jsm");
+
 /**
  * Retrieve the localized content for a given DTD entity
  *
@@ -54,9 +56,7 @@ function getEntity(aDTDs, aEntityId) {
  * @returns {String} Value of the requested property
  */
 function getProperty(aURL, aProperty) {
-  var sbs = Cc["@mozilla.org/intl/stringbundle;1"].
-            getService(Ci.nsIStringBundleService);
-  var bundle = sbs.createBundle(aURL);
+  var bundle = Services.strings.createBundle(aURL);
 
   try {
     return bundle.GetStringFromName(aProperty);

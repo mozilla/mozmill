@@ -8,6 +8,8 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
+Cu.import("resource://gre/modules/Services.jsm");
+
 // imports
 var utils = {}; Cu.import('resource://mozmill/stdlib/utils.js', utils);
 
@@ -272,8 +274,8 @@ function attachEventListeners(aWindow) {
 
 // Attach event listeners to all already open top-level windows
 function handleAttachEventListeners() {
-  var enumerator = Cc["@mozilla.org/appshell/window-mediator;1"].
-                   getService(Ci.nsIWindowMediator).getEnumerator("");
+  var enumerator = Services.wm.getEnumerator("");
+
   while (enumerator.hasMoreElements()) {
     var win = enumerator.getNext();
     attachEventListeners(win);
@@ -282,11 +284,9 @@ function handleAttachEventListeners() {
 
 function init() {
   // Activate observer for new top level windows
-  var observerService = Cc["@mozilla.org/observer-service;1"].
-                        getService(Ci.nsIObserverService);
-  observerService.addObserver(windowReadyObserver, "toplevel-window-ready", false);
-  observerService.addObserver(windowCloseObserver, "outer-window-destroyed", false);
-  observerService.addObserver(enterLeavePrivateBrowsingObserver, "private-browsing", false);
+  Services.obs.addObserver(windowReadyObserver, "toplevel-window-ready", false);
+  Services.obs.addObserver(windowCloseObserver, "outer-window-destroyed", false);
+  Services.obs.addObserver(enterLeavePrivateBrowsingObserver, "private-browsing", false);
 
   handleAttachEventListeners();
 }
