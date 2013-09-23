@@ -854,8 +854,6 @@ MozMillController.prototype.select = function (el, index, option, value) {
 
     // Click the item
     try {
-      element.click();
-      item.scrollIntoView();
       item.click();
 
       var selected = index || option || value;
