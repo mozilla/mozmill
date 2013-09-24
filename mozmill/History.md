@@ -1,3 +1,8 @@
+2.0 / 2013-09-24
+================
+
+  * Final release of Mozmill 2.0 (no further changes since 2.0rc6)
+
 2.0rc6 / 2013-09-19
 ===================
 

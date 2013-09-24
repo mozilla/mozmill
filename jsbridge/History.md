@@ -1,3 +1,8 @@
+3.0 / 2013-09-24
+================
+
+  * Final release of JSBridge 3.0 (no further changes since 3.0rc6)
+
 3.0rc6 / 2013-09-19
 ===================
 
