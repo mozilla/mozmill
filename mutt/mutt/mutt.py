@@ -95,11 +95,15 @@ def get_pytests(testdict):
         loader = unittest.TestLoader()
         suite = loader.loadTestsFromModule(module)
         for test in suite:
+            # If the test module is skipped in the manifest, ensure that any test is also marked as skipped
+            if 'disabled' in t:
+                for individual_test in test:
+                    setattr(individual_test, 'setUp', lambda: individual_test.skipTest(t.get('disabled')))
             unittests.append(test)
     return unittests
 
 
-def report(fail, pyresults=None, jsresults=None, options=None):
+def report(pyresults=None, jsresults=None, options=None):
     fail_total = 0
     skipped_total = 0
     test_total = 0
@@ -108,69 +112,67 @@ def report(fail, pyresults=None, jsresults=None, options=None):
 
     print "=" * 75
     if pyresults:
-        print "Python Failures:"
-        fail_total += len(pyresults.failures) + len(pyresults.errors)
         test_total += pyresults.testsRun
         skipped_total += len(pyresults.skipped)
-        for failure in pyresults.failures:
-            print "%s\n" % str(failure)
-        for failure in pyresults.errors:
-            print "%s\n" % str(failure)
+
+        if pyresults.failures or pyresults.errors:
+            print "Python Failures:"
+            fail_total += len(pyresults.failures) + len(pyresults.errors)
+            for failure in pyresults.failures:
+                print "%s\n" % str(failure)
+            for failure in pyresults.errors:
+                print "%s\n" % str(failure)
     else:
         print "No Python Failures"
 
     print "\n", "=" * 75
     if jsresults:
-        print "Javascript Failures:"
-        fail_total += len(jsresults.fails)
         test_total += len(jsresults.alltests)
         skipped_total += len(jsresults.skipped)
-        for module in jsresults.fails:
-            for failure in module["fails"]:
-                if 'exception' in failure:
-                    info = failure['exception']
-                    print 'Exception: "%s" (%s)' % (info.get('message'),
-                                                    module.get('filename'))
-                elif 'fail' in failure:
-                    info = failure['fail']
-                    print 'Failure: "%s" (%s)' % (info.get('message'),
-                                                  module.get('filename'))
-                else:
-                    print 'Failure: %s' % failure.get('message', failure)
+        if jsresults.fails:
+            print "Javascript Failures:"
+            fail_total += len(jsresults.fails)
+            for module in jsresults.fails:
+                for failure in module["fails"]:
+                    if 'exception' in failure:
+                        info = failure['exception']
+                        print 'Exception: "%s" (%s)' % (info.get('message'),
+                                                        module.get('filename'))
+                    elif 'fail' in failure:
+                        info = failure['fail']
+                        print 'Failure: "%s" (%s)' % (info.get('message'),
+                                                      module.get('filename'))
+                    else:
+                        print 'Failure: %s' % failure.get('message', failure)
 
     else:
         print "No Javascript Failures"
 
-    print "\nTotal passed: %d" % (test_total - fail_total)
+    print "\nTotal passed: %d" % (test_total - fail_total - skipped_total)
     print "Total failed: %d" % fail_total
     print "Total skipped: %d" % skipped_total
 
-    return int(fail)
+    return int(fail_total > 0)
 
 
 def test_all(tests, options):
-    fail = False
 
     pytests = [item for item in tests if item['type'] == 'python']
     jstests = [item for item in tests if item['type'] == 'javascript']
 
     try:
         pyresult = test_all_python(pytests, options)
-        if pyresult.failures or pyresult.errors:
-            fail = True
     except SystemExit as e:
         fail = (e.code != 0) or fail
 
     try:
         jsresult = test_all_js(jstests, options)
-        if jsresult.fails:
-            fail = True
     except SystemExit as e:
         fail = (e.code != 0) or fail
 
     # XXX unify this with main function below
     # return the value vs. exiting here
-    sys.exit(report(fail, pyresult, jsresult, options))
+    sys.exit(report(pyresult, jsresult, options))
 
 
 def test_all_python(tests, options):
@@ -182,7 +184,6 @@ def test_all_python(tests, options):
     suite = unittest.TestSuite(unittestlist)
     runner = unittest.TextTestRunner(verbosity=verbosity)
     return runner.run(suite)
-
 
 def test_all_js(tests, options):
     print "Running JS Tests"
@@ -267,23 +268,17 @@ def run(arguments=sys.argv[1:]):
 
     # run + report
     if command == "testpy":
-        tests = mp.active_tests(disabled=False)
+        tests = mp.active_tests(disabled=True)
         results = test_all_python(mp.get(tests=tests, type='python'), options)
-        if results.failures or results.errors:
-            sys.exit(report(True, results, None, options))
-        else:
-            sys.exit(report(False))
+        sys.exit(report(results, None, options))
 
     elif command == "testjs":
-        tests = mp.active_tests(disabled=False)
+        tests = mp.active_tests(disabled=True)
         results = test_all_js(mp.get(tests=tests, type='javascript'), options)
-        if results.fails:
-            sys.exit(report(True, None, results, options))
-        else:
-            sys.exit(report(False))
+        sys.exit(report(None, results, options))
 
     elif command == "testall":
-        test_all(mp.active_tests(disabled=False), options)
+        test_all(mp.active_tests(disabled=True), options)
 
 
 if __name__ == '__main__':
