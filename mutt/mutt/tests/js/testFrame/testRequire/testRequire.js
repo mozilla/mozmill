@@ -5,7 +5,7 @@
 const a = require("sub/moduleA");
 
 
-var test = function () {
+function test() {
   expect.equal(a.subtract(10, 4), 6, "substract method calculates correctly.");
   expect.equal(a.add(2, 3), 5, "add method calculates correctly.");
   expect.equal(a.divide(6, 3), 2, "divide method calculates correctly.");

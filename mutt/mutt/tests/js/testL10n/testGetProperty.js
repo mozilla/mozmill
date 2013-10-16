@@ -6,7 +6,7 @@ const { getProperty } = require("l10n");
 
 const TEST_DATA = "chrome://global/locale/languageNames.properties";
 
-var test = function () {
+function test() {
   // Test a known property
   try {
     let value = getProperty(TEST_DATA, "en");

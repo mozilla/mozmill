@@ -4,11 +4,11 @@
 
 var failure = false;
 
-var setupModule = function (aModule) {
+function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();
 }
 
-var testExceptionBackgroundThread = function () {
+function testExceptionBackgroundThread() {
   var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
 
   var event = {

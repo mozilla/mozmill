@@ -2,11 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var setupModule = function () {
-  browser = driver.getBrowserWindow();
+function setupModule(aModule) {
+  aModule.browser = driver.getBrowserWindow();
 }
 
-var test = function () {
+function test() {
   expect.ok(browser, "A browser window has been found");
 
   var browser2 = driver.openBrowserWindow();

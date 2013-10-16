@@ -4,10 +4,11 @@
 
 const b = require("../moduleB");
 
-var substract = exports.subtract = function (x, y) {
-  return x - y;
+function subtract(x,y) {
+    return x - y;
 }
 
+exports.subtract = subtract;
 
 exports.divide = require("../moduleB").divide;
 exports.add = require("../moduleC").add;

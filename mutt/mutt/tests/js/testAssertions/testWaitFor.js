@@ -2,11 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var setupModule = function (aModule) {
+function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();
 }
 
-var testWaitForCallback = function () {
+function testWaitForCallback() {
   expect.doesNotThrow(function () {
     assert.waitFor(function () {
       return true;
@@ -32,7 +32,7 @@ var testWaitForCallback = function () {
   }, TypeError, "Return type 'Object' in callback is not supported.");
 }
 
-var testWaitForFalseAfterTrue = function () {
+function testWaitForFalseAfterTrue() {
   let onlyTheFirst = true;
 
   expect.doesNotThrow(function () {
@@ -45,7 +45,7 @@ var testWaitForFalseAfterTrue = function () {
   }, errors.AsserionError, "waitFor() has to pass after the first true is returned.");
 }
 
-var testWaitForCallbackCounter = function () {
+function testWaitForCallbackCounter() {
   let counter = -1;
 
   expect.doesNotThrow(function () {
@@ -58,7 +58,7 @@ var testWaitForCallbackCounter = function () {
   expect.equal(counter, 1, "waitFor() shouldn't call callback after the first true result. (Second check)");
 }
 
-var testWaitForTimeoutAccuracy = function () {
+function testWaitForTimeoutAccuracy() {
   const waitForInnerSleep = 500;
   const waitForTimeout = 2500;
   const waitForInterval = 100;

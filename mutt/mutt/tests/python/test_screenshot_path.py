@@ -16,11 +16,11 @@ import mozmill
 class ScreenshotPathTest(unittest.TestCase):
 
     test = """
-        var setupModule = function () {
+        function setupModule() {
           controller = mozmill.getBrowserController();
         }
 
-        let test = function() {
+        function test() {
           var backButton = findElement.ID(controller.window.document, 'back-button');
           controller.screenshot(backButton, '%(screenshot_name)s', true);
         }

@@ -6,24 +6,24 @@
 // Application disconnect errors because of invalid frame objects
 // if a test file restarts the browser
 
-var setupTest = function () {
-  controller = mozmill.getBrowserController();
+function setupTest(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 }
 
 // Restart and check frame after a direct return from run_test_file
-var testOne = function () {
+function testOne() {
   controller.restartApplication('testTwo');
 }
 
 // Restart again to have a recursive call into run_test_file
-var testTwo = function () {
+function testTwo() {
   controller.restartApplication('testThree');
 }
 
 // Do not restart this time so we reuse the latest frame instance
-var testThree = function () {
+function testThree() {
 }
 
-var testFour = function () {
+function testFour() {
 
 }

@@ -7,8 +7,8 @@ const TEST_DATA = "http://www.mozqa.com/data/firefox/plugins/flash/" +
 
 const TIMEOUT_PAGE = 50000;
 
-function setupModule() {
-  controller = mozmill.getBrowserController();
+function setupModule(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 }
 
 /*

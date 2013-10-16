@@ -5,14 +5,14 @@
 const BASE_URL = collector.addHttpResource("../../data/");
 const TEST_DATA = BASE_URL + "form.html";
 
-var setupModule = function () {
-  controller = mozmill.getBrowserController();
+function setupModule(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 
   // Create a new menu instance for the context menu
-  contextMenu = controller.getMenu("#contentAreaContextMenu");
+  aModule.contextMenu = aModule.controller.getMenu("#contentAreaContextMenu");
 }
 
-var testMenu = function () {
+function testMenu() {
   controller.open(TEST_DATA);
   controller.waitForPageLoad();
 

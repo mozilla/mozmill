@@ -5,8 +5,8 @@
 var state = 0;
 var iteration = 0;
 
-function setupModule() {
-  controller = mozmill.getBrowserController();
+function setupModule(aModule) {
+  aModule.controller = mozmill.getBrowserController();
   state = 1;
 }
 

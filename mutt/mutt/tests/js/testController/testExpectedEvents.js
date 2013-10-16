@@ -5,11 +5,11 @@
 const BASE_URL = collector.addHttpResource("../../data/");
 const TEST_DATA = BASE_URL + "form.html";
 
-var setupModule = function (aModule) {
+function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();
 }
 
-var test = function () {
+function test() {
   controller.open(TEST_DATA);
   controller.waitForPageLoad();
 

@@ -6,9 +6,9 @@
 // Application disconnect errors because of invalid frame objects
 // if a test file restarts the browser
 
-var setupTest = function () {
-  controller = mozmill.getBrowserController();
+function setupTest(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 }
 
-var testOne = function () {
+function testOne() {
 }

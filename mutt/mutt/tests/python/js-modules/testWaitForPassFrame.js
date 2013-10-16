@@ -11,7 +11,7 @@ var gSecondsToWait = 8;
  * This test runs for |gSecondsToWait| second
  * Using short sleeps avoids Application Disconnect exceptions
  */
-var testSleep = function () {
+function testSleep() {
   for (var i = 0; i < gSecondsToWait; i++){
     utils.sleep(1000);
   }
@@ -21,7 +21,7 @@ var testSleep = function () {
  * This test runs about |gSecondsToWait| second
  * Using short waits avoids Application Disconnect exceptions
  */
-var testWaitFor = function () {
+function testWaitFor() {
   for (var i = 0; i < gSecondsToWait; i++){
     var step = 0;
     assert.waitFor(function () {

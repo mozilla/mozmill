@@ -5,13 +5,13 @@
 const BASE_URL = collector.addHttpResource("../../data/");
 const TEST_DATA = BASE_URL + "link.html";
 
-var setupModule = function () {
-  controller = mozmill.getBrowserController();
+function setupModule(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 
-  urlbar = new elementslib.ID(controller.window.document, "urlbar");
+  aModule.urlbar = new elementslib.ID(aModule.controller.window.document, "urlbar");
 }
 
-var test = function () {
+function test() {
   controller.open(TEST_DATA);
   controller.waitForPageLoad();
 

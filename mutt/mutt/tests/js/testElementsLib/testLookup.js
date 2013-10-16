@@ -2,18 +2,18 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var setupModule = function () {
-  controller = mozmill.getBrowserController();
+function setupModule(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 }
 
-var testLookupExpression = function () {
+function testLookupExpression() {
   var expression = '/id("main-window")';
   var element = new elementslib.Lookup(controller.window.document, expression);
   assert.equal(element.expression, expression,
                "The expression has been exposed by the Lookup method");
 }
 
-var testElementNotExists = function () {
+function testElementNotExists() {
   var mainWindow = new elementslib.Lookup(controller.window.document,
                                           '/id("main-windo")');
   expect.ok(!mainWindow.exists(),
@@ -30,7 +30,7 @@ var testElementNotExists = function () {
             "Element with incorrect id for child node does not exist");
 }
 
-var testInvalidLookupExpression = function () {
+function testInvalidLookupExpression() {
   expect.throws(function () {
     var element = new elementslib.Lookup(controller.window.document, '/id(main-window)');
   }, "SyntaxError", "Invalid lookup expression failed");

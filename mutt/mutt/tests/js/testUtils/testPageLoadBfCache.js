@@ -5,11 +5,11 @@
 const BASE_URL = collector.addHttpResource("../../data/");
 const TEST_DATA = BASE_URL + "link.html";
 
-var setupModule = function () {
-  controller = mozmill.getBrowserController();
+function setupModule(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 }
 
-var testBFCache = function ()  {
+function testBFCache() {
   controller.open(TEST_DATA);
   controller.waitForPageLoad();
 

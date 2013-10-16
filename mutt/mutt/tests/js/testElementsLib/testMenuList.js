@@ -12,11 +12,11 @@ const TEST_DATA = [
 
 const TIMEOUT_REMOTE = 15000;
 
-var setupModule = function (aModule) {
+function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();
 }
 
-var testContentSelect = function () {
+function testContentSelect() {
   controller.open(TEST_DATA[0]);
   controller.waitForPageLoad();
 
@@ -36,7 +36,7 @@ var testContentSelect = function () {
   expect.equal(dropdown.getNode().value, "AL", "Value has been selected");
 }
 
-var testChromeSelect = function () {
+function testChromeSelect() {
   controller.open(TEST_DATA[1]);
   controller.waitForPageLoad();
 
@@ -56,7 +56,7 @@ var testChromeSelect = function () {
   expect.equal(menulist.getNode().value, 'MO', "Value has been selected");
 }
 
-var testXULMenuList = function () {
+function testXULMenuList() {
   // Open Addons Manager and add an event listener to wait for the view to change
   var self = { changed: false };
   function onViewChanged() { self.changed = true; }

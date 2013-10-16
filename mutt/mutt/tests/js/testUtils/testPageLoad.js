@@ -21,11 +21,11 @@ const TEST_DATA = [
   {url: BASE_URL + "iframe.html", type: "ID", value: "iframe"}
 ];
 
-var setupModule = function () {
-  controller = mozmill.getBrowserController();
+function setupModule(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 }
 
-var testWaitForPageLoad = function () {
+function testWaitForPageLoad() {
   let win = new elementslib.MozMillElement("Elem", controller.window);
 
   /**

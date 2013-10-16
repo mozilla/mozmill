@@ -12,8 +12,8 @@ function setupModule() {
 
 // initialisation code that will run for every test
 // for example: initialising the controller or closing all tabs
-function setupTest() {
-  controller = mozmill.getBrowserController();
+function setupTest(aModule) {
+  aModule.controller = mozmill.getBrowserController();
   state++;
 }
 

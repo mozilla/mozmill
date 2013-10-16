@@ -103,7 +103,7 @@ function loadPage(aUrl, aResponseType) {
 }
 
 
-function teardownModule(aModule) {
+function teardownModule() {
   Services.prefs.clearUserPref("browser.cache.disk.enable");
   Services.prefs.clearUserPref("browser.cache.memory.enable");
 }

@@ -4,11 +4,11 @@
 
 const TEST_DATA = "chrome://mozmill/content/test/test.xul";
 
-var setupModule = function () {
-  controller = mozmill.getBrowserController();
+function setupModule(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 }
 
-var test = function () {
+function test() {
   controller.open(TEST_DATA);
   controller.waitForPageLoad();
 

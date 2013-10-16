@@ -2,8 +2,8 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var setupModule = function () {
-  controller = mozmill.getBrowserController();
+function setupModule(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 };
 
 /**
@@ -11,6 +11,6 @@ var setupModule = function () {
  * Global timeout should allow to proceed the next test instead of killing
  * the complete test-run
  */
-var test = function () {
+function test() {
   controller.sleep(120000);
 };

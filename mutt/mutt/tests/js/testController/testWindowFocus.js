@@ -7,13 +7,13 @@ Cu.import("resource://gre/modules/Services.jsm");
 const BASE_URL = collector.addHttpResource("../../data/");
 const TEST_DATA = BASE_URL + "complex.html";
 
-var setupModule = function (aModule) {
+function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();
   aModule.windowController1 = null;
   aModule.windowController2 = null;
 }
 
-var testMenu = function () {
+function testMenu() {
   controller.open(TEST_DATA);
   controller.waitForPageLoad();
 
@@ -48,7 +48,7 @@ var testMenu = function () {
                    "Windows have maintained their order");
 }
 
-var teardownModule = function (aModule) {
+function teardownModule(aModule) {
   aModule.windowController1.window.close();
   aModule.windowController2.window.close();
 }

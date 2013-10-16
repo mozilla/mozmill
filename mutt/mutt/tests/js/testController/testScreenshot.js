@@ -5,11 +5,11 @@
 const BASE_URL = collector.addHttpResource("../../data/");
 const TEST_DATA = BASE_URL + "complex.html";
 
-var setupModule = function () {
-  controller = mozmill.getBrowserController();
+function setupModule(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 }
 
-var test = function () {
+function test() {
   controller.open(TEST_DATA);
   controller.waitForPageLoad();
 
@@ -22,7 +22,7 @@ var test = function () {
 }
 
 // screenshots of top chrome
-var testChrome = function() {
+function testChrome() {
   var toolbox = findElement.ID(controller.window.document, "navigator-toolbox");
   var tabs = findElement.ID(controller.window.document, "tabbrowser-tabs");
 
@@ -32,7 +32,7 @@ var testChrome = function() {
 }
 
 
-var check_screenshot = function (aScreenshot, aName, aIsFile) {
+function check_screenshot(aScreenshot, aName, aIsFile) {
   expect.equal(aScreenshot.name, aName, "Name has been set correctly.");
   expect.match(aScreenshot.dataURL, "/^data:image\/.*/", "dataURL is available.");
 

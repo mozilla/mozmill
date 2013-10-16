@@ -6,7 +6,7 @@ const { getEntity } = require("l10n");
 
 const TEST_DATA = "chrome://branding/locale/brand.dtd";
 
-var test = function () {
+function test() {
   // Test a known entity
   try {
     let value = getEntity([TEST_DATA], "vendorShortName");

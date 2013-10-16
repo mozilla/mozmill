@@ -2,12 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var setupModule = function () {
-  controller = mozmill.getBrowserController();
+function setupModule(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 }
 
 // Bug 627422: Invalid interface names causes an empty error object (no message or stack)
-var test = function () {
+function test() {
   expect.doesNotThrow(function () {
     let cm = Cc["@mozilla.org/cookiemanager;1"]
              .getService(Ci.nsICookieManager2);

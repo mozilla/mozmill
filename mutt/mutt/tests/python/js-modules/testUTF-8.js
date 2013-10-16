@@ -56,11 +56,11 @@ const TEST_DATA = [
   "預設佈景主題。", // zh-TW
 ];
 
-var setupModule = function () {
+function setupModule() {
   controller = mozmill.getBrowserController();
 };
 
-var test = function () {
+function test() {
   persisted.translations.forEach(function (text, index) {
     expect.equal(text, TEST_DATA[index], text);
   });

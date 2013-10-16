@@ -8,8 +8,8 @@
 
 Cu.import("resource://gre/modules/Services.jsm");
 
-function setupTest(aTest) {
-  aTest.controller = mozmill.getBrowserController();
+function setupTest(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 }
 
 function testRestartIn32Bit() {

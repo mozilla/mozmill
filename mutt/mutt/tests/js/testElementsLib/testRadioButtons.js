@@ -5,11 +5,11 @@
 const BASE_URL = collector.addHttpResource("../../data/");
 const TEST_DATA = BASE_URL + "radio_button.html";
 
-var setupModule = function () {
-  controller = mozmill.getBrowserController();
+function setupModule(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 }
 
-var test = function () {
+function test() {
   // Test content
   controller.open(TEST_DATA);
   controller.waitForPageLoad();

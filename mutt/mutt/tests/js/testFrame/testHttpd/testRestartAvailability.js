@@ -16,8 +16,8 @@ try {
 catch (ex) {
 }
 
-function setupTest(aTest) {
-  aTest.controller = mozmill.getBrowserController();
+function setupTest(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 }
 
 function testSession1() {

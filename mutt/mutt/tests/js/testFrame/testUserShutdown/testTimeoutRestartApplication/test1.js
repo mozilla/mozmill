@@ -11,15 +11,15 @@ var observer = {
   }
 }
 
-var setupTest = function () {
-  controller = mozmill.getBrowserController();
+function setupTest(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 
   persisted.restarted = false;
   Services.obs.addObserver(observer, "quit-application-requested", false);
 }
 
 // Do not restart the application even by telling so
-var testFailingRestart = function () {
+function testFailingRestart() {
   controller.startUserShutdown(500, true);
   controller.sleep(2000);
 }

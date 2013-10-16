@@ -2,11 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var setupTest = function () {
-  controller = mozmill.getBrowserController();
+function setupTest(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 }
 
-var testPassingRestart = function () {
+function testPassingRestart() {
   assert.ok(persisted.restarted,
             "timeout for userShutdown caused a restart of the application.");
 }

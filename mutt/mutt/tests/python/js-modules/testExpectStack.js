@@ -5,11 +5,11 @@
 const BASE_URL = collector.addHttpResource("../../data/");
 const TEST_DATA = BASE_URL + "singlediv.html";
 
-var setupModule = function () {
+function setupModule() {
   controller = mozmill.getBrowserController();
 }
 
-var test = function () {
+function test() {
   controller.open(TEST_DATA);
   controller.waitForPageLoad();
 

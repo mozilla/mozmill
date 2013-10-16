@@ -11,7 +11,7 @@ const TEST_DATA = "data:image/jpeg;base64," +
 
 const NAME = "smile5x5";
 
-var setupModule = function (aModule) {
+function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();
 }
 
@@ -19,7 +19,7 @@ var setupModule = function (aModule) {
  * testScreenshotSaveCorruption
  * Saves a dataURL and reads back the saved file.
  */
-var testScreenshotSaveCorruption = function() {
+function testScreenshotSaveCorruption() {
 
   // Save dataURL to disk
   var {filename, failure} = utils.saveDataURL(TEST_DATA, NAME);

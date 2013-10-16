@@ -2,11 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var setupTest = function () {
-  controller = mozmill.getBrowserController();
+function setupTest(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 }
 
-var test = function () {
+function test() {
   mozmill.firePythonCallback("python_callback.py", "check",
                              [true], {state: "testOne"});
 

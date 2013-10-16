@@ -15,11 +15,11 @@ const TEST_DATA = [
   "about:newtab"
 ];
 
-var setupModule = function (aModule) {
+function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();
 }
 
-var testReloadPageAfterTabChange = function () {
+function testReloadPageAfterTabChange() {
   TEST_DATA.forEach(function (aUrl) {
     controller.open(aUrl);
     controller.waitForPageLoad();

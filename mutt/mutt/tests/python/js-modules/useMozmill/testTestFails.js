@@ -2,23 +2,23 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var setupModule = function () {
+function setupModule() {
   controller = mozmill.getBrowserController();
   expect.pass("SetupModule passes");
 }
 
-var setupTest = function () {
+function setupTest() {
   expect.pass("setupTest passes");
 }
 
-var test = function () {
+function test() {
   expect.fail("test fails");
 }
 
-var teardownTest = function() {
+function teardownTest() {
   expect.pass("teardownTest passes");
 }
 
-var teardownModule = function() {
+function teardownModule() {
   expect.pass("teardownModule passes");
 }

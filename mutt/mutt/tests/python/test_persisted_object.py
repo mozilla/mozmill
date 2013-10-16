@@ -14,11 +14,11 @@ class TestMozmillPersisted(unittest.TestCase):
     """test persisted object"""
 
     test = """
-    var setupModule = function () {
+    function setupModule() {
       controller = mozmill.getBrowserController();
     }
 
-    let test = function () {
+    function test() {
       persisted.bar = 'bar';
       persisted.fleem = 2;
       persisted.number += 1;

@@ -2,16 +2,16 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var setupTest = function () {
-  controller = mozmill.getBrowserController();
+function setupTest(aModule) {
+  aModule.controller = mozmill.getBrowserController();
 }
 
-var testOne = function () {
+function testOne() {
   persisted.data = {foo: "bar"};
   controller.restartApplication('testTwo');
 }
 
-var testTwo = function () {
+function testTwo() {
   expect.ok(persisted.data, "User-defined object is present");
   expect.equal(persisted.data.foo, "bar", "User-defined data is still set.");
 
@@ -19,10 +19,10 @@ var testTwo = function () {
   controller.restartApplication('testThree');
 }
 
-var testThree = function () {
+function testThree() {
   expect.ok(!persisted.data, "User-defined object has been removed.");
 }
 
-var teardownModule = function (aModule) {
+function teardownModule() {
   delete persisted.data;
 }
