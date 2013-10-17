@@ -6,27 +6,5 @@ Cu.import("resource://gre/modules/AddonManager.jsm");
 
 
 function testAddons() {
-  persisted.addons = getAddons();
-}
-
-/**
- * Retrieve the list of installed add-ons
- */
-function getAddons() {
-  var addons = null;
-
-  AddonManager.getAllAddons(function (addonList) {
-    addons = addonList;
-  });
-
-  try {
-    // Sychronize with getAllAddons so we do not return too early
-    assert.waitFor(function () {
-      return !!addons;
-    })
-
-    return addons;
-  } catch (e) {
-    return null;
-  }
+  persisted.addons = mozmill.getAddons();
 }

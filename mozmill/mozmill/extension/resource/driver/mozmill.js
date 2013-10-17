@@ -10,7 +10,7 @@ var EXPORTED_SYMBOLS = ["controller", "utils", "elementslib", "os",
                         "getMsgComposeController", "getDownloadsController",
                         "Application", "findElement",
                         "getPlacesController", 'isMac', 'isLinux', 'isWindows',
-                        "firePythonCallback"
+                        "firePythonCallback", "getAddons"
                        ];
 
 const Cc = Components.classes;
