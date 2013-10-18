@@ -16,6 +16,8 @@ var testExceptionBackgroundThread = function () {
       try {
         // Throws an error because interval is not defined
         timer.initWithCallback(this, interval, Ci.nsITimer.TYPE_ONE_SHOT);
+
+        assert.fail("We should not have reached this code.");
       }
       finally {
         failure = true;
@@ -27,7 +29,5 @@ var testExceptionBackgroundThread = function () {
 
   assert.waitFor(function () {
     return failure;
-  }, "Exception in background thread has been caught", 500);
-
-  controller.sleep(1000);
+  }, "Exception in background thread has been caught", 1000);
 }
