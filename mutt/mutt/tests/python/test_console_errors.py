@@ -10,7 +10,7 @@ import mozmill
 class TestFrameworkFailure(unittest.TestCase):
     def test_no_abort_via_client_tests(self):
         testpath = os.path.join("js-modules", "testFailureBackgroundThread.js")
-        self.do_test(testpath, passes=0, fails=1, skips=0)
+        self.do_test(testpath, passes=1, fails=0, skips=0)
 
     def do_test(self, relative_test_path, passes=0, fails=0, skips=0):
         testpath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
