@@ -147,6 +147,9 @@ Menu.prototype = {
    * @throws Error If menu element has not been found
    */
   getItem: function Menu_getItem(itemSelector) {
+    // Run through the entire menu and populate with dynamic entries
+    this._buildMenu(this._menu.getNode());
+
     var node = this._menu.getNode().querySelector(itemSelector);
 
     if (!node) {
@@ -221,13 +224,11 @@ Menu.prototype = {
         var popup = item.querySelector("menupopup");
 
         if (popup) {
-          if (popup.allowevents) {
-            var popupEvent = this._controller.window.document.createEvent("MouseEvent");
-            popupEvent.initMouseEvent("popupshowing", true, true,
-                                      this._controller.window, 0, 0, 0, 0, 0,
-                                      false, false, false, false, 0, null);
-            popup.dispatchEvent(popupEvent);
-          }
+          var popupEvent = this._controller.window.document.createEvent("MouseEvent");
+          popupEvent.initMouseEvent("popupshowing", true, true,
+                                    this._controller.window, 0, 0, 0, 0, 0,
+                                    false, false, false, false, 0, null);
+          popup.dispatchEvent(popupEvent);
 
           this._buildMenu(popup);
         }
