@@ -929,6 +929,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
      * @return {boolean}
      */
     value : function MMDL_select(index, option, value) {
+      dump('MMDL_select(' + index, + ',' + option + ',' + value);
       if (!this.element){
         throw new Error("Could not find element " + this.getInfo());
       }
