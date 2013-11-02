@@ -989,7 +989,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
 
           return true;
         } catch (e) {
-          throw new Error("No item selected for element " + this.getInfo());
+          throw new Error("No item selected for element " + this.getInfo() + ' exc=' + e);
         }
       }
       //if we have a xul menupopup select accordingly
@@ -1051,7 +1051,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
 
           return true;
         } catch (e) {
-          throw new Error('No item selected for element ' + this.getInfo());
+          throw new Error('No item selected for element ' + this.getInfo() + ' exc=' + e);
         }
       }
     }
