@@ -1030,13 +1030,17 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
         }
 
         // Click the item
-        dump ('click the item:' + index + ',' + option + ',' + value);
+        dump ('click the item:' + index + ',' + option + ',' + value + "\n");
         try {
           item.click();
 
           var self = this;
           var selected = index || option || value;
+          dump('Selected:' + selected + "\n");
+
           assert.waitFor(function () {
+            var el = self.element;
+              dump("StateOfSelect:" + el.selectedIndex + ',' + el.label + ',' + el.value);
             switch (selected) {
               case index:
                 return selected === self.element.selectedIndex;
