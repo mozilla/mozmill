@@ -96,8 +96,8 @@ function testXULMenuList() {
                  "Never activate value has been selected");
 
     var alwaysActivate = getEntity([dtd], "cmd.alwaysActivate.label");
-    menulist.select(null, alwaysActivate);
-    expect.equal(menulist.getNode().label, alwaysActivate,
-                 "Always activate value has been selected");
+ //   menulist.select(null, alwaysActivate);
+ //   expect.equal(menulist.getNode().label, alwaysActivate,
+//                 "Always activate value has been selected");
   }
 }
