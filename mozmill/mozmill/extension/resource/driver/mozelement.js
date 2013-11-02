@@ -1030,6 +1030,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
         }
 
         // Click the item
+        dump ('click the item:' + index + ',' + option + ',' + value);
         try {
           item.click();
 
