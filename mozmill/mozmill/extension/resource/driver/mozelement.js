@@ -989,6 +989,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
 
           return true;
         } catch (e) {
+          dump(e);
           throw new Error("No item selected for element " + this.getInfo() + ' exc=' + e);
         }
       }
@@ -1051,6 +1052,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
 
           return true;
         } catch (e) {
+          dump(e);
           throw new Error('No item selected for element ' + this.getInfo() + ' exc=' + e);
         }
       }
