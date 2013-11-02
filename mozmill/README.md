@@ -1,26 +1,22 @@
 [Mozmill](https://developer.mozilla.org/en/Mozmill) is a test tool and
 UI automation framework for writing tests and other automation scripts
-for Gecko based applications like Firefox and Thunderbird. 
-It's built as an
-[addon](https://addons.mozilla.org/en-US/firefox/addon/9018/) 
-and a [python](http://python.org) command-line tool. The addon provides an IDE 
-(Integrated Development Environment) for writing and
-running JavaScript tests and the python package provides a
+for Gecko based applications like Firefox and Thunderbird.
+It's built as a [python](http://python.org) command-line tool. The python package provides a
 mechanism for running the tests from the command line as well as
-providing a way to test restarting the application. 
-Mozmill has an extensive API to help you write functional tests that 
+providing a way to test restarting the application.
+Mozmill has an extensive API to help you write functional tests that
 simulate user interactions.
 
 The [Mozmill test automation project](https://wiki.mozilla.org/QA/Mozmill_Test_Automation)
 was started in January 2009 and covers the automation work for
 Firefox. Checkout the [project page](https://wiki.mozilla.org/QA/Mozmill_Test_Automation)
-or have a look at the 
+or have a look at the
 [Mozmill Tests documentation](https://developer.mozilla.org/en/Mozmill_Tests)
-to get an impression of how to contribute in writing and running 
-[Mozmill tests](https://developer.mozilla.org/en/Mozmill_Tests). 
-Existing tests get run in the 
+to get an impression of how to contribute in writing and running
+[Mozmill tests](https://developer.mozilla.org/en/Mozmill_Tests).
+Existing tests get run in the
 [release testing](https://developer.mozilla.org/en/Mozmill/Release_Testing)
-cycle for new major or security releases of Firefox. 
+cycle for new major or security releases of Firefox.
 
 Also the Mozilla Messaging team has an active project which handles
 [Thunderbird Testing with Mozmill](https://developer.mozilla.org/en/Thunderbird/Thunderbird_MozMill_Testing).
@@ -28,26 +24,19 @@ Also the Mozilla Messaging team has an active project which handles
 
 # Installation
 
-Mozmill is available as an addon and a python package.
+Mozmill is available as a python package.
 See [the installation page](./Installation) for instructions for how
 to get Mozmill set up on your system.
 
 
-# The Mozmill Extension
-
-[The Mozmill extension](https://addons.mozilla.org/en-US/firefox/addon/9018)
-comes with an integrated development environment, some test authoring
-tools, and a graphical interface to run the tests. 
-
-
 # Python Client
 
-There is also a [Mozmill python package](http://pypi.python.org/pypi/mozmill) 
-that invokes and runs a Gecko application, performs automatic test scripting,
+The [Mozmill python package](http://pypi.python.org/pypi/mozmill)
+invokes and runs a Gecko application, performs automatic test scripting,
 and accumulates and reports results.
 
 
-## Running the command line client 
+## Running the command line client
 
 After [installing](./Installation)
 the python package you can run Mozmill with the `mozmill` command.

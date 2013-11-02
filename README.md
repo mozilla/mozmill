@@ -1,9 +1,8 @@
 # Automation + Tools Mozmill Repository
 
 [Mozmill](https://developer.mozilla.org/en/Mozmill) is a UI Automation
-framework for Mozilla apps like Firefox and Thunderbird. It's both an
-[addon](https://addons.mozilla.org/en-US/firefox/addon/9018/) and a
-Python command-line tool. 
+framework for Mozilla apps like Firefox and Thunderbird. It takes the form of a
+Python command-line tool.
 
 The [Mozmill repository](http://github.com/mozilla/mozmill)
 contains Mozmill and supporting code which is also used for MozBase
@@ -47,7 +46,7 @@ Each of these packages contains a `README.md` file in markdown syntax
 giving in-depth information on their utility.  These packages all make
 use of
 [setuptools](http://peak.telecommunity.com/DevCenter/setuptools)
-for installation.  It is highly recommended that you use 
+for installation.  It is highly recommended that you use
 [virtualenv](http://www.virtualenv.org/) to keep your python
 environment separate from your system packages.  In this way, you can
 keep multiple versions of packages around without worrying about
@@ -66,7 +65,7 @@ level of the repository to help keep repository management sane:
   packages in the [Mozmill repository](http://github.com/mozilla/mozmill)
   in development mode, respecting dependency order.  This means that
   code changes will be respected the next time the python interpreter
-  is invoked. Using virtualenv, checking out the 
+  is invoked. Using virtualenv, checking out the
   [git repository](http://github.com/mozilla/mozmill), and
   invoking `setup_development.py` with the virtualenv's copy of python
   is the most robust way of deploying the software

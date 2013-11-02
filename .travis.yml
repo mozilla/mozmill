@@ -3,8 +3,7 @@ python: 2.7
 env: DISPLAY=:99
 script: mutt -b firefox/firefox -m mutt/mutt/tests/manifest.ini
 
-before_install:
-    - sudo apt-get update
+before_install: sudo apt-get update
 
 install:
     - sudo apt-get install fluxbox

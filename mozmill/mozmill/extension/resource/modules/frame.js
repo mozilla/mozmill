@@ -50,7 +50,7 @@ var timers = [];
  * @see https://developer.mozilla.org/nsIAppStartup#Attributes
  */
 function shutdownApplication(aFlags) {
-  var flags = Ci.nsIAppStartup.eAttemptQuit;
+  var flags = Ci.nsIAppStartup.eForceQuit;
 
   if (aFlags) {
     flags |= aFlags;
