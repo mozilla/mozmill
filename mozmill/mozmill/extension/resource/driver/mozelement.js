@@ -935,6 +935,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
       }
 
       //if we have a select drop down
+      dump("\nthis.element.options:" + this.element.options + "\n");
       if (this.element.localName.toLowerCase() == "select"){
         var item = null;
 
@@ -1005,7 +1006,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
                     getElementsByTagNameNS(NAMESPACE_XUL, "menuitem");
 
         var item = null;
-
+        dump("\nmenuitems:" + menuitems + "\n");
         if (index != undefined) {
           if (index == -1) {
             this.dispatchEvent('focus', false);
