@@ -922,6 +922,11 @@ function MozMillDropList(locatorType, locator, args) {
 }
 
 
+function dump_list(pre, list) {
+    for(var i = 0; i < list.length; i++) {
+        dump("\n" + pre + ":option:" + list[i].label + "|" + list[i].value + "\n");
+    }
+};
 MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
   select : {
     /**
@@ -935,10 +940,10 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
       }
 
       //if we have a select drop down
-      dump("\nthis.element.options:" + this.element.options + "\n");
       if (this.element.localName.toLowerCase() == "select"){
         var item = null;
 
+          dump_list("this.element.options:", this.element.options);
         // The selected item should be set via its index
         if (index != undefined) {
           // Resetting a menulist has to be handled separately
@@ -1006,7 +1011,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
                     getElementsByTagNameNS(NAMESPACE_XUL, "menuitem");
 
         var item = null;
-        dump("\nmenuitems:" + menuitems + "\n");
+        dump_list("menuitems", menuitems);
         if (index != undefined) {
           if (index == -1) {
             this.dispatchEvent('focus', false);
@@ -1031,7 +1036,6 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
         }
 
         // Click the item
-        dump ('click the item:' + index + ',' + option + ',' + value + "\n");
         try {
           item.click();
 
@@ -1041,7 +1045,6 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
 
           assert.waitFor(function () {
             var el = self.element;
-              dump("StateOfSelect:" + el.selectedIndex + ',' + el.label + ',' + el.value);
             switch (selected) {
               case index:
                 return selected === self.element.selectedIndex;

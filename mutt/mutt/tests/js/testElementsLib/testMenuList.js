@@ -56,11 +56,6 @@ function testChromeSelect() {
   expect.equal(menulist.getNode().value, 'MO', "Value has been selected");
 }
 
-function dump_list(pre, list) {
-    for(var i = 0; i < list.length; i++) {
-        dump("\n" + pre + ":option:" + list[i].label + "|" + list[i].value + "\n");
-    }
-}
 function testXULMenuList() {
   // Open Addons Manager and add an event listener to wait for the view to change
   var self = { changed: false };
