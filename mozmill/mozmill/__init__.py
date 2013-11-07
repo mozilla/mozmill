@@ -2,6 +2,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at http://mozilla.org/MPL/2.0/.
 
+import copy
 import os
 import socket
 import sys
@@ -110,7 +111,7 @@ class MozMill(object):
 
         # get the necessary arguments to construct the profile and
         # runner instance
-        profile_args = profile_args or {}
+        profile_args = copy.deepcopy(profile_args) or {}
         profile_args.setdefault('addons', []).extend(ADDONS)
 
         preferences = profile_args.setdefault('preferences', {})
@@ -123,7 +124,7 @@ class MozMill(object):
         else:
             raise Exception('Invalid type for preferences in profile_args')
 
-        runner_args = runner_args or {}
+        runner_args = copy.deepcopy(runner_args) or {}
         runner_args['profile_args'] = profile_args
 
         # create an equipped runner
