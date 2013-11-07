@@ -11,27 +11,41 @@ import unittest
 
 
 class TestMozmillAPI(unittest.TestCase):
-    """test mozmill's API"""
+    """Several tests for Mozmill API"""
+
+    def setUp(self):
+        self.test = self.make_test()
+
+    def tearDown(self):
+        os.remove(self.test)
 
     def make_test(self):
         """make an example test to run"""
-        test = """var test_something = function() {}"""
+        test = """function test() { assert.ok(true); }"""
         fd, path = tempfile.mkstemp()
         os.write(fd, test)
         os.close(fd)
+
         return path
 
-    def test_api(self):
-        passes = 1
-        self.path = self.make_test()
-
+    def test_basic(self):
         m = mozmill.MozMill.create()
-        m.run([dict(path=self.path)])
+        m.run([dict(path=self.test)])
         results = m.finish()
-        self.assertTrue(len(results.passes) == passes)
 
-    def tearDown(self):
-        os.remove(self.path)
+        self.assertEqual(len(results.passes), 1)
+
+    def test_create_args_by_reference(self):
+        profile_args = dict(addons=[])
+        runner_args = dict(cmdargs=[])
+
+        m = mozmill.MozMill.create(profile_args=profile_args,
+                                   runner_args=runner_args)
+        m.run([dict(path=self.test)])
+        m.finish()
+
+        self.assertEqual(profile_args, dict(addons=[]))
+        self.assertEqual(runner_args, dict(cmdargs=[]))
 
 if __name__ == '__main__':
     unittest.main()
