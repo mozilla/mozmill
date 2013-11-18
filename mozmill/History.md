@@ -1,3 +1,18 @@
+2.0.1 / 2013-11-19
+==================
+
+  * Bug 939978 - Bump to mozrunner 5.27 with a lot of add-on related fixes
+  * Bug 939708 - Remove deprecated checkboxes from radio button Mutt test
+  * Bug 583379 - Remove allowevents checking for dynamic menu building
+  * Bug 935954 - Mozmill should not be allowed to modify the profile_args and
+                 runner_args objects from the caller
+  * Bug 933053 - Remove all mentions of addon in README files
+  * Bug 922995 - Change flag to force-quit when closing the application
+  * Bug 928277 - Python test_no_abort_via_client_tests in test_console_errors.py fails
+  * Bug 927762 - Mutt test failure in tests/python/test_addons.py
+  * Bug 925632 - Upgrade httpd.js for speed-up fixes on bug 777354
+  * Bug 895841 - Add --app option to mutt
+
 2.0 / 2013-09-24
 ================
 
