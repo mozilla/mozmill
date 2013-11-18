@@ -17,13 +17,6 @@
   <groupbox id="downloadsGroup">
     <caption label="&downloads.label;"/>
 
-    <checkbox id="showWhenDownloading"
-              label="&showWhenDownloading.label;"
-              accesskey="&showWhenDownloading.accesskey;"/>
-    <checkbox id="closeWhenDone"
-              label="&closeWhenDone.label;"
-              accesskey="&closeWhenDone.accesskey;"/>
-
     <separator class="thin"/>
 
     <radiogroup id="saveWhere">
