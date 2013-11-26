@@ -8,11 +8,7 @@ import socket
 import sys
 import tempfile
 import traceback
-try:
-    import json
-except:
-    import simplejson as json
-
+import json
 import jsbridge
 import mozinfo
 import mozrunner

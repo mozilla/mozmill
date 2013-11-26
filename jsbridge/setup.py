@@ -1,7 +1,6 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at http://mozilla.org/MPL/2.0/.
-
 import os
 import sys
 from setuptools import setup, find_packages
@@ -11,10 +10,6 @@ PACKAGE_VERSION = "3.1-dev"
 
 # package dependencies
 deps = []
-try:
-    import json
-except ImportError:
-    deps.append('simplejson')
 
 # take description from README
 here = os.path.dirname(os.path.abspath(__file__))

@@ -7,12 +7,7 @@ import platform
 import sys
 import urllib2
 import datetime
-
-try:
-    import json
-except ImportError:
-    import simplejson as json
-
+import json
 from handlers import HandlerMatchException
 
 

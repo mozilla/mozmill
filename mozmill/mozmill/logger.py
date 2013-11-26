@@ -4,11 +4,7 @@
 
 """Logging event listener for Mozmill."""
 
-try:
-    import json
-except:
-    import simplejson as json
-
+import json
 import logging
 import re
 import sys
