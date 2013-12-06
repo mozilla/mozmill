@@ -62,7 +62,7 @@ if (platform == "linux"){
 var wm = Services.wm;
 
 var appInfo = Services.appinfo;
-var Application = appInfo.name;
+var Application = utils.applicationName;
 
 
 /**
@@ -120,7 +120,7 @@ function getApplicationDetails() {
   // appinfo, startupinfo, and addons
   var details = {
     application_id: appInfo.ID,
-    application_name: appInfo.name,
+    application_name: Application,
     application_version: appInfo.version,
     application_locale: locale,
     platform_buildid: appInfo.platformBuildID,

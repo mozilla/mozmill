@@ -2,11 +2,12 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var EXPORTED_SYMBOLS = ["Copy", "getBrowserObject", "getChromeWindow", "getWindows",
-                        "getWindowByTitle", "getWindowByType", "getWindowId",
-                        "getMethodInWindows", "getPreference", "setPreference",
-                        "sleep", "assert", "unwrapNode", "waitFor",
-                        "saveDataURL", "takeScreenshot", "startTimer", "stopTimer",
+var EXPORTED_SYMBOLS = ["applicationName", "assert", "Copy", "getBrowserObject",
+                        "getChromeWindow", "getWindows", "getWindowByTitle",
+                        "getWindowByType", "getWindowId", "getMethodInWindows",
+                        "getPreference", "saveDataURL", "setPreference",
+                        "sleep", "startTimer", "stopTimer", "takeScreenshot",
+                        "unwrapNode", "waitFor"
                        ];
 
 const Cc = Components.classes;
@@ -16,6 +17,12 @@ const Cu = Components.utils;
 
 Cu.import("resource://gre/modules/NetUtil.jsm");
 Cu.import("resource://gre/modules/Services.jsm");
+
+const applicationIdMap = {
+  '{ec8030f7-c20a-464f-9b0e-13a3a9e97384}': 'Firefox',
+  '{99bceaaa-e3c6-48c1-b981-ef9b46b67d60}': 'MetroFirefox'
+}
+const applicationName = applicationIdMap[Services.appinfo.ID] || Services.appinfo.name;
 
 var assertions = {}; Cu.import('resource://mozmill/modules/assertions.js', assertions);
 var broker = {}; Cu.import('resource://mozmill/driver/msgbroker.js', broker);
@@ -42,7 +49,7 @@ function Copy (obj) {
  * @returns {Object} The browser element
  */
 function getBrowserObject(aWindow) {
-  switch(Services.appinfo.name) {
+  switch(applicationName) {
     case "MetroFirefox":
       return aWindow.Browser;
     case "Firefox":
