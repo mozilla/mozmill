@@ -1,3 +1,9 @@
+2.0.2 / 2013-12-11
+==================
+
+  * Bug 948120 - Bump mozbase dependencies to fix rmtree/remove issues in Mozmill and fixup import lines
+  * Bug 946672 - Get the App Name based on the App ID first, use Services.appinfo.name as fallback
+
 2.0.1 / 2013-11-19
 ==================
 
