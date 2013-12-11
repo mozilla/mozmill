@@ -7,11 +7,12 @@ import inspect
 import json
 import socket
 import select
-from time import sleep
 from threading import Thread
+from time import sleep
 import uuid
 
 import jsobjects
+
 
 class JavaScriptException(Exception):
     pass

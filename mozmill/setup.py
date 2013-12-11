@@ -9,7 +9,9 @@ PACKAGE_NAME = "mozmill"
 PACKAGE_VERSION = "2.1-dev"
 
 deps = ['jsbridge == 3.1-dev',
-        'mozrunner == 5.27',
+        'ManifestDestiny == 0.5.7',
+        'mozinfo == 0.7',
+        'mozrunner == 5.28',
         ]
 
 # take description from README

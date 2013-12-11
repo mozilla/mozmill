@@ -4,13 +4,14 @@
 
 """Logging event listener for Mozmill."""
 
+
+from datetime import datetime
 import json
 import logging
 import re
 import sys
 import uuid
 
-from datetime import datetime
 
 class LoggerListener(object):
     stack_regex = re.compile("(.*)@(.*?)(?: -> (file\:\/\/\/\S*))?\:(\d*)$")
