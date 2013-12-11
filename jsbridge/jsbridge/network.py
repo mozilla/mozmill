@@ -2,20 +2,20 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at http://mozilla.org/MPL/2.0/.
 
-import asyncore
-import inspect
-import socket
-import select
-import uuid
-from time import sleep
-from threading import Thread
-
 try:
     import json as simplejson
     from json.encoder import encode_basestring_ascii, encode_basestring
 except ImportError:
     import simplejson
     from simplejson.encoder import encode_basestring_ascii, encode_basestring
+
+import asyncore
+import inspect
+import socket
+import select
+from threading import Thread
+from time import sleep
+import uuid
 
 import jsobjects
 

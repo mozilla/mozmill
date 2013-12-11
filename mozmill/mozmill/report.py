@@ -2,16 +2,17 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at http://mozilla.org/MPL/2.0/.
 
-import mozinfo
-import platform
-import sys
-import urllib2
-import datetime
-
 try:
     import json
 except ImportError:
     import simplejson as json
+
+import datetime
+import platform
+import sys
+import urllib2
+
+import mozinfo
 
 from handlers import HandlerMatchException
 

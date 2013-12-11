@@ -3,14 +3,15 @@
 # file, you can obtain one at http://mozilla.org/MPL/2.0/.
 
 import asyncore
+from datetime import datetime, timedelta
 import socket
 import os
 import sys
-
 from time import sleep
-from datetime import datetime, timedelta
-from network import Bridge, BackChannel, create_network
+
 from jsobjects import JSObject
+from network import Bridge, BackChannel, create_network
+
 
 parent = os.path.abspath(os.path.dirname(__file__))
 extension_path = os.path.join(parent, 'extension')

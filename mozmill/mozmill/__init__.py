@@ -2,28 +2,29 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, you can obtain one at http://mozilla.org/MPL/2.0/.
 
-import copy
-import os
-import socket
-import sys
-import tempfile
-import traceback
 try:
     import json
 except:
     import simplejson as json
 
-import jsbridge
+import copy
+from datetime import datetime
+from optparse import OptionGroup
+import os
+import socket
+import sys
+import tempfile
+from time import sleep
+import traceback
+
+from manifestparser import TestManifest
 import mozinfo
 import mozrunner
-import handlers
-
-from datetime import datetime
-from jsbridge.network import JSBridgeDisconnectError
-from manifestparser import TestManifest
 from mozrunner.utils import get_metadata_from_egg
-from optparse import OptionGroup
-from time import sleep
+
+import handlers
+import jsbridge
+from jsbridge.network import JSBridgeDisconnectError
 
 
 # metadata

@@ -9,12 +9,12 @@ try:
 except:
     import simplejson as json
 
+from datetime import datetime
 import logging
 import re
 import sys
 import uuid
 
-from datetime import datetime
 
 class LoggerListener(object):
     stack_regex = re.compile("(.*)@(.*?)(?: -> (file\:\/\/\/\S*))?\:(\d*)$")
