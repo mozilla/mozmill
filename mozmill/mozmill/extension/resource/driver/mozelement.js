@@ -389,6 +389,11 @@ MozMillElement.prototype.mouseEvent = function (aOffsetX, aOffsetY, aEvent, aExp
                                this.element.ownerDocument.defaultView);
   }
 
+  // Bug 555347
+  // We don't know why this sleep is necessary but more investigation is needed
+  // before it can be removed
+  utils.sleep(0);
+
   return true;
 };
 
