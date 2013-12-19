@@ -420,10 +420,15 @@ class MozMill(object):
                 except JSBridgeDisconnectError:
                     frame = None
 
-                    # Unexpected shutdown
                     if not self.shutdownMode:
+                        # In case of an unexpected shutdown stop the runner
                         self.report_disconnect()
                         self.stop_runner()
+                    elif not self.shutdownMode.get('restart'):
+                        # If it's a JS triggered shutdown of the application we
+                        # have to wait until the process is gone. Otherwise we
+                        # try to use a profile which is still in use
+                        self.runner.wait()
 
             # stop the runner
             if frame:
