@@ -106,9 +106,13 @@ class Report(object):
                                                          data['id'])
             return data
         except urllib2.HTTPError as e:
-            data = json.loads(e.read())
-            print "Sending results to '%s' failed (%s)." % (report_url,
-                                                            data['reason'])
+            try:
+              data = json.loads(e.read())
+              print "Sending results to '%s' failed (%s)." % (report_url,
+                                                              data['reason'])
+            except ValueError:
+              print "Sending results to '%s' failed (%s)." % (report_url,
+                                                              str(e))
         except urllib2.URLError as e:
             print "Sending results to '%s' failed (%s)." % (report_url,
                                                             e.reason)
