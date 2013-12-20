@@ -1,3 +1,11 @@
+2.0.3 / 2013-12-20
+==================
+
+  * Bug 951715 - Mozmill fails to properly initialize metro mode
+  * Bug 771425 - Uploading report sometimes fails with 'No JSON object could be decoded'
+  * Bug 951628 - When Firefox gets closed via shutdownApplication() we do not wait until runner process has been quit
+  * Bug 950263 - MozElement.mouseEvent() misses sleep(0) call which causes intermittent failures
+
 2.0.2 / 2013-12-11
 ==================
 

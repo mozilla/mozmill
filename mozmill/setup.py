@@ -6,7 +6,7 @@ import os
 from setuptools import setup, find_packages
 
 PACKAGE_NAME = "mozmill"
-PACKAGE_VERSION = "2.0.2"
+PACKAGE_VERSION = "2.0.3"
 
 deps = ['jsbridge == 3.0',
         'ManifestDestiny == 0.5.7',
