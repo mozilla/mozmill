@@ -1003,9 +1003,9 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
         // Unwrap the XUL element's XPCNativeWrapper
         this.element = utils.unwrapNode(this.element);
         // Get the list of menuitems
-        menuitems = this.element.
-                    getElementsByTagNameNS(NAMESPACE_XUL, "menupopup")[0].
-                    getElementsByTagNameNS(NAMESPACE_XUL, "menuitem");
+        var menuitems = this.element.
+                        getElementsByTagNameNS(NAMESPACE_XUL, "menupopup")[0].
+                        getElementsByTagNameNS(NAMESPACE_XUL, "menuitem");
 
         var item = null;
 
