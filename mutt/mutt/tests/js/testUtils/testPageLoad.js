@@ -93,12 +93,12 @@ function testWaitForPageLoad() {
 
   var link = new elementslib.MozMillElement("Selector", "#link",
                                             {document: controller.tabs.activeTab});
-  controller.click(link);
+  link.click();
   controller.waitForPageLoad();
 
   var target = new elementslib.MozMillElement("Selector", "#test-div",
                                            {document: controller.tabs.activeTab});
-  controller.waitForElement(target, 1000);
+  target.waitForElement(1000);
 
   /**
    * PART V - Loading an iFrame
@@ -115,7 +115,7 @@ function testWaitForPageLoad() {
   var frameController = new mozmill.controller.MozMillController(frameWindow);
 
   // Trigger the loading of the iframe from the main controller
-  controller.click(trigger);
+  trigger.click();
   controller.waitForPageLoad(frameController.window.document);
 
   // Once the iframe has been loaded assert that the element exists
@@ -129,7 +129,7 @@ function testWaitForPageLoad() {
   controller.open(TEST_DATA[1].url);
 
   // Open a new tab now
-  controller.keypress(win, "t", {accelKey: true});
+  win.keypress("t", {accelKey: true});
   controller.open(TEST_DATA[0].url);
 
   // Wait for our old tab to load in the background
@@ -140,6 +140,6 @@ function testWaitForPageLoad() {
   expect.ok(element.exists(), "Element '" + TEST_DATA[1].value +
             "'in background tab has been found");
 
-  controller.keypress(win, "w", {accelKey: true});
+  win.keypress("w", {accelKey: true});
 
 }

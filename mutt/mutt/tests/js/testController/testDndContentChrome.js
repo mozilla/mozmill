@@ -16,7 +16,7 @@ function test() {
   controller.waitForPageLoad();
 
   let link = new elementslib.ID(controller.tabs.activeTab, "link");
-  controller.waitForElement(link);
+  link.waitForElement();
   link.dragToElement(urlbar);
   controller.waitForPageLoad();
 

@@ -32,7 +32,7 @@ function test() {
   fname.getNode().value = "";
 
   expect.doesNotThrow(function () {
-    controller.type(fname, "fox", {type: "keypress"});
+    fname.sendKeys("fox", {type: "keypress"});
   }, "Error", "type() does fire a keypress event.");
   expect.equal(fname.getNode().value, "fox", "text field contains the expected value.");
 

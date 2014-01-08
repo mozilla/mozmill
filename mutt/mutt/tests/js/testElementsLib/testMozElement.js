@@ -17,7 +17,7 @@ function test() {
   let submit = findElement.ID(undefined, "submitButton");
 
   textbox.sendKeys("mozmill");
-  controller.click(submit);
+  submit.click();
   controller.waitForPageLoad();
 
   let urlbar = new findElement.ID(controller.window.document, "urlbar");

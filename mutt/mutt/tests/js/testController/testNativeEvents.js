@@ -14,7 +14,7 @@ function test() {
   controller.waitForPageLoad();
 
   let link = new elementslib.ID(controller.tabs.activeTab, "link");
-  controller.click(link, undefined, undefined, undefined, true);
+  link.click(undefined, undefined, undefined, true);
   controller.waitForPageLoad();
 
   let div = new elementslib.ID(controller.tabs.activeTab, "test-div");

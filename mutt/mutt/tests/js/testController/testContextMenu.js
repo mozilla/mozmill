@@ -18,7 +18,7 @@ function testMenu() {
 
   // Enter text in a text field and select all via the context menu
   var field = new elementslib.ID(controller.tabs.activeTab, "fname");
-  controller.type(field, "mozmill");
+  field.sendKeys("mozmill");
   contextMenu.select("#context-selectall", field);
 
   // Reopen the context menu and check the 'Paste' menu item

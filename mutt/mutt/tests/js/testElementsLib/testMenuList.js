@@ -73,7 +73,7 @@ function testXULMenuList() {
   self = { changed: false };
 
   var plugin = new elementslib.ID(controller.window.document, "category-plugin");
-  controller.click(plugin);
+  plugin.click();
   assert.waitFor(function () {
     return self.changed;
   }, "Category has been changed.");

@@ -18,7 +18,8 @@ function testMetroTabs() {
   controller.open(TEST_DATA[0]);
   controller.waitForPageLoad();
 
-  controller.keypress(null, "t", { accelKey: true });
+  var win = new findElement.MozMillElement("Elem", controller.window);
+  win.keypress("t", { accelKey: true });
   assert.waitFor(function () {
     return controller.tabs.length == 2;
   }, "A second tab has been opened");
@@ -38,7 +39,7 @@ function testMetroTabs() {
   expect.equal(controller.tabs.getTab(0), controller.tabs.activeTab,
                "The first tab is the active tab");
 
-  controller.keypress(null, "w", { accelKey: true });
+  win.keypress("w", { accelKey: true });
 
   assert.waitFor(function () {
     return controller.tabs.length == 1;
