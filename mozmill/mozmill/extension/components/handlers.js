@@ -64,11 +64,11 @@ var ConsoleObserver = {
   observe: function (aSubject, aTopic, aData) {
     var msg = aSubject.message;
 
-    if (msg.match(errorRegEx)) {
+    if (msg.match(this.errorRegEx)) {
       // If there is an exception happening in a background thread caused by a
       // test, don't raise a framework failure because the error gets forwarded
       // through the console service.
-      if (msg.match(externalFileRegEx)) {
+      if (msg.match(this.externalFileRegEx)) {
         new Expect().fail(msg);
       }
       else {
