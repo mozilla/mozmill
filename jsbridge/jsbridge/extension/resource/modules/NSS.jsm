@@ -38,6 +38,10 @@ NSS.init();
 
 
 NSS.Types = {
+  // Return codes
+  PR_FAILURE: -1,
+  PR_SUCCESS: 0,
+
   // Error codes
   // See http://mxr.mozilla.org/mozilla-central/source/nsprpub/pr/include/prerr.h
   PR_WOULD_BLOCK_ERROR: -5998,
@@ -56,7 +60,9 @@ NSS.Types = {
   PRSocketOptionData: ctypes.StructType("PRSocketOptionData", [
     {'option' : ctypes.int32_t},
     {'non_blocking': ctypes.int32_t}
-  ])
+  ]),
+
+  PRStatus: ctypes.int32_t
 }
 
 
@@ -75,46 +81,46 @@ NSS.Sockets = {
 
   PR_Accept: NSS._library.declare("PR_Accept",
     ctypes.default_abi,
-    NSS.Types.PRFileDesc.ptr, // new socket fd
-    NSS.Types.PRFileDesc.ptr, // rendezvous socket fd
-    NSS.Types.PRNetAddr.ptr, //addr
+    NSS.Types.PRFileDesc.ptr, // new socket
+    NSS.Types.PRFileDesc.ptr, // rendezvous socket
+    NSS.Types.PRNetAddr.ptr, // address
     ctypes.uint32_t // timeout interval
   ),
 
   PR_Bind: NSS._library.declare("PR_Bind",
     ctypes.default_abi,
-    ctypes.int32_t,
-    NSS.Types.PRFileDesc.ptr,
-    NSS.Types.PRNetAddr.ptr
+    NSS.Types.PRStatus,  // return (status)
+    NSS.Types.PRFileDesc.ptr,  // socket
+    NSS.Types.PRNetAddr.ptr  // address
   ),
 
   PR_Close: NSS._library.declare("PR_Close",
     ctypes.default_abi,
-    ctypes.int32_t,
-    NSS.Types.PRFileDesc.ptr
+    NSS.Types.PRStatus,  // return (status)
+    NSS.Types.PRFileDesc.ptr  // socket
   ),
 
   PR_GetError: NSS._library.declare("PR_GetError",
     ctypes.default_abi,
-    NSS.Types.PRErrorCode
+    NSS.Types.PRErrorCode // return
   ),
 
   PR_Listen: NSS._library.declare("PR_Listen",
     ctypes.default_abi,
-    ctypes.int32_t,
-    NSS.Types.PRFileDesc.ptr, // fd
+    NSS.Types.PRStatus,  // return (status)
+    NSS.Types.PRFileDesc.ptr, // socket
     ctypes.int32_t // backlog
   ),
 
   PR_OpenTCPSocket: NSS._library.declare("PR_OpenTCPSocket",
     ctypes.default_abi, // cdecl calling convention
-    NSS.Types.PRFileDesc.ptr, // return (PRFileDesc*)
-    ctypes.int32_t            // first arg
+    NSS.Types.PRFileDesc.ptr, // return (socket)
+    ctypes.int32_t            // address family
   ),
 
   PR_Recv: NSS._library.declare("PR_Recv",
     ctypes.default_abi,
-    ctypes.int32_t, // return
+    NSS.Types.PRStatus, // return (status)
     NSS.Types.PRFileDesc.ptr, // socket
     ctypes.voidptr_t, // buffer
     ctypes.int32_t, // buffer length
@@ -124,7 +130,7 @@ NSS.Sockets = {
 
   PR_Send: NSS._library.declare("PR_Send",
     ctypes.default_abi,
-    ctypes.int32_t, // return
+    NSS.Types.PRStatus, // return (status)
     NSS.Types.PRFileDesc.ptr, // socket
     ctypes.voidptr_t, // buffer
     ctypes.int32_t, // buffer length
@@ -134,17 +140,17 @@ NSS.Sockets = {
 
   PR_SetNetAddr: NSS._library.declare("PR_SetNetAddr",
     ctypes.default_abi,
-    ctypes.int32_t,  // really doesn't return anything
-    ctypes.int32_t,  // val
-    ctypes.uint16_t, // af
+    NSS.Types.PRStatus, // return (status)
+    ctypes.int32_t,  // host
+    ctypes.uint16_t, // address family
     ctypes.uint16_t, // port
     NSS.Types.PRNetAddr.ptr
   ),
 
   PR_SetSocketOption: NSS._library.declare("PR_SetSocketOption",
     ctypes.default_abi,
-    ctypes.int32_t,
-    NSS.Types.PRFileDesc.ptr,
-    NSS.Types.PRSocketOptionData.ptr
+    NSS.Types.PRStatus,  // return (status)
+    NSS.Types.PRFileDesc.ptr, // socket
+    NSS.Types.PRSocketOptionData.ptr // option data
   )
 }
