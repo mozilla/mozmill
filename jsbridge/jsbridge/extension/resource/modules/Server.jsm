@@ -86,12 +86,12 @@ Server.Server.prototype = {
   },
 
   stop: function () {
-    Log.dump("Stop JSBridge server on port", this._port);
-
     sessions.quit();
 
     this._socket.close();
     this._socket = null;
+
+    Log.dump("Stopped JSBridge server on port", this._port);
   }
 };
 

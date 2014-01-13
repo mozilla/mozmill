@@ -87,44 +87,63 @@ Sockets.Client.prototype = {
     this.timer.cancel();
     this.timer = null;
 
-    return NSS.Sockets.PR_Close(this.fd);
+    var status = NSS.Sockets.PR_Close(this.fd);
+    Log.dump("Closing client socket", this.fd);
+    if (status === NSS.Types.PR_FAILURE)
+      Log.dump("PR_Close() failed", NSS.Sockets.PR_GetError());
   }
 };
 
 
 Sockets.ServerSocket = function (aPort) {
+  let status;
   let addr = NSS.Types.PRNetAddr();
-  NSS.Sockets.PR_SetNetAddr(NSS.Sockets.PR_IpAddrLoopback,
-                             NSS.Sockets.PR_AF_INET,
-                             aPort, addr.address());
+
+  status = NSS.Sockets.PR_SetNetAddr(NSS.Sockets.PR_IpAddrLoopback,
+                                     NSS.Sockets.PR_AF_INET,
+                                     aPort, addr.address());
+  if (status === NSS.Types.PR_FAILURE)
+    throw Error("PR_SetNetAddr() failed (" + NSS.Sockets.PR_GetError() + ")");
 
   let fd = NSS.Sockets.PR_OpenTCPSocket(NSS.Sockets.PR_AF_INET);
+  if (fd.isNull())
+    throw Error("PR_OpenTCPSocket() failed (" + NSS.Sockets.PR_GetError() + ")");
 
   // don't block for accept/send/recv
   let opt = NSS.Types.PRSocketOptionData();
   opt.non_blocking = NSS.Sockets.PR_TRUE;
   opt.option = NSS.Sockets.PR_SockOpt_Nonblocking;
-  NSS.Sockets.PR_SetSocketOption(fd, opt.address());
+  status = NSS.Sockets.PR_SetSocketOption(fd, opt.address());
+  if (status === NSS.Types.PR_FAILURE)
+    Log.dump("PR_SetSocketOption() failed for setting non-blocking",
+             NSS.Sockets.PR_GetError());
 
   // don't buffer when sending
   opt = NSS.Types.PRSocketOptionData();
   opt.non_blocking = NSS.Sockets.PR_TRUE; // same space
   opt.option = NSS.Sockets.PR_SockOpt_NoDelay;
-  NSS.Sockets.PR_SetSocketOption(fd, opt.address());
+  status = NSS.Sockets.PR_SetSocketOption(fd, opt.address());
+  if (status === NSS.Types.PR_FAILURE)
+    Log.dump("PR_SetSocketOption() failed for disabling the send buffer",
+             NSS.Sockets.PR_GetError());
 
   // allow local address re-use
   opt = NSS.Types.PRSocketOptionData();
   opt.non_blocking = NSS.Sockets.PR_TRUE; // same space
   opt.option = NSS.Sockets.PR_SockOpt_Reuseaddr;
-  NSS.Sockets.PR_SetSocketOption(fd, opt.address());
+  status = NSS.Sockets.PR_SetSocketOption(fd, opt.address());
+  if (status === NSS.Types.PR_FAILURE)
+    Log.dump("PR_SetSocketOption() failed for local address re-use",
+             NSS.Sockets.PR_GetError());
 
+  Log.dump("Binding server socket", fd);
   let status = NSS.Sockets.PR_Bind(fd, addr.address());
-  if (status !== 0)
-    throw Error("Socket failed to bind, kill all firefox processes");
+  if (status === NSS.Types.PR_FAILURE)
+    throw Error("PR_Bind() failed (" + NSS.Sockets.PR_GetError() + ")");
 
   status = NSS.Sockets.PR_Listen(fd, -1);
-  if (status !== 0)
-    throw Error("Socket failed to listen");
+  if (status === NSS.Types.PR_FAILURE)
+    throw Error("PR_Listen() failed (" + NSS.Sockets.PR_GetError() + ")");
 
   this.addr = addr;
   this.fd = fd;
@@ -140,7 +159,7 @@ Sockets.ServerSocket.prototype = {
     var event = {
       notify: function (timer) {
         let newfd = NSS.Sockets.PR_Accept(self.fd, self.addr.address(),
-                                           NSS.Sockets.PR_INTERVAL_NO_WAIT);
+                                          NSS.Sockets.PR_INTERVAL_NO_WAIT);
         if (!newfd.isNull()) {
           callback(new Sockets.Client(newfd));
         }
@@ -154,6 +173,9 @@ Sockets.ServerSocket.prototype = {
     this.timer.cancel();
     this.timer = null;
 
-    return NSS.Sockets.PR_Close(this.fd);
+    var status = NSS.Sockets.PR_Close(this.fd);
+    Log.dump("Closing server socket", this.fd);
+    if (status === NSS.Types.PR_FAILURE)
+      Log.dump("PR_Close() failed", NSS.Sockets.PR_GetError());
   }
 };
