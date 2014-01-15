@@ -159,15 +159,6 @@ var windowCloseObserver = {
   }
 };
 
-// Bug 915554
-// Support for the old Private Browsing Mode (eg. ESR17)
-// TODO: remove once ESR17 is no longer supported
-var enterLeavePrivateBrowsingObserver = {
-  observe: function (aSubject, aTopic, aData) {
-    handleAttachEventListeners();
-  }
-};
-
 /**
  * Attach event listeners
  *
@@ -286,7 +277,6 @@ function init() {
   // Activate observer for new top level windows
   Services.obs.addObserver(windowReadyObserver, "toplevel-window-ready", false);
   Services.obs.addObserver(windowCloseObserver, "outer-window-destroyed", false);
-  Services.obs.addObserver(enterLeavePrivateBrowsingObserver, "private-browsing", false);
 
   handleAttachEventListeners();
 }
