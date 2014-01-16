@@ -24,6 +24,7 @@ var testTwo = function () {
 var testThree = function () {
 }
 
+// Restart without a test name so we continue with the next test file
 var testFour = function () {
-
+  controller.restartApplication();
 }
