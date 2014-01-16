@@ -310,6 +310,7 @@ class MozMill(object):
             if self.shutdownMode.get('resetProfile'):
                 # reset the profile
                 self.runner.reset()
+
             self.runner.start(debug_args=self.debugger,
                               interactive=self.interactive)
 
@@ -359,8 +360,9 @@ class MozMill(object):
                 # if there is not a next test,
                 # throw the error up the chain
                 raise
-            frame = self.run_test_file(self.start_runner(),
-                                       path, nextTest)
+
+            self.handle_disconnect()
+            frame = self.run_test_file(self.start_runner(), path, nextTest)
 
         return frame
 
@@ -415,16 +417,7 @@ class MozMill(object):
 
                 except JSBridgeDisconnectError:
                     frame = None
-
-                    if not self.shutdownMode:
-                        # In case of an unexpected shutdown stop the runner
-                        self.report_disconnect()
-                        self.stop_runner()
-                    elif not self.shutdownMode.get('restart'):
-                        # If it's a JS triggered shutdown of the application we
-                        # have to wait until the process is gone. Otherwise we
-                        # try to use a profile which is still in use
-                        self.runner.wait()
+                    self.handle_disconnect()
 
             # stop the runner
             if frame:
@@ -477,6 +470,29 @@ class MozMill(object):
 
         return self.results
 
+    def handle_disconnect(self):
+        """Handle a JSBridgeDisconnectError for the active process"""
+        if not self.shutdownMode:
+            # In case of an unexpected shutdown (e.g. crash) stop the runner
+            self.report_disconnect()
+            self.stop_runner()
+        elif self.shutdownMode.get('restart'):
+            # When the application gets restarted it will get a new process id by
+            # spawning a new child process and obsoleting the former process.
+            # To avoid having zombie processes we have to release the old process
+            # by calling wait(). There has to be a timeout so we do not wait forever
+            # for the new pid, but the value doesn't matter because we will wait
+            # in create_network for a new connection within 60s. There is no need
+            # to wait on Windows because the IO completion ports feature is taking
+            # care of it internally.
+            if not mozinfo.isWin:
+                self.runner.wait(timeout=1.)
+        else:
+            # It's a JS triggered shutdown of the application. We
+            # have to wait until the process is gone. Otherwise we
+            # try to use a profile which is still in use
+            self.runner.wait(timeout=self.jsbridge_timeout)
+
     def report_disconnect(self, message=None):
         message = message or 'Disconnect Error: Application unexpectedly closed'
 
@@ -494,7 +510,7 @@ class MozMill(object):
         self.results.alltests.append(test)
         self.results.fails.append(test)
 
-    def stop_runner(self, timeout=10):
+    def stop_runner(self):
         # Give a second for any callbacks to finish.
         sleep(1)
 
@@ -511,7 +527,7 @@ class MozMill(object):
             pass
 
         # wait for the runner to stop
-        self.runner.wait(timeout=timeout)
+        self.runner.wait(timeout=self.jsbridge_timeout)
         if self.runner.is_running():
             raise Exception('client process shutdown unsuccessful')
 

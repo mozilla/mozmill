@@ -24,6 +24,7 @@ function testTwo() {
 function testThree() {
 }
 
+// Restart without a test name so we continue with the next test file
 function testFour() {
-
+  controller.restartApplication();
 }
