@@ -44,7 +44,10 @@ function testFailureWithoutRestart() {
 }
 
 function testFailureWithRestart() {
-  persisted.state.next = "testFailureWithUserRestart";
+  // Bug 886360
+  // User shutdown tests are currently not supported
+  // persisted.state.next = "testFailureWithUserRestart";
+  persisted.state.next = "testPassWithShutdown";
   persisted.state.restart = true;
 
   assert.fail("A failing assertion with restarting the application has to be counted.");
