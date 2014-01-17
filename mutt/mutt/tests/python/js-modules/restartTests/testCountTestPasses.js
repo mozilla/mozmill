@@ -44,7 +44,10 @@ function testPassWithoutRestart() {
 }
 
 function testPassWithRestart() {
-  persisted.state.next = "testPassWithUserRestart";
+  // Bug 886360
+  // User shutdown tests are currently not supported
+  // persisted.state.next = "testPassWithUserRestart";
+  persisted.state.next = "testPassWithShutdown";
   persisted.state.restart = true;
 
   assert.pass("A passing assertion with restarting the application has to be counted.");
