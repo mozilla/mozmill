@@ -56,19 +56,40 @@ JSBridge.prototype = {
         // The port the server has to be started on is set via a preference
         let port = Services.prefs.getIntPref(PREF_JSBRIDGE_PORT);
 
+        var self = this;
+        var startCallback = {
+          notify: function (timer) {
+            try {
+              // Try to start the JSBridge server via a socket. If we fail we
+              // will try as long as we do not run into a JSBridgeTimeout and
+              // Mozmill kills the application.
+              self.server.start();
+            } catch (e) {
+              Log.dump('Retrying to start JSBridge server because of failure', e.message);
+              self.timer.initWithCallback(this, 500, Ci.nsITimer.TYPE_ONE_SHOT);
+            }
+          }
+        }
+
         // Start the server
         Cu.import('resource://jsbridge/modules/Server.jsm');
-        this._server = new Server.Server(port);
-        this._server.start();
+        this.server = new Server.Server(port);
+
+        this.timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
+        this.timer.initWithCallback(startCallback, 0, Ci.nsITimer.TYPE_ONE_SHOT);
 
         break;
 
       case "quit-application":
         Services.obs.removeObserver(this, "quit-application", false);
 
+        // If we are still trying to start the server, lets cancel it now
+        this.timer.cancel();
+
         // Stop the server
-        this._server.stop();
-        this._server = null;
+        this.server.stop();
+        this.server = null;
+
         break;
     }
   }
