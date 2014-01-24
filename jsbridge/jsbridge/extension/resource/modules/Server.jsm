@@ -73,25 +73,33 @@ Server.Session.prototype.encodeOut = function (obj) {
  */
 Server.Server = function (port) {
   this._port = port;
-  this._socket = new Sockets.ServerSocket(this._port);
+  this._socket = null;
 }
 
 Server.Server.prototype = {
   start: function () {
-    Log.dump("Start JSBridge server on port", this._port);
+    if (!this._socket) {
+      this._socket = new Sockets.ServerSocket(this._port);
+      this._socket.onConnect(function (client) {
+        sessions.add(new Server.Session(client));
+      });
 
-    this._socket.onConnect(function (client) {
-      sessions.add(new Server.Session(client));
-    });
+      Log.dump("Started JSBridge server on port", this._port);
+    }
+    else {
+      Log.dump("JSBridge server already running on port", this._port);
+    }
   },
 
   stop: function () {
-    sessions.quit();
+    if (this._socket) {
+      sessions.quit();
 
-    this._socket.close();
-    this._socket = null;
+      this._socket.close();
+      this._socket = null;
 
-    Log.dump("Stopped JSBridge server on port", this._port);
+      Log.dump("Stopped JSBridge server on port", this._port);
+    }
   }
 };
 
