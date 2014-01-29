@@ -7,10 +7,8 @@ import unittest
 
 import mozmill
 
+
 class TestFrameworkFailure(unittest.TestCase):
-    def test_no_abort_via_client_tests(self):
-        testpath = os.path.join("js-modules", "testFailureBackgroundThread.js")
-        self.do_test(testpath, passes=1, fails=0, skips=0)
 
     def do_test(self, relative_test_path, passes=0, fails=0, skips=0):
         testpath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
@@ -25,6 +23,14 @@ class TestFrameworkFailure(unittest.TestCase):
         self.assertEqual(len(results.passes), passes, "Passes should match")
         self.assertEqual(len(results.fails), fails, "Fails should match")
         self.assertEqual(len(results.skipped), skips, "Skips should match")
+
+    def test_no_abort_via_client_tests(self):
+        testpath = os.path.join("js-modules", "testFailureBackgroundThread.js")
+        self.do_test(testpath, passes=1, fails=0, skips=0)
+
+    def test_message_flooding(self):
+        testpath = os.path.join("js-modules", "testMessageFlooding.js")
+        self.do_test(testpath, passes=2, fails=0, skips=0)
 
 if __name__ == '__main__':
     unittest.main()

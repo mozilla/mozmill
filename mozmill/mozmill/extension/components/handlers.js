@@ -64,6 +64,12 @@ var ConsoleObserver = {
   observe: function (aSubject, aTopic, aData) {
     var msg = aSubject.message;
 
+    // If the message is not related to one of our extensions forget about it
+    if (!msg.contains('mozmill') && !msg.contains('jsbridge')) {
+      return
+    }
+
+    // Only care about errors and exceptions but not warnings and other messages
     if (msg.match(this.errorRegEx)) {
       // If there is an exception happening in a background thread caused by a
       // test, don't raise a framework failure because the error gets forwarded
