@@ -11,7 +11,7 @@ PACKAGE_VERSION = "2.0.3"
 deps = ['jsbridge == 3.0',
         'ManifestDestiny == 0.5.7',
         'mozinfo == 0.7',
-        'mozrunner == 5.31',
+        'mozrunner == 5.32',
         ]
 try:
     import json
