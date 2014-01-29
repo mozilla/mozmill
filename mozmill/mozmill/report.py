@@ -12,6 +12,27 @@ import mozinfo
 
 from handlers import HandlerMatchException
 
+# Due to an issue in urllib2 on mac we get EAGAIN (Errno 35) exception when
+# sending bigger reports https://github.com/shazow/urllib3/issues/63
+# Fix from https://github.com/shazow/urllib3/issues/63#issuecomment-15447770
+if sys.platform == "darwin":
+    # Monkey path socket.sendall to handle EAGAIN (Errno 35) on mac.
+    import errno
+    import socket
+    import time
+
+    def socket_sendall(self, data):
+        while len(data) > 0:
+            try:
+                bytes_sent = self.send(data)
+                data = data[bytes_sent:]
+            except socket.error, e:
+                if e.errno == errno.EAGAIN:
+                    time.sleep(0.1)
+                else:
+                    raise e
+
+    socket._socketobject.sendall = socket_sendall
 
 class Report(object):
     def __init__(self, report, date_format="%Y-%m-%dT%H:%M:%SZ"):
