@@ -1,3 +1,10 @@
+3.0.1 / 2014-02-04
+==================
+
+  * Bug 956315 - JSBridge server cannot be started after a restart of Firefox because socket is still in use. r=dhunt
+  * Bug 956315 - Improve logging of NSS calls. r=ctalbert
+  * Bug 956426 - missing : after property id handlers.js:61. r=ctalbert
+
 3.0 / 2013-09-24
 ================
 
