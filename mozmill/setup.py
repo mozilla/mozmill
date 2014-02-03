@@ -11,7 +11,7 @@ PACKAGE_VERSION = "2.1-dev"
 deps = ['jsbridge == 3.1-dev',
         'ManifestDestiny == 0.5.7',
         'mozinfo == 0.7',
-        'mozrunner == 5.32',
+        'mozrunner == 5.33',
         ]
 
 # take description from README
