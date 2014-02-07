@@ -37,11 +37,15 @@ class TestRestartTests(unittest.TestCase):
 
     def test_failures_with_restart(self):
         testpath = os.path.join("js-modules", "restartTests", "testCountTestFailures.js")
-        self.do_test(test_path=testpath, fails=4)
+        self.do_test(test_path=testpath, fails=3)
 
     def test_passes_with_restart(self):
         testpath = os.path.join("js-modules", "restartTests", "testCountTestPasses.js")
-        self.do_test(test_path=testpath, passes=4)
+        self.do_test(test_path=testpath, passes=3)
+
+    def test_restart_then_shutdown(self):
+        manifestpath = os.path.join("js-modules", "test_shutdownAfterRestart", "manifest.ini")
+        self.do_test(manifest_path=manifestpath, passes=3)
 
     def test_skipped_with_restart(self):
         testpath = os.path.join("js-modules", "restartTests", "testCountTestSkipped.js")
