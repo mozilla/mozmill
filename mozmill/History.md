@@ -1,16 +1,21 @@
-2.0.4 / 2013-02-04
+2.0.5 / 2014-02-10
 ==================
 
-  * Bug 967152 - Upgrade to Mozrunner 5.33. r=aeftimie
-  * Bug 948912 - Mozmill fails to send large reports on OS X 10.6. r=hskupin
-  * Bug 964318 - Discard unwanted messages from the consoleObserver. r=ahal
-  * Bug 965343 - Upgrade to Mozrunner 5.32. r=drno
-  * Bug 964753 - Upgrade to mozrunner 5.31. r=dhunt
-  * Bug 959551 - Mozmill keeps a zombie process open after a restart of Firefox. r=dhunt
-  * Bug 886360 - Disable remaining Python user shutdown tests. r=dhunt
-  * Bug 886360 - Disabled userShutdown mutt tests. r=hskupin
-  * Bug 956426 - Follow-up to fix usage of this for properties. r=dhunt
-  * Bug 953398 - MozMillDropList.prototype.select causes memory leak. r=hskupin
+  * Bug 966234 - A shutdown after a restart causes Mozmill to open a new Firefox process before the former one is gone
+
+2.0.4 / 2014-02-04
+==================
+
+  * Bug 967152 - Upgrade to Mozrunner 5.33
+  * Bug 948912 - Mozmill fails to send large reports on OS X 10.6
+  * Bug 964318 - Discard unwanted messages from the consoleObserver
+  * Bug 965343 - Upgrade to Mozrunner 5.32
+  * Bug 964753 - Upgrade to mozrunner 5.31
+  * Bug 959551 - Mozmill keeps a zombie process open after a restart of Firefox
+  * Bug 886360 - Disable remaining Python user shutdown tests
+  * Bug 886360 - Disabled userShutdown mutt tests
+  * Bug 956426 - Follow-up to fix usage of this for properties
+  * Bug 953398 - MozMillDropList.prototype.select causes memory leak
 
 2.0.3 / 2013-12-20
 ==================
