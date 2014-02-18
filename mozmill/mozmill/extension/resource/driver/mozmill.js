@@ -126,7 +126,11 @@ function getApplicationDetails() {
     platform_buildid: appInfo.platformBuildID,
     platform_version: appInfo.platformVersion,
     addons: getAddons(),
-    startupinfo: getStartupInfo()
+    startupinfo: getStartupInfo(),
+    paths: {
+      appdata: Services.dirsvc.get('UAppData', Ci.nsIFile).path,
+      profile: Services.dirsvc.get('ProfD', Ci.nsIFile).path
+    }
   };
 
   return JSON.stringify(details);

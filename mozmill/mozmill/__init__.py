@@ -37,6 +37,12 @@ extension_path = os.path.join(basedir, 'extension')
 ADDONS = [extension_path, jsbridge.extension_path]
 JSBRIDGE_TIMEOUT = 60.
 
+# Environment variables
+ENVIRONMENT = {
+    # Disable the internal crash reporter
+    'MOZ_CRASHREPORTER_NO_REPORT': '1',
+}
+
 
 class TestResults(object):
     """Class to accumulate test results and other information."""
@@ -124,6 +130,9 @@ class MozMill(object):
         runner_args = copy.deepcopy(runner_args) or {}
         runner_args['profile_args'] = profile_args
 
+        # update environment variables for API usage
+        os.environ.update(ENVIRONMENT)
+
         # create an equipped runner
         runner = runner_class.create(**runner_args)
 
@@ -164,9 +173,13 @@ class MozMill(object):
         # persisted data
         self.persisted = {}
 
-        # shutdown parameters
-        self.shutdownMode = {}
+        # state parameters
         self.endRunnerCalled = False
+        self.running_test = {}
+        self.shutdownMode = {}
+
+        # crash handling parameters
+        self.minidump_save_path = tempfile.gettempdir()
 
         # list of listeners and handlers
         self.listeners = []
@@ -189,8 +202,6 @@ class MozMill(object):
         handlers.append(self.results)
         self.setup_handlers(handlers)
 
-        # disable the crashreporter
-        os.environ['MOZ_CRASHREPORTER_NO_REPORT'] = '1'
 
     ### methods for event listeners
 
@@ -324,7 +335,14 @@ class MozMill(object):
 
         # fetch the application info
         if not self.results.appinfo:
-            self.results.appinfo = self.get_appinfo()
+            appinfo = self.get_appinfo()
+
+            self.results.appinfo = appinfo
+
+            # We got the application appdata path. Use it for minidump backups.
+            self.minidump_save_path = os.path.join(appinfo['paths']['appdata'],
+                                                   'Crash Reports',
+                                                   'pending')
 
         try:
             frame = jsbridge.JSObject(self.bridge, js_module_frame)
@@ -425,8 +443,8 @@ class MozMill(object):
 
         finally:
             # shutdown the test harness cleanly
-            self.running_test = None
             self.stop()
+            self.running_test = None
 
     def get_appinfo(self):
         """Collect application specific information."""
@@ -470,11 +488,19 @@ class MozMill(object):
 
         return self.results
 
+    def check_for_crashes(self):
+        """Check if crashes happened while the test was run"""
+        return self.runner.check_for_crashes(dump_save_path=self.minidump_save_path,
+                                             test_name=self.running_test.get('path'))
+
     def handle_disconnect(self):
         """Handle a JSBridgeDisconnectError for the active process"""
         if not self.shutdownMode:
             # In case of an unexpected shutdown (e.g. crash) stop the runner
-            self.report_disconnect()
+            if self.check_for_crashes():
+                self.report_disconnect("Application crashed")
+            else:
+                self.report_disconnect()
             self.stop_runner()
         elif self.shutdownMode.get('restart'):
             # When the application gets restarted it will get a new process id by
@@ -496,7 +522,7 @@ class MozMill(object):
     def report_disconnect(self, message=None):
         message = message or 'Disconnect Error: Application unexpectedly closed'
 
-        test = getattr(self, "current_test", {})
+        test = self.running_test
         test['passes'] = []
         test['fails'] = [{
           'exception': {
@@ -541,6 +567,10 @@ class MozMill(object):
             self.start_runner()
             self.stop_runner()
 
+        # Check for remaining crashes
+        if self.check_for_crashes():
+            self.report_disconnect('Application crashed')
+
         # stop the back channel and bridge
         if self.back_channel:
             self.back_channel.close()
@@ -584,6 +614,9 @@ class CLI(mozrunner.CLI):
     module = "mozmill"
 
     def __init__(self, args):
+
+        # Update environmental settings for command line usage
+        os.environ.update(ENVIRONMENT)
 
         # event handler plugin names
         self.handlers = {}
