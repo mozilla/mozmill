@@ -2,9 +2,9 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var EXPORTED_SYMBOLS = ['ApplicationQuitError',
+var EXPORTED_SYMBOLS = ['BaseError',
+                        'ApplicationQuitError',
                         'AssertionError',
-                        'BaseError',
                         'TimeoutError'];
 
 
@@ -78,4 +78,25 @@ function AssertionError(aMessage, aFileName, aLineNumber, aFunctionName) {
 
 AssertionError.prototype = Object.create(BaseError.prototype, {
   constructor : { value : AssertionError }
+});
+
+/**
+ * Creates a new instance of a timeout error
+ *
+ * @class Represents an error object thrown by failing assertions
+ * @param {string} [aMessage=Error().message]
+ *        The error message to show
+ * @param {string} [aFileName=Error().fileName]
+ *        The file name where the error has been raised
+ * @param {string} [aLineNumber=Error().lineNumber]
+ *        The line number of the file where the error has been raised
+ * @param {string} [aFunctionName=undefined]
+ *        The function name in which the error has been raised
+ */
+function TimeoutError(aMessage, aFileName, aLineNumber, aFunctionName) {
+  AssertionError.apply(this, arguments);
+}
+
+TimeoutError.prototype = Object.create(AssertionError.prototype, {
+  constructor : { value : TimeoutError }
 });

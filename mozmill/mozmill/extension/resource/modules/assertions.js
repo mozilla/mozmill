@@ -604,7 +604,7 @@ Assert.prototype = {
 
     if (self.result !== true && self.timeIsUp) {
       aMessage = aMessage || arguments.callee.name + ": Timeout exceeded for '" + aCallback + "'";
-      throw new errors.AssertionError(aMessage);
+      throw new errors.TimeoutError(aMessage);
     }
 
     broker.pass({'function':'assert.waitFor()'});
