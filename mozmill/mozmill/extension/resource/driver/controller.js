@@ -966,6 +966,7 @@ function browserAdditions (controller) {
   controller.waitForPageLoad = function (aDocument, aTimeout, aInterval) {
     var timeout = aTimeout || 30000;
     var win = null;
+    var timed_out = false;
 
     // If a user tries to do waitForPageLoad(2000), this will assign the
     // interval the first arg which is most likely what they were expecting
@@ -983,12 +984,25 @@ function browserAdditions (controller) {
     win = win || this.browserObject.selectedBrowser.contentWindow;
 
     // Wait until the content in the tab has been loaded
-    this.waitFor(function () {
-      return windows.map.hasPageLoaded(utils.getWindowId(win));
-    }, "controller.waitForPageLoad(): Timeout waiting for page loaded.",
-        timeout, aInterval, this);
+    try {
+      this.waitFor(function () {
+        return windows.map.hasPageLoaded(utils.getWindowId(win));
+      }, "Timeout", timeout, aInterval);
+    }
+    catch (ex if ex instanceof errors.TimeoutError) {
+      timed_out = true;
+    }
+    finally {
+      state = 'URI=' + win.document.location.href +
+              ', readyState=' + win.document.readyState;
+      message = "controller.waitForPageLoad(" + state + ")";
 
-    broker.pass({'function':'controller.waitForPageLoad()'});
+      if (timed_out) {
+        throw new errors.AssertionError(message);
+      }
+
+      broker.pass({'function': message});
+    }
   }
 }
 

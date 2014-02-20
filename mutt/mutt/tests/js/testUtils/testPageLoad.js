@@ -77,12 +77,15 @@ var testWaitForPageLoad = function () {
   /**
    * PART III - Check that we correctly handle timeouts for waitForPageLoad
    */
-  try {
-    controller.open(TEST_DATA[0].url);
-    controller.waitForPageLoad(0);
+  // Bug 974859:
+  // controller.waitForPageLoad() doesn't timeout for 0
+  // try {
+  //   controller.open(TEST_DATA[0].url);
+  //   controller.waitForPageLoad(0);
 
-    throw new Error("controller.waitForPageLoad() not timed out for timeout=0.");
-  } catch (ex) {}
+  //   throw new Error("controller.waitForPageLoad() not timed out for timeout=0.");
+  // } catch (ex if ex isinstanceof errors.TimeoutError) {
+  // }
 
   /**
    * PART IV - Make sure we don't fail when clicking links on a page
