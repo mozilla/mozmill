@@ -4,12 +4,14 @@
 
 "use strict";
 
+Cu.import("resource://crashme/modules/Crasher.jsm");
+
 function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();
 }
 
-function testSleep() {
-  controller.mainMenu.click("#menu_FileQuitItem");
+function testUnexpectedCrash() {
+  Crasher.crash(Crasher.CRASH_NULL_POINTER_DEREF);
 
-  controller.sleep(persisted.waitTime);
+  controller.sleep(10000);
 }

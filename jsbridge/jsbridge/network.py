@@ -11,11 +11,8 @@ from threading import Thread
 from time import sleep
 import uuid
 
-import jsobjects
-
-
-class JavaScriptException(Exception):
-    pass
+from .jsobjects import JSObject
+from .errors import ConnectionError
 
 
 class Telnet(asyncore.dispatcher):
@@ -64,16 +61,12 @@ decoder = json.JSONDecoder()
 class JSObjectEncoder(json.JSONEncoder):
     """Encoder that supports jsobject references by name."""
     def encode(self, o):
-        if isinstance(o, jsobjects.JSObject):
+        if isinstance(o, JSObject):
             return o._name_
         else:
             return json.JSONEncoder.encode(self, o)
 
 encoder = JSObjectEncoder()
-
-
-class JSBridgeDisconnectError(Exception):
-    """exception raised when an unexpected disconect happens"""
 
 
 class Bridge(Telnet):
@@ -119,7 +112,7 @@ class Bridge(Telnet):
             Bridge.timeout_ctr += interval
             if Bridge.timeout_ctr > self.timeout:
                 print 'Timeout: %s' % exec_string
-                raise JSBridgeDisconnectError("Connection timed out")
+                raise ConnectionError("Connection timed out")
 
             sleep(interval)
             try:
@@ -129,14 +122,14 @@ class Bridge(Telnet):
                 socket_error = True
 
             if not self.connected or socket_error:
-                raise JSBridgeDisconnectError("Connection disconnected")
+                raise ConnectionError("Connection disconnected")
 
         # reset the counter
         Bridge.timeout_ctr = 0.
 
         callback = self.callbacks.pop(_uuid)
         if callback['result'] is False and raise_exeption is True:
-            raise JavaScriptException(callback['exception'])
+            raise errors.JavaScriptError(callback['exception'])
         return callback
 
     def register(self):
@@ -171,7 +164,7 @@ class Bridge(Telnet):
     def fire_callbacks(self, obj):
         if 'uuid' not in obj and 'exception' in obj:
             # harness failure
-            raise JavaScriptException(obj['exception']['message'])
+            raise errors.JavaScriptError(obj['exception']['message'])
         self.callbacks[obj['uuid']] = obj
 
     def process_read(self, data):

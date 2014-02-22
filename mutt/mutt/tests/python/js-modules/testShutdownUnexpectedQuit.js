@@ -4,12 +4,13 @@
 
 "use strict";
 
+Cu.import("resource://gre/modules/Services.jsm");
+
 function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();
 }
 
-function testSleep() {
-  controller.mainMenu.click("#menu_FileQuitItem");
-
-  controller.sleep(persisted.waitTime);
+function testUnexpectedQuit() {
+  Services.startup.quit(Ci.nsIAppStartup.eAttemptQuit);
+  controller.sleep(10000);
 }

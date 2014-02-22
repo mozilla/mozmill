@@ -212,7 +212,8 @@ class LoggerListener(object):
     def events(self):
         return {'mozmill.setTest': self.startTest,
                 'mozmill.endTest': self.endTest,
-                'mozmill.endModule': self.endModule}
+                'mozmill.endModule': self.endModule,
+                'mozmill.disconnected': self.disconnected}
 
     def stop(self, results, fatal):
         """Print pass/failed/skipped statistics."""
@@ -227,6 +228,9 @@ class LoggerListener(object):
         self.logger.log(level, "Skipped: %d" % len(results.skipped))
 
     ### event listeners
+
+    def disconnected(self, message):
+        self.logger.log(self.custom_levels["TEST-UNEXPECTED-FAIL"], message)
 
     def startTest(self, test):
         filename = self.mozmill.running_test.get('relpath', test['filename'])

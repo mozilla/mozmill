@@ -21,8 +21,7 @@ from mozrunner.utils import get_metadata_from_egg
 import wptserve
 
 import jsbridge
-from jsbridge.network import JSBridgeDisconnectError
-
+from .errors import *
 
 # metadata
 package_metadata = get_metadata_from_egg('mozmill')
@@ -297,7 +296,8 @@ class MozMill(object):
         # get the bridge and the back-channel
         self.back_channel, \
         self.bridge = jsbridge.wait_and_create_network("127.0.0.1",
-                                                       self.jsbridge_port)
+                                                       self.jsbridge_port,
+                                                       self.jsbridge_timeout)
         # set a timeout on jsbridge actions in order to ensure termination
         self.back_channel.timeout = self.bridge.timeout = self.jsbridge_timeout
 
@@ -346,9 +346,11 @@ class MozMill(object):
             self.results.appinfo = appinfo
 
             # We got the application appdata path. Use it for minidump backups.
-            self.minidump_save_path = os.path.join(appinfo['paths']['appdata'],
-                                                   'Crash Reports',
-                                                   'pending')
+            paths = appinfo.get('paths', {})
+            if paths:
+                self.minidump_save_path = os.path.join(paths['appdata'],
+                                                       'Crash Reports',
+                                                       'pending')
 
         try:
             frame = jsbridge.JSObject(self.bridge, js_module_frame)
@@ -356,7 +358,6 @@ class MozMill(object):
             # transfer persisted data
             frame.persisted = self.persisted
         except:
-            self.report_disconnect(self.framework_failure)
             raise
 
         # return the frame
@@ -375,7 +376,7 @@ class MozMill(object):
             # set the document root
             self.http_server_set_document_root(test)
             frame.runTestFile(test['path'], name)
-        except JSBridgeDisconnectError:
+        except jsbridge.ConnectionError, e:
             # if the runner is restarted via JS, run this test
             # again if the next is specified
             nextTest = self.shutdownMode.get('next')
@@ -384,7 +385,7 @@ class MozMill(object):
                 # throw the error up the chain
                 raise
 
-            self.handle_disconnect()
+            self.handle_disconnect(e)
             frame = self.run_test_file(self.start_runner(), test, nextTest)
 
         return frame
@@ -438,9 +439,9 @@ class MozMill(object):
 
                         self.runner.reset()
 
-                except JSBridgeDisconnectError:
+                except jsbridge.ConnectionError, e:
                     frame = None
-                    self.handle_disconnect()
+                    self.handle_disconnect(e)
 
             # stop the runner
             if frame:
@@ -460,7 +461,7 @@ class MozMill(object):
             app_info = json.loads(mozmill.getApplicationDetails())
             app_info.update(self.runner.get_repositoryInfo())
 
-        except JSBridgeDisconnectError:
+        except jsbridge.ConnectionError:
             # We don't have to call report_disconnect here because
             # start_runner() will handle this exception
             pass
@@ -498,15 +499,21 @@ class MozMill(object):
         return self.runner.check_for_crashes(dump_save_path=self.minidump_save_path,
                                              test_name=self.running_test.get('path'))
 
-    def handle_disconnect(self):
-        """Handle a JSBridgeDisconnectError for the active process"""
+    def handle_disconnect(self, e):
+        """Handle a ConnectionError for the active process"""
         if not self.shutdownMode:
-            # In case of an unexpected shutdown (e.g. crash) stop the runner
+            # In case of an unexpected disconnect (e.g. crash or restart)
+            # give the application some seconds to quit, report the disconnect
+            # state, and finally hard-stop the runner
+            returncode = self.runner.wait(timeout=5)
+
             if self.check_for_crashes():
-                self.report_disconnect("Application crashed")
+                self.report_disconnect('Application crashed')
             else:
                 self.report_disconnect()
-            self.stop_runner()
+
+            if returncode is None:
+                self.stop_runner()
         elif self.shutdownMode.get('restart'):
             # When the application gets restarted it will get a new process id by
             # spawning a new child process and obsoleting the former process.
@@ -517,7 +524,14 @@ class MozMill(object):
             # to wait on Windows because the IO completion ports feature is taking
             # care of it internally.
             if not mozinfo.isWin:
-                self.runner.wait(timeout=1.)
+                returncode = self.runner.wait(timeout=1)
+            else:
+                returncode = self.runner.returncode
+
+            # If the application hasn't been restarted (bug 974971) report it
+            # as a disconnect error
+            if returncode is not None:
+                self.stop_runner()
         else:
             # It's a JS triggered shutdown of the application. We
             # have to wait until the process is gone. Otherwise we
@@ -525,7 +539,13 @@ class MozMill(object):
             self.runner.wait(timeout=self.jsbridge_timeout)
 
     def report_disconnect(self, message=None):
-        message = message or 'Disconnect Error: Application unexpectedly closed'
+        if message is None:
+            if self.runner.returncode is None:
+                message = 'Connection to application lost'
+            else:
+                message = 'Application unexpectedly closed'
+
+        message += ' (exit code: %s)' % self.runner.returncode
 
         test = self.running_test
         test['passes'] = []
@@ -541,6 +561,8 @@ class MozMill(object):
         self.results.alltests.append(test)
         self.results.fails.append(test)
 
+        self.fire_event('disconnected', message)
+
     def stop_runner(self):
         # Give a second for any callbacks to finish.
         sleep(1)
@@ -554,13 +576,13 @@ class MozMill(object):
         try:
             frame = jsbridge.JSObject(self.bridge, js_module_frame)
             frame.shutdownApplication()
-        except (socket.error, JSBridgeDisconnectError):
+        except (socket.error, jsbridge.ConnectionError):
             pass
 
         # wait for the runner to stop
         self.runner.wait(timeout=self.jsbridge_timeout)
         if self.runner.is_running():
-            raise Exception('client process shutdown unsuccessful')
+            raise errors.ShutdownError('client process shutdown unsuccessful')
 
     def stop(self):
         """Cleanup after a run"""
@@ -866,7 +888,7 @@ class CLI(mozrunner.CLI):
             try:
                 mozmill.start_runner()
                 mozmill.runner.wait()
-            except (JSBridgeDisconnectError, KeyboardInterrupt):
+            except (jsbridge.ConnectionError, KeyboardInterrupt):
                 pass
             return
 

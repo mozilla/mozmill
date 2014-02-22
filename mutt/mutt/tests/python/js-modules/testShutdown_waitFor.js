@@ -9,7 +9,7 @@ function setupModule(aModule) {
 }
 
 function testWaitFor() {
-  controller.keypress(null, "q", {accelKey: true});
+  controller.mainMenu.click("#menu_FileQuitItem");
 
   assert.waitFor(() => false,
                  "Wait for shutdown", persisted.waitTime);
