@@ -28,7 +28,7 @@ function testMenu() {
 
   // Remove the text by selecting 'Undo'
   contextMenu.keypress("VK_DOWN", {});
-  contextMenu.keypress("VK_ENTER", {});
+  contextMenu.keypress("VK_RETURN", {});
   contextMenu.close();
 
   expect.equal(field.getNode().value, "", "Text field has been emptied.");
