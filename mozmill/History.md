@@ -1,3 +1,10 @@
+2.0.6 / 2014-03-07
+==================
+
+ * Bug 977544 - Replace VK_ENTER with VK_RETURN
+ * Bug 619204 - Fix disabling of crash reporter, and add logging for crash details
+ * Bug 957973 - Enhance waitForPageLoad() with more details for the load status in case of timeout
+
 2.0.5 / 2014-02-10
 ==================
 
