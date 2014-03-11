@@ -143,3 +143,6 @@ class Report(object):
         except urllib2.URLError as e:
             print "Sending results to '%s' failed (%s)." % (report_url,
                                                             e.reason)
+        except Exception as e:
+            print "Sending results to '%s' failed (%s)." % (report_url,
+            str(e))
