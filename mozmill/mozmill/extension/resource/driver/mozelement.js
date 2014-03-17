@@ -35,7 +35,7 @@ function createInstance(locatorType, locator, elem, document) {
   var args = { "document": document, "element": elem };
 
   // If we already have an element lets determine the best MozMillElement type
-  if (elem) {
+  if (elem && elem.localName) {
     for (var i = 0; i < subclasses.length; ++i) {
       if (subclasses[i].isType(elem)) {
         return new subclasses[i](locatorType, locator, args);

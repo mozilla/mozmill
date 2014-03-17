@@ -11,7 +11,7 @@ const TEST_DATA = BASE_URL + "form.html";
 function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();
 
-  aModule.win = new elementslib.MozMillElement("Elem", aModule.controller.window);
+  aModule.win = new findElement.Elem(aModule.controller.window);
 }
 
 function testContent() {
