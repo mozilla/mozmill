@@ -5,7 +5,6 @@
 from cStringIO import StringIO
 import os
 import sys
-import tempfile
 import unittest
 
 import mozmill
@@ -13,18 +12,10 @@ from mozmill.logger import LoggerListener
 
 
 class ModuleTest(unittest.TestCase):
-    def make_test(self):
-        """make an example test to run"""
-        test = """var test_something = function() {}"""
-        fd, path = tempfile.mkstemp()
-        os.write(fd, test)
-        os.close(fd)
-
-        return path
 
     def do_test(self, relative_test_path):
-        testpath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                relative_test_path)
+        abspath = os.path.dirname(os.path.abspath(__file__))
+        testpath = os.path.join(abspath, relative_test_path)
         tests = [{'path': testpath}]
 
         info_data = StringIO()
@@ -43,14 +34,11 @@ class ModuleTest(unittest.TestCase):
         return results
 
     def test_modules(self):
-        self.path = self.make_test()
-        results = self.do_test(self.path)
+        testpath = os.path.join("js-modules", "newEmptyFunction.js")
+        results = self.do_test(testpath)
 
         self.assertEqual(sys.getrefcount(results), 2,
                          "Only a single reference to results exists")
-
-    def tearDown(self):
-        os.remove(self.path)
 
 if __name__ == '__main__':
     unittest.main()

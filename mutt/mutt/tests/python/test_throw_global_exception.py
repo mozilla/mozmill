@@ -6,7 +6,6 @@
 
 import mozmill
 import os
-import tempfile
 import unittest
 
 
@@ -16,21 +15,14 @@ class TestBug690154(unittest.TestCase):
     https://bugzilla.mozilla.org/show_bug.cgi?id=690154
     """
 
-    def make_test(self):
-        """make an example test to run"""
-        test = """1 = foo"""
-        fd, path = tempfile.mkstemp()
-        os.write(fd, test)
-        os.close(fd)
-        return path
-
-    def test_JSON_structure(self):
-        passes = 1
-        self.path = self.make_test()
+    def do_test(self, relative_test_path, passes=0):
+        abspath = os.path.dirname(os.path.abspath(__file__))
+        testpath = os.path.join(abspath, relative_test_path)
+        tests = [{'path': testpath}]
 
         m = mozmill.MozMill.create()
-        m.run([dict(path=self.path)])
-        results = m.finish()
+        m.run(tests)
+        results = m.finish(())
 
         # no modules pass
         self.assertFalse(results.passes)
@@ -47,8 +39,10 @@ class TestBug690154(unittest.TestCase):
         self.assertTrue('exception' in failure)
         self.assertTrue(fails['name'] == '<TOP_LEVEL>')
 
-    def tearDown(self):
-        os.remove(self.path)
+    def test_JSON_structure(self):
+        testpath = os.path.join("js-modules", "testThrowGlobalException.js")
+        self.do_test(testpath, passes=1)
+
 
 if __name__ == '__main__':
     unittest.main()

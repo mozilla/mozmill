@@ -10,6 +10,7 @@ PACKAGE_NAME = "mutt"
 PACKAGE_VERSION = "0.1"
 
 deps = ['ManifestDestiny==0.5.7',
+        'mozfile',
         'mozmill']
 
 desc = "Test Harness for Mozmill"

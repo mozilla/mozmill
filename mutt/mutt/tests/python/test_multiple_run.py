@@ -6,34 +6,27 @@
 
 import mozmill
 import os
-import tempfile
 import unittest
 
 
 class TestMozmillAPI(unittest.TestCase):
     """test mozmill's API"""
 
-    def make_test(self):
-        """make an example test to run"""
-        test = """var test_something = function() {}"""
-        fd, path = tempfile.mkstemp()
-        os.write(fd, test)
-        os.close(fd)
-        return path
-
-    def test_runtwice(self):
-        passes = 2
-        self.path = self.make_test()
+    def do_test(self, relative_test_path, passes=0):
+        abspath = os.path.dirname(os.path.abspath(__file__))
+        testpath = os.path.join(abspath, relative_test_path)
+        tests = [{'path': testpath}]
 
         m = mozmill.MozMill.create()
-        m.run([dict(path=self.path)])
-        m.run([dict(path=self.path)])
+        m.run(tests)
+        m.run(tests)
         results = m.finish()
 
-        self.assertTrue(len(results.passes) == passes)
+        self.assertEqual(len(results.passes), passes)
 
-    def tearDown(self):
-        os.remove(self.path)
+    def test_runtwice(self):
+        testpath = os.path.join("js-modules", "newEmptyFunction.js")
+        self.do_test(testpath, passes=2)
 
 if __name__ == '__main__':
     unittest.main()

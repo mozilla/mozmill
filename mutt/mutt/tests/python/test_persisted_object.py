@@ -6,69 +6,42 @@
 
 import mozmill
 import os
-import tempfile
 import unittest
 
 
 class TestMozmillPersisted(unittest.TestCase):
     """test persisted object"""
 
-    test = """
-    function setupModule() {
-      controller = mozmill.getBrowserController();
-    }
+    def do_test(self, relative_test_path):
+        abspath = os.path.dirname(os.path.abspath(__file__))
+        testpath = os.path.join(abspath, relative_test_path)
+        tests = [{'path': testpath}]
 
-    function test() {
-      persisted.bar = 'bar';
-      persisted.fleem = 2;
-      persisted.number += 1;
+        m = mozmill.MozMill.create()
 
-      delete persisted.foo;
-      %(shutdown)s
-    }
-    """
+        m.persisted['bar'] = 'foo'
+        m.persisted['foo'] = 'bar'
+        m.persisted['number'] = 1
 
-    def make_test(self, shutdown=''):
-        """make an example test to run"""
-        fd, path = tempfile.mkstemp()
-        os.write(fd, self.test % dict(shutdown=shutdown))
-        os.close(fd)
-        return path
+        m.run(tests)
+        results = m.finish()
+
+        self.assertEqual(len(results.passes), 1)
+
+        # inspect the persisted data following the test
+        self.assertEqual(m.persisted['fleem'], 2)
+        self.assertEqual(m.persisted['bar'], 'bar')
+        self.assertEqual(m.persisted['number'], 2)
+        self.assertFalse('foo' in m.persisted)
 
     def test_persisted(self):
-        self.path = self.make_test()
-        m = mozmill.MozMill.create()
-        m.persisted['bar'] = 'foo'
-        m.persisted['foo'] = 'bar'
-        m.persisted['number'] = 1
-        m.run([dict(path=self.path)])
-        results = m.finish()
-
-        self.assertTrue(len(results.passes) == 1)
-        self.inspect_persisted(m.persisted)
+        testpath = os.path.join("js-modules", "testPersisted.js")
+        self.do_test(testpath)
 
     def test_persisted_shutdown(self):
-        self.path = self.make_test(shutdown='controller.stopApplication();')
+        testpath = os.path.join("js-modules", "testPersistedShutdown.js")
+        self.do_test(testpath)
 
-        m = mozmill.MozMill.create()
-        m.persisted['bar'] = 'foo'
-        m.persisted['foo'] = 'bar'
-        m.persisted['number'] = 1
-        m.run([dict(path=self.path)])
-        results = m.finish()
-
-        self.assertTrue(len(results.passes) == 1)
-        self.inspect_persisted(m.persisted)
-
-    def inspect_persisted(self, persisted):
-        """inspect the persisted data following the test"""
-        self.assertEqual(persisted['fleem'], 2)
-        self.assertEqual(persisted['bar'], 'bar')
-        self.assertEqual(persisted['number'], 2)
-        self.assertFalse('foo' in persisted)
-
-    def tearDown(self):
-        os.remove(self.path)
 
 if __name__ == '__main__':
     unittest.main()

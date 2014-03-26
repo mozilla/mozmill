@@ -6,67 +6,62 @@
 
 import os
 import unittest
-import shutil
 import tempfile
 import uuid
 
+import mozfile
 import mozmill
 
 
 class ScreenshotPathTest(unittest.TestCase):
 
-    test = """
-        function setupModule() {
-          controller = mozmill.getBrowserController();
-        }
+    def setUp(self):
+        self.screenshot_name = str(uuid.uuid4())
+        self.screenshots_path = None
 
-        function test() {
-          var backButton = findElement.ID(controller.window.document, 'back-button');
-          controller.screenshot(backButton, '%(screenshot_name)s', true);
-        }
-        """
+        self.persisted = {"screenshotName": self.screenshot_name}
 
-    def make_test(self, screenshot_name):
-        """make an example test to run"""
-        fd, path = tempfile.mkstemp()
-        os.write(fd, self.test % dict(screenshot_name=screenshot_name))
-        os.close(fd)
-        return path
+    def do_test(self, screenshots_path="", persisted=None):
+        abspath = os.path.dirname(os.path.abspath(__file__))
+        testpath = os.path.join("js-modules", "testScreenshotPath.js")
+        testpath = os.path.join(abspath, testpath)
+
+        tests = [{'path': testpath}]
+
+        m = mozmill.MozMill.create(screenshots_path=screenshots_path)
+        if persisted:
+            m.persisted.update(persisted)
+        m.run(tests)
+        results = m.finish()
+
+        return results
 
     def test_screenshot_with_custom_path(self):
-        screenshot_name = str(uuid.uuid4())
-        self.path = self.make_test(screenshot_name)
         self.screenshots_path = tempfile.mkdtemp()
-        m = mozmill.MozMill.create(screenshots_path=self.screenshots_path)
-        m.run([dict(path=self.path)])
-        results = m.finish()
-        screenshots = results.screenshots
+        results = self.do_test(self.screenshots_path, self.persisted)
+        screenshot = results.screenshots[0]['filename']
 
-        assert len(screenshots) == 1
-        screenshot = os.path.join(self.screenshots_path, '%s.jpg' % screenshot_name)
-        assert screenshots[0]['filename'] == screenshot
-        assert os.path.isfile(screenshot)
-        shutil.rmtree(self.screenshots_path)
+        self.assertEqual(len(results.screenshots), 1)
+        self.assertTrue(os.path.isfile(screenshot))
+
+        wanted_screenshot = os.path.join(self.screenshots_path,
+                                         '%s.jpg' % self.screenshot_name)
+        self.assertEqual(wanted_screenshot, screenshot)
+        self.assertTrue(os.path.isfile(screenshot))
 
     def test_screenshot_without_custom_path(self):
-        screenshot_name = str(uuid.uuid4())
-        self.path = self.make_test(screenshot_name)
-        m = mozmill.MozMill.create()
-        m.run([dict(path=self.path)])
-        results = m.finish()
-        screenshots = results.screenshots
-        self.screenshots_path = screenshots[0]['filename'].rpartition(os.path.sep)[0]
+        results = self.do_test(persisted=self.persisted)
+        screenshot = results.screenshots[0]['filename']
 
-        assert len(screenshots) == 1
-        assert tempfile.gettempdir() in screenshots[0]['filename']
-        assert screenshots[0]['filename'].endswith('%s.jpg' % screenshot_name)
-        assert os.path.isfile(screenshots[0]['filename'])
-        shutil.rmtree(self.screenshots_path)
+        self.assertEqual(len(results.screenshots), 1)
+        self.assertTrue(os.path.isfile(screenshot))
+
+        self.screenshots_path = os.path.dirname(screenshot)
+        self.assertIn(tempfile.gettempdir(), screenshot)
 
     def tearDown(self):
-        os.remove(self.path)
-        if (self.screenshots_path and os.path.isdir(self.screenshots_path)):
-            shutil.rmtree(self.screenshots_path)
+        mozfile.remove(self.screenshots_path)
+
 
 if __name__ == '__main__':
     unittest.main()
