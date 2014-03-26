@@ -5,7 +5,7 @@
 Cu.import("resource://gre/modules/Services.jsm");
 
 var observer = {
-  observe: function (aSubject, aTopic, aData) {
+  observe: function observer_observe(aSubject, aTopic, aData) {
     Services.obs.removeObserver(observer, "quit-application-requested", false);
     persisted.restarted = true;
   }

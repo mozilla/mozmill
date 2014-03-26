@@ -20,7 +20,7 @@ var withs = {}; Cu.import('resource://mozmill/stdlib/withs.js', withs);
 var dom = {}; Cu.import('resource://mozmill/stdlib/dom.js', dom);
 var objects = {}; Cu.import('resource://mozmill/stdlib/objects.js', objects);
 
-var countQuotes = function (str) {
+function countQuotes(str) {
   var count = 0;
   var i = 0;
 
@@ -43,7 +43,7 @@ var countQuotes = function (str) {
  * Takes a lookup string as input and returns
  * a list of each node in the string
  */
-var smartSplit = function (str) {
+function smartSplit(str) {
   // Ensure we have an even number of quotes
   if (countQuotes(str) % 2 != 0) {
     throw new Error ("Invalid Lookup Expression");
@@ -102,7 +102,7 @@ function nodeSearch(doc, func, string) {
   var element = null;
 
   //inline function to recursively find the element in the DOM, cross frame.
-  var search = function (win, func, string) {
+   function search(win, func, string) {
     if (win == null) {
       return;
     }
@@ -180,7 +180,7 @@ function Link(_document, linkName) {
   }
 
   this.getNodeForDocument = function (linkName) {
-    var getText = function (el) {
+     function getText(el) {
       var text = "";
 
       if (el.nodeType == 3) { //textNode
@@ -291,7 +291,7 @@ function Name(_document, nName) {
 };
 
 
-var _returnResult = function (results) {
+function _returnResult(results) {
   if (results.length == 0) {
     return null
   }
@@ -302,7 +302,7 @@ var _returnResult = function (results) {
   }
 }
 
-var _forChildren = function (element, name, value) {
+function _forChildren(element, name, value) {
   var results = [];
   var nodes = [e for each (e in element.childNodes) if (e)]
 
@@ -316,7 +316,7 @@ var _forChildren = function (element, name, value) {
   return results;
 }
 
-var _forAnonChildren = function (_document, element, name, value) {
+function _forAnonChildren(_document, element, name, value) {
   var results = [];
   var nodes = [e for each (e in _document.getAnoymousNodes(element)) if (e)];
 
@@ -330,15 +330,15 @@ var _forAnonChildren = function (_document, element, name, value) {
   return results;
 }
 
-var _byID = function (_document, parent, value) {
+function _byID(_document, parent, value) {
   return _returnResult(_forChildren(parent, 'id', value));
 }
 
-var _byName = function (_document, parent, value) {
+function _byName(_document, parent, value) {
   return _returnResult(_forChildren(parent, 'tagName', value));
 }
 
-var _byAttrib = function (parent, attributes) {
+function _byAttrib(parent, attributes) {
   var results = [];
   var nodes = parent.childNodes;
 
@@ -366,7 +366,7 @@ var _byAttrib = function (parent, attributes) {
   return _returnResult(results)
 }
 
-var _byAnonAttrib = function (_document, parent, attributes) {
+function _byAnonAttrib(_document, parent, attributes) {
   var results = [];
 
   if (objects.getLength(attributes) == 1) {
@@ -410,7 +410,7 @@ var _byAnonAttrib = function (_document, parent, attributes) {
   return _returnResult(results)
 }
 
-var _byIndex = function (_document, parent, i) {
+function _byIndex(_document, parent, i) {
   if (parent instanceof Array) {
     return parent[i];
   }
@@ -418,15 +418,15 @@ var _byIndex = function (_document, parent, i) {
   return parent.childNodes[i];
 }
 
-var _anonByName = function (_document, parent, value) {
+function _anonByName(_document, parent, value) {
   return _returnResult(_forAnonChildren(_document, parent, 'tagName', value));
 }
 
-var _anonByAttrib = function (_document, parent, value) {
+function _anonByAttrib(_document, parent, value) {
   return _byAnonAttrib(_document, parent, value);
 }
 
-var _anonByIndex = function (_document, parent, i) {
+function _anonByIndex(_document, parent, i) {
   return _document.getAnonymousNodes(parent)[i];
 }
 
@@ -455,7 +455,7 @@ function Lookup(_document, expression) {
    *
    * @returns {Object} Node found by the given expression
    */
-  var reduceLookup = function (parentNode, exp) {
+   function reduceLookup(parentNode, exp) {
     // Abort in case the parent node was not found
     if (!parentNode) {
       return false;

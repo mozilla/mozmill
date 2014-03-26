@@ -5,7 +5,7 @@
 var EXPORTED_SYMBOLS = ['getAttributes'];
 
 
-var getAttributes = function (node) {
+function getAttributes(node) {
   var attributes = {};
 
   for (var i in node.attributes) {

@@ -257,18 +257,18 @@ function timer (name) {
   frame.timers.push(this);
 }
 
-timer.prototype.start = function (name) {
+timer.prototype.start = function timer_start(name) {
   this.timers[name].startTime = (new Date).getTime();
 }
 
-timer.prototype.stop = function (name) {
+timer.prototype.stop = function timer_stop(name) {
   var t = this.timers[name];
 
   t.endTime = (new Date).getTime();
   t.totalTime = (t.endTime - t.startTime);
 }
 
-timer.prototype.end = function () {
+timer.prototype.end = function timer_end() {
   frame.events.fireEvent("timer", this);
   frame.timers.remove(this);
 }

@@ -12,7 +12,7 @@ function testExceptionBackgroundThread() {
   var timer = Cc["@mozilla.org/timer;1"].createInstance(Ci.nsITimer);
 
   var event = {
-    notify: function () {
+    notify: function event_notify() {
       try {
         // Throws an error because interval is not defined
         timer.initWithCallback(this, interval, Ci.nsITimer.TYPE_ONE_SHOT);

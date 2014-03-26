@@ -132,7 +132,7 @@ function getWindowId(aWindow) {
   }
 }
 
-var checkChrome = function () {
+function checkChrome() {
   var loc = window.document.location.href;
   try {
     loc = window.top.document.location.href;

@@ -73,7 +73,7 @@ function Err() {
 /**
  * Expect class for assertions which doesn't add failing and passing frames
  */
-var SoftExpect = function() {}
+function SoftExpect() {}
 SoftExpect.prototype = new assertions.Expect();
 SoftExpect.prototype.constructor = SoftExpect;
 

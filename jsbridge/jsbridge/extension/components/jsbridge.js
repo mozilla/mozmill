@@ -58,7 +58,7 @@ JSBridge.prototype = {
 
         var self = this;
         var startCallback = {
-          notify: function (timer) {
+          notify: function sc_notify(timer) {
             try {
               // Try to start the JSBridge server via a socket. If we fail we
               // will try as long as we do not run into a JSBridgeTimeout and

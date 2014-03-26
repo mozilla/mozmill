@@ -29,7 +29,7 @@ var map = {
    *        Outer ID of the window to check.
    * @returns {Boolean} True if the window is part of the map, otherwise false.
    */
-  contains : function (aWindowId) {
+  contains : function map_contains(aWindowId) {
     return (aWindowId in this._windows);
   },
 
@@ -42,7 +42,7 @@ var map = {
    *        Property to retrieve the value from
    * @return {Object} Value of the window's property
    */
-  getValue : function (aWindowId, aProperty) {
+  getValue : function map_getValue(aWindowId, aProperty) {
     if (!this.contains(aWindowId)) {
       return undefined;
     } else {
@@ -59,7 +59,7 @@ var map = {
    * @param {Number} aWindowId
    *        Outer ID of the window to check.
    */
-  remove : function (aWindowId) {
+  remove : function map_remove(aWindowId) {
     if (this.contains(aWindowId)) {
       delete this._windows[aWindowId];
     }
@@ -77,7 +77,7 @@ var map = {
    * @param {Object}
    *        Value to set
    */
-  update : function (aWindowId, aProperty, aValue) {
+  update : function map_update(aWindowId, aProperty, aValue) {
     if (!this.contains(aWindowId)) {
       this._windows[aWindowId] = { };
     }
@@ -93,7 +93,7 @@ var map = {
    * @param {Window} aId - The outer id of the window to update
    * @param {Boolean} aIsLoaded - Has the window been loaded
    */
-  updatePageLoadStatus : function (aId, aIsLoaded) {
+  updatePageLoadStatus : function map_updatePageLoadStatus(aId, aIsLoaded) {
     this.update(aId, "loaded", aIsLoaded);
 
     var uuid = this.getValue(aId, "id_load_in_transition");
@@ -116,7 +116,7 @@ var map = {
    *
    * @returns {Boolean} True if the content window has been loaded
    */
-  hasPageLoaded : function (aId) {
+  hasPageLoaded : function map_hasPageLoaded(aId) {
     var load_current = this.getValue(aId, "id_load_in_transition");
     var load_handled = this.getValue(aId, "id_load_handled");
 
@@ -137,7 +137,7 @@ var map = {
 
 // Observer when a new top-level window is ready
 var windowReadyObserver = {
-  observe: function (aSubject, aTopic, aData) {
+  observe: function wro_observe(aSubject, aTopic, aData) {
     // Not in all cases we get a ChromeWindow. So ensure we really operate
     // on such an instance. Otherwise load events will not be handled.
     var win = utils.getChromeWindow(aSubject);
@@ -151,7 +151,7 @@ var windowReadyObserver = {
 
 // Observer when a top-level window is closed
 var windowCloseObserver = {
-  observe: function (aSubject, aTopic, aData) {
+  observe: function wco_observe(aSubject, aTopic, aData) {
     var id = utils.getWindowId(aSubject);
     // dump("*** 'outer-window-destroyed' observer notification: id=" + id + "\n");
 

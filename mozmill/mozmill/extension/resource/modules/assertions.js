@@ -53,7 +53,7 @@ Assert.prototype = {
   // ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
   // WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-  _deepEqual: function (actual, expected) {
+  _deepEqual: function Assert__deepEqual(actual, expected) {
     // 7.1. All identical values are equivalent, as determined by ===.
     if (actual === expected) {
       return true;
@@ -79,7 +79,7 @@ Assert.prototype = {
     }
   },
 
-  _objEquiv: function (a, b) {
+  _objEquiv: function Assert__objEquiv(a, b) {
     if (a == null || a == undefined || b == null || b == undefined)
       return false;
     // an identical 'prototype' property.

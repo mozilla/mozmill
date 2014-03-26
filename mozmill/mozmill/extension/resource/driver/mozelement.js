@@ -51,31 +51,31 @@ function createInstance(locatorType, locator, elem, document) {
   throw new Error("Unsupported element type " + locatorType + ": " + locator);
 }
 
-var Elem = function (node) {
+function Elem(node) {
   return createInstance("Elem", node, node);
 };
 
-var Selector = function (document, selector, index) {
+function Selector(document, selector, index) {
   return createInstance("Selector", selector, elementslib.Selector(document, selector, index), document);
 };
 
-var ID = function (document, nodeID) {
+function ID(document, nodeID) {
   return createInstance("ID", nodeID, elementslib.ID(document, nodeID), document);
 };
 
-var Link = function (document, linkName) {
+function Link(document, linkName) {
   return createInstance("Link", linkName, elementslib.Link(document, linkName), document);
 };
 
-var XPath = function (document, expr) {
+function XPath(document, expr) {
   return createInstance("XPath", expr, elementslib.XPath(document, expr), document);
 };
 
-var Name = function (document, nName) {
+function Name(document, nName) {
   return createInstance("Name", nName, elementslib.Name(document, nName), document);
 };
 
-var Lookup = function (document, expression) {
+function Lookup(document, expression) {
   var elem = createInstance("Lookup", expression, elementslib.Lookup(document, expression), document);
 
   // Bug 864268 - Expose the expression property to maintain backwards compatibility
@@ -103,7 +103,7 @@ function MozMillElement(locatorType, locator, args) {
 }
 
 // Static method that returns true if node is of this element type
-MozMillElement.isType = function (node) {
+MozMillElement.isType = function me_isType(node) {
   return true;
 };
 
@@ -154,9 +154,9 @@ MozMillElement.prototype.__defineGetter__("element", function () {
  *
  * @returns {String} the captured dropEffect
  */
-MozMillElement.prototype.dragToElement = function(aElement, aOffsetX, aOffsetY,
-                                                  aSourceWindow, aDestWindow,
-                                                  aDropEffect, aDragData) {
+MozMillElement.prototype.dragToElement = function me_dragToElement(aElement, aOffsetX, aOffsetY,
+                                                                   aSourceWindow, aDestWindow,
+                                                                   aDropEffect, aDragData) {
   if (!this.element) {
     throw new Error("Could not find element " + this.getInfo());
   }
@@ -238,11 +238,11 @@ MozMillElement.prototype.dragToElement = function(aElement, aOffsetX, aOffsetY,
 };
 
 // Returns the actual wrapped DOM node
-MozMillElement.prototype.getNode = function () {
+MozMillElement.prototype.getNode = function me_getNode() {
   return this.element;
 };
 
-MozMillElement.prototype.getInfo = function () {
+MozMillElement.prototype.getInfo = function me_getInfo() {
   return this._locatorType + ": " + this._locator;
 };
 
@@ -250,7 +250,7 @@ MozMillElement.prototype.getInfo = function () {
  * Sometimes an element which once existed will no longer exist in the DOM
  * This function re-searches for the element
  */
-MozMillElement.prototype.exists = function () {
+MozMillElement.prototype.exists = function me_exists() {
   this._element = undefined;
   if (this.element) {
     return true;
@@ -283,7 +283,7 @@ MozMillElement.prototype.exists = function () {
  *                               [optional - default: current element]
  *                  type       - Type of the expected key event
  */
-MozMillElement.prototype.keypress = function (aKey, aModifiers, aExpectedEvent) {
+MozMillElement.prototype.keypress = function me_keypress(aKey, aModifiers, aExpectedEvent) {
   if (!this.element) {
     throw new Error("Could not find element " + this.getInfo());
   }
@@ -343,7 +343,7 @@ MozMillElement.prototype.keypress = function (aKey, aModifiers, aExpectedEvent) 
  *                               [optional - default: current element]
  *                  type       - Type of the expected mouse event
  */
-MozMillElement.prototype.mouseEvent = function (aOffsetX, aOffsetY, aEvent, aExpectedEvent) {
+MozMillElement.prototype.mouseEvent = function me_mouseEvent(aOffsetX, aOffsetY, aEvent, aExpectedEvent) {
   if (!this.element) {
     throw new Error(arguments.callee.name + ": could not find element " + this.getInfo());
   }
@@ -400,7 +400,7 @@ MozMillElement.prototype.mouseEvent = function (aOffsetX, aOffsetY, aEvent, aExp
 /**
  * Synthesize a mouse click event on the given element
  */
-MozMillElement.prototype.click = function (aOffsetX, aOffsetY, aExpectedEvent) {
+MozMillElement.prototype.click = function me_click(aOffsetX, aOffsetY, aExpectedEvent) {
   // Handle menu items differently
   if (this.element && this.element.tagName == "menuitem") {
     this.element.click();
@@ -416,7 +416,7 @@ MozMillElement.prototype.click = function (aOffsetX, aOffsetY, aExpectedEvent) {
 /**
  * Synthesize a double click on the given element
  */
-MozMillElement.prototype.doubleClick = function (aOffsetX, aOffsetY, aExpectedEvent) {
+MozMillElement.prototype.doubleClick = function me_doubleClick(aOffsetX, aOffsetY, aExpectedEvent) {
   this.mouseEvent(aOffsetX, aOffsetY, {clickCount: 2}, aExpectedEvent);
 
   broker.pass({'function':'MozMillElement.doubleClick()'});
@@ -427,7 +427,7 @@ MozMillElement.prototype.doubleClick = function (aOffsetX, aOffsetY, aExpectedEv
 /**
  * Synthesize a mouse down event on the given element
  */
-MozMillElement.prototype.mouseDown = function (aButton, aOffsetX, aOffsetY, aExpectedEvent) {
+MozMillElement.prototype.mouseDown = function me_mouseDown(aButton, aOffsetX, aOffsetY, aExpectedEvent) {
   this.mouseEvent(aOffsetX, aOffsetY, {button: aButton, type: "mousedown"}, aExpectedEvent);
 
   broker.pass({'function':'MozMillElement.mouseDown()'});
@@ -438,7 +438,7 @@ MozMillElement.prototype.mouseDown = function (aButton, aOffsetX, aOffsetY, aExp
 /**
  * Synthesize a mouse out event on the given element
  */
-MozMillElement.prototype.mouseOut = function (aButton, aOffsetX, aOffsetY, aExpectedEvent) {
+MozMillElement.prototype.mouseOut = function me_mouseOut(aButton, aOffsetX, aOffsetY, aExpectedEvent) {
   this.mouseEvent(aOffsetX, aOffsetY, {button: aButton, type: "mouseout"}, aExpectedEvent);
 
   broker.pass({'function':'MozMillElement.mouseOut()'});
@@ -449,7 +449,7 @@ MozMillElement.prototype.mouseOut = function (aButton, aOffsetX, aOffsetY, aExpe
 /**
  * Synthesize a mouse over event on the given element
  */
-MozMillElement.prototype.mouseOver = function (aButton, aOffsetX, aOffsetY, aExpectedEvent) {
+MozMillElement.prototype.mouseOver = function me_mouseOver(aButton, aOffsetX, aOffsetY, aExpectedEvent) {
   this.mouseEvent(aOffsetX, aOffsetY, {button: aButton, type: "mouseover"}, aExpectedEvent);
 
   broker.pass({'function':'MozMillElement.mouseOver()'});
@@ -460,7 +460,7 @@ MozMillElement.prototype.mouseOver = function (aButton, aOffsetX, aOffsetY, aExp
 /**
  * Synthesize a mouse up event on the given element
  */
-MozMillElement.prototype.mouseUp = function (aButton, aOffsetX, aOffsetY, aExpectedEvent) {
+MozMillElement.prototype.mouseUp = function me_mouseUp(aButton, aOffsetX, aOffsetY, aExpectedEvent) {
   this.mouseEvent(aOffsetX, aOffsetY, {button: aButton, type: "mouseup"}, aExpectedEvent);
 
   broker.pass({'function':'MozMillElement.mouseUp()'});
@@ -471,7 +471,7 @@ MozMillElement.prototype.mouseUp = function (aButton, aOffsetX, aOffsetY, aExpec
 /**
  * Synthesize a mouse middle click event on the given element
  */
-MozMillElement.prototype.middleClick = function (aOffsetX, aOffsetY, aExpectedEvent) {
+MozMillElement.prototype.middleClick = function me_middleClick(aOffsetX, aOffsetY, aExpectedEvent) {
   this.mouseEvent(aOffsetX, aOffsetY, {button: 1}, aExpectedEvent);
 
   broker.pass({'function':'MozMillElement.middleClick()'});
@@ -482,7 +482,7 @@ MozMillElement.prototype.middleClick = function (aOffsetX, aOffsetY, aExpectedEv
 /**
  * Synthesize a mouse right click event on the given element
  */
-MozMillElement.prototype.rightClick = function (aOffsetX, aOffsetY, aExpectedEvent) {
+MozMillElement.prototype.rightClick = function me_rightClick(aOffsetX, aOffsetY, aExpectedEvent) {
   this.mouseEvent(aOffsetX, aOffsetY, {type : "contextmenu", button: 2 }, aExpectedEvent);
 
   broker.pass({'function':'MozMillElement.rightClick()'});
@@ -549,7 +549,7 @@ MozMillElement.prototype.rightClick = function (aOffsetX, aOffsetY, aExpectedEve
  *        different target. To be careful, you should use the target associated
  *        with individual touches
  */
-MozMillElement.prototype.touchEvent = function (aOffsetX, aOffsetY, aEvent) {
+MozMillElement.prototype.touchEvent = function me_touchEvent(aOffsetX, aOffsetY, aEvent) {
   if (!this.element) {
     throw new Error(arguments.callee.name + ": could not find element " + this.getInfo());
   }
@@ -593,7 +593,7 @@ MozMillElement.prototype.touchEvent = function (aOffsetX, aOffsetY, aEvent) {
  * @param {MozMillElement} [aExpectedEvent.type]
  *        Type of the expected mouse event
  */
-MozMillElement.prototype.tap = function (aOffsetX, aOffsetY, aExpectedEvent) {
+MozMillElement.prototype.tap = function me_tap(aOffsetX, aOffsetY, aExpectedEvent) {
   this.mouseEvent(aOffsetX, aOffsetY, {
     clickCount: 1,
     inputSource: Ci.nsIDOMMouseEvent.MOZ_SOURCE_TOUCH
@@ -618,7 +618,7 @@ MozMillElement.prototype.tap = function (aOffsetX, aOffsetY, aExpectedEvent) {
  * @param {MozMillElement} [aExpectedEvent.type]
  *        Type of the expected mouse event
  */
-MozMillElement.prototype.doubleTap = function (aOffsetX, aOffsetY, aExpectedEvent) {
+MozMillElement.prototype.doubleTap = function me_doubleTap(aOffsetX, aOffsetY, aExpectedEvent) {
   this.mouseEvent(aOffsetX, aOffsetY, {
     clickCount: 2,
     inputSource: Ci.nsIDOMMouseEvent.MOZ_SOURCE_TOUCH
@@ -639,7 +639,7 @@ MozMillElement.prototype.doubleTap = function (aOffsetX, aOffsetY, aExpectedEven
  * @param {Number} [aTime=1000]
  *        Duration of the "press" event in ms
  */
-MozMillElement.prototype.longPress = function (aOffsetX, aOffsetY, aTime) {
+MozMillElement.prototype.longPress = function me_longPress(aOffsetX, aOffsetY, aTime) {
   var time = aTime || 1000;
 
   this.touchStart(aOffsetX, aOffsetY);
@@ -663,7 +663,7 @@ MozMillElement.prototype.longPress = function (aOffsetX, aOffsetY, aTime) {
  * @param {Number} aOffsetY2
  *        Top offset of the end position
  */
-MozMillElement.prototype.touchDrag = function (aOffsetX1, aOffsetY1, aOffsetX2, aOffsetY2) {
+MozMillElement.prototype.touchDrag = function me_touchDrag(aOffsetX1, aOffsetY1, aOffsetX2, aOffsetY2) {
   this.touchStart(aOffsetX1, aOffsetY1);
   this.touchMove(aOffsetX2, aOffsetY2);
   this.touchEnd(aOffsetX2, aOffsetY2);
@@ -681,7 +681,7 @@ MozMillElement.prototype.touchDrag = function (aOffsetX1, aOffsetY1, aOffsetX2, 
  * @param {Number} aOffsetY
  *        Top offset where the event is triggered
  */
-MozMillElement.prototype.touchStart = function (aOffsetX, aOffsetY) {
+MozMillElement.prototype.touchStart = function me_touchStart(aOffsetX, aOffsetY) {
   this.touchEvent(aOffsetX, aOffsetY, { type: "touchstart" });
 
   broker.pass({'function':'MozMillElement.touchStart()'});
@@ -697,7 +697,7 @@ MozMillElement.prototype.touchStart = function (aOffsetX, aOffsetY) {
  * @param {Number} aOffsetY
  *        Top offset where the event is triggered
  */
-MozMillElement.prototype.touchEnd = function (aOffsetX, aOffsetY) {
+MozMillElement.prototype.touchEnd = function me_touchEnd(aOffsetX, aOffsetY) {
   this.touchEvent(aOffsetX, aOffsetY, { type: "touchend" });
 
   broker.pass({'function':'MozMillElement.touchEnd()'});
@@ -713,7 +713,7 @@ MozMillElement.prototype.touchEnd = function (aOffsetX, aOffsetY) {
  * @param {Number} aOffsetY
  *        Top offset where the event is triggered
  */
-MozMillElement.prototype.touchMove = function (aOffsetX, aOffsetY) {
+MozMillElement.prototype.touchMove = function me_touchMove(aOffsetX, aOffsetY) {
   this.touchEvent(aOffsetX, aOffsetY, { type: "touchmove" });
 
   broker.pass({'function':'MozMillElement.touchMove()'});
@@ -721,7 +721,7 @@ MozMillElement.prototype.touchMove = function (aOffsetX, aOffsetY) {
   return true;
 };
 
-MozMillElement.prototype.waitForElement = function (timeout, interval) {
+MozMillElement.prototype.waitForElement = function me_waitForElement(timeout, interval) {
   var elem = this;
 
   assert.waitFor(function () {
@@ -732,7 +732,7 @@ MozMillElement.prototype.waitForElement = function (timeout, interval) {
   broker.pass({'function':'MozMillElement.waitForElement()'});
 };
 
-MozMillElement.prototype.waitForElementNotPresent = function (timeout, interval) {
+MozMillElement.prototype.waitForElementNotPresent = function me_waitForElementNotPresent(timeout, interval) {
   var elem = this;
 
   assert.waitFor(function () {
@@ -743,8 +743,8 @@ MozMillElement.prototype.waitForElementNotPresent = function (timeout, interval)
   broker.pass({'function':'MozMillElement.waitForElementNotPresent()'});
 };
 
-MozMillElement.prototype.waitThenClick = function (timeout, interval,
-                                                   aOffsetX, aOffsetY, aExpectedEvent) {
+MozMillElement.prototype.waitThenClick = function me_waitThenClick(timeout, interval,
+                                                                   aOffsetX, aOffsetY, aExpectedEvent) {
   this.waitForElement(timeout, interval);
   this.click(aOffsetX, aOffsetY, aExpectedEvent);
 };
@@ -767,14 +767,14 @@ MozMillElement.prototype.waitThenClick = function (timeout, interval,
  * @param {MozMillElement} [aExpectedEvent.type]
  *        Type of the expected mouse event
  */
-MozMillElement.prototype.waitThenTap = function (aTimeout, aInterval,
-                                                 aOffsetX, aOffsetY, aExpectedEvent) {
+MozMillElement.prototype.waitThenTap = function me_waitThenTap(aTimeout, aInterval,
+                                                               aOffsetX, aOffsetY, aExpectedEvent) {
   this.waitForElement(aTimeout, aInterval);
   this.tap(aOffsetX, aOffsetY, aExpectedEvent);
 };
 
 // Dispatches an HTMLEvent
-MozMillElement.prototype.dispatchEvent = function (eventType, canBubble, modifiers) {
+MozMillElement.prototype.dispatchEvent = function me_dispatchEvent(eventType, canBubble, modifiers) {
   canBubble = canBubble || true;
   modifiers = modifiers || { };
 

@@ -48,7 +48,7 @@ function loadPage(aUrl, aResponseType) {
   var request = { succeeded: false };
 
   observer = {
-    observe: function (aSubject, aTopic, aData) {
+    observe: function loadPage_observe(aSubject, aTopic, aData) {
       var channel = aSubject.QueryInterface(Ci.nsIHttpChannel);
 
       switch (aTopic) {

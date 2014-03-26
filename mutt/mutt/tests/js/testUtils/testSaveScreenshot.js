@@ -47,7 +47,7 @@ function testScreenshotSaveCorruption() {
  * @see http://forums.mozillazine.org/viewtopic.php?p=5091285#p5091285
  */
 var brodyFile2DataURL = {
-  getDataURLFromIStream: function (aInputStream, aContentType) {
+  getDataURLFromIStream: function bfdu_getDataURLFromIStream(aInputStream, aContentType) {
     var contentType = aContentType || "application/octet-stream";
 
     var binaryStream = Cc["@mozilla.org/binaryinputstream;1"]
@@ -57,7 +57,7 @@ var brodyFile2DataURL = {
     return "data:" + contentType + ";base64," + encoding;
   },
 
-  getDataURLFromFile: function (aFile) {
+  getDataURLFromFile: function bfdu_getDataURLFromFile(aFile) {
     var contentType = Cc["@mozilla.org/mime;1"]
                       .getService(Ci.nsIMIMEService).getTypeFromFile(aFile);
     var inputStream = Cc["@mozilla.org/network/file-input-stream;1"]

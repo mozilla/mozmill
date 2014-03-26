@@ -61,7 +61,7 @@ var ConsoleObserver = {
   errorRegEx : /\[.*(Error|Exception).*(chrome|resource):\/\/(mozmill|jsbridge).*/i,
   externalFileRegEx :  /.*\.js -> file:\/\/\/.*/,
 
-  observe: function (aSubject, aTopic, aData) {
+  observe: function CO_observe(aSubject, aTopic, aData) {
     var msg = aSubject.message;
 
     // If the message is not related to one of our extensions forget about it

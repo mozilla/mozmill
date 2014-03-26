@@ -67,7 +67,7 @@ function shutdownApplication(aFlags) {
   // Use a timer to trigger the application restart, which will allow us to
   // send an ACK packet via jsbridge if the method has been called via Python.
   var event = {
-    notify: function(timer) {
+    notify: function event_notify(timer) {
       Services.startup.quit(flags);
     }
   }
@@ -113,18 +113,18 @@ var events = {
   globalListeners : []
 }
 
-events.setState = function (v) {
+events.setState = function events_setState(v) {
   return stateChangeBase(['dependencies', 'setupModule', 'teardownModule',
                           'test', 'setupTest', 'teardownTest', 'collection'],
                           null, 'currentState', 'setState', v);
 }
 
-events.toggleUserShutdown = function (obj){
+events.toggleUserShutdown = function events_toggleUserShutdown(obj){
   if (!this.userShutdown) {
     this.userShutdown = obj;
 
     var event = {
-      notify: function(timer) {
+      notify: function event_notify(timer) {
        events.toggleUserShutdown(obj);
       }
     }
@@ -152,15 +152,15 @@ events.toggleUserShutdown = function (obj){
   }
 }
 
-events.isUserShutdown = function () {
+events.isUserShutdown = function events_isUserShutdown() {
   return this.userShutdown ? this.userShutdown["user"] : false;
 }
 
-events.isRestartShutdown = function () {
+events.isRestartShutdown = function events_isRestartShutdown() {
   return this.userShutdown.restart;
 }
 
-events.startShutdown = function (obj) {
+events.startShutdown = function events_startShutdown(obj) {
   events.fireEvent('shutdown', obj);
 
   if (obj["user"]) {
@@ -170,7 +170,7 @@ events.startShutdown = function (obj) {
   }
 }
 
-events.setTest = function (test) {
+events.setTest = function events_setTest(test) {
   test.__start__ = Date.now();
   test.__passes__ = [];
   test.__fails__ = [];
@@ -182,7 +182,7 @@ events.setTest = function (test) {
   events.fireEvent('setTest', obj);
 }
 
-events.endTest = function (test) {
+events.endTest = function events_endTest(test) {
   // use the current test unless specified
   if (test === undefined) {
     test = events.currentTest;
@@ -221,7 +221,7 @@ events.endTest = function (test) {
   }
 }
 
-events.setModule = function (aModule) {
+events.setModule = function events_setModule(aModule) {
   aModule.__start__ = Date.now();
   aModule.__status__ = 'running';
 
@@ -232,7 +232,7 @@ events.setModule = function (aModule) {
   return result;
 }
 
-events.endModule = function (aModule) {
+events.endModule = function events_endModule(aModule) {
   // It should only reported once, so check if it already has been done
   if (aModule.__status__ === 'done')
     return;
@@ -249,7 +249,7 @@ events.endModule = function (aModule) {
   events.fireEvent('endModule', obj);
 }
 
-events.pass = function (obj) {
+events.pass = function events_pass(obj) {
   // a low level event, such as a keystroke, succeeds
   if (events.currentTest) {
     events.currentTest.__passes__.push(obj);
@@ -266,7 +266,7 @@ events.pass = function (obj) {
   events.fireEvent('pass', obj);
 }
 
-events.fail = function (obj) {
+events.fail = function events_fail(obj) {
   var error = obj.exception;
 
   if (error) {
@@ -296,7 +296,7 @@ events.fail = function (obj) {
   events.fireEvent('fail', obj);
 }
 
-events.skip = function (reason) {
+events.skip = function events_skip(reason) {
   // this is used to report skips associated with setupModule and nothing else
   events.currentTest.skipped = true;
   events.currentTest.skipped_reason = reason;
@@ -312,7 +312,7 @@ events.skip = function (reason) {
   events.fireEvent('skip', reason);
 }
 
-events.fireEvent = function (name, obj) {
+events.fireEvent = function events_fireEvent(name, obj) {
   if (events.appQuit) {
     // dump('* Event discarded: ' + name + ' ' + JSON.stringify(obj) + '\n');
     return;
@@ -329,7 +329,7 @@ events.fireEvent = function (name, obj) {
   }
 }
 
-events.addListener = function (name, listener) {
+events.addListener = function events_addListener(name, listener) {
   if (this.listeners[name]) {
     this.listeners[name].push(listener);
   } else if (name == '') {
@@ -339,7 +339,7 @@ events.addListener = function (name, listener) {
   }
 }
 
-events.removeListener = function (listener) {
+events.removeListener = function events_removeListener(listener) {
   for (var listenerIndex in this.listeners) {
     var e = this.listeners[listenerIndex];
 
@@ -357,7 +357,7 @@ events.removeListener = function (listener) {
   }
 }
 
-events.persist = function () {
+events.persist = function events_persist() {
   try {
     events.fireEvent('persist', persisted);
   } catch (e) {
@@ -365,12 +365,12 @@ events.persist = function () {
   }
 }
 
-events.firePythonCallback = function (obj) {
+events.firePythonCallback = function events_firePythonCallback(obj) {
   obj['test'] = events.currentModule.__file__;
   events.fireEvent('firePythonCallback', obj);
 }
 
-events.screenshot = function (obj) {
+events.screenshot = function events_screenshot(obj) {
   // Find the name of the test function
   for (var attr in events.currentModule) {
     if (events.currentModule[attr] == events.currentTest) {
@@ -384,7 +384,7 @@ events.screenshot = function (obj) {
   events.fireEvent('screenshot', obj);
 }
 
-var log = function (obj) {
+function log(obj) {
   events.fireEvent('log', obj);
 }
 
@@ -420,7 +420,7 @@ function AppQuitObserver() {
 }
 
 AppQuitObserver.prototype = {
-  observe: function (aSubject, aTopic, aData) {
+  observe: function aqo_observe(aSubject, aTopic, aData) {
     switch (aTopic) {
       case "quit-application-requested":
         Services.obs.removeObserver(this, "quit-application-requested");
@@ -456,14 +456,14 @@ function Collector() {
   this.testing = [];
 }
 
-Collector.prototype.addHttpResource = function (aDirectory, aPath) {
+Collector.prototype.addHttpResource = function collector_addHttpResource(aDirectory, aPath) {
   var fp = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
   fp.initWithPath(os.abspath(aDirectory, this.current_file));
 
   return httpd.addHttpResource(fp, aPath);
 }
 
-Collector.prototype.initTestModule = function (filename, testname) {
+Collector.prototype.initTestModule = function collector_initTestModule(filename, testname) {
   var test_module = this.loadFile(filename, this);
   var has_restarted = !(testname == null);
   test_module.__tests__ = [];
@@ -502,7 +502,7 @@ Collector.prototype.initTestModule = function (filename, testname) {
   return test_module;
 }
 
-Collector.prototype.loadFile = function (path, collector) {
+Collector.prototype.loadFile = function collector_loadFile(path, collector) {
   var moduleLoader = new securableModule.Loader({
     rootPaths: ["resource://mozmill/modules/"],
     defaultPrincipal: "system",
@@ -536,7 +536,7 @@ Collector.prototype.loadFile = function (path, collector) {
   module.mozmill = mozmill;
   module.persisted = persisted;
 
-  module.require = function (mod) {
+  module.require = function loadModule(mod) {
     var loader = new securableModule.Loader({
       rootPaths: [Services.io.newFileURI(file.parent).spec,
                   "resource://mozmill/modules/"],
@@ -591,7 +591,7 @@ Collector.prototype.loadFile = function (path, collector) {
   return module;
 }
 
-Collector.prototype.loadTestResources = function () {
+Collector.prototype.loadTestResources = function collector_loadTestResources() {
   // load resources we want in our tests
   if (mozmill === undefined) {
     mozmill = {};
@@ -627,7 +627,7 @@ function Httpd(aPort) {
   }
 }
 
-Httpd.prototype.addHttpResource = function (aDir, aPath) {
+Httpd.prototype.addHttpResource = function httpd_addHttpResource(aDir, aPath) {
   var path = aPath ? ("/" + aPath + "/") : "/";
 
   try {
@@ -639,7 +639,7 @@ Httpd.prototype.addHttpResource = function (aDir, aPath) {
   }
 };
 
-Httpd.prototype.stop = function () {
+Httpd.prototype.stop = function httpd_stop() {
   if (!this._httpd) {
     return;
   }
@@ -672,7 +672,7 @@ function Runner() {
   events.fireEvent('startRunner', true);
 }
 
-Runner.prototype.end = function () {
+Runner.prototype.end = function runner_end() {
   if (!this.ended) {
     this.ended = true;
 
@@ -685,12 +685,12 @@ Runner.prototype.end = function () {
   }
 };
 
-Runner.prototype.runTestFile = function (filename, name) {
+Runner.prototype.runTestFile = function runner_runTestFile(filename, name) {
   var module = this.collector.initTestModule(filename, name);
   this.runTestModule(module);
 };
 
-Runner.prototype.runTestModule = function (module) {
+Runner.prototype.runTestModule = function runner_RunTestModule(module) {
   appQuitObserver.runner = this;
   events.setModule(module);
 
@@ -721,7 +721,7 @@ Runner.prototype.runTestModule = function (module) {
   events.endModule(module);
 };
 
-Runner.prototype.execFunction = function (func, arg) {
+Runner.prototype.execFunction = function runner_execFunction(func, arg) {
   if (typeof func !== "function" || events.shutdownRequested) {
     return true;
   }
@@ -778,7 +778,7 @@ function runTestFile(filename, name) {
   return true;
 }
 
-Runner.prototype.skipFunction = function (func, message) {
+Runner.prototype.skipFunction = function runner_skipFunction(func, message) {
   events.setTest(func);
   events.skip(message);
   events.endTest(func);
