@@ -110,7 +110,7 @@ Menu.prototype = {
     var menu = this._menu.getNode();
     if ((menu.localName == "popup" || menu.localName == "menupopup") &&
         contextElement && contextElement.exists()) {
-      this._controller.rightClick(contextElement);
+      contextElement.rightClick();
       assert.waitFor(function () {
         return menu.state == "open";
       }, "Context menu has been opened.");
@@ -130,7 +130,7 @@ Menu.prototype = {
   close: function Menu_close() {
     var menu = this._menu.getNode();
 
-    this._controller.keypress(this._menu, "VK_ESCAPE", {});
+    this._menu.keypress("VK_ESCAPE", {});
     assert.waitFor(function () {
       return menu.state == "closed";
     }, "Context menu has been closed.");
@@ -168,7 +168,7 @@ Menu.prototype = {
    * @returns {Menu} The Menu instance
    */
   click: function Menu_click(itemSelector) {
-    this._controller.click(this.getItem(itemSelector));
+    this.getItem(itemSelector).click();
 
     return this;
   },
@@ -185,7 +185,7 @@ Menu.prototype = {
    * @returns {Menu} The Menu instance
    */
   keypress: function Menu_keypress(key, modifier) {
-    this._controller.keypress(this._menu, key, modifier);
+    this._menu.keypress(key, modifier);
 
     return this;
   },
@@ -825,78 +825,6 @@ MozMillController.prototype.assertImageLoaded = function mc_assertImageLoaded(el
   return true;
 };
 
-/**
- * Drag one element to the top x,y coords of another specified element
- */
-MozMillController.prototype.mouseMove = function mc_mouseMove(doc, start, dest) {
-  // if one of these elements couldn't be looked up
-  if (typeof start != 'object'){
-    throw new Error("received bad coordinates");
-  }
-
-  if (typeof dest != 'object'){
-    throw new Error("received bad coordinates");
-  }
-
-  function triggerMouseEvent(element, clientX, clientY) {
-    clientX = clientX ? clientX: 0;
-    clientY = clientY ? clientY: 0;
-
-    // make the mouse understand where it is on the screen
-    var screenX = element.boxObject.screenX ? element.boxObject.screenX : 0;
-    var screenY = element.boxObject.screenY ? element.boxObject.screenY : 0;
-
-    var evt = element.ownerDocument.createEvent('MouseEvents');
-    if (evt.initMouseEvent) {
-      evt.initMouseEvent('mousemove', true, true, element.ownerDocument.defaultView,
-                         1, screenX, screenY, clientX, clientY);
-    } else {
-      evt.initEvent('mousemove', true, true);
-    }
-
-    element.dispatchEvent(evt);
-  };
-
-  // Do the initial move to the drag element position
-  triggerMouseEvent(doc.body, start[0], start[1]);
-  triggerMouseEvent(doc.body, dest[0], dest[1]);
-
-  broker.pass({'function':'Controller.mouseMove()'});
-  return true;
-}
-
-/**
- * Drag an element to the specified offset on another element, firing mouse and
- * drag events. Adapted from ChromeUtils.js synthesizeDrop()
- *
- * @deprecated Use the MozMillElement object
- *
- * @param {MozElement} aSrc
- *        Source element to be dragged
- * @param {MozElement} aDest
- *        Destination element over which the drop occurs
- * @param {Number} [aOffsetX=element.width/2]
- *        Relative x offset for dropping on the aDest element
- * @param {Number} [aOffsetY=element.height/2]
- *        Relative y offset for dropping on the aDest element
- * @param {DOMWindow} [aSourceWindow=this.element.ownerDocument.defaultView]
- *        Custom source Window to be used.
- * @param {String} [aDropEffect="move"]
- *        Effect used for the drop event
- * @param {Object[]} [aDragData]
- *        An array holding custom drag data to be used during the drag event
- *        Format: [{ type: "text/plain", "Text to drag"}, ...]
- *
- * @returns {String} the captured dropEffect
- */
-MozMillController.prototype.dragToElement = function mc_dragToElement(aSrc, aDest, aOffsetX,
-                                                                      aOffsetY, aSourceWindow,
-                                                                      aDropEffect, aDragData) {
-  logDeprecated("controller.dragToElement", "Use the MozMillElement object.");
-  return aSrc.dragToElement(aDest, aOffsetX, aOffsetY, aSourceWindow, null,
-                            aDropEffect, aDragData);
-};
-
 function Tabs(controller) {
   this.controller = controller;
 }
@@ -1026,127 +954,3 @@ MozMillController.prototype.assertPropertyNotExist = function mc_assertPropertyN
   logDeprecatedAssert("assertPropertyNotExist");
   return this.assertNotJSProperty(el, attrib);
 };
-
-/**
- *  DEPRECATION WARNING
- *
- * The following methods have all been DEPRECATED as of Mozmill 2.0
- * Use the MozMillElement object instead (https://developer.mozilla.org/en/Mozmill/Mozmill_Element_Object)
- */
-MozMillController.prototype.select = function mc_select(aElement, index, option, value) {
-  logDeprecated("controller.select", "Use the MozMillElement object.");
-
-  return aElement.select(index, option, value);
-};
-
-MozMillController.prototype.keypress = function mc_keypress(aElement, aKey, aModifiers, aExpectedEvent) {
-  logDeprecated("controller.keypress", "Use the MozMillElement object.");
-
-  if (!aElement) {
-    aElement = new mozelement.MozMillElement("Elem", this.window);
-  }
-
-  return aElement.keypress(aKey, aModifiers, aExpectedEvent);
-}
-
-MozMillController.prototype.type = function mc_type(aElement, aText, aExpectedEvent) {
-  logDeprecated("controller.type", "Use the MozMillElement object.");
-
-  if (!aElement) {
-    aElement = new mozelement.MozMillElement("Elem", this.window);
-  }
-
-  var that = this;
-  var retval = true;
-  Array.forEach(aText, function (letter) {
-    if (!that.keypress(aElement, letter, {}, aExpectedEvent)) {
-      retval = false; }
-  });
-
-  return retval;
-}
-
-MozMillController.prototype.mouseEvent = function mc_mouseEvent(aElement, aOffsetX, aOffsetY, aEvent, aExpectedEvent) {
-  logDeprecated("controller.mouseEvent", "Use the MozMillElement object.");
-
-  return aElement.mouseEvent(aOffsetX, aOffsetY, aEvent, aExpectedEvent);
-}
-
-MozMillController.prototype.click = function mc_click(aElement, left, top, expectedEvent) {
-  logDeprecated("controller.click", "Use the MozMillElement object.");
-
-  return aElement.click(left, top, expectedEvent);
-}
-
-MozMillController.prototype.doubleClick = function mc_doubleClick(aElement, left, top, expectedEvent) {
-  logDeprecated("controller.doubleClick", "Use the MozMillElement object.");
-
-  return aElement.doubleClick(left, top, expectedEvent);
-}
-
-MozMillController.prototype.mouseDown = function mc_mouseDown(aElement, button, left, top, expectedEvent) {
-  logDeprecated("controller.mouseDown", "Use the MozMillElement object.");
-
-  return aElement.mouseDown(button, left, top, expectedEvent);
-};
-
-MozMillController.prototype.mouseOut = function mc_mouseOut(aElement, button, left, top, expectedEvent) {
-  logDeprecated("controller.mouseOut", "Use the MozMillElement object.");
-
-  return aElement.mouseOut(button, left, top, expectedEvent);
-};
-
-MozMillController.prototype.mouseOver = function mc_mouseOver(aElement, button, left, top, expectedEvent) {
-  logDeprecated("controller.mouseOver", "Use the MozMillElement object.");
-
-  return aElement.mouseOver(button, left, top, expectedEvent);
-};
-
-MozMillController.prototype.mouseUp = function mc_mouseUp(aElement, button, left, top, expectedEvent) {
-  logDeprecated("controller.mouseUp", "Use the MozMillElement object.");
-
-  return aElement.mouseUp(button, left, top, expectedEvent);
-};
-
-MozMillController.prototype.middleClick = function mc_middleClick(aElement, left, top, expectedEvent) {
-  logDeprecated("controller.middleClick", "Use the MozMillElement object.");
-
-  return aElement.middleClick(aElement, left, top, expectedEvent);
-}
-
-MozMillController.prototype.rightClick = function mc_rightClick(aElement, left, top, expectedEvent) {
-  logDeprecated("controller.rightClick", "Use the MozMillElement object.");
-
-  return aElement.rightClick(left, top, expectedEvent);
-}
-
-MozMillController.prototype.check = function mc_check(aElement, state) {
-  logDeprecated("controller.check", "Use the MozMillElement object.");
-
-  return aElement.check(state);
-}
-
-MozMillController.prototype.radio = function mc_radio(aElement) {
-  logDeprecated("controller.radio", "Use the MozMillElement object.");
-
-  return aElement.select();
-}
-
-MozMillController.prototype.waitThenClick = function mc_waitThenClick(aElement, timeout, interval) {
-  logDeprecated("controller.waitThenClick", "Use the MozMillElement object.");
-
-  return aElement.waitThenClick(timeout, interval);
-}
-
-MozMillController.prototype.waitForElement = function mc_waitForElement(aElement, timeout, interval) {
-  logDeprecated("controller.waitForElement", "Use the MozMillElement object.");
-
-  return aElement.waitForElement(timeout, interval);
-}
-
-MozMillController.prototype.waitForElementNotPresent = function mc_waitForElementNotPresent(aElement,
-                                                                                            timeout, interval) {
-  logDeprecated("controller.waitForElementNotPresent", "Use the MozMillElement object.");
-
-  return aElement.waitForElementNotPresent(timeout, interval);
-}
