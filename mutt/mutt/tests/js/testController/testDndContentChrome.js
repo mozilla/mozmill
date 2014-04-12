@@ -21,5 +21,5 @@ function test() {
   controller.waitForPageLoad();
 
   let div = new elementslib.ID(controller.tabs.activeTab, "test-div");
-  controller.assertNode(div);
+  assert.ok(div.exists(), "Found test-div.");
 }
