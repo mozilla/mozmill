@@ -121,6 +121,29 @@ MozMillElement.prototype.__defineGetter__("element", function () {
       this._element = elementslib[this._locatorType](this._document, this._locator);
     } else if (this._locatorType == "Elem") {
       this._element = this._locator;
+
+      try {
+        if (this._locator.ownerDocument) {
+          // Check if node has been removed by verifying if it's still attached to the DOM
+          if (!this._locator.ownerDocument.contains(this._locator)) {
+            throw new TypeError();
+          }
+        } else if (this._locator instanceof Ci.nsIDOMWindow) {
+          // If element is an instance of window we check if it's closed
+          if (this._locator.closed) {
+            throw new TypeError();
+          }
+        } else if (this._locator instanceof Ci.nsIDOMDocument) {
+          // If element is an instance of document we check if it's attached to a window
+          if (this._locator.defaultView.closed) {
+            throw new TypeError();
+          }
+        }
+      } catch (e if e instanceof TypeError) {
+        // If the element doesn't exist anymore it will rise a
+        // "can't access dead object" error
+        this._element = undefined;
+      }
     } else {
       throw new Error("Unknown locator type: " + this._locatorType);
     }
