@@ -594,6 +594,12 @@ Assert.prototype = {
     while (self.result !== true && !self.timeIsUp) {
       thread.processNextEvent(true);
 
+      // If the application is going to shutdown, break out the loop to not
+      // cause a hang
+      if (Services.startup.shuttingDown) {
+        break;
+      }
+
       let type = typeof(self.result);
       if (type !== 'boolean')
         throw TypeError("waitFor() callback has to return a boolean" +

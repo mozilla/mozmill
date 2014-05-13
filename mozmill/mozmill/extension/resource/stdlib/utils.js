@@ -221,6 +221,12 @@ function sleep(milliseconds) {
 
   while (!timeup) {
     thread.processNextEvent(true);
+
+    // If the application is going to shutdown, break out of the loop to not
+    // cause a hang
+    if (Services.startup.shuttingDown) {
+      break;
+    }
   }
 
   broker.pass({'function':'utils.sleep()'});
