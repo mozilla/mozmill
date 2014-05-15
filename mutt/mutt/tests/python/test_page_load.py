@@ -5,15 +5,18 @@
 import os
 import unittest
 
+import manifestparser
 import mozmill
 
 
 class TestPageLoad(unittest.TestCase):
 
-    def do_test(self, relative_test_path, passes=0, fails=0, skips=0):
-        testpath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                relative_test_path)
-        tests = [{'path': testpath}]
+    def do_test(self, relative_manifest_path, passes=0, fails=0, skips=0):
+        manifestpath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                    relative_manifest_path)
+        manifest = manifestparser.TestManifest(manifests=[manifestpath],
+                                               strict=False)
+        tests = manifest.active_tests()
 
         m = mozmill.MozMill.create()
         m.run(tests)
@@ -26,8 +29,8 @@ class TestPageLoad(unittest.TestCase):
         return results
 
     def test_waitforpageload_status(self):
-        testpath = os.path.join("js-modules", "testPageLoad.js")
-        results = self.do_test(testpath, passes=1, fails=1)
+        manifestpath = os.path.join("js-modules", "manifest_testPageLoad.ini")
+        results = self.do_test(manifestpath, passes=1, fails=1)
 
         # Check the last pass of the first test function
         message = results.passes[0]['passes'][-1:][0]['function']

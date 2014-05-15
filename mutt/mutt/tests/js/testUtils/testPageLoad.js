@@ -2,12 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const BASE_URL = collector.addHttpResource("../../data/");
 const TEST_DATA = [
   // Normal pages
-  {url: BASE_URL + "form.html", type: "ID", value: "fname"},
-  {url: BASE_URL + "link.html", type: "ID", value: "link"},
-  {url: BASE_URL + "singlediv.html", type: "ID", value: "test-div"},
+  {url: baseurl + "form.html", type: "ID", value: "fname"},
+  {url: baseurl + "link.html", type: "ID", value: "link"},
+  {url: baseurl + "singlediv.html", type: "ID", value: "test-div"},
 
   // FTP pages
   {url: "ftp://ftp.mozilla.org/pub/", type: "Link", value: "firefox" },
@@ -18,7 +17,7 @@ const TEST_DATA = [
   {url: "http://www.mozilla.org/firefox/its-a-trap.html", type: "ID", value: "getMeOutButton"},
 
   // Container page
-  {url: BASE_URL + "iframe.html", type: "ID", value: "iframe"}
+  {url: baseurl + "iframe.html", type: "ID", value: "iframe"}
 ];
 
 function setupModule(aModule) {

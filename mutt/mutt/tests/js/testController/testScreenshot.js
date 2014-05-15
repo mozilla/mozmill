@@ -2,8 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const BASE_URL = collector.addHttpResource("../../data/");
-const TEST_DATA = BASE_URL + "complex.html";
+const TEST_DATA = baseurl + "complex.html";
 
 function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();

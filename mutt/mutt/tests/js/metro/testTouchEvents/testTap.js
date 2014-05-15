@@ -4,8 +4,7 @@
 
 "use strict";
 
-const BASE_URL = collector.addHttpResource("../../_files/");
-const TEST_DATA = BASE_URL + "form.html";
+const TEST_DATA = baseurl + "form.html";
 
 function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();

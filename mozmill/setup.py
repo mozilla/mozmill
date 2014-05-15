@@ -12,6 +12,7 @@ deps = ['jsbridge == 3.1-dev',
         'ManifestDestiny == 0.5.7',
         'mozinfo == 0.7',
         'mozrunner == 5.35',
+        'wptserve == 1.1'
         ]
 
 # take description from README

@@ -2,12 +2,11 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const BASE_URL = collector.addHttpResource("../../data/");
-const TEST_DATA = BASE_URL + "form.html";
+const TEST_DATA = baseurl + "form.html";
 
 const ELEMENTS = [
   DOM_Element = {
-    url: BASE_URL + "link.html",
+    url: baseurl + "link.html",
     id: "link"
   },
   XUL_Element = {

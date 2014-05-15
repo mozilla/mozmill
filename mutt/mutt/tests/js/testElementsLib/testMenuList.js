@@ -4,9 +4,8 @@
 
 const { getEntity } = require("l10n");
 
-const BASE_URL = collector.addHttpResource("../../data/");
 const TEST_DATA = [
-  BASE_URL + "form.html",
+  baseurl + "form.html",
   "chrome://mozmill/content/test/chrome_elements.xul"
 ];
 

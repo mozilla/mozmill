@@ -9,11 +9,7 @@ const Cc = Components.classes;
 const Ci = Components.interfaces;
 const Cu = Components.utils;
 
-const TIMEOUT_SHUTDOWN_HTTPD = 15000;
-
 Cu.import("resource://gre/modules/Services.jsm");
-
-Cu.import('resource://mozmill/stdlib/httpd.js');
 
 var broker = {};  Cu.import('resource://mozmill/driver/msgbroker.js', broker);
 var assertions = {}; Cu.import('resource://mozmill/modules/assertions.js', assertions);
@@ -29,7 +25,6 @@ Cu.import('resource://mozmill/stdlib/securable-module.js', securableModule);
 
 var uuidgen = Cc["@mozilla.org/uuid-generator;1"].getService(Ci.nsIUUIDGenerator);
 
-var httpd = null;
 var persisted = {};
 
 var assert = new assertions.Assert();
@@ -436,10 +431,6 @@ AppQuitObserver.prototype = {
           this.runner.end();
         }
 
-        if (httpd) {
-          httpd.stop();
-        }
-
         events.appQuit = true;
 
         break;
@@ -450,18 +441,17 @@ AppQuitObserver.prototype = {
 var appQuitObserver = new AppQuitObserver();
 
 /**
- * The collector handles HTTPd.js and initilizing the module
+ * The collector handles file imports and module initialization
  */
 function Collector() {
   this.test_modules_by_filename = {};
   this.testing = [];
+  this.baseurl = utils.getPreference('extensions.mozmill.baseurl', '');
 }
 
 Collector.prototype.addHttpResource = function collector_addHttpResource(aDirectory, aPath) {
-  var fp = Cc["@mozilla.org/file/local;1"].createInstance(Ci.nsILocalFile);
-  fp.initWithPath(os.abspath(aDirectory, this.current_file));
-
-  return httpd.addHttpResource(fp, aPath);
+  utils.logDeprecated('Collector.addHttpResource', 'Define the baseurl as server_root in the manifest file');
+  return aPath ? this.baseurl + aPath : this.baseurl;
 }
 
 Collector.prototype.initTestModule = function collector_initTestModule(filename, testname) {
@@ -504,6 +494,7 @@ Collector.prototype.initTestModule = function collector_initTestModule(filename,
 }
 
 Collector.prototype.loadFile = function collector_loadFile(path, collector) {
+  var self = this;
   var moduleLoader = new securableModule.Loader({
     rootPaths: ["resource://mozmill/modules/"],
     defaultPrincipal: "system",
@@ -523,6 +514,7 @@ Collector.prototype.loadFile = function collector_loadFile(path, collector) {
   var systemPrincipal = Services.scriptSecurityManager.getSystemPrincipal();
   var module = new Components.utils.Sandbox(systemPrincipal);
   module.assert = assert;
+  module.baseurl = this.baseurl;
   module.Cc = Cc;
   module.Ci = Ci;
   module.Cr = Components.results;
@@ -543,6 +535,7 @@ Collector.prototype.loadFile = function collector_loadFile(path, collector) {
                   "resource://mozmill/modules/"],
       defaultPrincipal: "system",
       globals : { assert: assert,
+                  baseurl: self.baseurl,
                   expect: expect,
                   mozmill: mozmill,
                   elementslib: mozelement,      // This a quick hack to maintain backwards compatibility with 1.5.x
@@ -605,65 +598,6 @@ Collector.prototype.loadTestResources = function collector_loadTestResources() {
     Cu.import("resource://mozmill/driver/mozelement.js", mozelement);
   }
 }
-
-
-/**
- *
- */
-function Httpd(aPort) {
-  this.http_port = aPort;
-
-  while (true) {
-    try {
-      var srv = new HttpServer();
-      srv.registerContentType("sjs", "sjs");
-      srv.identity.setPrimary("http", "localhost", this.http_port);
-      srv.start(this.http_port);
-
-      this._httpd = srv;
-      break;
-    }
-    catch (e) {
-      // Failure most likely due to port conflict
-      this.http_port++;
-    }
-  }
-}
-
-Httpd.prototype.addHttpResource = function httpd_addHttpResource(aDir, aPath) {
-  var path = aPath ? ("/" + aPath + "/") : "/";
-
-  try {
-    this._httpd.registerDirectory(path, aDir);
-    return 'http://localhost:' + this.http_port + path;
-  }
-  catch (e) {
-    throw Error("Failure to register directory: " + aDir.path);
-  }
-};
-
-Httpd.prototype.stop = function httpd_stop() {
-  if (!this._httpd) {
-    return;
-  }
-
-  var shutdown = false;
-  this._httpd.stop(function () { shutdown = true; });
-
-  assert.waitFor(function () {
-    return shutdown;
-  }, "Local HTTP server has been stopped", TIMEOUT_SHUTDOWN_HTTPD);
-
-  this._httpd = null;
-};
-
-function startHTTPd() {
-  if (!httpd) {
-    // Ensure that we start the HTTP server only once during a session
-    httpd = new Httpd(43336);
-  }
-}
-
 
 function Runner() {
   this.collector = new Collector();

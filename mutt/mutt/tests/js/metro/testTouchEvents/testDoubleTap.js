@@ -4,8 +4,7 @@
 
 "use strict";
 
-const BASE_URL = collector.addHttpResource("../../_files/");
-const TEST_DATA = BASE_URL + "complex.html";
+const TEST_DATA = baseurl + "complex.html";
 const TEXT_SELECTION = "Community";
 
 function setupModule(aModule) {

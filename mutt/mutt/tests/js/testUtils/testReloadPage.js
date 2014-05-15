@@ -4,10 +4,9 @@
 
 "use strict";
 
-const BASE_URL = collector.addHttpResource("../../data/");
 const TEST_DATA = [
-  BASE_URL + "link.html",
-  BASE_URL + "no_bfcache.html",
+  baseurl + "link.html",
+  baseurl + "no_bfcache.html",
   "about:blank",
   "about:blocked",
   "about:addons",

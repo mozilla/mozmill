@@ -2,8 +2,7 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-const BASE_URL = collector.addHttpResource("../../data/");
-const TEST_DATA = BASE_URL + "form.html";
+const TEST_DATA = baseurl + "form.html";
 
 // Bug 677364:
 // Fix controller keyboard methods to allow a null parameter for the target element

@@ -2,12 +2,27 @@
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, you can obtain one at http://mozilla.org/MPL/2.0/. */
 
-var EXPORTED_SYMBOLS = ["applicationName", "assert", "Copy", "getBrowserObject",
-                        "getChromeWindow", "getWindows", "getWindowByTitle",
-                        "getWindowByType", "getWindowId", "getMethodInWindows",
-                        "getPreference", "saveDataURL", "setPreference",
-                        "sleep", "startTimer", "stopTimer", "takeScreenshot",
-                        "unwrapNode", "waitFor"
+var EXPORTED_SYMBOLS = ["applicationName",
+                        "assert",
+                        "Copy",
+                        "getBrowserObject",
+                        "getChromeWindow",
+                        "getWindows",
+                        "getWindowByTitle",
+                        "getWindowByType",
+                        "getWindowId",
+                        "getMethodInWindows",
+                        "getPreference",
+                        "logDeprecated",
+                        "logDeprecatedAssert",
+                        "saveDataURL",
+                        "setPreference",
+                        "sleep",
+                        "startTimer",
+                        "stopTimer",
+                        "takeScreenshot",
+                        "unwrapNode",
+                        "waitFor"
                        ];
 
 const Cc = Components.classes;
@@ -170,6 +185,19 @@ function getPreference(aPrefName, aDefaultValue) {
   } catch (e) {
     return aDefaultValue;
   }
+}
+
+/**
+ * Helper methods to log deprecated functionality
+ */
+function logDeprecated(funcName, message) {
+  broker.log({'function': funcName + '() - DEPRECATED',
+              'message': funcName + '() is deprecated. ' + message});
+}
+
+function logDeprecatedAssert(funcName) {
+   logDeprecated('controller.' + funcName,
+                 '. Use the generic `assertion` module instead.');
 }
 
 /**

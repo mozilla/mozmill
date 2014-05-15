@@ -5,18 +5,23 @@
 import os
 import unittest
 
+import manifestparser
 import mozmill
+
 
 class TestPageLoad(unittest.TestCase):
 
     def test_slow_pageload_on_startup(self):
-        testpath = os.path.join("js-modules", "testPageLoadOnStartup.js")
-        self.do_test(testpath, passes=1)
+        manifestpath = os.path.join("js-modules",
+                                    "manifest_testPageLoadOnStartup.ini")
+        self.do_test(manifestpath, passes=1)
 
-    def do_test(self, relative_test_path, passes=0, fails=0, skips=0):
-        testpath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                                relative_test_path)
-        tests = [{'path': testpath}]
+    def do_test(self, relative_manifest_path, passes=0, fails=0, skips=0):
+        manifestpath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                                    relative_manifest_path)
+        manifest = manifestparser.TestManifest(
+            manifests=[manifestpath], strict=False)
+        tests = manifest.active_tests()
 
         runner_args = {'cmdargs': ['http://www.nbc.com']}
 

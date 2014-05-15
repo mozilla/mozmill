@@ -18,10 +18,10 @@ class ModuleTest(unittest.TestCase):
         # test in the output (the test in this case is testExpectStack.js)
         # and so we can verify this bug is fixed by ensuring that exists
         # and that the stack is valid JSON.  Here goes...
-        relpath = os.path.join("js-modules", "testExpectStack.js")
+        relpath = os.path.join("js-modules", "manifest_testExpectStack.ini")
         testpath = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                                 relpath)
-        p = subprocess.Popen(["mozmill", "-t", testpath],
+        p = subprocess.Popen(["mozmill", "-m", testpath],
                 stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
         output = p.communicate()[0]
         errline = re.compile('ERROR \| Test Failure\: (.*)')

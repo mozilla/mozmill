@@ -4,8 +4,7 @@
 
 Cu.import("resource://gre/modules/Services.jsm");
 
-const BASE_URL = collector.addHttpResource("../../data/");
-const TEST_DATA = BASE_URL + "complex.html";
+const TEST_DATA = baseurl + "complex.html";
 
 function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();
