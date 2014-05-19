@@ -1,0 +1,25 @@
+language: python
+python: 2.7
+env: DISPLAY=:99
+script: mutt -b firefox/firefox -m mutt/mutt/tests/manifest.ini
+
+before_install: sudo apt-get update
+
+install:
+    - sudo apt-get install fluxbox
+    - pip install mozdownload
+    - python setup_development.py
+
+before_script:
+    - Xvfb :99 &
+    - fluxbox -log fluxbox.log &
+    - mozdownload -t release -v latest
+    - tar -xvf firefox*.tar.bz2
+
+#notifications:
+#  email:
+#      - auto-tools@lists.mozilla.org
+#  irc:
+#      - "irc.mozilla.org#automation"
+#      - "irc.mozilla.org#mozmill"
+

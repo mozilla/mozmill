@@ -950,6 +950,11 @@ function MozMillDropList(locatorType, locator, args) {
 }
 
 
+function dump_list(pre, list) {
+    for(var i = 0; i < list.length; i++) {
+        dump("\n" + pre + ":option:" + list[i].label + "|" + list[i].value + "\n");
+    }
+};
 MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
   select : {
     /**
@@ -957,6 +962,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
      * @return {boolean}
      */
     value : function MMDL_select(index, option, value) {
+      dump('MMDL_select(' + index, + ',' + option + ',' + value);
       if (!this.element){
         throw new Error("Could not find element " + this.getInfo());
       }
@@ -965,6 +971,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
       if (this.element.localName.toLowerCase() == "select"){
         var item = null;
 
+          dump_list("this.element.options:", this.element.options);
         // The selected item should be set via its index
         if (index != undefined) {
           // Resetting a menulist has to be handled separately
@@ -1017,7 +1024,8 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
 
           return true;
         } catch (e) {
-          throw new Error("No item selected for element " + this.getInfo());
+          dump(e);
+          throw new Error("No item selected for element " + this.getInfo() + ' exc=' + e.message);
         }
       }
       //if we have a xul menupopup select accordingly
@@ -1031,7 +1039,7 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
                         getElementsByTagNameNS(NAMESPACE_XUL, "menuitem");
 
         var item = null;
-
+        dump_list("menuitems", menuitems);
         if (index != undefined) {
           if (index == -1) {
             this.dispatchEvent('focus', false);
@@ -1061,7 +1069,10 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
 
           var self = this;
           var selected = index || option || value;
+          dump('Selected:' + selected + "\n");
+
           assert.waitFor(function () {
+            var el = self.element;
             switch (selected) {
               case index:
                 return selected === self.element.selectedIndex;
@@ -1079,7 +1090,8 @@ MozMillDropList.prototype = Object.create(MozMillElement.prototype, {
 
           return true;
         } catch (e) {
-          throw new Error('No item selected for element ' + this.getInfo());
+          dump(e);
+          throw new Error('No item selected for element ' + this.getInfo() + ' exc=' + e.message);
         }
       }
     }
