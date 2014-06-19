@@ -13,7 +13,7 @@ const TEST_DATA = [
   {url: "ftp://ftp.mozilla.org/pub/", type: "Link", value: "firefox" },
 
   // Error pages
-  {url: "https://mur.at", type: "ID", value: "cert_domain_link"},
+  {url: "https://ssl-unknownissuer.mozqa.com", type: "ID", value: "cert_domain_link"},
   {url: "http://www.mozilla.org/firefox/its-a-trap.html", type: "ID", value: "ignoreWarningButton"},
   {url: "http://www.mozilla.org/firefox/its-a-trap.html", type: "ID", value: "getMeOutButton"},
 
