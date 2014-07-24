@@ -643,8 +643,8 @@ class MozMill(object):
         self.http_server.router.register(['POST'], '*', wptserve.handlers.file_handler)
 
         # expose the URL as a pref
-        self.runner.profile.set_preferences({'extensions.mozmill.baseurl':
-                                             self.http_server.get_url()})
+        self.runner.profile.set_persistent_preferences({'extensions.mozmill.baseurl':
+                                                        self.http_server.get_url()})
 
     # stop the http server
     def http_server_stop(self):

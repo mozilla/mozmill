@@ -4,5 +4,5 @@
 
 function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();
-  aModule.controller.stopApplication();
+  aModule.controller.stopApplication(true);
 }

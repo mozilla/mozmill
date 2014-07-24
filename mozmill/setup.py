@@ -11,6 +11,7 @@ PACKAGE_VERSION = "2.1-dev"
 deps = ['jsbridge == 3.1-dev',
         'ManifestDestiny == 0.5.7',
         'mozinfo == 0.7',
+        'mozprofile == 0.22',
         'mozrunner == 5.35',
         'wptserve == 1.1'
         ]
