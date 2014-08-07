@@ -202,54 +202,6 @@ def test_all_js(tests, options):
     return m.finish()
 
 
-class JSResults(object):
-    """Class to hold the JS results.
-
-    Takes in a standard output log and marshals it into our
-    class in an additive fashion.
-
-    TODO: This needs some work.  My thought is to go through what we
-    get back from the test, analyze each line, add the passes to the pass list
-    add the failures to the fail list, and the rest to the info list.
-
-    But I'm thinking this really needs to be swapped out for a real log parser
-    """
-
-    def __init__(self):
-        self.failures = []
-        self.passes = []
-        self.info = []
-        self.text = {}
-
-    def acquire(self, testname, buf, status, command):
-        # record failures based on exit status
-        if status:
-            self.failures.append("Exit %s: %s" % (status, command))
-
-        # scan test log for magical tokens
-        # see also: http://hg.mozilla.org/automation/logparser/
-        passre = re.compile("^TEST-(PASS|EXPECTED-FAIL).*")
-        failre = re.compile("^TEST-UNEXPECTED-.*")
-        tback = re.compile("^Traceback.*")
-        excpt = re.compile("^Exception:.*")
-
-        self.text[testname] = []
-
-        for line in buf:
-            print line
-            if passre.match(line):
-                self.passes.append(line)
-            elif failre.match(line):
-                self.failures.append(line)
-            elif tback.match(line):
-                self.failures.append(line)
-            elif excpt.match(line):
-                self.failures.append(line)
-            else:
-                self.info.append(line)
-            self.text[testname].append(line)
-
-
 def run(arguments=sys.argv[1:]):
     # parse the command line arguments
     (options, command) = parse_args(arguments)
