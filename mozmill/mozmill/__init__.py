@@ -548,18 +548,24 @@ class MozMill(object):
         message += ' (exit code: %s)' % self.runner.returncode
 
         test = self.running_test
-        test['passes'] = []
-        test['fails'] = [{
-          'exception': {
-            'message': message
-          }
-        }]
-        test['passed'] = 0
-        test['failed'] = 1
+        obj = {'filename': test['path'],
+               'passed': 0,
+               'failed': 1,
+               'passes': [],
+               'fails': [{
+                   'exception': {
+                       'message': message
+                   }
+               }],
+               # Bug 643480
+               # Should be consistent with test.__name__ ;
+               'name': os.path.basename(test['path'])
+        }
+
 
         # Ensure that we log this disconnect as failure
-        self.results.alltests.append(test)
-        self.results.fails.append(test)
+        self.results.alltests.append(obj)
+        self.results.fails.append(obj)
 
         self.fire_event('disconnected', message)
 
