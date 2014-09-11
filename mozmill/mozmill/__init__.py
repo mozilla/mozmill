@@ -119,9 +119,19 @@ class MozMill(object):
 
         preferences = profile_args.setdefault('preferences', {})
         if isinstance(preferences, dict):
+            # Bug 695026 - Re-enable e10s when fully supported
+            preferences['browser.tabs.remote'] = False
+            preferences['browser.tabs.autostart'] = False
+            preferences['browser.displayedE10SPrompt'] = 5
+
             preferences['extensions.jsbridge.port'] = jsbridge_port
             preferences['focusmanager.testmode'] = True
         elif isinstance(preferences, list):
+            # Bug 695026 - Re-enable e10s when fully supported
+            preferences.append(('browser.tabs.remote', False))
+            preferences.append(('browser.tabs.autostart', False))
+            preferences.append(('browser.displayedE10SPrompt', 5))
+
             preferences.append(('extensions.jsbridge.port', jsbridge_port))
             preferences.append(('focusmanager.testmode', True))
         else:
@@ -847,6 +857,11 @@ class CLI(mozrunner.CLI):
         profile_args.setdefault('addons', []).extend(ADDONS)
 
         profile_args['preferences'] = {
+            # Bug 695026 - Re-enable e10s when fully supported
+            'browser.displayedE10SPrompt': 5,
+            'browser.tabs.remote': False,
+            'browser.tabs.autostart': False,
+
             'extensions.jsbridge.port': self.jsbridge_port,
             'focusmanager.testmode': True
         }
