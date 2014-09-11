@@ -22,7 +22,12 @@ function setupModule(aModule) {
   aModule.controller = mozmill.getBrowserController();
 
   // Clear all caches so formerly loaded pages aren't stored yet
-  Services.cache.evictEntries(Ci.nsICache.STORE_ANYWHERE);
+  // Try the new HTTP cache v2 first, before falling back
+  try {
+    Services.cache2.clear();
+  } catch (ex if ex instanceof TypeError) {
+    Services.cache.evictEntries(Ci.nsICache.STORE_ANYWHERE);
+  }
 }
 
 
