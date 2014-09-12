@@ -3,12 +3,12 @@
 # file, you can obtain one at http://mozilla.org/MPL/2.0/.
 
 import os
-from setuptools import setup, find_packages
+from setuptools import setup
 
 PACKAGE_NAME = "mozmill"
-PACKAGE_VERSION = "2.0.6"
+PACKAGE_VERSION = "2.0.7"
 
-deps = ['jsbridge == 3.0.1',
+deps = ['jsbridge == 3.0.2',
         'ManifestDestiny == 0.5.7',
         'mozinfo == 0.7',
         'mozrunner == 5.35',
@@ -58,4 +58,4 @@ setup(name=PACKAGE_NAME,
           report = mozmill.report:Report
           callbacks = mozmill.python_callbacks:PythonCallbacks
         """
-)
+      )
