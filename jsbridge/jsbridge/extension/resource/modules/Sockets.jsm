@@ -137,7 +137,7 @@ Sockets.ServerSocket = function (aPort) {
              NSS.Sockets.PR_GetError());
 
   Log.dump("Binding server socket", fd);
-  let status = NSS.Sockets.PR_Bind(fd, addr.address());
+  status = NSS.Sockets.PR_Bind(fd, addr.address());
   if (status === NSS.Types.PR_FAILURE)
     throw Error("PR_Bind() failed (" + NSS.Sockets.PR_GetError() + ")");
 
