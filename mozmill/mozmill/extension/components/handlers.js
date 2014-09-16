@@ -58,7 +58,7 @@ MozmillHandlers.prototype = {
 
 
 var ConsoleObserver = {
-  errorRegEx : /\[.*(Error|Exception).*(chrome|resource):\/\/(mozmill|jsbridge).*/i,
+  errorRegEx : /\[.*(\WError|\WException).*(chrome|resource):\/\/(mozmill|jsbridge).*/i,
   externalFileRegEx :  /.*\.js -> file:\/\/\/.*/,
 
   observe: function CO_observe(aSubject, aTopic, aData) {
