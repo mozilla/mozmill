@@ -5,7 +5,7 @@
    <Description about="urn:mozilla:install-manifest">
      <em:id>jsbridge@mozilla.com</em:id>
      <em:name>jsbridge</em:name>
-     <em:version>3.0.2</em:version>
+     <em:version>3.0.3</em:version>
      <em:description>Python to JavaScript bridge</em:description>
      <em:unpack>true</em:unpack>
 

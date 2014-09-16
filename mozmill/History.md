@@ -1,3 +1,18 @@
+2.0.8 / 2014-09-16
+==================
+
+ * Bug 1067939 - JSBridge and Mozmill broken due to 'let' changes in bug 1001090
+
+2.0.7 / 2014-09-12
+==================
+
+ * Bug 1066295 - testMultipleLoads.js is failing due to new HTTP Cache v2
+ * Bug 1000098 - Fix testPageLoad.js test for invalid cert page
+ * Bug 1065436 - Disable e10s until full support landed
+ * Bug 1062773 - Disconnect errors invalidate the report
+ * Bug 999393 - Expose assert and expect by default in sub modules
+ * Bug 970820 - Mozmill aborts with socket.timeout when trying to send the report
+
 2.0.6 / 2014-03-07
 ==================
 

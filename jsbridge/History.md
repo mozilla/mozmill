@@ -1,3 +1,13 @@
+3.0.3 / 2014-09-16
+==================
+
+ * Bug 1067939 - JSBridge and Mozmill broken due to 'let' changes in bug 1001090
+
+3.0.2 / 2014-09-12
+==================
+
+ * Bug 1062138 - Use XREExeF constant to retrieve binary directory
+
 3.0.1 / 2014-02-04
 ==================
 
