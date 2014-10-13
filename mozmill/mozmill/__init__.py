@@ -124,17 +124,25 @@ class MozMill(object):
         preferences = profile_args.setdefault('preferences', {})
         if isinstance(preferences, dict):
             # Bug 695026 - Re-enable e10s when fully supported
-            preferences['browser.tabs.remote'] = False
-            preferences['browser.tabs.autostart'] = False
+            preferences['browser.tabs.remote.autostart'] = False
             preferences['browser.displayedE10SPrompt'] = 5
+
+            # Bug 1081996: Separate fixes for each e10s testing duration
+            for i in range(1, 10):
+                preferences['browser.tabs.remote.autostart.%s' % i] = False
+                preferences['browser.displayedE10SPrompt.%s' % i] = 5
 
             preferences['extensions.jsbridge.port'] = jsbridge_port
             preferences['focusmanager.testmode'] = True
         elif isinstance(preferences, list):
             # Bug 695026 - Re-enable e10s when fully supported
-            preferences.append(('browser.tabs.remote', False))
-            preferences.append(('browser.tabs.autostart', False))
+            preferences.append(('browser.tabs.remote.autostart', False))
             preferences.append(('browser.displayedE10SPrompt', 5))
+
+            # Bug 1081996: Separate fixes for each e10s testing duration
+            for i in range(1, 10):
+                preferences.append(('browser.tabs.remote.autostart.%s' % i, False))
+                preferences.append(('browser.displayedE10SPrompt.%s' % i, 5))
 
             preferences.append(('extensions.jsbridge.port', jsbridge_port))
             preferences.append(('focusmanager.testmode', True))
@@ -792,12 +800,17 @@ class CLI(mozrunner.CLI):
         profile_args['preferences'] = {
             # Bug 695026 - Re-enable e10s when fully supported
             'browser.displayedE10SPrompt': 5,
-            'browser.tabs.remote': False,
-            'browser.tabs.autostart': False,
+            'browser.tabs.remote.autostart': False,
 
             'extensions.jsbridge.port': self.jsbridge_port,
             'focusmanager.testmode': True
         }
+
+        # Bug 1081996: Separate fixes for each e10s testing duration
+        preferences = profile_args['preferences']
+        for i in range(1, 10):
+            preferences['browser.tabs.remote.autostart.%s' % i] = False
+            preferences['browser.displayedE10SPrompt.%s' % i] = 5
 
         if self.options.debug:
             prefs = profile_args['preferences']
