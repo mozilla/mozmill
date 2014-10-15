@@ -1,3 +1,11 @@
+2.0.9 / 2014-10-24
+====================
+
+ * Bug 1088609 - Disable pref for the australis quick tour
+ * Bug 1088029 - Missing repository information in test report
+ * Bug 1076870 - Set browser.newtabpage.introShown pref to true to disable the options
+ * Bug 1081996 - Finally disable e10s prompt
+
 2.0.8 / 2014-09-16
 ==================
 
