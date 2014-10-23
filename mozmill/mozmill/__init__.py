@@ -21,6 +21,7 @@ from manifestparser import TestManifest
 import mozinfo
 import mozrunner
 from mozrunner.utils import get_metadata_from_egg
+import mozversion
 
 import handlers
 import jsbridge
@@ -477,7 +478,7 @@ class MozMill(object):
         try:
             mozmill = jsbridge.JSObject(self.bridge, js_module_mozmill)
             app_info = json.loads(mozmill.getApplicationDetails())
-            app_info.update(self.runner.get_repositoryInfo())
+            app_info.update(mozversion.get_version(self.runner.binary))
 
         except JSBridgeDisconnectError:
             # We don't have to call report_disconnect here because
