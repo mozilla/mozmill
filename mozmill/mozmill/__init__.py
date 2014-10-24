@@ -129,6 +129,7 @@ class MozMill(object):
                 preferences['browser.displayedE10SPrompt.%s' % i] = 5
 
             preferences['browser.newtabpage.introShown'] = True
+            preferences['browser.uitour.enabled'] = False
             preferences['extensions.jsbridge.port'] = jsbridge_port
             preferences['focusmanager.testmode'] = True
         elif isinstance(preferences, list):
@@ -142,6 +143,7 @@ class MozMill(object):
                 preferences.append(('browser.displayedE10SPrompt.%s' % i, 5))
 
             preferences.append(('browser.newtabpage.introShown', True))
+            preferences.append(('browser.uitour.enabled', False))
             preferences.append(('extensions.jsbridge.port', jsbridge_port))
             preferences.append(('focusmanager.testmode', True))
         else:
@@ -872,6 +874,7 @@ class CLI(mozrunner.CLI):
             'browser.tabs.remote.autostart': False,
 
             'browser.newtabpage.introShown': True,
+            'browser.uitour.enabled': False,
             'extensions.jsbridge.port': self.jsbridge_port,
             'focusmanager.testmode': True
         }
