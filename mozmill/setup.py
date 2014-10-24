@@ -13,6 +13,7 @@ deps = ['jsbridge == 3.1-dev',
         'mozinfo == 0.7',
         'mozprofile == 0.22',
         'mozrunner == 5.35',
+        'mozversion == 1.0',
         'wptserve == 1.1'
         ]
 
