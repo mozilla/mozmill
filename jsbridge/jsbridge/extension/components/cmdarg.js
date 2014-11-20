@@ -119,6 +119,6 @@ jsbridgeHandler.prototype = {
  * XPCOMUtils.generateNSGetModule is for Mozilla 1.9.1 (Firefox 3.5).
  */
 if (XPCOMUtils.generateNSGetFactory)
-  const NSGetFactory = XPCOMUtils.generateNSGetFactory([jsbridgeHandler]);
+  var NSGetFactory = XPCOMUtils.generateNSGetFactory([jsbridgeHandler]);
 else
-  const NSGetModule = XPCOMUtils.generateNSGetModule([jsbridgeHandler]);
+  var NSGetModule = XPCOMUtils.generateNSGetModule([jsbridgeHandler]);
