@@ -984,21 +984,28 @@ function browserAdditions (controller) {
     win = win || this.browserObject.selectedBrowser.contentWindow;
 
     // Wait until the content in the tab has been loaded
+    var winId = utils.getWindowId(win)
     try {
       this.waitFor(function () {
-        return windows.map.hasPageLoaded(utils.getWindowId(win));
+        return windows.map.hasPageLoaded(winId);
       }, "Timeout", timeout, aInterval);
     }
     catch (ex if ex instanceof errors.TimeoutError) {
       timed_out = true;
     }
     finally {
-      state = 'URI=' + win.document.location.href +
-              ', readyState=' + win.document.readyState;
-      message = "controller.waitForPageLoad(" + state + ")";
-
       if (timed_out) {
-        throw new errors.AssertionError(message);
+        var message = "A page load has been detected";
+
+        // Only if a new page failed loading, give load status details
+        if (windows.map.getValue(winId, "id_load_handled") !==
+            windows.map.getValue(winId, "id_load_in_transition")) {
+          message = "URI=" + win.document.location.href +
+                    ", readyState=" + win.document.readyState;
+        }
+
+        throw new errors.AssertionError("controller.waitForPageLoad(): " +
+                                        message);
       }
 
       broker.pass({'function': message});
