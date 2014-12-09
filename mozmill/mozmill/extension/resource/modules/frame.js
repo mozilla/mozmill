@@ -520,7 +520,6 @@ Collector.prototype.loadFile = function collector_loadFile(path, collector) {
   module.Cr = Components.results;
   module.Cu = Cu;
   module.collector = collector;
-  module.driver = moduleLoader.require("driver");
   module.elementslib = mozelement;
   module.errors = errors;
   module.expect = expect;
