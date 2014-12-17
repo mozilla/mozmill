@@ -869,7 +869,8 @@ class CLI(mozrunner.CLI):
         profile_args = mozrunner.CLI.profile_args(self)
         profile_args.setdefault('addons', []).extend(ADDONS)
 
-        profile_args['preferences'] = {
+        # create a preferences dict whose entries will be added later
+        prefs = {
             # Bug 695026 - Re-enable e10s when fully supported
             'browser.displayedE10SPrompt': 5,
             'browser.tabs.remote.autostart': False,
@@ -881,16 +882,17 @@ class CLI(mozrunner.CLI):
         }
 
         # Bug 1081996: Separate fixes for each e10s testing duration
-        preferences = profile_args['preferences']
         for i in range(1, 10):
-            preferences['browser.tabs.remote.autostart.%s' % i] = False
-            preferences['browser.displayedE10SPrompt.%s' % i] = 5
+            prefs['browser.tabs.remote.autostart.%s' % i] = False
+            prefs['browser.displayedE10SPrompt.%s' % i] = 5
 
         if self.options.debug:
-            prefs = profile_args['preferences']
             prefs['extensions.checkCompatibility'] = False
             prefs['extensions.jsbridge.log'] = True
             prefs['javascript.options.strict'] = True
+
+        # add the preferences of this function to the existing ones
+        profile_args.setdefault('preferences', []).extend(prefs.items());
 
         return profile_args
 
