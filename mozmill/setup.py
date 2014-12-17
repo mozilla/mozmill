@@ -9,12 +9,12 @@ PACKAGE_NAME = "mozmill"
 PACKAGE_VERSION = "2.1-dev"
 
 deps = ['jsbridge == 3.1-dev',
-        'manifestparser == 0.6',
+        'manifestparser == 0.8',
         'mozinfo == 0.7',
         'mozprofile == 0.22',
         'mozrunner == 6.7',
         'mozversion == 1.1',
-        'wptserve == 1.1'
+        'wptserve == 1.2.1'
         ]
 
 # take description from README

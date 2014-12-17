@@ -9,8 +9,7 @@ from setuptools import setup, find_packages
 PACKAGE_NAME = "mutt"
 PACKAGE_VERSION = "0.1"
 
-deps = ['manifestparser == 0.6',
-        'mozfile == 1.1',
+deps = ['mozfile == 1.1',
         'mozmill']
 
 desc = "Test Harness for Mozmill"
