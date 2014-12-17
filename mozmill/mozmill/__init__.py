@@ -17,6 +17,7 @@ import traceback
 from manifestparser import TestManifest
 import mozinfo
 import mozrunner
+from mozrunner.application import get_app_context
 from mozrunner.utils import get_metadata_from_egg
 import mozversion
 import wptserve
@@ -100,7 +101,7 @@ class MozMill(object):
     """
 
     @classmethod
-    def create(cls, jsbridge_timeout=JSBRIDGE_TIMEOUT,
+    def create(cls, binary=None, jsbridge_timeout=JSBRIDGE_TIMEOUT,
                handlers=None, app='firefox', profile_args=None,
                runner_args=None, screenshots_path=None, server_root=None):
 
@@ -109,6 +110,7 @@ class MozMill(object):
         # select runner and profile class for the given app
         try:
             runner_class = mozrunner.runners[app]
+            profile_class = get_app_context(app).profile_class
         except KeyError:
             msg = 'Application "%s" unknown (should be one of %s)'
             raise NotImplementedError(msg % (app, mozrunner.runners.keys()))
@@ -150,14 +152,18 @@ class MozMill(object):
         else:
             raise Exception('Invalid type for preferences in profile_args')
 
-        runner_args = copy.deepcopy(runner_args) or {}
-        runner_args['profile_args'] = profile_args
-
         # update environment variables for API usage
         os.environ.update(ENVIRONMENT)
 
         # create an equipped runner
-        runner = runner_class.create(**runner_args)
+        profile = profile_class(**profile_args)
+
+        # if no binary is given, take it from the browser path env variable
+        binary = binary or os.environ.get('BROWSER_PATH', None)
+
+        # setup the runner
+        runner_args = copy.deepcopy(runner_args) or {}
+        runner = runner_class(binary=binary, profile=profile, **runner_args)
 
         # create a mozmill
         return cls(runner, jsbridge_port, jsbridge_timeout=jsbridge_timeout,

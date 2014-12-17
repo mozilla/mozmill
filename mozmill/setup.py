@@ -3,7 +3,7 @@
 # file, you can obtain one at http://mozilla.org/MPL/2.0/.
 
 import os
-from setuptools import setup, find_packages
+from setuptools import setup
 
 PACKAGE_NAME = "mozmill"
 PACKAGE_VERSION = "2.1-dev"
@@ -12,8 +12,8 @@ deps = ['jsbridge == 3.1-dev',
         'manifestparser == 0.6',
         'mozinfo == 0.7',
         'mozprofile == 0.22',
-        'mozrunner == 5.35',
-        'mozversion == 1.0',
+        'mozrunner == 6.7',
+        'mozversion == 1.1',
         'wptserve == 1.1'
         ]
 
