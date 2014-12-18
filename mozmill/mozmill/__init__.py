@@ -472,7 +472,7 @@ class MozMill(object):
                     frame = None
                     self.handle_disconnect(e)
 
-            # stop the runner via JS when all tests were run
+            # stop the runner
             if frame:
                 self.stop_runner()
 
@@ -538,10 +538,11 @@ class MozMill(object):
 
             if self.check_for_crashes():
                 self.report_disconnect('Application crashed')
-                return
+            else:
+                self.report_disconnect()
 
-            self.report_disconnect()
-            self.kill_runner()
+            if returncode is None:
+                self.stop_runner()
         elif self.shutdownMode.get('restart'):
             # When the application gets restarted it will get a new process id by
             # spawning a new child process and obsoleting the former process.
@@ -617,22 +618,6 @@ class MozMill(object):
         self.runner.wait(timeout=self.jsbridge_timeout)
         if self.runner.is_running():
             raise errors.ShutdownError('client process shutdown unsuccessful')
-
-    def kill_runner(self):
-        # stop the back channel and bridge first
-        if self.back_channel:
-            self.back_channel.close()
-            self.bridge.close()
-
-        # stop the http server
-        self.http_server_stop()
-
-        # release objects
-        self.back_channel = None
-        self.bridge = None
-
-        # kill the runner
-        self.runner.stop()
 
     def stop(self):
         """Cleanup after a run"""

@@ -37,12 +37,6 @@ class TestShutdownUnexpected(unittest.TestCase):
         exit_code, results = self.do_test(testpath, passes=0, fails=1, skips=0)
         self.assertEqual(exit_code, 0)
 
-    def test_unexpected_timeout(self):
-        testpath = os.path.join(here, 'js-modules', 'testShutdownUnexpectedTimeout.js')
-
-        exit_code, results = self.do_test(testpath, passes=0, fails=1, skips=0)
-        self.assertNotIn(exit_code, [None, 0])
-
     def do_test(self, testpath, addons=None, exception=None,
                 passes=0, fails=0, skips=0):
         addons = addons or []
