@@ -446,7 +446,7 @@ function saveDataURL(aDataURL, aFilename) {
     ready = true;
   }
 
-  NetUtil.asyncFetch(dataURI, function (aInputStream, aAsyncFetchResult) {
+  NetUtil.asyncFetch2(dataURI, function (aInputStream, aAsyncFetchResult) {
     if (!Components.isSuccessCode(aAsyncFetchResult)) {
         // An error occurred!
         sync(aAsyncFetchResult);
@@ -456,7 +456,12 @@ function saveDataURL(aDataURL, aFilename) {
         sync(aAsyncCopyResult);
       });
     }
-  });
+  },
+  null,      // aLoadingNode
+  Services.scriptSecurityManager.getSystemPrincipal(),
+  null,      // aTriggeringPrincipal
+  Ci.nsILoadInfo.SEC_NORMAL,
+  Ci.nsIContentPolicy.TYPE_OTHER);
 
   assert.waitFor(function () {
     return ready;

@@ -314,7 +314,12 @@
        else
          baseURI = ios.newURI(base, null, null);
        var newURI = ios.newURI(path, null, baseURI);
-       var channel = ios.newChannelFromURI(newURI);
+       var channel = ios.newChannelFromURI2(newURI,
+                                            null,      // aLoadingNode
+                                            Services.scriptSecurityManager.getSystemPrincipal(),
+                                            null,      // aTriggeringPrincipal
+                                            Ci.nsILoadInfo.SEC_NORMAL,
+                                            Ci.nsIContentPolicy.TYPE_OTHER);
        try {
          channel.open().close();
        } catch (e if e.result == Cr.NS_ERROR_FILE_NOT_FOUND) {
@@ -323,7 +328,14 @@
        return newURI.spec;
      },
      getFile: function getFile(path) {
-       var channel = ios.newChannel(path, null, null);
+       var channel = ios.newChannel2(path,
+                                     null,
+                                     null,
+                                     null,      // aLoadingNode
+                                     Services.scriptSecurityManager.getSystemPrincipal(),
+                                     null,      // aTriggeringPrincipal
+                                     Ci.nsILoadInfo.SEC_NORMAL,
+                                     Ci.nsIContentPolicy.TYPE_OTHER);
        var iStream = channel.open();
        var ciStream = Cc["@mozilla.org/intl/converter-input-stream;1"].
                       createInstance(Ci.nsIConverterInputStream);
