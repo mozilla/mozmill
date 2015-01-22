@@ -133,6 +133,7 @@ class MozMill(object):
                 preferences['browser.tabs.remote.autostart.%s' % i] = False
                 preferences['browser.displayedE10SPrompt.%s' % i] = 5
 
+            preferences['browser.newtab.preload'] = False
             preferences['browser.newtabpage.introShown'] = True
             preferences['browser.uitour.enabled'] = False
             preferences['extensions.jsbridge.port'] = jsbridge_port
@@ -147,6 +148,7 @@ class MozMill(object):
                 preferences.append(('browser.tabs.remote.autostart.%s' % i, False))
                 preferences.append(('browser.displayedE10SPrompt.%s' % i, 5))
 
+            preferences.append(('browser.newtab.preload', False))
             preferences.append(('browser.newtabpage.introShown', True))
             preferences.append(('browser.uitour.enabled', False))
             preferences.append(('extensions.jsbridge.port', jsbridge_port))
@@ -807,6 +809,7 @@ class CLI(mozrunner.CLI):
             'browser.displayedE10SPrompt': 5,
             'browser.tabs.remote.autostart': False,
 
+            'browser.newtab.preload': False,
             'browser.newtabpage.introShown': True,
             'browser.uitour.enabled': False,
             'extensions.jsbridge.port': self.jsbridge_port,
