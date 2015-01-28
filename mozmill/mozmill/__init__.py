@@ -133,6 +133,7 @@ class MozMill(object):
 
             preferences['browser.newtab.preload'] = False
             preferences['browser.newtabpage.introShown'] = True
+            preferences['browser.tabs.animate'] = False
             preferences['browser.uitour.enabled'] = False
             preferences['extensions.jsbridge.port'] = jsbridge_port
             preferences['focusmanager.testmode'] = True
@@ -148,6 +149,7 @@ class MozMill(object):
 
             preferences.append(('browser.newtab.preload', False))
             preferences.append(('browser.newtabpage.introShown', True))
+            preferences.append(('browser.tabs.animate', False))
             preferences.append(('browser.uitour.enabled', False))
             preferences.append(('extensions.jsbridge.port', jsbridge_port))
             preferences.append(('focusmanager.testmode', True))
@@ -900,6 +902,7 @@ class CLI(mozrunner.CLI):
 
             'browser.newtab.preload': False,
             'browser.newtabpage.introShown': True,
+            'browser.tabs.animate': False,
             'browser.uitour.enabled': False,
             'extensions.jsbridge.port': self.jsbridge_port,
             'focusmanager.testmode': True
