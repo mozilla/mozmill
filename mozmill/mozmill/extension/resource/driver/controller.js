@@ -60,9 +60,10 @@ waitForEvents.prototype = {
    */
   wait: function waitForEvents_wait(timeout, interval) {
     for (var e in this.registry) {
+      var self = this;
       assert.waitFor(function () {
-        return this.node.firedEvents[e] == true;
-      }, "waitForEvents.wait(): Event '" + ex + "' has been fired.", timeout, interval);
+        return self.node.firedEvents[e] == true;
+      }, "waitForEvents.wait(): Event '" + e + "' has been fired.", timeout, interval);
 
       this.node.removeEventListener(e, this.registry[e], true);
     }
