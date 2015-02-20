@@ -1,5 +1,14 @@
+2.0.10 / 2015-02-20
+===================
+
+ * Bug 1126771 - Disable animations when opening and closing tabs
+ * Bug 1120906 - Disable about:newtab pre-loading
+ * Bug 1118012 - Fix reference failure in waitForEvents.wait()
+ * Bug 1108243 - Improve failure message for waitForPageLoad() in case of no page load happened
+ * Bug 1134984 - getApplicationDetails() fails because of non-serializable objects
+
 2.0.9 / 2014-10-24
-====================
+==================
 
  * Bug 1088609 - Disable pref for the australis quick tour
  * Bug 1088029 - Missing repository information in test report
