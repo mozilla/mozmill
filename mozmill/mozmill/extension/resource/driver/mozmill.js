@@ -72,6 +72,7 @@ var Application = utils.applicationName;
  */
 function getAddons() {
   var addons = null;
+  var keys = ["id", "isActive", "isCompatible", "name", "type", "version"];
 
   AddonManager.getAllAddons(function (addonList) {
     var tmp_list = [ ];
@@ -79,14 +80,9 @@ function getAddons() {
     addonList.forEach(function (addon) {
       var tmp = { };
 
-      // We have to filter out properties of type 'function' of the addon
-      // object, which will break JSON.stringify() and result in incomplete
-      // addon information.
-      for (var key in addon) {
-        if (typeof(addon[key]) !== "function") {
-          tmp[key] = addon[key];
-        }
-      }
+      keys.forEach(function (key) {
+        tmp[key] = addon[key];
+      });
 
       tmp_list.push(tmp);
     });
