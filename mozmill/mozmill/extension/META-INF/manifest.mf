@@ -1,0 +1,162 @@
+Manifest-Version: 1.0
+
+Name: install.rdf
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: K/tnuCeDEg3tw2VyWBMD1w==
+SHA1-Digest: 09kLLfpcpZsrRvuaC13ZTp6l19A=
+
+Name: chrome.manifest
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: /eZxYeg9ciavXo6VwVxO1w==
+SHA1-Digest: 1YgzGbj3woJ2JVRFGlSu9bOjlwo=
+
+Name: components/handlers.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: JEhJsTk6RmP8W1lrSc4rwA==
+SHA1-Digest: 2oi3Z4KojTqY5lkd9Gx915TR+oQ=
+
+Name: content/test/chrome_elements.xul
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: d2cMzMXzXInMN2IWfdxOCw==
+SHA1-Digest: 2BIex9vsxQberId2U875Gi4+hDQ=
+
+Name: content/test/radio_buttons.xul
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: BWUshAf0y1oNVJpSVuuDKA==
+SHA1-Digest: +RcM2yRoQjb5Yvvo8UODFvepj/8=
+
+Name: content/test/test.css
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: SmFTojtVcO+m5S+xVIL6pg==
+SHA1-Digest: 7/wj919UckC+7L4smA3L3xQHR48=
+
+Name: content/test/test.html
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: jxg0x0Wv3anIUavRI7aSfQ==
+SHA1-Digest: SvYapl7JkJqvIQ8ufEjRikOaWVg=
+
+Name: content/test/test.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 9Y7NtJ1G275N42+MU/O1CA==
+SHA1-Digest: Hv+ACOo5KInBxyh5d0wT5Mg11Dg=
+
+Name: content/test/test.xul
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: Cw9jNrXhfRzePJOI9Gn/AA==
+SHA1-Digest: EniKYz4sIhkrtMWbYW7J9UgTZwo=
+
+Name: resource/driver/controller.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: PfS78Nl2PNeALUerqYRlkQ==
+SHA1-Digest: 7SP2NrjrP1SbHKrf3HE5a+dMbno=
+
+Name: resource/driver/elementslib.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 9sLLJHMflDIIIu8mUyTcdg==
+SHA1-Digest: GuFn2iUTKwExDJvgkebSRIw1UQ4=
+
+Name: resource/driver/mozelement.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: PfjP57jaOuGg4D7mjUaIdA==
+SHA1-Digest: aK1uLW4wEXMoH0quEFW2KoA1Bro=
+
+Name: resource/driver/mozmill.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: zhKhfh5C0fW80NNtF3Xr8g==
+SHA1-Digest: hsQgJ4uzpd9liYFOdKvL/X/4308=
+
+Name: resource/driver/msgbroker.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: MoDcfxbHlyMZ0qouqdKPMg==
+SHA1-Digest: kM2nOu+oAfTIzMivTEVFKJ7jAo0=
+
+Name: resource/modules/assertions.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: UpYfETLaIhnHUC/HdHeEqQ==
+SHA1-Digest: 5+2m0NWf81ekJZIoXB9Ug5VRWys=
+
+Name: resource/modules/driver.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: Qix3WDeYZmDzzShABfT5gg==
+SHA1-Digest: QI2IAkNKN7IwtkitQpr7A60wZgU=
+
+Name: resource/modules/errors.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: WpBx8vNylcTkCRh2xDG+8A==
+SHA1-Digest: Mhh4ApnrHo/hMFCTuNdRdTDul58=
+
+Name: resource/modules/frame.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 194OvUK+x5pHgJCVAUgpww==
+SHA1-Digest: r4KA5umIBY9JWtgCJJPOOtihOKg=
+
+Name: resource/modules/l10n.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: SBQooiQ1BDAH/qIsrUF/Kw==
+SHA1-Digest: a1yIBXAgbz3GZw4V3Ql3L9thQE0=
+
+Name: resource/modules/stack.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: kh9/fu7vWRnV+fm8ZL8XVQ==
+SHA1-Digest: nOUQM/OtPdjhk733sMyjH7Xayjw=
+
+Name: resource/modules/windows.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: Ujff+Tm5z3hbeAbrKuF0BQ==
+SHA1-Digest: 19QaalaDXINuhj0Yg6DvomPYJOA=
+
+Name: resource/stdlib/arrays.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: eOmyZtwHTLsjh8eAlOuglg==
+SHA1-Digest: 1xiHP2KrtKqhFRBR/TeZpOOwI0Q=
+
+Name: resource/stdlib/dom.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 35ZLEHDaXm2XeC+riFTDdg==
+SHA1-Digest: BxcdXPhlZ094u74lLGGSzRoLAQc=
+
+Name: resource/stdlib/EventUtils.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 56MJxi5FeqsixqkZuxzieg==
+SHA1-Digest: hiXT45617PVkWCCGkeKM5X2jtzQ=
+
+Name: resource/stdlib/httpd.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 0ZJ4pGcYOzRwHtvXQwzEpQ==
+SHA1-Digest: RabJ6yvQBz3fwVPKNsp7l70Uw70=
+
+Name: resource/stdlib/json2.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: GsMcH4ymlig17PbRPEUYHg==
+SHA1-Digest: 3ej86zhexyW5Wy81ak2eTIal+Wo=
+
+Name: resource/stdlib/objects.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 3N11nJMiUAJlWp3AWn1IpA==
+SHA1-Digest: cKBYNRgba/XMlMhdcx3RANZmzLo=
+
+Name: resource/stdlib/os.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 2bcmTAgayw49zs7bP1ayIg==
+SHA1-Digest: Q4H/EwQAvf4wXHNv6H3k5oJoHJ0=
+
+Name: resource/stdlib/securable-module.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 7u50tdpuX3m9Qz9wyPOq4Q==
+SHA1-Digest: +hRWdgtiYzTiPgLyqxeC+5Pj3To=
+
+Name: resource/stdlib/strings.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: /MDmVGmO4dl9bOM/LlTAEQ==
+SHA1-Digest: tntRqXd+w1wd1Nd0gp4ayhsxNIA=
+
+Name: resource/stdlib/utils.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 8cbeNmRdgx9KMDt/x17xuQ==
+SHA1-Digest: lKAG6IDWS/gzikfndC2wDAWyl9w=
+
+Name: resource/stdlib/withs.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: YLFmiI6xw8rW1GADAts82Q==
+SHA1-Digest: jypTa6Mog1qJ1sHYGBHgsP9K5iE=
+

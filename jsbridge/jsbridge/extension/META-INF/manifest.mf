@@ -1,0 +1,47 @@
+Manifest-Version: 1.0
+
+Name: install.rdf
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: /glVQtefNfOL1dWvnamlhw==
+SHA1-Digest: OKUafJrPWk1qvub/D+TX9b7Zo8c=
+
+Name: chrome.manifest
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: daG50aonrtF6pj50q5tJPg==
+SHA1-Digest: iMg0qLDVLFJKvFCZ4UfcluQyVUw=
+
+Name: components/jsbridge.js
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: NJ27JApT5yK/eI88QRxzKg==
+SHA1-Digest: iEEX8rE0vrr3wAwdcpWXxrOlVdk=
+
+Name: resource/modules/Bridge.jsm
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: iVFmC/WV4BZyxMSJJ/OY3Q==
+SHA1-Digest: n/ArnXq0gYQKzVfVYJEzZnEHFMg=
+
+Name: resource/modules/Events.jsm
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: scNiCd0HWBl/O5OKi6xSoA==
+SHA1-Digest: Cmw3/rOiC92wvX6HfsEgJtfHzrU=
+
+Name: resource/modules/Log.jsm
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: Cb8iIhpQIv+gPm3z56w4ew==
+SHA1-Digest: ZIdNLJlnRczrX/1Jdq0+eL8fNyQ=
+
+Name: resource/modules/NSS.jsm
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: p/U/l1XEMg1TRQ1ys+ckPA==
+SHA1-Digest: phk1Kh4SoenLTBFrPjjDGvQ7Y18=
+
+Name: resource/modules/Server.jsm
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: 6w+6fe4KCCSGyBbbISVr9w==
+SHA1-Digest: 7jV1ExBvFScK3tmJqAebOd6zqxE=
+
+Name: resource/modules/Sockets.jsm
+Digest-Algorithms: MD5 SHA1
+MD5-Digest: xCJbM7d5H4+46Y7ArO9p3A==
+SHA1-Digest: Y4tx0e0HoGrJv7Y1jo3vnl88HLI=
+

@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<project name="mozmill" default="createxpi">
+  <property name="xpi.file" value="jsbridge.xpi"/>
+
+  <target name="createxpi">
+    <delete file="${xpi.file}"/>
+    <zip destfile="${xpi.file}">
+      <zipfileset dir="jsbridge/extension" includes="META-INF/**"/>
+      <zipfileset dir="jsbridge/extension" includes="components/**"/>
+      <zipfileset dir="jsbridge/extension" includes="resource/**"/>
+      <zipfileset dir="jsbridge/extension" includes="chrome.manifest"/>
+      <zipfileset dir="jsbridge/extension" includes="install.rdf"/>
+    </zip>
+  </target>
+
+</project>

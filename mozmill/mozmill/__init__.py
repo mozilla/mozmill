@@ -139,6 +139,7 @@ class MozMill(object):
             preferences['browser.uitour.enabled'] = False
             preferences['extensions.jsbridge.port'] = jsbridge_port
             preferences['focusmanager.testmode'] = True
+            preferences['xpinstall.signatures.required'] = False
         elif isinstance(preferences, list):
             # Bug 695026 - Re-enable e10s when fully supported
             preferences.append(('browser.tabs.remote.autostart', False))
@@ -155,6 +156,7 @@ class MozMill(object):
             preferences.append(('browser.uitour.enabled', False))
             preferences.append(('extensions.jsbridge.port', jsbridge_port))
             preferences.append(('focusmanager.testmode', True))
+            preferences.append(('xpinstall.signatures.required', False))
         else:
             raise Exception('Invalid type for preferences in profile_args')
 
@@ -816,7 +818,8 @@ class CLI(mozrunner.CLI):
             'browser.tabs.animate': False,
             'browser.uitour.enabled': False,
             'extensions.jsbridge.port': self.jsbridge_port,
-            'focusmanager.testmode': True
+            'focusmanager.testmode': True,
+            'xpinstall.signatures.required':  False,
         }
 
         # Bug 1081996: Separate fixes for each e10s testing duration

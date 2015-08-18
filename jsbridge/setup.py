@@ -3,11 +3,10 @@
 # file, you can obtain one at http://mozilla.org/MPL/2.0/.
 
 import os
-import sys
-from setuptools import setup, find_packages
+from setuptools import setup
 
 PACKAGE_NAME = "jsbridge"
-PACKAGE_VERSION = "3.0.3"
+PACKAGE_VERSION = "3.0.3.1"
 
 # package dependencies
 deps = []
@@ -48,4 +47,4 @@ setup(name=PACKAGE_NAME,
       zip_safe=False,
       install_requires=deps,
       entry_points="",
-)
+      )

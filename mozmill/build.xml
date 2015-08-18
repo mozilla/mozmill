@@ -1,0 +1,22 @@
+<?xml version="1.0"?>
+
+<project name="mozmill" default="createxpi">
+  <property name="xpi.file" value="mozmill.xpi"/>
+
+  <tstamp>
+    <format property="build.number" pattern="yyyyMMdd" offset="-1" unit="hour"/>
+  </tstamp>
+
+  <target name="createxpi">
+    <delete file="${xpi.file}"/>
+    <zip destfile="${xpi.file}">
+      <zipfileset dir="mozmill/extension" includes="META-INF/**"/>
+      <zipfileset dir="mozmill/extension" includes="content/**"/>
+      <zipfileset dir="mozmill/extension" includes="components/**"/>
+      <zipfileset dir="mozmill/extension" includes="resource/**"/>
+      <zipfileset dir="mozmill/extension" includes="chrome.manifest"/>
+      <zipfileset dir="mozmill/extension" includes="install.rdf"/>
+    </zip>
+  </target>
+
+</project>
