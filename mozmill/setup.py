@@ -6,13 +6,25 @@ import os
 from setuptools import setup
 
 PACKAGE_NAME = "mozmill"
-PACKAGE_VERSION = "2.0.10.1"
+PACKAGE_VERSION = "2.0.10.2"
 
 deps = ['jsbridge == 3.0.3.1',
-        'ManifestDestiny == 0.5.7',
+        'manifestparser == 1.0',
         'mozinfo == 0.7',
         'mozrunner == 5.35',
         'mozversion == 1.0',
+
+        # It is not considered best practice to use install_requires to pin
+        # dependencies to specific versions, or to specify sub-dependencies
+        # (i.e. dependencies of your dependencies).
+        #
+        # But we have to do so to ensure to not run into dep conflicts. More
+        # details see bug 1196122.
+        'mozcrash < 0.15',
+        'mozdevice < 0.46',
+        'mozlog >= 2.0, <3.0',
+        'moznetwork < 0.27',
+        'mozprofile < 0.25',
         ]
 try:
     import json
